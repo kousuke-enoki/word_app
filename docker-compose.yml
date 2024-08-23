@@ -1,0 +1,24 @@
+services:
+  word_app:
+    build:
+      context: ./word_app/
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    volumes:
+      - ./word_app:/app
+      - ./frontend:/app/frontend
+    depends_on:
+      - db
+  db:
+    image: "postgres:15-alpine"
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=db
+    volumes:
+      - db-store:/var/lib/postgresql/data
+
+volumes:
+  db-store:

@@ -1,24 +1,45 @@
+version: '3.9'
+
 services:
-  word_app:
-    build:
-      context: ./word_app/
-      dockerfile: Dockerfile
-    ports:
-      - 8080:8080
-    volumes:
-      - ./word_app:/app
-      - ./frontend:/app/frontend
-    depends_on:
-      - db
   db:
-    image: "postgres:15-alpine"
+    image: postgres:latest
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db
     volumes:
-      - db-store:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_USER: postgres
+      DB_PASSWORD: password
+      DB_NAME: db
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
 
 volumes:
-  db-store:
+  db_data:

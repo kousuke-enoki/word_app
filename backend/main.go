@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 	"context"
   	"log"
 	"eng_app/src"
@@ -10,7 +11,7 @@ import (
 )
 
 func main() {
-
+	log.Println("start server...")
 	// PostgreSQLに接続
 	client, err := ent.Open("postgres", "host=db port=5432 user=postgres dbname=db password=password sslmode=disable")
 	if err != nil {
@@ -25,6 +26,16 @@ func main() {
 
 	// Ginフレームワークのデフォルトの設定を使用してルータを作成
 	router := gin.Default()
+
+  // CORSの設定
+  router.Use(cors.New(cors.Config{
+    AllowOrigins:     []string{"http://localhost:3000"},
+    AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+    AllowHeaders:     []string{"Origin", "Content-Type"},
+    ExposeHeaders:    []string{"Content-Length"},
+    AllowCredentials: true,
+  }))
+
 	src.SetupRouter(router, client)
 
 	// サーバー起動

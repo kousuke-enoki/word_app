@@ -1,0 +1,21 @@
+# ベースイメージとして最新のnodeを使用
+FROM node:latest
+
+# 作業ディレクトリを設定
+WORKDIR /app
+
+# Reactの依存関係をコピー
+COPY package.json package-lock.json ./
+RUN npm install
+
+# アプリケーションのソースコードをコピー
+COPY . .
+
+# アプリケーションをビルド
+RUN npm run build
+
+# フロントエンドのポートを設定
+EXPOSE 3000
+
+# アプリケーションを実行
+CMD ["npm", "start"]

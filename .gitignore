@@ -1,0 +1,15 @@
+# # バイナリファイル
+# *.exe
+# *.dll
+
+# # ログファイル
+# *.log
+
+# # ディレクトリ
+# /node_modules
+# /dist
+
+# # OSやエディタの一時ファイル
+# .DS_Store
+# Thumbs.db
+.history

@@ -1,21 +1,18 @@
-# ベースイメージとして最新のnodeを使用
-FROM node:latest
+# ベースイメージの指定
+FROM node:18
 
-# 作業ディレクトリを設定
+# 作業ディレクトリの作成
 WORKDIR /app
 
-# Reactの依存関係をコピー
-COPY package.json package-lock.json ./
+# 依存関係のインストール
+COPY package*.json ./
 RUN npm install
 
-# アプリケーションのソースコードをコピー
+# ソースコードのコピー
 COPY . .
 
-# アプリケーションをビルド
-RUN npm run build
+# 開発用の環境変数を設定
+ENV CHOKIDAR_USEPOLLING=true
 
-# フロントエンドのポートを設定
-EXPOSE 3000
-
-# アプリケーションを実行
+# 開発サーバーの起動
 CMD ["npm", "start"]

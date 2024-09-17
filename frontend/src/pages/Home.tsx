@@ -7,6 +7,9 @@ const Home: React.FC = () => {
       <h1>word app</h1>
       <p>トップページです。</p>
       <p>
+        <Link to="/SignUp">サインアップページ</Link>
+      </p>
+      <p>
         <Link to="/SignIn">サインインページ</Link>
       </p>
     </div>

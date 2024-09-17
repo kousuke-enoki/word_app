@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 
 const SignIn: React.FC = () => {
   // const [username, setUsername] = useState('');
@@ -15,24 +15,24 @@ const SignIn: React.FC = () => {
 //     console.log('Password:', password);
 //   };
 
-const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
   try {
-    const response = await axios.post('http://localhost:8080/users/sign_up', {
+    const response = await axios.post('http://localhost:8080/users/sign_in', {
         email,
         password,
     });
-    setMessage('Sign up successful!');
+    setMessage('Sign in successful!');
     console.log(response)
   } catch (error) {
-    setMessage('Sign up failed. Please try again.');
+    setMessage('Sign in failed. Please try again.');
   }
 };
 
   return (
     <div>
       <h1>サインイン</h1>
-      <form onSubmit={handleSignUp}>
+      <form onSubmit={handleSignIn}>
         <div>
           <label htmlFor="email">Email:</label>
           <input

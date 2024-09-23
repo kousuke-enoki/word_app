@@ -1,10 +1,12 @@
 package user
 
 import (
-	"github.com/gin-gonic/gin"
+	"context"
 	"eng_app/ent"
 	"eng_app/ent/user"
-	"context"
+
+	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func SignInHandler(client *ent.Client) gin.HandlerFunc {
@@ -20,15 +22,23 @@ func SignInHandler(client *ent.Client) gin.HandlerFunc {
 			return
 		}
 
-		sign_in_user, err := client.User.Query().
-			Where(user.EmailEQ(req.Email), user.PasswordEQ(req.Password)).
+		// ユーザーの検索
+		signInUser, err := client.User.Query().
+			Where(user.EmailEQ(req.Email)).
 			First(context.Background())
 
 		if err != nil {
-			c.JSON(401, gin.H{"error": "invalid credentials"})
+			c.JSON(401, gin.H{"error": "Invalid credentials"})
 			return
 		}
 
-		c.JSON(200, gin.H{"user": sign_in_user})
+		// パスワードの検証
+		err = bcrypt.CompareHashAndPassword([]byte(signInUser.Password), []byte(req.Password))
+		if err != nil {
+			c.JSON(401, gin.H{"error": "Invalid credentials"})
+			return
+		}
+
+		c.JSON(200, gin.H{"user": signInUser})
 	}
 }

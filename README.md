@@ -21,3 +21,15 @@ docker compose exec -it db psql -U postgres -d db
 
 # テーブルの内容を表示
 SELECT * FROM users;
+
+
+〇パッケージのインストール方法(go.mod似ない場合)
+
+# backendに遷移
+cd backend
+
+# モジュールの追加
+go get "パッケージ名"
+
+# モジュールのインストール
+go mod tidy

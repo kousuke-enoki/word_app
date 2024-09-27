@@ -6,10 +6,35 @@ import (
 	"eng_app/ent"
 	"io"
 	"log"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var jwtKey = []byte("your_secret_key")
+
+type Claims struct {
+	Email string `json:"email"`
+	jwt.RegisteredClaims
+}
+
+func generateJWT(email string) (string, error) {
+	expirationTime := time.Now().Add(24 * time.Hour)
+	claims := &Claims{
+		Email: email,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+	if err != nil {
+		return "", err
+	}
+	return tokenString, nil
+}
 
 func SignUpHandler(client *ent.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -58,6 +83,15 @@ func SignUpHandler(client *ent.Client) gin.HandlerFunc {
 			c.JSON(500, gin.H{"error": err.Error(), "message": "sign up missing"})
 			return
 		}
-		c.JSON(201, gin.H{"user": newUser})
+
+		// JWTトークンの生成
+		token, err := generateJWT(req.Email)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "Failed to generate token"})
+			return
+		}
+
+		// 成功時のレスポンス
+		c.JSON(201, gin.H{"user": newUser, "token": token})
 	}
 }

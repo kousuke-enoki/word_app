@@ -1,19 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-// import { Link } from 'react-router-dom';
 
 const SignUp: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
-
-//   const handleSubmit = (event: React.FormEvent) => {
-//     event.preventDefault();
-//     // ログイン処理のロジックをここに追加
-//     console.log('Email:', email);
-//     console.log('Password:', password);
-//   };
 
 const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
@@ -25,6 +17,7 @@ const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     });
     setMessage('Sign up successful!');
     console.log(response)
+    localStorage.setItem('token', response.data.token);
   } catch (error) {
     setMessage('Sign up failed. Please try again.');
   }

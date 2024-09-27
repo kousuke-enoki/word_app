@@ -12,6 +12,9 @@ const Home: React.FC = () => {
       <p>
         <Link to="/SignIn">サインインページ</Link>
       </p>
+      <p>
+        <Link to="/mypage">マイページ</Link>
+      </p>
     </div>
   );
 };

@@ -15,6 +15,7 @@ func SetupRouter(router *gin.Engine, client *ent.Client) {
 	router.GET("/", handlers.RootHandler)
 	router.POST("users/sign_up", user.SignUpHandler(client))
 	router.POST("users/sign_in", user.SignInHandler(client))
+	router.GET("users/mypage", user.MyPageHandler(client))
 
 	// リクエストの詳細をログに出力
 	router.Use(func(c *gin.Context) {
@@ -35,7 +36,7 @@ func CORSMiddleware() gin.HandlerFunc {
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(200)
+			c.AbortWithStatus(204)
 			return
 		}
 		c.Next()

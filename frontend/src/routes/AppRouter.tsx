@@ -4,6 +4,7 @@ import Home from '../pages/Home';
 import SignIn from '../pages/SignIn';
 import SignUp from '../pages/SignUp';
 import Header from '../components/Header';
+import MyPage from '../pages/MyPage';
 // import Dashboard from '../pages/Dashboard';
 // import Footer from '../components/Footer';
 
@@ -15,6 +16,7 @@ const AppRouter: React.FC = () => {
         <Route path="/" element={<Home />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/mypage" element={<MyPage />} />
         {/* 他のルートをここに追加 */}
       </Routes>
       {/* <Footer /> */}

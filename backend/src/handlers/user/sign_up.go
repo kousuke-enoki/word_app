@@ -3,9 +3,9 @@ package user
 import (
 	"bytes"
 	"context"
-	"eng_app/ent"
 	"io"
 	"log"
+	"word_app/ent"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"

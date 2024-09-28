@@ -4,8 +4,8 @@ package hook
 
 import (
 	"context"
-	"eng_app/ent"
 	"fmt"
+	"word_app/ent"
 )
 
 // The JapaneseMeanFunc type is an adapter to allow the use of ordinary

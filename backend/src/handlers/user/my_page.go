@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"strconv"
 	"word_app/ent"
 	"word_app/ent/user"
 
@@ -12,16 +13,21 @@ import (
 
 func MyPageHandler(client *ent.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// JWTトークンからユーザーのEmailを取得
-		email, exists := c.Get("email") // ここは user_id ではなく email に
+		userId, exists := c.Get("userId")
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 			return
 		}
 
-		// Emailでユーザー情報をデータベースから取得
+		// userIdをint型に変換
+		userIDInt, err := strconv.Atoi(userId.(string)) // 変換処理を追加
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID"})
+			return
+		}
+		// userIdでユーザー情報をデータベースから取得
 		signInUser, err := client.User.Query().
-			Where(user.EmailEQ(email.(string))). // <- クエリ部分
+			Where(user.ID(userIDInt)). // <- クエリ部分
 			First(context.Background())
 
 		if err != nil {
@@ -32,8 +38,7 @@ func MyPageHandler(client *ent.Client) gin.HandlerFunc {
 
 		// ユーザー情報を返す
 		c.JSON(http.StatusOK, gin.H{
-			"name":  signInUser.Name,
-			"email": email,
+			"name": signInUser.Name,
 		})
 	}
 }

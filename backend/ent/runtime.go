@@ -3,13 +3,13 @@
 package ent
 
 import (
-	"eng_app/ent/japanesemean"
-	"eng_app/ent/partofspeech"
-	"eng_app/ent/schema"
-	"eng_app/ent/user"
-	"eng_app/ent/word"
-	"eng_app/ent/wordinfo"
 	"time"
+	"word_app/ent/japanesemean"
+	"word_app/ent/partofspeech"
+	"word_app/ent/schema"
+	"word_app/ent/user"
+	"word_app/ent/word"
+	"word_app/ent/wordinfo"
 )
 
 // The init function reads all schema descriptors with runtime code

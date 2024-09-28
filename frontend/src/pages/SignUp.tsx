@@ -8,13 +8,6 @@ const SignUp: React.FC = () => {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
 
-//   const handleSubmit = (event: React.FormEvent) => {
-//     event.preventDefault();
-//     // ログイン処理のロジックをここに追加
-//     console.log('Email:', email);
-//     console.log('Password:', password);
-//   };
-
 const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
   try {
@@ -23,8 +16,9 @@ const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
         email,
         password,
     });
+    const token = response.data.token;
+    localStorage.setItem('token', token);
     setMessage('Sign up successful!');
-    console.log(response)
   } catch (error) {
     setMessage('Sign up failed. Please try again.');
   }

@@ -2,12 +2,38 @@ package user
 
 import (
 	"context"
-	"eng_app/ent"
-	"eng_app/ent/user"
+	"time"
+	"word_app/ent"
+	"word_app/ent/user"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var jwtKey = []byte("your_secret_key")
+
+type Claims struct {
+	Email string `json:"email"`
+	jwt.RegisteredClaims
+}
+
+func generateJWT(email string) (string, error) {
+	expirationTime := time.Now().Add(24 * time.Hour)
+	claims := &Claims{
+		Email: email,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   email,
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+	if err != nil {
+		return "", err
+	}
+	return tokenString, nil
+}
 
 func SignInHandler(client *ent.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -15,7 +41,6 @@ func SignInHandler(client *ent.Client) gin.HandlerFunc {
 			Email    string `json:"email" binding:"required"`
 			Password string `json:"password" binding:"required"`
 		}
-
 		var req SignInRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(400, gin.H{"error": "Invalid request"})
@@ -39,6 +64,16 @@ func SignInHandler(client *ent.Client) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(200, gin.H{"user": signInUser})
+		// JWTトークンの生成
+		token, err := generateJWT(req.Email)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "Failed to generate token"})
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"message": "Sign in successful",
+			"token":   token,
+		})
 	}
 }

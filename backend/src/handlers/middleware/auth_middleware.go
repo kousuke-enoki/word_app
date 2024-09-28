@@ -43,9 +43,9 @@ func AuthMiddleware() gin.HandlerFunc {
 		// トークンが有効であり、クレームを取得できた場合
 		if claims, ok := token.Claims.(*jwt.RegisteredClaims); ok && token.Valid {
 			// クレームからemailを取得
-			email := claims.Subject // userIDの代わりにemailを取得
-			// gin.Context にemailを保存
-			c.Set("email", email)
+			userId := claims.Subject
+			// gin.Context にuserIDを保存
+			c.Set("userId", userId)
 
 			// 次のハンドラに処理を渡す
 			c.Next()

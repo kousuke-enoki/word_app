@@ -2,6 +2,7 @@ package src
 
 import (
 	"log"
+	"net/http"
 	"word_app/ent"
 	"word_app/src/handlers"
 	"word_app/src/handlers/middleware"
@@ -12,6 +13,9 @@ import (
 
 func SetupRouter(router *gin.Engine, client *ent.Client) {
 	router.Use(CORSMiddleware())
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "healthy"})
+	})
 
 	router.GET("/", handlers.RootHandler)
 	router.POST("users/sign_up", user.SignUpHandler(client))

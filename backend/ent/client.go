@@ -9,13 +9,13 @@ import (
 	"log"
 	"reflect"
 
-	"eng_app/ent/migrate"
+	"word_app/ent/migrate"
 
-	"eng_app/ent/japanesemean"
-	"eng_app/ent/partofspeech"
-	"eng_app/ent/user"
-	"eng_app/ent/word"
-	"eng_app/ent/wordinfo"
+	"word_app/ent/japanesemean"
+	"word_app/ent/partofspeech"
+	"word_app/ent/user"
+	"word_app/ent/word"
+	"word_app/ent/wordinfo"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"

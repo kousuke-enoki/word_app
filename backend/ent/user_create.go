@@ -4,10 +4,10 @@ package ent
 
 import (
 	"context"
-	"eng_app/ent/user"
 	"errors"
 	"fmt"
 	"time"
+	"word_app/ent/user"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"

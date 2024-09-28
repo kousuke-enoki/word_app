@@ -8,20 +8,15 @@ const SignIn: React.FC = () => {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
 
-//   const handleSubmit = (event: React.FormEvent) => {
-//     event.preventDefault();
-//     // ログイン処理のロジックをここに追加
-//     console.log('Email:', email);
-//     console.log('Password:', password);
-//   };
-
 const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
   try {
     const response = await axios.post('http://localhost:8080/users/sign_in', {
-        email,
-        password,
+      email,
+      password,
     });
+    const token = response.data.token;
+    localStorage.setItem('token', token);
     setMessage('Sign in successful!');
     console.log(response)
   } catch (error) {

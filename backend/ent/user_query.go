@@ -4,10 +4,10 @@ package ent
 
 import (
 	"context"
-	"eng_app/ent/predicate"
-	"eng_app/ent/user"
 	"fmt"
 	"math"
+	"word_app/ent/predicate"
+	"word_app/ent/user"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"

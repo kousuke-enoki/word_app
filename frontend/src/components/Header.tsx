@@ -7,6 +7,9 @@ const Header: React.FC = () => {
       <p>
         <Link to="/">word app</Link>
       </p>
+      <p>
+        <Link to="/mypage">my page</Link>
+      </p>
     </div>
   );
 };

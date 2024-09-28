@@ -3,10 +3,10 @@
 package ent
 
 import (
-	"eng_app/ent/word"
 	"fmt"
 	"strings"
 	"time"
+	"word_app/ent/word"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"

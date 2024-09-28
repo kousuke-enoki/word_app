@@ -3,8 +3,8 @@
 package wordinfo
 
 import (
-	"eng_app/ent/predicate"
 	"time"
+	"word_app/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"

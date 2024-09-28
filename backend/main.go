@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"eng_app/ent"
-	"eng_app/src"
 	"log"
+	"word_app/ent"
+	"word_app/src"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -35,12 +35,13 @@ func main() {
 	// CORSの設定
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-		AllowHeaders:     []string{"Origin", "Content-Type"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"}, // Authorization ヘッダーを許可
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
 
+	// ルータのセットアップ
 	src.SetupRouter(router, client)
 
 	// サーバー起動

@@ -4,8 +4,8 @@ package ent
 
 import (
 	"context"
-	"eng_app/ent/japanesemean"
-	"eng_app/ent/predicate"
+	"word_app/ent/japanesemean"
+	"word_app/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"

@@ -1,10 +1,11 @@
 package src
 
 import (
-	"eng_app/ent"
-	"eng_app/src/handlers"
-	"eng_app/src/handlers/user"
 	"log"
+	"word_app/ent"
+	"word_app/src/handlers"
+	"word_app/src/handlers/middleware"
+	"word_app/src/handlers/user"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,6 +16,11 @@ func SetupRouter(router *gin.Engine, client *ent.Client) {
 	router.GET("/", handlers.RootHandler)
 	router.POST("users/sign_up", user.SignUpHandler(client))
 	router.POST("users/sign_in", user.SignInHandler(client))
+
+	// 認証が必要なエンドポイント
+	protected := router.Group("/")
+	protected.Use(middleware.AuthMiddleware())
+	protected.GET("users/my_page", user.MyPageHandler(client))
 
 	// リクエストの詳細をログに出力
 	router.Use(func(c *gin.Context) {
@@ -34,10 +40,13 @@ func CORSMiddleware() gin.HandlerFunc {
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		// OPTIONSリクエスト（プリフライトリクエスト）の処理
 		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(200)
+			c.AbortWithStatus(204)
 			return
 		}
+
 		c.Next()
 	}
 }

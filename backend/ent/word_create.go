@@ -4,11 +4,11 @@ package ent
 
 import (
 	"context"
-	"eng_app/ent/word"
-	"eng_app/ent/wordinfo"
 	"errors"
 	"fmt"
 	"time"
+	"word_app/ent/word"
+	"word_app/ent/wordinfo"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"

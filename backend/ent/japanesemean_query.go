@@ -4,11 +4,11 @@ package ent
 
 import (
 	"context"
-	"eng_app/ent/japanesemean"
-	"eng_app/ent/predicate"
-	"eng_app/ent/wordinfo"
 	"fmt"
 	"math"
+	"word_app/ent/japanesemean"
+	"word_app/ent/predicate"
+	"word_app/ent/wordinfo"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"

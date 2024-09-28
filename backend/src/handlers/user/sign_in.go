@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"time"
 	"word_app/ent"
 	"word_app/ent/user"
@@ -14,16 +15,16 @@ import (
 var jwtKey = []byte("your_secret_key")
 
 type Claims struct {
-	Email string `json:"email"`
+	UserID string `json:"user_id"`
 	jwt.RegisteredClaims
 }
 
-func generateJWT(email string) (string, error) {
+func generateJWT(userID string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &Claims{
-		Email: email,
+		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   email,
+			Subject:   userID,
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
 	}
@@ -65,7 +66,7 @@ func SignInHandler(client *ent.Client) gin.HandlerFunc {
 		}
 
 		// JWTトークンの生成
-		token, err := generateJWT(req.Email)
+		token, err := generateJWT(fmt.Sprintf("%d", signInUser.ID))
 		if err != nil {
 			c.JSON(500, gin.H{"error": "Failed to generate token"})
 			return

@@ -13,7 +13,7 @@ const MyPage: React.FC<MyPageProps> = ({ user, onSignOut }) => {
 
   return (
     <div>
-      <h1>マイページ</h1>
+      <h2>マイページ</h2>
       <p>ようこそ、{user.name}さん！</p>
       <p>今日の日付: {today}</p>
       <button onClick={onSignOut}>サインアウト</button>

@@ -1,38 +1,31 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
+import axiosInstance from '../axiosConfig';
 
 const SignIn: React.FC = () => {
-  // const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
 
-//   const handleSubmit = (event: React.FormEvent) => {
-//     event.preventDefault();
-//     // ログイン処理のロジックをここに追加
-//     console.log('Email:', email);
-//     console.log('Password:', password);
-//   };
-
-const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
   try {
-    const response = await axios.post('http://localhost:8080/users/sign_up', {
-        email,
-        password,
+    const response = await axiosInstance.post('/users/sign_in', {
+      email,
+      password,
     });
-    setMessage('Sign up successful!');
+    const token = response.data.token;
+    localStorage.setItem('token', token);
+    setMessage('Sign in successful!');
     console.log(response)
   } catch (error) {
-    setMessage('Sign up failed. Please try again.');
+    setMessage('Sign in failed. Please try again.');
   }
 };
 
   return (
     <div>
       <h1>サインイン</h1>
-      <form onSubmit={handleSignUp}>
+      <form onSubmit={handleSignIn}>
         <div>
           <label htmlFor="email">Email:</label>
           <input

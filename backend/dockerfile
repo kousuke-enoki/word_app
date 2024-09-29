@@ -1,5 +1,5 @@
 # ビルド用のステージ
-FROM golang:1.22 AS builder
+FROM golang:1.23 AS builder
 
 # 作業ディレクトリを設定
 WORKDIR /app
@@ -11,18 +11,8 @@ RUN go mod download
 # アプリケーションのソースコードをコピー
 COPY . .
 
-# アプリケーションをビルド
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main .
+# airをインストール (修正)
+RUN go install github.com/air-verse/air@latest
 
-# 実行用の軽量イメージを使用
-FROM alpine:latest
-
-# 依存関係をコピー
-WORKDIR /app
-COPY --from=builder /app/main /app/main
-
-# バックエンドのポートを設定
-EXPOSE 8080
-
-# アプリケーションを実行
-CMD ["./main"]
+# アプリケーションをビルドしないので、CMDを変更
+CMD ["air"]

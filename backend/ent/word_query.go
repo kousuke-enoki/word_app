@@ -5,11 +5,11 @@ package ent
 import (
 	"context"
 	"database/sql/driver"
-	"eng_app/ent/predicate"
-	"eng_app/ent/word"
-	"eng_app/ent/wordinfo"
 	"fmt"
 	"math"
+	"word_app/ent/predicate"
+	"word_app/ent/word"
+	"word_app/ent/wordinfo"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"

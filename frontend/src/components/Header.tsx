@@ -4,9 +4,7 @@ import { Link } from 'react-router-dom';
 const Header: React.FC = () => {
   return (
     <div>
-      <p>
-        <Link to="/">word app</Link>
-      </p>
+      <h1><Link to="/">word app</Link></h1>
     </div>
   );
 };

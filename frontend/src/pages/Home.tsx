@@ -12,10 +12,10 @@ const Home: React.FC = () => {
     const token = localStorage.getItem('token');
 
     // トークンがない場合はメッセージを表示
-    if (!token) {
-      setMessage('ログインしてください。トークンがありません。');
-      return;
-    }
+    // if (!token) {
+    //   setMessage('ログインしてください。トークンがありません。');
+    //   return;
+    // }
 
     // ユーザー情報を取得するためのリクエストを送信
     axiosInstance.get('/users/my_page', {
@@ -41,8 +41,6 @@ const Home: React.FC = () => {
 
   return (
     <div>
-      <h1>word app</h1>
-
       {/* ログイン状態の時はマイページを表示 */}
       {user ? (
         <MyPage user={user} onSignOut={handleSignOut} />

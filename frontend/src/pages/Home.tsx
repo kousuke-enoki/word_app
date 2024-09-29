@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../axiosConfig';
 import MyPage from '../components/MyPage';
 
 const Home: React.FC = () => {
@@ -18,7 +18,7 @@ const Home: React.FC = () => {
     }
 
     // ユーザー情報を取得するためのリクエストを送信
-    axios.get('http://localhost:8080/users/my_page', {
+    axiosInstance.get('/users/my_page', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((response) => {

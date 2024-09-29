@@ -3,9 +3,11 @@ package user
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"word_app/ent"
+	"word_app/src/utils"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -53,11 +55,21 @@ func SignUpHandler(client *ent.Client) gin.HandlerFunc {
 			SetPassword(string(hashedPassword)).
 			Save(context.Background())
 
-		// レスポンスを返す
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error(), "message": "sign up missing"})
+			c.JSON(500, gin.H{"error": err.Error(), "message": "sign up failed"})
 			return
 		}
-		c.JSON(201, gin.H{"user": newUser})
+		log.Println("user", newUser)
+		log.Println("user", newUser.ID)
+		// サインアップ後にJWTトークンを生成
+		token, err := utils.GenerateJWT(fmt.Sprintf("%d", newUser.ID))
+		if err != nil {
+			c.JSON(500, gin.H{"error": "Failed to generate token"})
+			return
+		}
+		log.Println("token", c)
+		log.Println("token", token)
+
+		utils.SendTokenResponse(c, token)
 	}
 }

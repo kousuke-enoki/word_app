@@ -16,6 +16,7 @@ const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
         email,
         password,
     });
+    console.log(response)
     const token = response.data.token;
     localStorage.setItem('token', token);
     setMessage('Sign up successful!');

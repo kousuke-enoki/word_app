@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-// import { Link } from 'react-router-dom';
+import axiosInstance from '../axiosConfig';
 
 const SignIn: React.FC = () => {
-  // const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -11,7 +9,7 @@ const SignIn: React.FC = () => {
 const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
   try {
-    const response = await axios.post('http://localhost:8080/users/sign_in', {
+    const response = await axiosInstance.post('/users/sign_in', {
       email,
       password,
     });

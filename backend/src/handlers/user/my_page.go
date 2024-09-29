@@ -38,7 +38,9 @@ func MyPageHandler(client *ent.Client) gin.HandlerFunc {
 
 		// ユーザー情報を返す
 		c.JSON(http.StatusOK, gin.H{
-			"name": signInUser.Name,
+			"user": gin.H{
+				"name": signInUser.Name,
+			},
 		})
 	}
 }

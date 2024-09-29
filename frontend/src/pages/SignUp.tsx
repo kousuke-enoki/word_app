@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-// import { Link } from 'react-router-dom';
+import axiosInstance from '../axiosConfig';
 
 const SignUp: React.FC = () => {
   const [name, setName] = useState('');
@@ -11,7 +10,7 @@ const SignUp: React.FC = () => {
 const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
   try {
-    const response = await axios.post('http://localhost:8080/users/sign_up', {
+    const response = await axiosInstance.post('/users/sign_up', {
         name,
         email,
         password,

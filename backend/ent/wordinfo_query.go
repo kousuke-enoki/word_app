@@ -10,6 +10,7 @@ import (
 	"word_app/ent/japanesemean"
 	"word_app/ent/partofspeech"
 	"word_app/ent/predicate"
+	"word_app/ent/registeredword"
 	"word_app/ent/word"
 	"word_app/ent/wordinfo"
 
@@ -22,13 +23,14 @@ import (
 // WordInfoQuery is the builder for querying WordInfo entities.
 type WordInfoQuery struct {
 	config
-	ctx               *QueryContext
-	order             []wordinfo.OrderOption
-	inters            []Interceptor
-	predicates        []predicate.WordInfo
-	withWord          *WordQuery
-	withPartOfSpeech  *PartOfSpeechQuery
-	withJapaneseMeans *JapaneseMeanQuery
+	ctx                 *QueryContext
+	order               []wordinfo.OrderOption
+	inters              []Interceptor
+	predicates          []predicate.WordInfo
+	withWord            *WordQuery
+	withPartOfSpeech    *PartOfSpeechQuery
+	withJapaneseMeans   *JapaneseMeanQuery
+	withRegisteredWords *RegisteredWordQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -124,6 +126,28 @@ func (wiq *WordInfoQuery) QueryJapaneseMeans() *JapaneseMeanQuery {
 			sqlgraph.From(wordinfo.Table, wordinfo.FieldID, selector),
 			sqlgraph.To(japanesemean.Table, japanesemean.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, wordinfo.JapaneseMeansTable, wordinfo.JapaneseMeansColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(wiq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRegisteredWords chains the current query on the "registered_words" edge.
+func (wiq *WordInfoQuery) QueryRegisteredWords() *RegisteredWordQuery {
+	query := (&RegisteredWordClient{config: wiq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := wiq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := wiq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(wordinfo.Table, wordinfo.FieldID, selector),
+			sqlgraph.To(registeredword.Table, registeredword.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, wordinfo.RegisteredWordsTable, wordinfo.RegisteredWordsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(wiq.driver.Dialect(), step)
 		return fromU, nil
@@ -318,14 +342,15 @@ func (wiq *WordInfoQuery) Clone() *WordInfoQuery {
 		return nil
 	}
 	return &WordInfoQuery{
-		config:            wiq.config,
-		ctx:               wiq.ctx.Clone(),
-		order:             append([]wordinfo.OrderOption{}, wiq.order...),
-		inters:            append([]Interceptor{}, wiq.inters...),
-		predicates:        append([]predicate.WordInfo{}, wiq.predicates...),
-		withWord:          wiq.withWord.Clone(),
-		withPartOfSpeech:  wiq.withPartOfSpeech.Clone(),
-		withJapaneseMeans: wiq.withJapaneseMeans.Clone(),
+		config:              wiq.config,
+		ctx:                 wiq.ctx.Clone(),
+		order:               append([]wordinfo.OrderOption{}, wiq.order...),
+		inters:              append([]Interceptor{}, wiq.inters...),
+		predicates:          append([]predicate.WordInfo{}, wiq.predicates...),
+		withWord:            wiq.withWord.Clone(),
+		withPartOfSpeech:    wiq.withPartOfSpeech.Clone(),
+		withJapaneseMeans:   wiq.withJapaneseMeans.Clone(),
+		withRegisteredWords: wiq.withRegisteredWords.Clone(),
 		// clone intermediate query.
 		sql:  wiq.sql.Clone(),
 		path: wiq.path,
@@ -362,6 +387,17 @@ func (wiq *WordInfoQuery) WithJapaneseMeans(opts ...func(*JapaneseMeanQuery)) *W
 		opt(query)
 	}
 	wiq.withJapaneseMeans = query
+	return wiq
+}
+
+// WithRegisteredWords tells the query-builder to eager-load the nodes that are connected to
+// the "registered_words" edge. The optional arguments are used to configure the query builder of the edge.
+func (wiq *WordInfoQuery) WithRegisteredWords(opts ...func(*RegisteredWordQuery)) *WordInfoQuery {
+	query := (&RegisteredWordClient{config: wiq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	wiq.withRegisteredWords = query
 	return wiq
 }
 
@@ -443,10 +479,11 @@ func (wiq *WordInfoQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Wo
 	var (
 		nodes       = []*WordInfo{}
 		_spec       = wiq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			wiq.withWord != nil,
 			wiq.withPartOfSpeech != nil,
 			wiq.withJapaneseMeans != nil,
+			wiq.withRegisteredWords != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -483,6 +520,13 @@ func (wiq *WordInfoQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Wo
 		if err := wiq.loadJapaneseMeans(ctx, query, nodes,
 			func(n *WordInfo) { n.Edges.JapaneseMeans = []*JapaneseMean{} },
 			func(n *WordInfo, e *JapaneseMean) { n.Edges.JapaneseMeans = append(n.Edges.JapaneseMeans, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := wiq.withRegisteredWords; query != nil {
+		if err := wiq.loadRegisteredWords(ctx, query, nodes,
+			func(n *WordInfo) { n.Edges.RegisteredWords = []*RegisteredWord{} },
+			func(n *WordInfo, e *RegisteredWord) { n.Edges.RegisteredWords = append(n.Edges.RegisteredWords, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -562,6 +606,36 @@ func (wiq *WordInfoQuery) loadJapaneseMeans(ctx context.Context, query *Japanese
 	}
 	query.Where(predicate.JapaneseMean(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(wordinfo.JapaneseMeansColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.WordInfoID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "word_info_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (wiq *WordInfoQuery) loadRegisteredWords(ctx context.Context, query *RegisteredWordQuery, nodes []*WordInfo, init func(*WordInfo), assign func(*WordInfo, *RegisteredWord)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*WordInfo)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(registeredword.FieldWordInfoID)
+	}
+	query.Where(predicate.RegisteredWord(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(wordinfo.RegisteredWordsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

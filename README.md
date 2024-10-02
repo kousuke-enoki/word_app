@@ -21,3 +21,16 @@ docker compose exec -it db psql -U postgres -d db
 
 # テーブルの内容を表示
 SELECT * FROM users;
+
+# カラムの内容を表示
+\d users
+
+
+
+〇ent　generate
+
+# スキーマを作成
+ent/schema で作成
+
+#  generate
+go generate ./ent

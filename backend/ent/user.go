@@ -26,8 +26,42 @@ type User struct {
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt    time.Time `json:"updated_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Admin holds the value of the "admin" field.
+	Admin bool `json:"admin,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges        UserEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// RegisteredWords holds the value of the registered_words edge.
+	RegisteredWords []*RegisteredWord `json:"registered_words,omitempty"`
+	// Tests holds the value of the tests edge.
+	Tests []*Test `json:"tests,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// RegisteredWordsOrErr returns the RegisteredWords value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) RegisteredWordsOrErr() ([]*RegisteredWord, error) {
+	if e.loadedTypes[0] {
+		return e.RegisteredWords, nil
+	}
+	return nil, &NotLoadedError{edge: "registered_words"}
+}
+
+// TestsOrErr returns the Tests value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) TestsOrErr() ([]*Test, error) {
+	if e.loadedTypes[1] {
+		return e.Tests, nil
+	}
+	return nil, &NotLoadedError{edge: "tests"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -35,6 +69,8 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case user.FieldAdmin:
+			values[i] = new(sql.NullBool)
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
 		case user.FieldEmail, user.FieldPassword, user.FieldName:
@@ -92,6 +128,12 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.UpdatedAt = value.Time
 			}
+		case user.FieldAdmin:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field admin", values[i])
+			} else if value.Valid {
+				u.Admin = value.Bool
+			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
 		}
@@ -103,6 +145,16 @@ func (u *User) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (u *User) Value(name string) (ent.Value, error) {
 	return u.selectValues.Get(name)
+}
+
+// QueryRegisteredWords queries the "registered_words" edge of the User entity.
+func (u *User) QueryRegisteredWords() *RegisteredWordQuery {
+	return NewUserClient(u.config).QueryRegisteredWords(u)
+}
+
+// QueryTests queries the "tests" edge of the User entity.
+func (u *User) QueryTests() *TestQuery {
+	return NewUserClient(u.config).QueryTests(u)
 }
 
 // Update returns a builder for updating this User.
@@ -141,6 +193,9 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(u.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("admin=")
+	builder.WriteString(fmt.Sprintf("%v", u.Admin))
 	builder.WriteByte(')')
 	return builder.String()
 }

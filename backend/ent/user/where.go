@@ -7,6 +7,7 @@ import (
 	"word_app/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -77,6 +78,11 @@ func CreatedAt(v time.Time) predicate.User {
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// Admin applies equality check predicate on the "admin" field. It's identical to AdminEQ.
+func Admin(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldAdmin, v))
 }
 
 // EmailEQ applies the EQ predicate on the "email" field.
@@ -352,6 +358,62 @@ func UpdatedAtLT(v time.Time) predicate.User {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// AdminEQ applies the EQ predicate on the "admin" field.
+func AdminEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldAdmin, v))
+}
+
+// AdminNEQ applies the NEQ predicate on the "admin" field.
+func AdminNEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldAdmin, v))
+}
+
+// HasRegisteredWords applies the HasEdge predicate on the "registered_words" edge.
+func HasRegisteredWords() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RegisteredWordsTable, RegisteredWordsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRegisteredWordsWith applies the HasEdge predicate on the "registered_words" edge with a given conditions (other predicates).
+func HasRegisteredWordsWith(preds ...predicate.RegisteredWord) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newRegisteredWordsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTests applies the HasEdge predicate on the "tests" edge.
+func HasTests() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TestsTable, TestsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTestsWith applies the HasEdge predicate on the "tests" edge with a given conditions (other predicates).
+func HasTestsWith(preds ...predicate.Test) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newTestsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

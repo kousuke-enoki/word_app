@@ -10,6 +10,9 @@ import (
 	"sync"
 	"word_app/ent/japanesemean"
 	"word_app/ent/partofspeech"
+	"word_app/ent/registeredword"
+	"word_app/ent/test"
+	"word_app/ent/testquestion"
 	"word_app/ent/user"
 	"word_app/ent/word"
 	"word_app/ent/wordinfo"
@@ -77,11 +80,14 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			japanesemean.Table: japanesemean.ValidColumn,
-			partofspeech.Table: partofspeech.ValidColumn,
-			user.Table:         user.ValidColumn,
-			word.Table:         word.ValidColumn,
-			wordinfo.Table:     wordinfo.ValidColumn,
+			japanesemean.Table:   japanesemean.ValidColumn,
+			partofspeech.Table:   partofspeech.ValidColumn,
+			registeredword.Table: registeredword.ValidColumn,
+			test.Table:           test.ValidColumn,
+			testquestion.Table:   testquestion.ValidColumn,
+			user.Table:           user.ValidColumn,
+			word.Table:           word.ValidColumn,
+			wordinfo.Table:       wordinfo.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

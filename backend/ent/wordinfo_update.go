@@ -10,6 +10,7 @@ import (
 	"word_app/ent/japanesemean"
 	"word_app/ent/partofspeech"
 	"word_app/ent/predicate"
+	"word_app/ent/registeredword"
 	"word_app/ent/word"
 	"word_app/ent/wordinfo"
 
@@ -104,6 +105,21 @@ func (wiu *WordInfoUpdate) AddJapaneseMeans(j ...*JapaneseMean) *WordInfoUpdate 
 	return wiu.AddJapaneseMeanIDs(ids...)
 }
 
+// AddRegisteredWordIDs adds the "registered_words" edge to the RegisteredWord entity by IDs.
+func (wiu *WordInfoUpdate) AddRegisteredWordIDs(ids ...int) *WordInfoUpdate {
+	wiu.mutation.AddRegisteredWordIDs(ids...)
+	return wiu
+}
+
+// AddRegisteredWords adds the "registered_words" edges to the RegisteredWord entity.
+func (wiu *WordInfoUpdate) AddRegisteredWords(r ...*RegisteredWord) *WordInfoUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return wiu.AddRegisteredWordIDs(ids...)
+}
+
 // Mutation returns the WordInfoMutation object of the builder.
 func (wiu *WordInfoUpdate) Mutation() *WordInfoMutation {
 	return wiu.mutation
@@ -140,6 +156,27 @@ func (wiu *WordInfoUpdate) RemoveJapaneseMeans(j ...*JapaneseMean) *WordInfoUpda
 		ids[i] = j[i].ID
 	}
 	return wiu.RemoveJapaneseMeanIDs(ids...)
+}
+
+// ClearRegisteredWords clears all "registered_words" edges to the RegisteredWord entity.
+func (wiu *WordInfoUpdate) ClearRegisteredWords() *WordInfoUpdate {
+	wiu.mutation.ClearRegisteredWords()
+	return wiu
+}
+
+// RemoveRegisteredWordIDs removes the "registered_words" edge to RegisteredWord entities by IDs.
+func (wiu *WordInfoUpdate) RemoveRegisteredWordIDs(ids ...int) *WordInfoUpdate {
+	wiu.mutation.RemoveRegisteredWordIDs(ids...)
+	return wiu
+}
+
+// RemoveRegisteredWords removes "registered_words" edges to RegisteredWord entities.
+func (wiu *WordInfoUpdate) RemoveRegisteredWords(r ...*RegisteredWord) *WordInfoUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return wiu.RemoveRegisteredWordIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -320,6 +357,51 @@ func (wiu *WordInfoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if wiu.mutation.RegisteredWordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   wordinfo.RegisteredWordsTable,
+			Columns: []string{wordinfo.RegisteredWordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wiu.mutation.RemovedRegisteredWordsIDs(); len(nodes) > 0 && !wiu.mutation.RegisteredWordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   wordinfo.RegisteredWordsTable,
+			Columns: []string{wordinfo.RegisteredWordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wiu.mutation.RegisteredWordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   wordinfo.RegisteredWordsTable,
+			Columns: []string{wordinfo.RegisteredWordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, wiu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{wordinfo.Label}
@@ -413,6 +495,21 @@ func (wiuo *WordInfoUpdateOne) AddJapaneseMeans(j ...*JapaneseMean) *WordInfoUpd
 	return wiuo.AddJapaneseMeanIDs(ids...)
 }
 
+// AddRegisteredWordIDs adds the "registered_words" edge to the RegisteredWord entity by IDs.
+func (wiuo *WordInfoUpdateOne) AddRegisteredWordIDs(ids ...int) *WordInfoUpdateOne {
+	wiuo.mutation.AddRegisteredWordIDs(ids...)
+	return wiuo
+}
+
+// AddRegisteredWords adds the "registered_words" edges to the RegisteredWord entity.
+func (wiuo *WordInfoUpdateOne) AddRegisteredWords(r ...*RegisteredWord) *WordInfoUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return wiuo.AddRegisteredWordIDs(ids...)
+}
+
 // Mutation returns the WordInfoMutation object of the builder.
 func (wiuo *WordInfoUpdateOne) Mutation() *WordInfoMutation {
 	return wiuo.mutation
@@ -449,6 +546,27 @@ func (wiuo *WordInfoUpdateOne) RemoveJapaneseMeans(j ...*JapaneseMean) *WordInfo
 		ids[i] = j[i].ID
 	}
 	return wiuo.RemoveJapaneseMeanIDs(ids...)
+}
+
+// ClearRegisteredWords clears all "registered_words" edges to the RegisteredWord entity.
+func (wiuo *WordInfoUpdateOne) ClearRegisteredWords() *WordInfoUpdateOne {
+	wiuo.mutation.ClearRegisteredWords()
+	return wiuo
+}
+
+// RemoveRegisteredWordIDs removes the "registered_words" edge to RegisteredWord entities by IDs.
+func (wiuo *WordInfoUpdateOne) RemoveRegisteredWordIDs(ids ...int) *WordInfoUpdateOne {
+	wiuo.mutation.RemoveRegisteredWordIDs(ids...)
+	return wiuo
+}
+
+// RemoveRegisteredWords removes "registered_words" edges to RegisteredWord entities.
+func (wiuo *WordInfoUpdateOne) RemoveRegisteredWords(r ...*RegisteredWord) *WordInfoUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return wiuo.RemoveRegisteredWordIDs(ids...)
 }
 
 // Where appends a list predicates to the WordInfoUpdate builder.
@@ -652,6 +770,51 @@ func (wiuo *WordInfoUpdateOne) sqlSave(ctx context.Context) (_node *WordInfo, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(japanesemean.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if wiuo.mutation.RegisteredWordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   wordinfo.RegisteredWordsTable,
+			Columns: []string{wordinfo.RegisteredWordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wiuo.mutation.RemovedRegisteredWordsIDs(); len(nodes) > 0 && !wiuo.mutation.RegisteredWordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   wordinfo.RegisteredWordsTable,
+			Columns: []string{wordinfo.RegisteredWordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wiuo.mutation.RegisteredWordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   wordinfo.RegisteredWordsTable,
+			Columns: []string{wordinfo.RegisteredWordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

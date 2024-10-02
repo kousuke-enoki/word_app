@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -23,8 +24,28 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// FieldAdmin holds the string denoting the admin field in the database.
+	FieldAdmin = "admin"
+	// EdgeRegisteredWords holds the string denoting the registered_words edge name in mutations.
+	EdgeRegisteredWords = "registered_words"
+	// EdgeTests holds the string denoting the tests edge name in mutations.
+	EdgeTests = "tests"
 	// Table holds the table name of the user in the database.
 	Table = "users"
+	// RegisteredWordsTable is the table that holds the registered_words relation/edge.
+	RegisteredWordsTable = "registered_words"
+	// RegisteredWordsInverseTable is the table name for the RegisteredWord entity.
+	// It exists in this package in order to avoid circular dependency with the "registeredword" package.
+	RegisteredWordsInverseTable = "registered_words"
+	// RegisteredWordsColumn is the table column denoting the registered_words relation/edge.
+	RegisteredWordsColumn = "user_id"
+	// TestsTable is the table that holds the tests relation/edge.
+	TestsTable = "tests"
+	// TestsInverseTable is the table name for the Test entity.
+	// It exists in this package in order to avoid circular dependency with the "test" package.
+	TestsInverseTable = "tests"
+	// TestsColumn is the table column denoting the tests relation/edge.
+	TestsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -35,6 +56,7 @@ var Columns = []string{
 	FieldName,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+	FieldAdmin,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -60,6 +82,8 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// DefaultAdmin holds the default value on creation for the "admin" field.
+	DefaultAdmin bool
 )
 
 // OrderOption defines the ordering options for the User queries.
@@ -93,4 +117,51 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdatedAt orders the results by the updated_at field.
 func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByAdmin orders the results by the admin field.
+func ByAdmin(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAdmin, opts...).ToFunc()
+}
+
+// ByRegisteredWordsCount orders the results by registered_words count.
+func ByRegisteredWordsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRegisteredWordsStep(), opts...)
+	}
+}
+
+// ByRegisteredWords orders the results by registered_words terms.
+func ByRegisteredWords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRegisteredWordsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByTestsCount orders the results by tests count.
+func ByTestsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTestsStep(), opts...)
+	}
+}
+
+// ByTests orders the results by tests terms.
+func ByTests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTestsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newRegisteredWordsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RegisteredWordsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RegisteredWordsTable, RegisteredWordsColumn),
+	)
+}
+func newTestsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TestsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TestsTable, TestsColumn),
+	)
 }

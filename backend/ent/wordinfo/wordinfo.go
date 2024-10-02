@@ -28,6 +28,8 @@ const (
 	EdgePartOfSpeech = "part_of_speech"
 	// EdgeJapaneseMeans holds the string denoting the japanese_means edge name in mutations.
 	EdgeJapaneseMeans = "japanese_means"
+	// EdgeRegisteredWords holds the string denoting the registered_words edge name in mutations.
+	EdgeRegisteredWords = "registered_words"
 	// Table holds the table name of the wordinfo in the database.
 	Table = "word_infos"
 	// WordTable is the table that holds the word relation/edge.
@@ -51,6 +53,13 @@ const (
 	JapaneseMeansInverseTable = "japanese_means"
 	// JapaneseMeansColumn is the table column denoting the japanese_means relation/edge.
 	JapaneseMeansColumn = "word_info_id"
+	// RegisteredWordsTable is the table that holds the registered_words relation/edge.
+	RegisteredWordsTable = "registered_words"
+	// RegisteredWordsInverseTable is the table name for the RegisteredWord entity.
+	// It exists in this package in order to avoid circular dependency with the "registeredword" package.
+	RegisteredWordsInverseTable = "registered_words"
+	// RegisteredWordsColumn is the table column denoting the registered_words relation/edge.
+	RegisteredWordsColumn = "word_info_id"
 )
 
 // Columns holds all SQL columns for wordinfo fields.
@@ -140,6 +149,20 @@ func ByJapaneseMeans(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newJapaneseMeansStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByRegisteredWordsCount orders the results by registered_words count.
+func ByRegisteredWordsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRegisteredWordsStep(), opts...)
+	}
+}
+
+// ByRegisteredWords orders the results by registered_words terms.
+func ByRegisteredWords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRegisteredWordsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newWordStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -159,5 +182,12 @@ func newJapaneseMeansStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(JapaneseMeansInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, JapaneseMeansTable, JapaneseMeansColumn),
+	)
+}
+func newRegisteredWordsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RegisteredWordsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RegisteredWordsTable, RegisteredWordsColumn),
 	)
 }

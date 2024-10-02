@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"word_app/ent"
+	"word_app/seeder"
 	"word_app/src"
 
 	"github.com/gin-contrib/cors"
@@ -21,9 +22,25 @@ func main() {
 	}
 	defer client.Close() // データベース接続を閉じる
 
+	// コンテキストの作成
+	ctx := context.Background()
+
 	// マイグレーションを実行
 	if err := client.Schema.Create(context.Background()); err != nil {
 		log.Fatalf("Failed creating schema resources: %v", err)
+	}
+	// 初回のみシードを実行
+	seedAdminExists, err := client.User.Query().Where(client.User.ByEmail("admin@example.com")).Exist(ctx)
+	if err != nil {
+		log.Fatalf("Failed checking for admin existence: %v", err)
+	}
+
+	if !seedAdminExists {
+		log.Println("Running initial seeder...")
+		seeder.RunSeeder(ctx, client) // Seederを呼び出す
+		log.Println("Seeder completed.")
+	} else {
+		log.Println("Seed data already exists, skipping.")
 	}
 
 	// Ginフレームワークのデフォルトの設定を使用してルータを作成

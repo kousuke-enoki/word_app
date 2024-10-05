@@ -1,10 +1,11 @@
 package schema
 
 import (
+	"time"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"time"
 )
 
 // WordInfo holds the schema definition for the WordInfo entity.
@@ -30,16 +31,17 @@ func (WordInfo) Fields() []ent.Field {
 // Edges of the WordInfo.
 func (WordInfo) Edges() []ent.Edge {
 	return []ent.Edge{
-			edge.From("word", Word.Type).
-					Ref("word_infos").
-					Field("word_id").
-					Unique().
-					Required(),
-			edge.From("part_of_speech", PartOfSpeech.Type).
-					Ref("word_infos").
-					Field("part_of_speech_id").
-					Unique().
-					Required(),
-			edge.To("japanese_means", JapaneseMean.Type),
-		}
+		edge.From("word", Word.Type).
+			Ref("word_infos").
+			Field("word_id").
+			Unique().
+			Required(),
+		edge.From("part_of_speech", PartOfSpeech.Type).
+			Ref("word_infos").
+			Field("part_of_speech_id").
+			Unique().
+			Required(),
+		edge.To("japanese_means", JapaneseMean.Type),
+		edge.To("registered_words", RegisteredWord.Type),
+	}
 }

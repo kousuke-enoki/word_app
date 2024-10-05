@@ -43,6 +43,88 @@ var (
 		Columns:    PartOfSpeechesColumns,
 		PrimaryKey: []*schema.Column{PartOfSpeechesColumns[0]},
 	}
+	// RegisteredWordsColumns holds the columns for the "registered_words" table.
+	RegisteredWordsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "test_count", Type: field.TypeInt, Default: 0},
+		{Name: "check_count", Type: field.TypeInt, Default: 0},
+		{Name: "memo", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "word_info_id", Type: field.TypeInt},
+	}
+	// RegisteredWordsTable holds the schema information for the "registered_words" table.
+	RegisteredWordsTable = &schema.Table{
+		Name:       "registered_words",
+		Columns:    RegisteredWordsColumns,
+		PrimaryKey: []*schema.Column{RegisteredWordsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "registered_words_users_registered_words",
+				Columns:    []*schema.Column{RegisteredWordsColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "registered_words_word_infos_registered_words",
+				Columns:    []*schema.Column{RegisteredWordsColumns[8]},
+				RefColumns: []*schema.Column{WordInfosColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// TestsColumns holds the columns for the "tests" table.
+	TestsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "total_questions", Type: field.TypeInt, Default: 10},
+		{Name: "correct_count", Type: field.TypeInt, Default: 0},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// TestsTable holds the schema information for the "tests" table.
+	TestsTable = &schema.Table{
+		Name:       "tests",
+		Columns:    TestsColumns,
+		PrimaryKey: []*schema.Column{TestsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "tests_users_tests",
+				Columns:    []*schema.Column{TestsColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// TestQuestionsColumns holds the columns for the "test_questions" table.
+	TestQuestionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "is_correct", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "registered_word_id", Type: field.TypeInt},
+		{Name: "test_id", Type: field.TypeInt},
+	}
+	// TestQuestionsTable holds the schema information for the "test_questions" table.
+	TestQuestionsTable = &schema.Table{
+		Name:       "test_questions",
+		Columns:    TestQuestionsColumns,
+		PrimaryKey: []*schema.Column{TestQuestionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "test_questions_registered_words_test_questions",
+				Columns:    []*schema.Column{TestQuestionsColumns[3]},
+				RefColumns: []*schema.Column{RegisteredWordsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "test_questions_tests_test_questions",
+				Columns:    []*schema.Column{TestQuestionsColumns[4]},
+				RefColumns: []*schema.Column{TestsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -51,6 +133,7 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "admin", Type: field.TypeBool, Default: false},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -104,6 +187,9 @@ var (
 	Tables = []*schema.Table{
 		JapaneseMeansTable,
 		PartOfSpeechesTable,
+		RegisteredWordsTable,
+		TestsTable,
+		TestQuestionsTable,
 		UsersTable,
 		WordsTable,
 		WordInfosTable,
@@ -112,6 +198,11 @@ var (
 
 func init() {
 	JapaneseMeansTable.ForeignKeys[0].RefTable = WordInfosTable
+	RegisteredWordsTable.ForeignKeys[0].RefTable = UsersTable
+	RegisteredWordsTable.ForeignKeys[1].RefTable = WordInfosTable
+	TestsTable.ForeignKeys[0].RefTable = UsersTable
+	TestQuestionsTable.ForeignKeys[0].RefTable = RegisteredWordsTable
+	TestQuestionsTable.ForeignKeys[1].RefTable = TestsTable
 	WordInfosTable.ForeignKeys[0].RefTable = PartOfSpeechesTable
 	WordInfosTable.ForeignKeys[1].RefTable = WordsTable
 }

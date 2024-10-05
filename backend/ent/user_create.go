@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"word_app/ent/registeredword"
+	"word_app/ent/test"
 	"word_app/ent/user"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -66,6 +68,50 @@ func (uc *UserCreate) SetNillableUpdatedAt(t *time.Time) *UserCreate {
 	return uc
 }
 
+// SetAdmin sets the "admin" field.
+func (uc *UserCreate) SetAdmin(b bool) *UserCreate {
+	uc.mutation.SetAdmin(b)
+	return uc
+}
+
+// SetNillableAdmin sets the "admin" field if the given value is not nil.
+func (uc *UserCreate) SetNillableAdmin(b *bool) *UserCreate {
+	if b != nil {
+		uc.SetAdmin(*b)
+	}
+	return uc
+}
+
+// AddRegisteredWordIDs adds the "registered_words" edge to the RegisteredWord entity by IDs.
+func (uc *UserCreate) AddRegisteredWordIDs(ids ...int) *UserCreate {
+	uc.mutation.AddRegisteredWordIDs(ids...)
+	return uc
+}
+
+// AddRegisteredWords adds the "registered_words" edges to the RegisteredWord entity.
+func (uc *UserCreate) AddRegisteredWords(r ...*RegisteredWord) *UserCreate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uc.AddRegisteredWordIDs(ids...)
+}
+
+// AddTestIDs adds the "tests" edge to the Test entity by IDs.
+func (uc *UserCreate) AddTestIDs(ids ...int) *UserCreate {
+	uc.mutation.AddTestIDs(ids...)
+	return uc
+}
+
+// AddTests adds the "tests" edges to the Test entity.
+func (uc *UserCreate) AddTests(t ...*Test) *UserCreate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uc.AddTestIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uc *UserCreate) Mutation() *UserMutation {
 	return uc.mutation
@@ -109,6 +155,10 @@ func (uc *UserCreate) defaults() {
 		v := user.DefaultUpdatedAt()
 		uc.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := uc.mutation.Admin(); !ok {
+		v := user.DefaultAdmin
+		uc.mutation.SetAdmin(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -142,6 +192,9 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "User.updated_at"`)}
+	}
+	if _, ok := uc.mutation.Admin(); !ok {
+		return &ValidationError{Name: "admin", err: errors.New(`ent: missing required field "User.admin"`)}
 	}
 	return nil
 }
@@ -188,6 +241,42 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := uc.mutation.Admin(); ok {
+		_spec.SetField(user.FieldAdmin, field.TypeBool, value)
+		_node.Admin = value
+	}
+	if nodes := uc.mutation.RegisteredWordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RegisteredWordsTable,
+			Columns: []string{user.RegisteredWordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.TestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TestsTable,
+			Columns: []string{user.TestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(test.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

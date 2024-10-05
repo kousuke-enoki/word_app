@@ -41,9 +41,11 @@ type WordInfoEdges struct {
 	PartOfSpeech *PartOfSpeech `json:"part_of_speech,omitempty"`
 	// JapaneseMeans holds the value of the japanese_means edge.
 	JapaneseMeans []*JapaneseMean `json:"japanese_means,omitempty"`
+	// RegisteredWords holds the value of the registered_words edge.
+	RegisteredWords []*RegisteredWord `json:"registered_words,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // WordOrErr returns the Word value or an error if the edge
@@ -75,6 +77,15 @@ func (e WordInfoEdges) JapaneseMeansOrErr() ([]*JapaneseMean, error) {
 		return e.JapaneseMeans, nil
 	}
 	return nil, &NotLoadedError{edge: "japanese_means"}
+}
+
+// RegisteredWordsOrErr returns the RegisteredWords value or an error if the edge
+// was not loaded in eager-loading.
+func (e WordInfoEdges) RegisteredWordsOrErr() ([]*RegisteredWord, error) {
+	if e.loadedTypes[3] {
+		return e.RegisteredWords, nil
+	}
+	return nil, &NotLoadedError{edge: "registered_words"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -157,6 +168,11 @@ func (wi *WordInfo) QueryPartOfSpeech() *PartOfSpeechQuery {
 // QueryJapaneseMeans queries the "japanese_means" edge of the WordInfo entity.
 func (wi *WordInfo) QueryJapaneseMeans() *JapaneseMeanQuery {
 	return NewWordInfoClient(wi.config).QueryJapaneseMeans(wi)
+}
+
+// QueryRegisteredWords queries the "registered_words" edge of the WordInfo entity.
+func (wi *WordInfo) QueryRegisteredWords() *RegisteredWordQuery {
+	return NewWordInfoClient(wi.config).QueryRegisteredWords(wi)
 }
 
 // Update returns a builder for updating this WordInfo.

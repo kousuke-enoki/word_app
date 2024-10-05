@@ -264,6 +264,29 @@ func HasJapaneseMeansWith(preds ...predicate.JapaneseMean) predicate.WordInfo {
 	})
 }
 
+// HasRegisteredWords applies the HasEdge predicate on the "registered_words" edge.
+func HasRegisteredWords() predicate.WordInfo {
+	return predicate.WordInfo(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RegisteredWordsTable, RegisteredWordsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRegisteredWordsWith applies the HasEdge predicate on the "registered_words" edge with a given conditions (other predicates).
+func HasRegisteredWordsWith(preds ...predicate.RegisteredWord) predicate.WordInfo {
+	return predicate.WordInfo(func(s *sql.Selector) {
+		step := newRegisteredWordsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.WordInfo) predicate.WordInfo {
 	return predicate.WordInfo(sql.AndPredicates(predicates...))

@@ -6,7 +6,10 @@ import (
 	"time"
 	"word_app/ent/japanesemean"
 	"word_app/ent/partofspeech"
+	"word_app/ent/registeredword"
 	"word_app/ent/schema"
+	"word_app/ent/test"
+	"word_app/ent/testquestion"
 	"word_app/ent/user"
 	"word_app/ent/word"
 	"word_app/ent/wordinfo"
@@ -52,6 +55,54 @@ func init() {
 	partofspeech.DefaultUpdatedAt = partofspeechDescUpdatedAt.Default.(func() time.Time)
 	// partofspeech.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	partofspeech.UpdateDefaultUpdatedAt = partofspeechDescUpdatedAt.UpdateDefault.(func() time.Time)
+	registeredwordFields := schema.RegisteredWord{}.Fields()
+	_ = registeredwordFields
+	// registeredwordDescIsActive is the schema descriptor for is_active field.
+	registeredwordDescIsActive := registeredwordFields[2].Descriptor()
+	// registeredword.DefaultIsActive holds the default value on creation for the is_active field.
+	registeredword.DefaultIsActive = registeredwordDescIsActive.Default.(bool)
+	// registeredwordDescTestCount is the schema descriptor for test_count field.
+	registeredwordDescTestCount := registeredwordFields[3].Descriptor()
+	// registeredword.DefaultTestCount holds the default value on creation for the test_count field.
+	registeredword.DefaultTestCount = registeredwordDescTestCount.Default.(int)
+	// registeredwordDescCheckCount is the schema descriptor for check_count field.
+	registeredwordDescCheckCount := registeredwordFields[4].Descriptor()
+	// registeredword.DefaultCheckCount holds the default value on creation for the check_count field.
+	registeredword.DefaultCheckCount = registeredwordDescCheckCount.Default.(int)
+	// registeredwordDescCreatedAt is the schema descriptor for created_at field.
+	registeredwordDescCreatedAt := registeredwordFields[6].Descriptor()
+	// registeredword.DefaultCreatedAt holds the default value on creation for the created_at field.
+	registeredword.DefaultCreatedAt = registeredwordDescCreatedAt.Default.(func() time.Time)
+	// registeredwordDescUpdatedAt is the schema descriptor for updated_at field.
+	registeredwordDescUpdatedAt := registeredwordFields[7].Descriptor()
+	// registeredword.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	registeredword.DefaultUpdatedAt = registeredwordDescUpdatedAt.Default.(func() time.Time)
+	// registeredword.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	registeredword.UpdateDefaultUpdatedAt = registeredwordDescUpdatedAt.UpdateDefault.(func() time.Time)
+	testFields := schema.Test{}.Fields()
+	_ = testFields
+	// testDescTotalQuestions is the schema descriptor for total_questions field.
+	testDescTotalQuestions := testFields[1].Descriptor()
+	// test.DefaultTotalQuestions holds the default value on creation for the total_questions field.
+	test.DefaultTotalQuestions = testDescTotalQuestions.Default.(int)
+	// testDescCorrectCount is the schema descriptor for correct_count field.
+	testDescCorrectCount := testFields[2].Descriptor()
+	// test.DefaultCorrectCount holds the default value on creation for the correct_count field.
+	test.DefaultCorrectCount = testDescCorrectCount.Default.(int)
+	// testDescCreatedAt is the schema descriptor for created_at field.
+	testDescCreatedAt := testFields[3].Descriptor()
+	// test.DefaultCreatedAt holds the default value on creation for the created_at field.
+	test.DefaultCreatedAt = testDescCreatedAt.Default.(func() time.Time)
+	testquestionFields := schema.TestQuestion{}.Fields()
+	_ = testquestionFields
+	// testquestionDescIsCorrect is the schema descriptor for is_correct field.
+	testquestionDescIsCorrect := testquestionFields[2].Descriptor()
+	// testquestion.DefaultIsCorrect holds the default value on creation for the is_correct field.
+	testquestion.DefaultIsCorrect = testquestionDescIsCorrect.Default.(bool)
+	// testquestionDescCreatedAt is the schema descriptor for created_at field.
+	testquestionDescCreatedAt := testquestionFields[3].Descriptor()
+	// testquestion.DefaultCreatedAt holds the default value on creation for the created_at field.
+	testquestion.DefaultCreatedAt = testquestionDescCreatedAt.Default.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescEmail is the schema descriptor for email field.
@@ -76,6 +127,10 @@ func init() {
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// userDescAdmin is the schema descriptor for admin field.
+	userDescAdmin := userFields[5].Descriptor()
+	// user.DefaultAdmin holds the default value on creation for the admin field.
+	user.DefaultAdmin = userDescAdmin.Default.(bool)
 	wordFields := schema.Word{}.Fields()
 	_ = wordFields
 	// wordDescName is the schema descriptor for name field.

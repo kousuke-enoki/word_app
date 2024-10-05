@@ -9,6 +9,7 @@ import (
 	"time"
 	"word_app/ent/japanesemean"
 	"word_app/ent/partofspeech"
+	"word_app/ent/registeredword"
 	"word_app/ent/word"
 	"word_app/ent/wordinfo"
 
@@ -86,6 +87,21 @@ func (wic *WordInfoCreate) AddJapaneseMeans(j ...*JapaneseMean) *WordInfoCreate 
 		ids[i] = j[i].ID
 	}
 	return wic.AddJapaneseMeanIDs(ids...)
+}
+
+// AddRegisteredWordIDs adds the "registered_words" edge to the RegisteredWord entity by IDs.
+func (wic *WordInfoCreate) AddRegisteredWordIDs(ids ...int) *WordInfoCreate {
+	wic.mutation.AddRegisteredWordIDs(ids...)
+	return wic
+}
+
+// AddRegisteredWords adds the "registered_words" edges to the RegisteredWord entity.
+func (wic *WordInfoCreate) AddRegisteredWords(r ...*RegisteredWord) *WordInfoCreate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return wic.AddRegisteredWordIDs(ids...)
 }
 
 // Mutation returns the WordInfoMutation object of the builder.
@@ -240,6 +256,22 @@ func (wic *WordInfoCreate) createSpec() (*WordInfo, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(japanesemean.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := wic.mutation.RegisteredWordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   wordinfo.RegisteredWordsTable,
+			Columns: []string{wordinfo.RegisteredWordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

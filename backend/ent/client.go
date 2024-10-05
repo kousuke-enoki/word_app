@@ -13,6 +13,9 @@ import (
 
 	"word_app/ent/japanesemean"
 	"word_app/ent/partofspeech"
+	"word_app/ent/registeredword"
+	"word_app/ent/test"
+	"word_app/ent/testquestion"
 	"word_app/ent/user"
 	"word_app/ent/word"
 	"word_app/ent/wordinfo"
@@ -32,6 +35,12 @@ type Client struct {
 	JapaneseMean *JapaneseMeanClient
 	// PartOfSpeech is the client for interacting with the PartOfSpeech builders.
 	PartOfSpeech *PartOfSpeechClient
+	// RegisteredWord is the client for interacting with the RegisteredWord builders.
+	RegisteredWord *RegisteredWordClient
+	// Test is the client for interacting with the Test builders.
+	Test *TestClient
+	// TestQuestion is the client for interacting with the TestQuestion builders.
+	TestQuestion *TestQuestionClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// Word is the client for interacting with the Word builders.
@@ -51,6 +60,9 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.JapaneseMean = NewJapaneseMeanClient(c.config)
 	c.PartOfSpeech = NewPartOfSpeechClient(c.config)
+	c.RegisteredWord = NewRegisteredWordClient(c.config)
+	c.Test = NewTestClient(c.config)
+	c.TestQuestion = NewTestQuestionClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.Word = NewWordClient(c.config)
 	c.WordInfo = NewWordInfoClient(c.config)
@@ -144,13 +156,16 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		JapaneseMean: NewJapaneseMeanClient(cfg),
-		PartOfSpeech: NewPartOfSpeechClient(cfg),
-		User:         NewUserClient(cfg),
-		Word:         NewWordClient(cfg),
-		WordInfo:     NewWordInfoClient(cfg),
+		ctx:            ctx,
+		config:         cfg,
+		JapaneseMean:   NewJapaneseMeanClient(cfg),
+		PartOfSpeech:   NewPartOfSpeechClient(cfg),
+		RegisteredWord: NewRegisteredWordClient(cfg),
+		Test:           NewTestClient(cfg),
+		TestQuestion:   NewTestQuestionClient(cfg),
+		User:           NewUserClient(cfg),
+		Word:           NewWordClient(cfg),
+		WordInfo:       NewWordInfoClient(cfg),
 	}, nil
 }
 
@@ -168,13 +183,16 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		JapaneseMean: NewJapaneseMeanClient(cfg),
-		PartOfSpeech: NewPartOfSpeechClient(cfg),
-		User:         NewUserClient(cfg),
-		Word:         NewWordClient(cfg),
-		WordInfo:     NewWordInfoClient(cfg),
+		ctx:            ctx,
+		config:         cfg,
+		JapaneseMean:   NewJapaneseMeanClient(cfg),
+		PartOfSpeech:   NewPartOfSpeechClient(cfg),
+		RegisteredWord: NewRegisteredWordClient(cfg),
+		Test:           NewTestClient(cfg),
+		TestQuestion:   NewTestQuestionClient(cfg),
+		User:           NewUserClient(cfg),
+		Word:           NewWordClient(cfg),
+		WordInfo:       NewWordInfoClient(cfg),
 	}, nil
 }
 
@@ -203,21 +221,23 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.JapaneseMean.Use(hooks...)
-	c.PartOfSpeech.Use(hooks...)
-	c.User.Use(hooks...)
-	c.Word.Use(hooks...)
-	c.WordInfo.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.JapaneseMean, c.PartOfSpeech, c.RegisteredWord, c.Test, c.TestQuestion,
+		c.User, c.Word, c.WordInfo,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.JapaneseMean.Intercept(interceptors...)
-	c.PartOfSpeech.Intercept(interceptors...)
-	c.User.Intercept(interceptors...)
-	c.Word.Intercept(interceptors...)
-	c.WordInfo.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.JapaneseMean, c.PartOfSpeech, c.RegisteredWord, c.Test, c.TestQuestion,
+		c.User, c.Word, c.WordInfo,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -227,6 +247,12 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.JapaneseMean.mutate(ctx, m)
 	case *PartOfSpeechMutation:
 		return c.PartOfSpeech.mutate(ctx, m)
+	case *RegisteredWordMutation:
+		return c.RegisteredWord.mutate(ctx, m)
+	case *TestMutation:
+		return c.Test.mutate(ctx, m)
+	case *TestQuestionMutation:
+		return c.TestQuestion.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	case *WordMutation:
@@ -536,6 +562,517 @@ func (c *PartOfSpeechClient) mutate(ctx context.Context, m *PartOfSpeechMutation
 	}
 }
 
+// RegisteredWordClient is a client for the RegisteredWord schema.
+type RegisteredWordClient struct {
+	config
+}
+
+// NewRegisteredWordClient returns a client for the RegisteredWord from the given config.
+func NewRegisteredWordClient(c config) *RegisteredWordClient {
+	return &RegisteredWordClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `registeredword.Hooks(f(g(h())))`.
+func (c *RegisteredWordClient) Use(hooks ...Hook) {
+	c.hooks.RegisteredWord = append(c.hooks.RegisteredWord, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `registeredword.Intercept(f(g(h())))`.
+func (c *RegisteredWordClient) Intercept(interceptors ...Interceptor) {
+	c.inters.RegisteredWord = append(c.inters.RegisteredWord, interceptors...)
+}
+
+// Create returns a builder for creating a RegisteredWord entity.
+func (c *RegisteredWordClient) Create() *RegisteredWordCreate {
+	mutation := newRegisteredWordMutation(c.config, OpCreate)
+	return &RegisteredWordCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of RegisteredWord entities.
+func (c *RegisteredWordClient) CreateBulk(builders ...*RegisteredWordCreate) *RegisteredWordCreateBulk {
+	return &RegisteredWordCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RegisteredWordClient) MapCreateBulk(slice any, setFunc func(*RegisteredWordCreate, int)) *RegisteredWordCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RegisteredWordCreateBulk{err: fmt.Errorf("calling to RegisteredWordClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RegisteredWordCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RegisteredWordCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for RegisteredWord.
+func (c *RegisteredWordClient) Update() *RegisteredWordUpdate {
+	mutation := newRegisteredWordMutation(c.config, OpUpdate)
+	return &RegisteredWordUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RegisteredWordClient) UpdateOne(rw *RegisteredWord) *RegisteredWordUpdateOne {
+	mutation := newRegisteredWordMutation(c.config, OpUpdateOne, withRegisteredWord(rw))
+	return &RegisteredWordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RegisteredWordClient) UpdateOneID(id int) *RegisteredWordUpdateOne {
+	mutation := newRegisteredWordMutation(c.config, OpUpdateOne, withRegisteredWordID(id))
+	return &RegisteredWordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for RegisteredWord.
+func (c *RegisteredWordClient) Delete() *RegisteredWordDelete {
+	mutation := newRegisteredWordMutation(c.config, OpDelete)
+	return &RegisteredWordDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RegisteredWordClient) DeleteOne(rw *RegisteredWord) *RegisteredWordDeleteOne {
+	return c.DeleteOneID(rw.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RegisteredWordClient) DeleteOneID(id int) *RegisteredWordDeleteOne {
+	builder := c.Delete().Where(registeredword.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RegisteredWordDeleteOne{builder}
+}
+
+// Query returns a query builder for RegisteredWord.
+func (c *RegisteredWordClient) Query() *RegisteredWordQuery {
+	return &RegisteredWordQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRegisteredWord},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a RegisteredWord entity by its id.
+func (c *RegisteredWordClient) Get(ctx context.Context, id int) (*RegisteredWord, error) {
+	return c.Query().Where(registeredword.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RegisteredWordClient) GetX(ctx context.Context, id int) *RegisteredWord {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a RegisteredWord.
+func (c *RegisteredWordClient) QueryUser(rw *RegisteredWord) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rw.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(registeredword.Table, registeredword.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, registeredword.UserTable, registeredword.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(rw.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryWordInfo queries the word_info edge of a RegisteredWord.
+func (c *RegisteredWordClient) QueryWordInfo(rw *RegisteredWord) *WordInfoQuery {
+	query := (&WordInfoClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rw.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(registeredword.Table, registeredword.FieldID, id),
+			sqlgraph.To(wordinfo.Table, wordinfo.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, registeredword.WordInfoTable, registeredword.WordInfoColumn),
+		)
+		fromV = sqlgraph.Neighbors(rw.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTestQuestions queries the test_questions edge of a RegisteredWord.
+func (c *RegisteredWordClient) QueryTestQuestions(rw *RegisteredWord) *TestQuestionQuery {
+	query := (&TestQuestionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rw.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(registeredword.Table, registeredword.FieldID, id),
+			sqlgraph.To(testquestion.Table, testquestion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, registeredword.TestQuestionsTable, registeredword.TestQuestionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(rw.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *RegisteredWordClient) Hooks() []Hook {
+	return c.hooks.RegisteredWord
+}
+
+// Interceptors returns the client interceptors.
+func (c *RegisteredWordClient) Interceptors() []Interceptor {
+	return c.inters.RegisteredWord
+}
+
+func (c *RegisteredWordClient) mutate(ctx context.Context, m *RegisteredWordMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RegisteredWordCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RegisteredWordUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RegisteredWordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RegisteredWordDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown RegisteredWord mutation op: %q", m.Op())
+	}
+}
+
+// TestClient is a client for the Test schema.
+type TestClient struct {
+	config
+}
+
+// NewTestClient returns a client for the Test from the given config.
+func NewTestClient(c config) *TestClient {
+	return &TestClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `test.Hooks(f(g(h())))`.
+func (c *TestClient) Use(hooks ...Hook) {
+	c.hooks.Test = append(c.hooks.Test, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `test.Intercept(f(g(h())))`.
+func (c *TestClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Test = append(c.inters.Test, interceptors...)
+}
+
+// Create returns a builder for creating a Test entity.
+func (c *TestClient) Create() *TestCreate {
+	mutation := newTestMutation(c.config, OpCreate)
+	return &TestCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Test entities.
+func (c *TestClient) CreateBulk(builders ...*TestCreate) *TestCreateBulk {
+	return &TestCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TestClient) MapCreateBulk(slice any, setFunc func(*TestCreate, int)) *TestCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TestCreateBulk{err: fmt.Errorf("calling to TestClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TestCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &TestCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Test.
+func (c *TestClient) Update() *TestUpdate {
+	mutation := newTestMutation(c.config, OpUpdate)
+	return &TestUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TestClient) UpdateOne(t *Test) *TestUpdateOne {
+	mutation := newTestMutation(c.config, OpUpdateOne, withTest(t))
+	return &TestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TestClient) UpdateOneID(id int) *TestUpdateOne {
+	mutation := newTestMutation(c.config, OpUpdateOne, withTestID(id))
+	return &TestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Test.
+func (c *TestClient) Delete() *TestDelete {
+	mutation := newTestMutation(c.config, OpDelete)
+	return &TestDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TestClient) DeleteOne(t *Test) *TestDeleteOne {
+	return c.DeleteOneID(t.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TestClient) DeleteOneID(id int) *TestDeleteOne {
+	builder := c.Delete().Where(test.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TestDeleteOne{builder}
+}
+
+// Query returns a query builder for Test.
+func (c *TestClient) Query() *TestQuery {
+	return &TestQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTest},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Test entity by its id.
+func (c *TestClient) Get(ctx context.Context, id int) (*Test, error) {
+	return c.Query().Where(test.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TestClient) GetX(ctx context.Context, id int) *Test {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a Test.
+func (c *TestClient) QueryUser(t *Test) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(test.Table, test.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, test.UserTable, test.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTestQuestions queries the test_questions edge of a Test.
+func (c *TestClient) QueryTestQuestions(t *Test) *TestQuestionQuery {
+	query := (&TestQuestionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(test.Table, test.FieldID, id),
+			sqlgraph.To(testquestion.Table, testquestion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, test.TestQuestionsTable, test.TestQuestionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TestClient) Hooks() []Hook {
+	return c.hooks.Test
+}
+
+// Interceptors returns the client interceptors.
+func (c *TestClient) Interceptors() []Interceptor {
+	return c.inters.Test
+}
+
+func (c *TestClient) mutate(ctx context.Context, m *TestMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TestCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TestUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TestDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Test mutation op: %q", m.Op())
+	}
+}
+
+// TestQuestionClient is a client for the TestQuestion schema.
+type TestQuestionClient struct {
+	config
+}
+
+// NewTestQuestionClient returns a client for the TestQuestion from the given config.
+func NewTestQuestionClient(c config) *TestQuestionClient {
+	return &TestQuestionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `testquestion.Hooks(f(g(h())))`.
+func (c *TestQuestionClient) Use(hooks ...Hook) {
+	c.hooks.TestQuestion = append(c.hooks.TestQuestion, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `testquestion.Intercept(f(g(h())))`.
+func (c *TestQuestionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.TestQuestion = append(c.inters.TestQuestion, interceptors...)
+}
+
+// Create returns a builder for creating a TestQuestion entity.
+func (c *TestQuestionClient) Create() *TestQuestionCreate {
+	mutation := newTestQuestionMutation(c.config, OpCreate)
+	return &TestQuestionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TestQuestion entities.
+func (c *TestQuestionClient) CreateBulk(builders ...*TestQuestionCreate) *TestQuestionCreateBulk {
+	return &TestQuestionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TestQuestionClient) MapCreateBulk(slice any, setFunc func(*TestQuestionCreate, int)) *TestQuestionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TestQuestionCreateBulk{err: fmt.Errorf("calling to TestQuestionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TestQuestionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &TestQuestionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TestQuestion.
+func (c *TestQuestionClient) Update() *TestQuestionUpdate {
+	mutation := newTestQuestionMutation(c.config, OpUpdate)
+	return &TestQuestionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TestQuestionClient) UpdateOne(tq *TestQuestion) *TestQuestionUpdateOne {
+	mutation := newTestQuestionMutation(c.config, OpUpdateOne, withTestQuestion(tq))
+	return &TestQuestionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TestQuestionClient) UpdateOneID(id int) *TestQuestionUpdateOne {
+	mutation := newTestQuestionMutation(c.config, OpUpdateOne, withTestQuestionID(id))
+	return &TestQuestionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TestQuestion.
+func (c *TestQuestionClient) Delete() *TestQuestionDelete {
+	mutation := newTestQuestionMutation(c.config, OpDelete)
+	return &TestQuestionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TestQuestionClient) DeleteOne(tq *TestQuestion) *TestQuestionDeleteOne {
+	return c.DeleteOneID(tq.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TestQuestionClient) DeleteOneID(id int) *TestQuestionDeleteOne {
+	builder := c.Delete().Where(testquestion.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TestQuestionDeleteOne{builder}
+}
+
+// Query returns a query builder for TestQuestion.
+func (c *TestQuestionClient) Query() *TestQuestionQuery {
+	return &TestQuestionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTestQuestion},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a TestQuestion entity by its id.
+func (c *TestQuestionClient) Get(ctx context.Context, id int) (*TestQuestion, error) {
+	return c.Query().Where(testquestion.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TestQuestionClient) GetX(ctx context.Context, id int) *TestQuestion {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTest queries the test edge of a TestQuestion.
+func (c *TestQuestionClient) QueryTest(tq *TestQuestion) *TestQuery {
+	query := (&TestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := tq.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(testquestion.Table, testquestion.FieldID, id),
+			sqlgraph.To(test.Table, test.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, testquestion.TestTable, testquestion.TestColumn),
+		)
+		fromV = sqlgraph.Neighbors(tq.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRegisteredWord queries the registered_word edge of a TestQuestion.
+func (c *TestQuestionClient) QueryRegisteredWord(tq *TestQuestion) *RegisteredWordQuery {
+	query := (&RegisteredWordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := tq.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(testquestion.Table, testquestion.FieldID, id),
+			sqlgraph.To(registeredword.Table, registeredword.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, testquestion.RegisteredWordTable, testquestion.RegisteredWordColumn),
+		)
+		fromV = sqlgraph.Neighbors(tq.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TestQuestionClient) Hooks() []Hook {
+	return c.hooks.TestQuestion
+}
+
+// Interceptors returns the client interceptors.
+func (c *TestQuestionClient) Interceptors() []Interceptor {
+	return c.inters.TestQuestion
+}
+
+func (c *TestQuestionClient) mutate(ctx context.Context, m *TestQuestionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TestQuestionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TestQuestionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TestQuestionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TestQuestionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown TestQuestion mutation op: %q", m.Op())
+	}
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -642,6 +1179,38 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryRegisteredWords queries the registered_words edge of a User.
+func (c *UserClient) QueryRegisteredWords(u *User) *RegisteredWordQuery {
+	query := (&RegisteredWordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(registeredword.Table, registeredword.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RegisteredWordsTable, user.RegisteredWordsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTests queries the tests edge of a User.
+func (c *UserClient) QueryTests(u *User) *TestQuery {
+	query := (&TestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(test.Table, test.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.TestsTable, user.TestsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -974,6 +1543,22 @@ func (c *WordInfoClient) QueryJapaneseMeans(wi *WordInfo) *JapaneseMeanQuery {
 	return query
 }
 
+// QueryRegisteredWords queries the registered_words edge of a WordInfo.
+func (c *WordInfoClient) QueryRegisteredWords(wi *WordInfo) *RegisteredWordQuery {
+	query := (&RegisteredWordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := wi.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(wordinfo.Table, wordinfo.FieldID, id),
+			sqlgraph.To(registeredword.Table, registeredword.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, wordinfo.RegisteredWordsTable, wordinfo.RegisteredWordsColumn),
+		)
+		fromV = sqlgraph.Neighbors(wi.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *WordInfoClient) Hooks() []Hook {
 	return c.hooks.WordInfo
@@ -1002,9 +1587,11 @@ func (c *WordInfoClient) mutate(ctx context.Context, m *WordInfoMutation) (Value
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		JapaneseMean, PartOfSpeech, User, Word, WordInfo []ent.Hook
+		JapaneseMean, PartOfSpeech, RegisteredWord, Test, TestQuestion, User, Word,
+		WordInfo []ent.Hook
 	}
 	inters struct {
-		JapaneseMean, PartOfSpeech, User, Word, WordInfo []ent.Interceptor
+		JapaneseMean, PartOfSpeech, RegisteredWord, Test, TestQuestion, User, Word,
+		WordInfo []ent.Interceptor
 	}
 )

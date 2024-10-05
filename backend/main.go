@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"word_app/ent"
+	"word_app/ent/user"
 	"word_app/seeder"
 	"word_app/src"
 
@@ -29,8 +30,9 @@ func main() {
 	if err := client.Schema.Create(context.Background()); err != nil {
 		log.Fatalf("Failed creating schema resources: %v", err)
 	}
+
 	// 初回のみシードを実行
-	seedAdminExists, err := client.User.Query().Where(client.User.ByEmail("admin@example.com")).Exist(ctx)
+	seedAdminExists, err := client.User.Query().Where(user.Email("admin@example.com")).Exist(ctx)
 	if err != nil {
 		log.Fatalf("Failed checking for admin existence: %v", err)
 	}

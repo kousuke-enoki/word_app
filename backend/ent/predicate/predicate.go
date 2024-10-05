@@ -12,6 +12,15 @@ type JapaneseMean func(*sql.Selector)
 // PartOfSpeech is the predicate function for partofspeech builders.
 type PartOfSpeech func(*sql.Selector)
 
+// RegisteredWord is the predicate function for registeredword builders.
+type RegisteredWord func(*sql.Selector)
+
+// Test is the predicate function for test builders.
+type Test func(*sql.Selector)
+
+// TestQuestion is the predicate function for testquestion builders.
+type TestQuestion func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 

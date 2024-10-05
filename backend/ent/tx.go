@@ -16,6 +16,12 @@ type Tx struct {
 	JapaneseMean *JapaneseMeanClient
 	// PartOfSpeech is the client for interacting with the PartOfSpeech builders.
 	PartOfSpeech *PartOfSpeechClient
+	// RegisteredWord is the client for interacting with the RegisteredWord builders.
+	RegisteredWord *RegisteredWordClient
+	// Test is the client for interacting with the Test builders.
+	Test *TestClient
+	// TestQuestion is the client for interacting with the TestQuestion builders.
+	TestQuestion *TestQuestionClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// Word is the client for interacting with the Word builders.
@@ -155,6 +161,9 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.JapaneseMean = NewJapaneseMeanClient(tx.config)
 	tx.PartOfSpeech = NewPartOfSpeechClient(tx.config)
+	tx.RegisteredWord = NewRegisteredWordClient(tx.config)
+	tx.Test = NewTestClient(tx.config)
+	tx.TestQuestion = NewTestQuestionClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.Word = NewWordClient(tx.config)
 	tx.WordInfo = NewWordInfoClient(tx.config)

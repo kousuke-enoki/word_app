@@ -12,7 +12,6 @@ import (
 	"word_app/ent/migrate"
 
 	"word_app/ent/japanesemean"
-	"word_app/ent/partofspeech"
 	"word_app/ent/registeredword"
 	"word_app/ent/test"
 	"word_app/ent/testquestion"
@@ -33,8 +32,6 @@ type Client struct {
 	Schema *migrate.Schema
 	// JapaneseMean is the client for interacting with the JapaneseMean builders.
 	JapaneseMean *JapaneseMeanClient
-	// PartOfSpeech is the client for interacting with the PartOfSpeech builders.
-	PartOfSpeech *PartOfSpeechClient
 	// RegisteredWord is the client for interacting with the RegisteredWord builders.
 	RegisteredWord *RegisteredWordClient
 	// Test is the client for interacting with the Test builders.
@@ -59,7 +56,6 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.JapaneseMean = NewJapaneseMeanClient(c.config)
-	c.PartOfSpeech = NewPartOfSpeechClient(c.config)
 	c.RegisteredWord = NewRegisteredWordClient(c.config)
 	c.Test = NewTestClient(c.config)
 	c.TestQuestion = NewTestQuestionClient(c.config)
@@ -159,7 +155,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:            ctx,
 		config:         cfg,
 		JapaneseMean:   NewJapaneseMeanClient(cfg),
-		PartOfSpeech:   NewPartOfSpeechClient(cfg),
 		RegisteredWord: NewRegisteredWordClient(cfg),
 		Test:           NewTestClient(cfg),
 		TestQuestion:   NewTestQuestionClient(cfg),
@@ -186,7 +181,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:            ctx,
 		config:         cfg,
 		JapaneseMean:   NewJapaneseMeanClient(cfg),
-		PartOfSpeech:   NewPartOfSpeechClient(cfg),
 		RegisteredWord: NewRegisteredWordClient(cfg),
 		Test:           NewTestClient(cfg),
 		TestQuestion:   NewTestQuestionClient(cfg),
@@ -222,8 +216,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.JapaneseMean, c.PartOfSpeech, c.RegisteredWord, c.Test, c.TestQuestion,
-		c.User, c.Word, c.WordInfo,
+		c.JapaneseMean, c.RegisteredWord, c.Test, c.TestQuestion, c.User, c.Word,
+		c.WordInfo,
 	} {
 		n.Use(hooks...)
 	}
@@ -233,8 +227,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.JapaneseMean, c.PartOfSpeech, c.RegisteredWord, c.Test, c.TestQuestion,
-		c.User, c.Word, c.WordInfo,
+		c.JapaneseMean, c.RegisteredWord, c.Test, c.TestQuestion, c.User, c.Word,
+		c.WordInfo,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -245,8 +239,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *JapaneseMeanMutation:
 		return c.JapaneseMean.mutate(ctx, m)
-	case *PartOfSpeechMutation:
-		return c.PartOfSpeech.mutate(ctx, m)
 	case *RegisteredWordMutation:
 		return c.RegisteredWord.mutate(ctx, m)
 	case *TestMutation:
@@ -410,155 +402,6 @@ func (c *JapaneseMeanClient) mutate(ctx context.Context, m *JapaneseMeanMutation
 		return (&JapaneseMeanDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown JapaneseMean mutation op: %q", m.Op())
-	}
-}
-
-// PartOfSpeechClient is a client for the PartOfSpeech schema.
-type PartOfSpeechClient struct {
-	config
-}
-
-// NewPartOfSpeechClient returns a client for the PartOfSpeech from the given config.
-func NewPartOfSpeechClient(c config) *PartOfSpeechClient {
-	return &PartOfSpeechClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `partofspeech.Hooks(f(g(h())))`.
-func (c *PartOfSpeechClient) Use(hooks ...Hook) {
-	c.hooks.PartOfSpeech = append(c.hooks.PartOfSpeech, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `partofspeech.Intercept(f(g(h())))`.
-func (c *PartOfSpeechClient) Intercept(interceptors ...Interceptor) {
-	c.inters.PartOfSpeech = append(c.inters.PartOfSpeech, interceptors...)
-}
-
-// Create returns a builder for creating a PartOfSpeech entity.
-func (c *PartOfSpeechClient) Create() *PartOfSpeechCreate {
-	mutation := newPartOfSpeechMutation(c.config, OpCreate)
-	return &PartOfSpeechCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of PartOfSpeech entities.
-func (c *PartOfSpeechClient) CreateBulk(builders ...*PartOfSpeechCreate) *PartOfSpeechCreateBulk {
-	return &PartOfSpeechCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *PartOfSpeechClient) MapCreateBulk(slice any, setFunc func(*PartOfSpeechCreate, int)) *PartOfSpeechCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &PartOfSpeechCreateBulk{err: fmt.Errorf("calling to PartOfSpeechClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*PartOfSpeechCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &PartOfSpeechCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for PartOfSpeech.
-func (c *PartOfSpeechClient) Update() *PartOfSpeechUpdate {
-	mutation := newPartOfSpeechMutation(c.config, OpUpdate)
-	return &PartOfSpeechUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *PartOfSpeechClient) UpdateOne(pos *PartOfSpeech) *PartOfSpeechUpdateOne {
-	mutation := newPartOfSpeechMutation(c.config, OpUpdateOne, withPartOfSpeech(pos))
-	return &PartOfSpeechUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *PartOfSpeechClient) UpdateOneID(id int) *PartOfSpeechUpdateOne {
-	mutation := newPartOfSpeechMutation(c.config, OpUpdateOne, withPartOfSpeechID(id))
-	return &PartOfSpeechUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for PartOfSpeech.
-func (c *PartOfSpeechClient) Delete() *PartOfSpeechDelete {
-	mutation := newPartOfSpeechMutation(c.config, OpDelete)
-	return &PartOfSpeechDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *PartOfSpeechClient) DeleteOne(pos *PartOfSpeech) *PartOfSpeechDeleteOne {
-	return c.DeleteOneID(pos.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *PartOfSpeechClient) DeleteOneID(id int) *PartOfSpeechDeleteOne {
-	builder := c.Delete().Where(partofspeech.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &PartOfSpeechDeleteOne{builder}
-}
-
-// Query returns a query builder for PartOfSpeech.
-func (c *PartOfSpeechClient) Query() *PartOfSpeechQuery {
-	return &PartOfSpeechQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypePartOfSpeech},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a PartOfSpeech entity by its id.
-func (c *PartOfSpeechClient) Get(ctx context.Context, id int) (*PartOfSpeech, error) {
-	return c.Query().Where(partofspeech.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *PartOfSpeechClient) GetX(ctx context.Context, id int) *PartOfSpeech {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryWordInfos queries the word_infos edge of a PartOfSpeech.
-func (c *PartOfSpeechClient) QueryWordInfos(pos *PartOfSpeech) *WordInfoQuery {
-	query := (&WordInfoClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := pos.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(partofspeech.Table, partofspeech.FieldID, id),
-			sqlgraph.To(wordinfo.Table, wordinfo.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, partofspeech.WordInfosTable, partofspeech.WordInfosColumn),
-		)
-		fromV = sqlgraph.Neighbors(pos.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *PartOfSpeechClient) Hooks() []Hook {
-	return c.hooks.PartOfSpeech
-}
-
-// Interceptors returns the client interceptors.
-func (c *PartOfSpeechClient) Interceptors() []Interceptor {
-	return c.inters.PartOfSpeech
-}
-
-func (c *PartOfSpeechClient) mutate(ctx context.Context, m *PartOfSpeechMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&PartOfSpeechCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&PartOfSpeechUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&PartOfSpeechUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&PartOfSpeechDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown PartOfSpeech mutation op: %q", m.Op())
 	}
 }
 
@@ -1511,22 +1354,6 @@ func (c *WordInfoClient) QueryWord(wi *WordInfo) *WordQuery {
 	return query
 }
 
-// QueryPartOfSpeech queries the part_of_speech edge of a WordInfo.
-func (c *WordInfoClient) QueryPartOfSpeech(wi *WordInfo) *PartOfSpeechQuery {
-	query := (&PartOfSpeechClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := wi.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(wordinfo.Table, wordinfo.FieldID, id),
-			sqlgraph.To(partofspeech.Table, partofspeech.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, wordinfo.PartOfSpeechTable, wordinfo.PartOfSpeechColumn),
-		)
-		fromV = sqlgraph.Neighbors(wi.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryJapaneseMeans queries the japanese_means edge of a WordInfo.
 func (c *WordInfoClient) QueryJapaneseMeans(wi *WordInfo) *JapaneseMeanQuery {
 	query := (&JapaneseMeanClient{config: c.config}).Query()
@@ -1587,11 +1414,11 @@ func (c *WordInfoClient) mutate(ctx context.Context, m *WordInfoMutation) (Value
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		JapaneseMean, PartOfSpeech, RegisteredWord, Test, TestQuestion, User, Word,
+		JapaneseMean, RegisteredWord, Test, TestQuestion, User, Word,
 		WordInfo []ent.Hook
 	}
 	inters struct {
-		JapaneseMean, PartOfSpeech, RegisteredWord, Test, TestQuestion, User, Word,
+		JapaneseMean, RegisteredWord, Test, TestQuestion, User, Word,
 		WordInfo []ent.Interceptor
 	}
 )

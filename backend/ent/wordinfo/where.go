@@ -60,9 +60,14 @@ func WordID(v int) predicate.WordInfo {
 	return predicate.WordInfo(sql.FieldEQ(FieldWordID, v))
 }
 
-// PartOfSpeechID applies equality check predicate on the "part_of_speech_id" field. It's identical to PartOfSpeechIDEQ.
-func PartOfSpeechID(v int) predicate.WordInfo {
-	return predicate.WordInfo(sql.FieldEQ(FieldPartOfSpeechID, v))
+// PartOfSpeech applies equality check predicate on the "part_of_speech" field. It's identical to PartOfSpeechEQ.
+func PartOfSpeech(v int) predicate.WordInfo {
+	return predicate.WordInfo(sql.FieldEQ(FieldPartOfSpeech, v))
+}
+
+// RegistrationCount applies equality check predicate on the "registration_count" field. It's identical to RegistrationCountEQ.
+func RegistrationCount(v int) predicate.WordInfo {
+	return predicate.WordInfo(sql.FieldEQ(FieldRegistrationCount, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -95,24 +100,84 @@ func WordIDNotIn(vs ...int) predicate.WordInfo {
 	return predicate.WordInfo(sql.FieldNotIn(FieldWordID, vs...))
 }
 
-// PartOfSpeechIDEQ applies the EQ predicate on the "part_of_speech_id" field.
-func PartOfSpeechIDEQ(v int) predicate.WordInfo {
-	return predicate.WordInfo(sql.FieldEQ(FieldPartOfSpeechID, v))
+// PartOfSpeechEQ applies the EQ predicate on the "part_of_speech" field.
+func PartOfSpeechEQ(v int) predicate.WordInfo {
+	return predicate.WordInfo(sql.FieldEQ(FieldPartOfSpeech, v))
 }
 
-// PartOfSpeechIDNEQ applies the NEQ predicate on the "part_of_speech_id" field.
-func PartOfSpeechIDNEQ(v int) predicate.WordInfo {
-	return predicate.WordInfo(sql.FieldNEQ(FieldPartOfSpeechID, v))
+// PartOfSpeechNEQ applies the NEQ predicate on the "part_of_speech" field.
+func PartOfSpeechNEQ(v int) predicate.WordInfo {
+	return predicate.WordInfo(sql.FieldNEQ(FieldPartOfSpeech, v))
 }
 
-// PartOfSpeechIDIn applies the In predicate on the "part_of_speech_id" field.
-func PartOfSpeechIDIn(vs ...int) predicate.WordInfo {
-	return predicate.WordInfo(sql.FieldIn(FieldPartOfSpeechID, vs...))
+// PartOfSpeechIn applies the In predicate on the "part_of_speech" field.
+func PartOfSpeechIn(vs ...int) predicate.WordInfo {
+	return predicate.WordInfo(sql.FieldIn(FieldPartOfSpeech, vs...))
 }
 
-// PartOfSpeechIDNotIn applies the NotIn predicate on the "part_of_speech_id" field.
-func PartOfSpeechIDNotIn(vs ...int) predicate.WordInfo {
-	return predicate.WordInfo(sql.FieldNotIn(FieldPartOfSpeechID, vs...))
+// PartOfSpeechNotIn applies the NotIn predicate on the "part_of_speech" field.
+func PartOfSpeechNotIn(vs ...int) predicate.WordInfo {
+	return predicate.WordInfo(sql.FieldNotIn(FieldPartOfSpeech, vs...))
+}
+
+// PartOfSpeechGT applies the GT predicate on the "part_of_speech" field.
+func PartOfSpeechGT(v int) predicate.WordInfo {
+	return predicate.WordInfo(sql.FieldGT(FieldPartOfSpeech, v))
+}
+
+// PartOfSpeechGTE applies the GTE predicate on the "part_of_speech" field.
+func PartOfSpeechGTE(v int) predicate.WordInfo {
+	return predicate.WordInfo(sql.FieldGTE(FieldPartOfSpeech, v))
+}
+
+// PartOfSpeechLT applies the LT predicate on the "part_of_speech" field.
+func PartOfSpeechLT(v int) predicate.WordInfo {
+	return predicate.WordInfo(sql.FieldLT(FieldPartOfSpeech, v))
+}
+
+// PartOfSpeechLTE applies the LTE predicate on the "part_of_speech" field.
+func PartOfSpeechLTE(v int) predicate.WordInfo {
+	return predicate.WordInfo(sql.FieldLTE(FieldPartOfSpeech, v))
+}
+
+// RegistrationCountEQ applies the EQ predicate on the "registration_count" field.
+func RegistrationCountEQ(v int) predicate.WordInfo {
+	return predicate.WordInfo(sql.FieldEQ(FieldRegistrationCount, v))
+}
+
+// RegistrationCountNEQ applies the NEQ predicate on the "registration_count" field.
+func RegistrationCountNEQ(v int) predicate.WordInfo {
+	return predicate.WordInfo(sql.FieldNEQ(FieldRegistrationCount, v))
+}
+
+// RegistrationCountIn applies the In predicate on the "registration_count" field.
+func RegistrationCountIn(vs ...int) predicate.WordInfo {
+	return predicate.WordInfo(sql.FieldIn(FieldRegistrationCount, vs...))
+}
+
+// RegistrationCountNotIn applies the NotIn predicate on the "registration_count" field.
+func RegistrationCountNotIn(vs ...int) predicate.WordInfo {
+	return predicate.WordInfo(sql.FieldNotIn(FieldRegistrationCount, vs...))
+}
+
+// RegistrationCountGT applies the GT predicate on the "registration_count" field.
+func RegistrationCountGT(v int) predicate.WordInfo {
+	return predicate.WordInfo(sql.FieldGT(FieldRegistrationCount, v))
+}
+
+// RegistrationCountGTE applies the GTE predicate on the "registration_count" field.
+func RegistrationCountGTE(v int) predicate.WordInfo {
+	return predicate.WordInfo(sql.FieldGTE(FieldRegistrationCount, v))
+}
+
+// RegistrationCountLT applies the LT predicate on the "registration_count" field.
+func RegistrationCountLT(v int) predicate.WordInfo {
+	return predicate.WordInfo(sql.FieldLT(FieldRegistrationCount, v))
+}
+
+// RegistrationCountLTE applies the LTE predicate on the "registration_count" field.
+func RegistrationCountLTE(v int) predicate.WordInfo {
+	return predicate.WordInfo(sql.FieldLTE(FieldRegistrationCount, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -210,29 +275,6 @@ func HasWord() predicate.WordInfo {
 func HasWordWith(preds ...predicate.Word) predicate.WordInfo {
 	return predicate.WordInfo(func(s *sql.Selector) {
 		step := newWordStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasPartOfSpeech applies the HasEdge predicate on the "part_of_speech" edge.
-func HasPartOfSpeech() predicate.WordInfo {
-	return predicate.WordInfo(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, PartOfSpeechTable, PartOfSpeechColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasPartOfSpeechWith applies the HasEdge predicate on the "part_of_speech" edge with a given conditions (other predicates).
-func HasPartOfSpeechWith(preds ...predicate.PartOfSpeech) predicate.WordInfo {
-	return predicate.WordInfo(func(s *sql.Selector) {
-		step := newPartOfSpeechStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -20,7 +20,7 @@ type Word struct {
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// VoiceID holds the value of the "voice_id" field.
-	VoiceID int `json:"voice_id,omitempty"`
+	VoiceID *string `json:"voice_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -54,9 +54,9 @@ func (*Word) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case word.FieldID, word.FieldVoiceID:
+		case word.FieldID:
 			values[i] = new(sql.NullInt64)
-		case word.FieldName:
+		case word.FieldName, word.FieldVoiceID:
 			values[i] = new(sql.NullString)
 		case word.FieldCreatedAt, word.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -88,10 +88,11 @@ func (w *Word) assignValues(columns []string, values []any) error {
 				w.Name = value.String
 			}
 		case word.FieldVoiceID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field voice_id", values[i])
 			} else if value.Valid {
-				w.VoiceID = int(value.Int64)
+				w.VoiceID = new(string)
+				*w.VoiceID = value.String
 			}
 		case word.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -149,8 +150,10 @@ func (w *Word) String() string {
 	builder.WriteString("name=")
 	builder.WriteString(w.Name)
 	builder.WriteString(", ")
-	builder.WriteString("voice_id=")
-	builder.WriteString(fmt.Sprintf("%v", w.VoiceID))
+	if v := w.VoiceID; v != nil {
+		builder.WriteString("voice_id=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(w.CreatedAt.Format(time.ANSIC))

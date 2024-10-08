@@ -61,7 +61,7 @@ func Name(v string) predicate.Word {
 }
 
 // VoiceID applies equality check predicate on the "voice_id" field. It's identical to VoiceIDEQ.
-func VoiceID(v int) predicate.Word {
+func VoiceID(v string) predicate.Word {
 	return predicate.Word(sql.FieldEQ(FieldVoiceID, v))
 }
 
@@ -141,43 +141,78 @@ func NameContainsFold(v string) predicate.Word {
 }
 
 // VoiceIDEQ applies the EQ predicate on the "voice_id" field.
-func VoiceIDEQ(v int) predicate.Word {
+func VoiceIDEQ(v string) predicate.Word {
 	return predicate.Word(sql.FieldEQ(FieldVoiceID, v))
 }
 
 // VoiceIDNEQ applies the NEQ predicate on the "voice_id" field.
-func VoiceIDNEQ(v int) predicate.Word {
+func VoiceIDNEQ(v string) predicate.Word {
 	return predicate.Word(sql.FieldNEQ(FieldVoiceID, v))
 }
 
 // VoiceIDIn applies the In predicate on the "voice_id" field.
-func VoiceIDIn(vs ...int) predicate.Word {
+func VoiceIDIn(vs ...string) predicate.Word {
 	return predicate.Word(sql.FieldIn(FieldVoiceID, vs...))
 }
 
 // VoiceIDNotIn applies the NotIn predicate on the "voice_id" field.
-func VoiceIDNotIn(vs ...int) predicate.Word {
+func VoiceIDNotIn(vs ...string) predicate.Word {
 	return predicate.Word(sql.FieldNotIn(FieldVoiceID, vs...))
 }
 
 // VoiceIDGT applies the GT predicate on the "voice_id" field.
-func VoiceIDGT(v int) predicate.Word {
+func VoiceIDGT(v string) predicate.Word {
 	return predicate.Word(sql.FieldGT(FieldVoiceID, v))
 }
 
 // VoiceIDGTE applies the GTE predicate on the "voice_id" field.
-func VoiceIDGTE(v int) predicate.Word {
+func VoiceIDGTE(v string) predicate.Word {
 	return predicate.Word(sql.FieldGTE(FieldVoiceID, v))
 }
 
 // VoiceIDLT applies the LT predicate on the "voice_id" field.
-func VoiceIDLT(v int) predicate.Word {
+func VoiceIDLT(v string) predicate.Word {
 	return predicate.Word(sql.FieldLT(FieldVoiceID, v))
 }
 
 // VoiceIDLTE applies the LTE predicate on the "voice_id" field.
-func VoiceIDLTE(v int) predicate.Word {
+func VoiceIDLTE(v string) predicate.Word {
 	return predicate.Word(sql.FieldLTE(FieldVoiceID, v))
+}
+
+// VoiceIDContains applies the Contains predicate on the "voice_id" field.
+func VoiceIDContains(v string) predicate.Word {
+	return predicate.Word(sql.FieldContains(FieldVoiceID, v))
+}
+
+// VoiceIDHasPrefix applies the HasPrefix predicate on the "voice_id" field.
+func VoiceIDHasPrefix(v string) predicate.Word {
+	return predicate.Word(sql.FieldHasPrefix(FieldVoiceID, v))
+}
+
+// VoiceIDHasSuffix applies the HasSuffix predicate on the "voice_id" field.
+func VoiceIDHasSuffix(v string) predicate.Word {
+	return predicate.Word(sql.FieldHasSuffix(FieldVoiceID, v))
+}
+
+// VoiceIDIsNil applies the IsNil predicate on the "voice_id" field.
+func VoiceIDIsNil() predicate.Word {
+	return predicate.Word(sql.FieldIsNull(FieldVoiceID))
+}
+
+// VoiceIDNotNil applies the NotNil predicate on the "voice_id" field.
+func VoiceIDNotNil() predicate.Word {
+	return predicate.Word(sql.FieldNotNull(FieldVoiceID))
+}
+
+// VoiceIDEqualFold applies the EqualFold predicate on the "voice_id" field.
+func VoiceIDEqualFold(v string) predicate.Word {
+	return predicate.Word(sql.FieldEqualFold(FieldVoiceID, v))
+}
+
+// VoiceIDContainsFold applies the ContainsFold predicate on the "voice_id" field.
+func VoiceIDContainsFold(v string) predicate.Word {
+	return predicate.Word(sql.FieldContainsFold(FieldVoiceID, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

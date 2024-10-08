@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 	"word_app/ent/japanesemean"
-	"word_app/ent/partofspeech"
 	"word_app/ent/predicate"
 	"word_app/ent/registeredword"
 	"word_app/ent/test"
@@ -32,7 +31,6 @@ const (
 
 	// Node types.
 	TypeJapaneseMean   = "JapaneseMean"
-	TypePartOfSpeech   = "PartOfSpeech"
 	TypeRegisteredWord = "RegisteredWord"
 	TypeTest           = "Test"
 	TypeTestQuestion   = "TestQuestion"
@@ -584,533 +582,6 @@ func (m *JapaneseMeanMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown JapaneseMean edge %s", name)
-}
-
-// PartOfSpeechMutation represents an operation that mutates the PartOfSpeech nodes in the graph.
-type PartOfSpeechMutation struct {
-	config
-	op                Op
-	typ               string
-	id                *int
-	name              *string
-	created_at        *time.Time
-	updated_at        *time.Time
-	clearedFields     map[string]struct{}
-	word_infos        map[int]struct{}
-	removedword_infos map[int]struct{}
-	clearedword_infos bool
-	done              bool
-	oldValue          func(context.Context) (*PartOfSpeech, error)
-	predicates        []predicate.PartOfSpeech
-}
-
-var _ ent.Mutation = (*PartOfSpeechMutation)(nil)
-
-// partofspeechOption allows management of the mutation configuration using functional options.
-type partofspeechOption func(*PartOfSpeechMutation)
-
-// newPartOfSpeechMutation creates new mutation for the PartOfSpeech entity.
-func newPartOfSpeechMutation(c config, op Op, opts ...partofspeechOption) *PartOfSpeechMutation {
-	m := &PartOfSpeechMutation{
-		config:        c,
-		op:            op,
-		typ:           TypePartOfSpeech,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withPartOfSpeechID sets the ID field of the mutation.
-func withPartOfSpeechID(id int) partofspeechOption {
-	return func(m *PartOfSpeechMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *PartOfSpeech
-		)
-		m.oldValue = func(ctx context.Context) (*PartOfSpeech, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().PartOfSpeech.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withPartOfSpeech sets the old PartOfSpeech of the mutation.
-func withPartOfSpeech(node *PartOfSpeech) partofspeechOption {
-	return func(m *PartOfSpeechMutation) {
-		m.oldValue = func(context.Context) (*PartOfSpeech, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m PartOfSpeechMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m PartOfSpeechMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *PartOfSpeechMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *PartOfSpeechMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().PartOfSpeech.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetName sets the "name" field.
-func (m *PartOfSpeechMutation) SetName(s string) {
-	m.name = &s
-}
-
-// Name returns the value of the "name" field in the mutation.
-func (m *PartOfSpeechMutation) Name() (r string, exists bool) {
-	v := m.name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldName returns the old "name" field's value of the PartOfSpeech entity.
-// If the PartOfSpeech object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PartOfSpeechMutation) OldName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
-	}
-	return oldValue.Name, nil
-}
-
-// ResetName resets all changes to the "name" field.
-func (m *PartOfSpeechMutation) ResetName() {
-	m.name = nil
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (m *PartOfSpeechMutation) SetCreatedAt(t time.Time) {
-	m.created_at = &t
-}
-
-// CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *PartOfSpeechMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m.created_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedAt returns the old "created_at" field's value of the PartOfSpeech entity.
-// If the PartOfSpeech object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PartOfSpeechMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
-	}
-	return oldValue.CreatedAt, nil
-}
-
-// ResetCreatedAt resets all changes to the "created_at" field.
-func (m *PartOfSpeechMutation) ResetCreatedAt() {
-	m.created_at = nil
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (m *PartOfSpeechMutation) SetUpdatedAt(t time.Time) {
-	m.updated_at = &t
-}
-
-// UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *PartOfSpeechMutation) UpdatedAt() (r time.Time, exists bool) {
-	v := m.updated_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdatedAt returns the old "updated_at" field's value of the PartOfSpeech entity.
-// If the PartOfSpeech object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PartOfSpeechMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
-	}
-	return oldValue.UpdatedAt, nil
-}
-
-// ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *PartOfSpeechMutation) ResetUpdatedAt() {
-	m.updated_at = nil
-}
-
-// AddWordInfoIDs adds the "word_infos" edge to the WordInfo entity by ids.
-func (m *PartOfSpeechMutation) AddWordInfoIDs(ids ...int) {
-	if m.word_infos == nil {
-		m.word_infos = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.word_infos[ids[i]] = struct{}{}
-	}
-}
-
-// ClearWordInfos clears the "word_infos" edge to the WordInfo entity.
-func (m *PartOfSpeechMutation) ClearWordInfos() {
-	m.clearedword_infos = true
-}
-
-// WordInfosCleared reports if the "word_infos" edge to the WordInfo entity was cleared.
-func (m *PartOfSpeechMutation) WordInfosCleared() bool {
-	return m.clearedword_infos
-}
-
-// RemoveWordInfoIDs removes the "word_infos" edge to the WordInfo entity by IDs.
-func (m *PartOfSpeechMutation) RemoveWordInfoIDs(ids ...int) {
-	if m.removedword_infos == nil {
-		m.removedword_infos = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.word_infos, ids[i])
-		m.removedword_infos[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedWordInfos returns the removed IDs of the "word_infos" edge to the WordInfo entity.
-func (m *PartOfSpeechMutation) RemovedWordInfosIDs() (ids []int) {
-	for id := range m.removedword_infos {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// WordInfosIDs returns the "word_infos" edge IDs in the mutation.
-func (m *PartOfSpeechMutation) WordInfosIDs() (ids []int) {
-	for id := range m.word_infos {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetWordInfos resets all changes to the "word_infos" edge.
-func (m *PartOfSpeechMutation) ResetWordInfos() {
-	m.word_infos = nil
-	m.clearedword_infos = false
-	m.removedword_infos = nil
-}
-
-// Where appends a list predicates to the PartOfSpeechMutation builder.
-func (m *PartOfSpeechMutation) Where(ps ...predicate.PartOfSpeech) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the PartOfSpeechMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *PartOfSpeechMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.PartOfSpeech, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *PartOfSpeechMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *PartOfSpeechMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (PartOfSpeech).
-func (m *PartOfSpeechMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *PartOfSpeechMutation) Fields() []string {
-	fields := make([]string, 0, 3)
-	if m.name != nil {
-		fields = append(fields, partofspeech.FieldName)
-	}
-	if m.created_at != nil {
-		fields = append(fields, partofspeech.FieldCreatedAt)
-	}
-	if m.updated_at != nil {
-		fields = append(fields, partofspeech.FieldUpdatedAt)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *PartOfSpeechMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case partofspeech.FieldName:
-		return m.Name()
-	case partofspeech.FieldCreatedAt:
-		return m.CreatedAt()
-	case partofspeech.FieldUpdatedAt:
-		return m.UpdatedAt()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *PartOfSpeechMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case partofspeech.FieldName:
-		return m.OldName(ctx)
-	case partofspeech.FieldCreatedAt:
-		return m.OldCreatedAt(ctx)
-	case partofspeech.FieldUpdatedAt:
-		return m.OldUpdatedAt(ctx)
-	}
-	return nil, fmt.Errorf("unknown PartOfSpeech field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *PartOfSpeechMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case partofspeech.FieldName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetName(v)
-		return nil
-	case partofspeech.FieldCreatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedAt(v)
-		return nil
-	case partofspeech.FieldUpdatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdatedAt(v)
-		return nil
-	}
-	return fmt.Errorf("unknown PartOfSpeech field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *PartOfSpeechMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *PartOfSpeechMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *PartOfSpeechMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown PartOfSpeech numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *PartOfSpeechMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *PartOfSpeechMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *PartOfSpeechMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown PartOfSpeech nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *PartOfSpeechMutation) ResetField(name string) error {
-	switch name {
-	case partofspeech.FieldName:
-		m.ResetName()
-		return nil
-	case partofspeech.FieldCreatedAt:
-		m.ResetCreatedAt()
-		return nil
-	case partofspeech.FieldUpdatedAt:
-		m.ResetUpdatedAt()
-		return nil
-	}
-	return fmt.Errorf("unknown PartOfSpeech field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *PartOfSpeechMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.word_infos != nil {
-		edges = append(edges, partofspeech.EdgeWordInfos)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *PartOfSpeechMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case partofspeech.EdgeWordInfos:
-		ids := make([]ent.Value, 0, len(m.word_infos))
-		for id := range m.word_infos {
-			ids = append(ids, id)
-		}
-		return ids
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *PartOfSpeechMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.removedword_infos != nil {
-		edges = append(edges, partofspeech.EdgeWordInfos)
-	}
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *PartOfSpeechMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case partofspeech.EdgeWordInfos:
-		ids := make([]ent.Value, 0, len(m.removedword_infos))
-		for id := range m.removedword_infos {
-			ids = append(ids, id)
-		}
-		return ids
-	}
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *PartOfSpeechMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.clearedword_infos {
-		edges = append(edges, partofspeech.EdgeWordInfos)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *PartOfSpeechMutation) EdgeCleared(name string) bool {
-	switch name {
-	case partofspeech.EdgeWordInfos:
-		return m.clearedword_infos
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *PartOfSpeechMutation) ClearEdge(name string) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown PartOfSpeech unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *PartOfSpeechMutation) ResetEdge(name string) error {
-	switch name {
-	case partofspeech.EdgeWordInfos:
-		m.ResetWordInfos()
-		return nil
-	}
-	return fmt.Errorf("unknown PartOfSpeech edge %s", name)
 }
 
 // RegisteredWordMutation represents an operation that mutates the RegisteredWord nodes in the graph.
@@ -4159,8 +3630,7 @@ type WordMutation struct {
 	typ               string
 	id                *int
 	name              *string
-	voice_id          *int
-	addvoice_id       *int
+	voice_id          *string
 	created_at        *time.Time
 	updated_at        *time.Time
 	clearedFields     map[string]struct{}
@@ -4307,13 +3777,12 @@ func (m *WordMutation) ResetName() {
 }
 
 // SetVoiceID sets the "voice_id" field.
-func (m *WordMutation) SetVoiceID(i int) {
-	m.voice_id = &i
-	m.addvoice_id = nil
+func (m *WordMutation) SetVoiceID(s string) {
+	m.voice_id = &s
 }
 
 // VoiceID returns the value of the "voice_id" field in the mutation.
-func (m *WordMutation) VoiceID() (r int, exists bool) {
+func (m *WordMutation) VoiceID() (r string, exists bool) {
 	v := m.voice_id
 	if v == nil {
 		return
@@ -4324,7 +3793,7 @@ func (m *WordMutation) VoiceID() (r int, exists bool) {
 // OldVoiceID returns the old "voice_id" field's value of the Word entity.
 // If the Word object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *WordMutation) OldVoiceID(ctx context.Context) (v int, err error) {
+func (m *WordMutation) OldVoiceID(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldVoiceID is only allowed on UpdateOne operations")
 	}
@@ -4338,28 +3807,22 @@ func (m *WordMutation) OldVoiceID(ctx context.Context) (v int, err error) {
 	return oldValue.VoiceID, nil
 }
 
-// AddVoiceID adds i to the "voice_id" field.
-func (m *WordMutation) AddVoiceID(i int) {
-	if m.addvoice_id != nil {
-		*m.addvoice_id += i
-	} else {
-		m.addvoice_id = &i
-	}
+// ClearVoiceID clears the value of the "voice_id" field.
+func (m *WordMutation) ClearVoiceID() {
+	m.voice_id = nil
+	m.clearedFields[word.FieldVoiceID] = struct{}{}
 }
 
-// AddedVoiceID returns the value that was added to the "voice_id" field in this mutation.
-func (m *WordMutation) AddedVoiceID() (r int, exists bool) {
-	v := m.addvoice_id
-	if v == nil {
-		return
-	}
-	return *v, true
+// VoiceIDCleared returns if the "voice_id" field was cleared in this mutation.
+func (m *WordMutation) VoiceIDCleared() bool {
+	_, ok := m.clearedFields[word.FieldVoiceID]
+	return ok
 }
 
 // ResetVoiceID resets all changes to the "voice_id" field.
 func (m *WordMutation) ResetVoiceID() {
 	m.voice_id = nil
-	m.addvoice_id = nil
+	delete(m.clearedFields, word.FieldVoiceID)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -4585,7 +4048,7 @@ func (m *WordMutation) SetField(name string, value ent.Value) error {
 		m.SetName(v)
 		return nil
 	case word.FieldVoiceID:
-		v, ok := value.(int)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -4612,21 +4075,13 @@ func (m *WordMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *WordMutation) AddedFields() []string {
-	var fields []string
-	if m.addvoice_id != nil {
-		fields = append(fields, word.FieldVoiceID)
-	}
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *WordMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case word.FieldVoiceID:
-		return m.AddedVoiceID()
-	}
 	return nil, false
 }
 
@@ -4635,13 +4090,6 @@ func (m *WordMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *WordMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case word.FieldVoiceID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddVoiceID(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Word numeric field %s", name)
 }
@@ -4649,7 +4097,11 @@ func (m *WordMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *WordMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(word.FieldVoiceID) {
+		fields = append(fields, word.FieldVoiceID)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -4662,6 +4114,11 @@ func (m *WordMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *WordMutation) ClearField(name string) error {
+	switch name {
+	case word.FieldVoiceID:
+		m.ClearVoiceID()
+		return nil
+	}
 	return fmt.Errorf("unknown Word nullable field %s", name)
 }
 
@@ -4775,13 +4232,15 @@ type WordInfoMutation struct {
 	op                      Op
 	typ                     string
 	id                      *int
+	part_of_speech          *int
+	addpart_of_speech       *int
+	registration_count      *int
+	addregistration_count   *int
 	created_at              *time.Time
 	updated_at              *time.Time
 	clearedFields           map[string]struct{}
 	word                    *int
 	clearedword             bool
-	part_of_speech          *int
-	clearedpart_of_speech   bool
 	japanese_means          map[int]struct{}
 	removedjapanese_means   map[int]struct{}
 	clearedjapanese_means   bool
@@ -4927,13 +4386,14 @@ func (m *WordInfoMutation) ResetWordID() {
 	m.word = nil
 }
 
-// SetPartOfSpeechID sets the "part_of_speech_id" field.
-func (m *WordInfoMutation) SetPartOfSpeechID(i int) {
+// SetPartOfSpeech sets the "part_of_speech" field.
+func (m *WordInfoMutation) SetPartOfSpeech(i int) {
 	m.part_of_speech = &i
+	m.addpart_of_speech = nil
 }
 
-// PartOfSpeechID returns the value of the "part_of_speech_id" field in the mutation.
-func (m *WordInfoMutation) PartOfSpeechID() (r int, exists bool) {
+// PartOfSpeech returns the value of the "part_of_speech" field in the mutation.
+func (m *WordInfoMutation) PartOfSpeech() (r int, exists bool) {
 	v := m.part_of_speech
 	if v == nil {
 		return
@@ -4941,26 +4401,101 @@ func (m *WordInfoMutation) PartOfSpeechID() (r int, exists bool) {
 	return *v, true
 }
 
-// OldPartOfSpeechID returns the old "part_of_speech_id" field's value of the WordInfo entity.
+// OldPartOfSpeech returns the old "part_of_speech" field's value of the WordInfo entity.
 // If the WordInfo object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *WordInfoMutation) OldPartOfSpeechID(ctx context.Context) (v int, err error) {
+func (m *WordInfoMutation) OldPartOfSpeech(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPartOfSpeechID is only allowed on UpdateOne operations")
+		return v, errors.New("OldPartOfSpeech is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPartOfSpeechID requires an ID field in the mutation")
+		return v, errors.New("OldPartOfSpeech requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPartOfSpeechID: %w", err)
+		return v, fmt.Errorf("querying old value for OldPartOfSpeech: %w", err)
 	}
-	return oldValue.PartOfSpeechID, nil
+	return oldValue.PartOfSpeech, nil
 }
 
-// ResetPartOfSpeechID resets all changes to the "part_of_speech_id" field.
-func (m *WordInfoMutation) ResetPartOfSpeechID() {
+// AddPartOfSpeech adds i to the "part_of_speech" field.
+func (m *WordInfoMutation) AddPartOfSpeech(i int) {
+	if m.addpart_of_speech != nil {
+		*m.addpart_of_speech += i
+	} else {
+		m.addpart_of_speech = &i
+	}
+}
+
+// AddedPartOfSpeech returns the value that was added to the "part_of_speech" field in this mutation.
+func (m *WordInfoMutation) AddedPartOfSpeech() (r int, exists bool) {
+	v := m.addpart_of_speech
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPartOfSpeech resets all changes to the "part_of_speech" field.
+func (m *WordInfoMutation) ResetPartOfSpeech() {
 	m.part_of_speech = nil
+	m.addpart_of_speech = nil
+}
+
+// SetRegistrationCount sets the "registration_count" field.
+func (m *WordInfoMutation) SetRegistrationCount(i int) {
+	m.registration_count = &i
+	m.addregistration_count = nil
+}
+
+// RegistrationCount returns the value of the "registration_count" field in the mutation.
+func (m *WordInfoMutation) RegistrationCount() (r int, exists bool) {
+	v := m.registration_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRegistrationCount returns the old "registration_count" field's value of the WordInfo entity.
+// If the WordInfo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WordInfoMutation) OldRegistrationCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRegistrationCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRegistrationCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRegistrationCount: %w", err)
+	}
+	return oldValue.RegistrationCount, nil
+}
+
+// AddRegistrationCount adds i to the "registration_count" field.
+func (m *WordInfoMutation) AddRegistrationCount(i int) {
+	if m.addregistration_count != nil {
+		*m.addregistration_count += i
+	} else {
+		m.addregistration_count = &i
+	}
+}
+
+// AddedRegistrationCount returns the value that was added to the "registration_count" field in this mutation.
+func (m *WordInfoMutation) AddedRegistrationCount() (r int, exists bool) {
+	v := m.addregistration_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRegistrationCount resets all changes to the "registration_count" field.
+func (m *WordInfoMutation) ResetRegistrationCount() {
+	m.registration_count = nil
+	m.addregistration_count = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -5060,33 +4595,6 @@ func (m *WordInfoMutation) WordIDs() (ids []int) {
 func (m *WordInfoMutation) ResetWord() {
 	m.word = nil
 	m.clearedword = false
-}
-
-// ClearPartOfSpeech clears the "part_of_speech" edge to the PartOfSpeech entity.
-func (m *WordInfoMutation) ClearPartOfSpeech() {
-	m.clearedpart_of_speech = true
-	m.clearedFields[wordinfo.FieldPartOfSpeechID] = struct{}{}
-}
-
-// PartOfSpeechCleared reports if the "part_of_speech" edge to the PartOfSpeech entity was cleared.
-func (m *WordInfoMutation) PartOfSpeechCleared() bool {
-	return m.clearedpart_of_speech
-}
-
-// PartOfSpeechIDs returns the "part_of_speech" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// PartOfSpeechID instead. It exists only for internal usage by the builders.
-func (m *WordInfoMutation) PartOfSpeechIDs() (ids []int) {
-	if id := m.part_of_speech; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetPartOfSpeech resets all changes to the "part_of_speech" edge.
-func (m *WordInfoMutation) ResetPartOfSpeech() {
-	m.part_of_speech = nil
-	m.clearedpart_of_speech = false
 }
 
 // AddJapaneseMeanIDs adds the "japanese_means" edge to the JapaneseMean entity by ids.
@@ -5231,12 +4739,15 @@ func (m *WordInfoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *WordInfoMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.word != nil {
 		fields = append(fields, wordinfo.FieldWordID)
 	}
 	if m.part_of_speech != nil {
-		fields = append(fields, wordinfo.FieldPartOfSpeechID)
+		fields = append(fields, wordinfo.FieldPartOfSpeech)
+	}
+	if m.registration_count != nil {
+		fields = append(fields, wordinfo.FieldRegistrationCount)
 	}
 	if m.created_at != nil {
 		fields = append(fields, wordinfo.FieldCreatedAt)
@@ -5254,8 +4765,10 @@ func (m *WordInfoMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case wordinfo.FieldWordID:
 		return m.WordID()
-	case wordinfo.FieldPartOfSpeechID:
-		return m.PartOfSpeechID()
+	case wordinfo.FieldPartOfSpeech:
+		return m.PartOfSpeech()
+	case wordinfo.FieldRegistrationCount:
+		return m.RegistrationCount()
 	case wordinfo.FieldCreatedAt:
 		return m.CreatedAt()
 	case wordinfo.FieldUpdatedAt:
@@ -5271,8 +4784,10 @@ func (m *WordInfoMutation) OldField(ctx context.Context, name string) (ent.Value
 	switch name {
 	case wordinfo.FieldWordID:
 		return m.OldWordID(ctx)
-	case wordinfo.FieldPartOfSpeechID:
-		return m.OldPartOfSpeechID(ctx)
+	case wordinfo.FieldPartOfSpeech:
+		return m.OldPartOfSpeech(ctx)
+	case wordinfo.FieldRegistrationCount:
+		return m.OldRegistrationCount(ctx)
 	case wordinfo.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case wordinfo.FieldUpdatedAt:
@@ -5293,12 +4808,19 @@ func (m *WordInfoMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetWordID(v)
 		return nil
-	case wordinfo.FieldPartOfSpeechID:
+	case wordinfo.FieldPartOfSpeech:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetPartOfSpeechID(v)
+		m.SetPartOfSpeech(v)
+		return nil
+	case wordinfo.FieldRegistrationCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRegistrationCount(v)
 		return nil
 	case wordinfo.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -5322,6 +4844,12 @@ func (m *WordInfoMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *WordInfoMutation) AddedFields() []string {
 	var fields []string
+	if m.addpart_of_speech != nil {
+		fields = append(fields, wordinfo.FieldPartOfSpeech)
+	}
+	if m.addregistration_count != nil {
+		fields = append(fields, wordinfo.FieldRegistrationCount)
+	}
 	return fields
 }
 
@@ -5330,6 +4858,10 @@ func (m *WordInfoMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *WordInfoMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case wordinfo.FieldPartOfSpeech:
+		return m.AddedPartOfSpeech()
+	case wordinfo.FieldRegistrationCount:
+		return m.AddedRegistrationCount()
 	}
 	return nil, false
 }
@@ -5339,6 +4871,20 @@ func (m *WordInfoMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *WordInfoMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case wordinfo.FieldPartOfSpeech:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPartOfSpeech(v)
+		return nil
+	case wordinfo.FieldRegistrationCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRegistrationCount(v)
+		return nil
 	}
 	return fmt.Errorf("unknown WordInfo numeric field %s", name)
 }
@@ -5369,8 +4915,11 @@ func (m *WordInfoMutation) ResetField(name string) error {
 	case wordinfo.FieldWordID:
 		m.ResetWordID()
 		return nil
-	case wordinfo.FieldPartOfSpeechID:
-		m.ResetPartOfSpeechID()
+	case wordinfo.FieldPartOfSpeech:
+		m.ResetPartOfSpeech()
+		return nil
+	case wordinfo.FieldRegistrationCount:
+		m.ResetRegistrationCount()
 		return nil
 	case wordinfo.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -5384,12 +4933,9 @@ func (m *WordInfoMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *WordInfoMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 3)
 	if m.word != nil {
 		edges = append(edges, wordinfo.EdgeWord)
-	}
-	if m.part_of_speech != nil {
-		edges = append(edges, wordinfo.EdgePartOfSpeech)
 	}
 	if m.japanese_means != nil {
 		edges = append(edges, wordinfo.EdgeJapaneseMeans)
@@ -5406,10 +4952,6 @@ func (m *WordInfoMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case wordinfo.EdgeWord:
 		if id := m.word; id != nil {
-			return []ent.Value{*id}
-		}
-	case wordinfo.EdgePartOfSpeech:
-		if id := m.part_of_speech; id != nil {
 			return []ent.Value{*id}
 		}
 	case wordinfo.EdgeJapaneseMeans:
@@ -5430,7 +4972,7 @@ func (m *WordInfoMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *WordInfoMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 3)
 	if m.removedjapanese_means != nil {
 		edges = append(edges, wordinfo.EdgeJapaneseMeans)
 	}
@@ -5462,12 +5004,9 @@ func (m *WordInfoMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *WordInfoMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 3)
 	if m.clearedword {
 		edges = append(edges, wordinfo.EdgeWord)
-	}
-	if m.clearedpart_of_speech {
-		edges = append(edges, wordinfo.EdgePartOfSpeech)
 	}
 	if m.clearedjapanese_means {
 		edges = append(edges, wordinfo.EdgeJapaneseMeans)
@@ -5484,8 +5023,6 @@ func (m *WordInfoMutation) EdgeCleared(name string) bool {
 	switch name {
 	case wordinfo.EdgeWord:
 		return m.clearedword
-	case wordinfo.EdgePartOfSpeech:
-		return m.clearedpart_of_speech
 	case wordinfo.EdgeJapaneseMeans:
 		return m.clearedjapanese_means
 	case wordinfo.EdgeRegisteredWords:
@@ -5501,9 +5038,6 @@ func (m *WordInfoMutation) ClearEdge(name string) error {
 	case wordinfo.EdgeWord:
 		m.ClearWord()
 		return nil
-	case wordinfo.EdgePartOfSpeech:
-		m.ClearPartOfSpeech()
-		return nil
 	}
 	return fmt.Errorf("unknown WordInfo unique edge %s", name)
 }
@@ -5514,9 +5048,6 @@ func (m *WordInfoMutation) ResetEdge(name string) error {
 	switch name {
 	case wordinfo.EdgeWord:
 		m.ResetWord()
-		return nil
-	case wordinfo.EdgePartOfSpeech:
-		m.ResetPartOfSpeech()
 		return nil
 	case wordinfo.EdgeJapaneseMeans:
 		m.ResetJapaneseMeans()

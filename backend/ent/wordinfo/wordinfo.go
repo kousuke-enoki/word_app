@@ -16,16 +16,16 @@ const (
 	FieldID = "id"
 	// FieldWordID holds the string denoting the word_id field in the database.
 	FieldWordID = "word_id"
-	// FieldPartOfSpeechID holds the string denoting the part_of_speech_id field in the database.
-	FieldPartOfSpeechID = "part_of_speech_id"
+	// FieldPartOfSpeech holds the string denoting the part_of_speech field in the database.
+	FieldPartOfSpeech = "part_of_speech"
+	// FieldRegistrationCount holds the string denoting the registration_count field in the database.
+	FieldRegistrationCount = "registration_count"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
 	// EdgeWord holds the string denoting the word edge name in mutations.
 	EdgeWord = "word"
-	// EdgePartOfSpeech holds the string denoting the part_of_speech edge name in mutations.
-	EdgePartOfSpeech = "part_of_speech"
 	// EdgeJapaneseMeans holds the string denoting the japanese_means edge name in mutations.
 	EdgeJapaneseMeans = "japanese_means"
 	// EdgeRegisteredWords holds the string denoting the registered_words edge name in mutations.
@@ -39,13 +39,6 @@ const (
 	WordInverseTable = "words"
 	// WordColumn is the table column denoting the word relation/edge.
 	WordColumn = "word_id"
-	// PartOfSpeechTable is the table that holds the part_of_speech relation/edge.
-	PartOfSpeechTable = "word_infos"
-	// PartOfSpeechInverseTable is the table name for the PartOfSpeech entity.
-	// It exists in this package in order to avoid circular dependency with the "partofspeech" package.
-	PartOfSpeechInverseTable = "part_of_speeches"
-	// PartOfSpeechColumn is the table column denoting the part_of_speech relation/edge.
-	PartOfSpeechColumn = "part_of_speech_id"
 	// JapaneseMeansTable is the table that holds the japanese_means relation/edge.
 	JapaneseMeansTable = "japanese_means"
 	// JapaneseMeansInverseTable is the table name for the JapaneseMean entity.
@@ -66,7 +59,8 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldWordID,
-	FieldPartOfSpeechID,
+	FieldPartOfSpeech,
+	FieldRegistrationCount,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -84,8 +78,10 @@ func ValidColumn(column string) bool {
 var (
 	// WordIDValidator is a validator for the "word_id" field. It is called by the builders before save.
 	WordIDValidator func(int) error
-	// PartOfSpeechIDValidator is a validator for the "part_of_speech_id" field. It is called by the builders before save.
-	PartOfSpeechIDValidator func(int) error
+	// PartOfSpeechValidator is a validator for the "part_of_speech" field. It is called by the builders before save.
+	PartOfSpeechValidator func(int) error
+	// DefaultRegistrationCount holds the default value on creation for the "registration_count" field.
+	DefaultRegistrationCount int
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -107,9 +103,14 @@ func ByWordID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldWordID, opts...).ToFunc()
 }
 
-// ByPartOfSpeechID orders the results by the part_of_speech_id field.
-func ByPartOfSpeechID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPartOfSpeechID, opts...).ToFunc()
+// ByPartOfSpeech orders the results by the part_of_speech field.
+func ByPartOfSpeech(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPartOfSpeech, opts...).ToFunc()
+}
+
+// ByRegistrationCount orders the results by the registration_count field.
+func ByRegistrationCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRegistrationCount, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.
@@ -126,13 +127,6 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 func ByWordField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newWordStep(), sql.OrderByField(field, opts...))
-	}
-}
-
-// ByPartOfSpeechField orders the results by part_of_speech field.
-func ByPartOfSpeechField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newPartOfSpeechStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -168,13 +162,6 @@ func newWordStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(WordInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, WordTable, WordColumn),
-	)
-}
-func newPartOfSpeechStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(PartOfSpeechInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, PartOfSpeechTable, PartOfSpeechColumn),
 	)
 }
 func newJapaneseMeansStep() *sqlgraph.Step {

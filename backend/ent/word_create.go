@@ -28,8 +28,16 @@ func (wc *WordCreate) SetName(s string) *WordCreate {
 }
 
 // SetVoiceID sets the "voice_id" field.
-func (wc *WordCreate) SetVoiceID(i int) *WordCreate {
-	wc.mutation.SetVoiceID(i)
+func (wc *WordCreate) SetVoiceID(s string) *WordCreate {
+	wc.mutation.SetVoiceID(s)
+	return wc
+}
+
+// SetNillableVoiceID sets the "voice_id" field if the given value is not nil.
+func (wc *WordCreate) SetNillableVoiceID(s *string) *WordCreate {
+	if s != nil {
+		wc.SetVoiceID(*s)
+	}
 	return wc
 }
 
@@ -131,14 +139,6 @@ func (wc *WordCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Word.name": %w`, err)}
 		}
 	}
-	if _, ok := wc.mutation.VoiceID(); !ok {
-		return &ValidationError{Name: "voice_id", err: errors.New(`ent: missing required field "Word.voice_id"`)}
-	}
-	if v, ok := wc.mutation.VoiceID(); ok {
-		if err := word.VoiceIDValidator(v); err != nil {
-			return &ValidationError{Name: "voice_id", err: fmt.Errorf(`ent: validator failed for field "Word.voice_id": %w`, err)}
-		}
-	}
 	if _, ok := wc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Word.created_at"`)}
 	}
@@ -176,8 +176,8 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 		_node.Name = value
 	}
 	if value, ok := wc.mutation.VoiceID(); ok {
-		_spec.SetField(word.FieldVoiceID, field.TypeInt, value)
-		_node.VoiceID = value
+		_spec.SetField(word.FieldVoiceID, field.TypeString, value)
+		_node.VoiceID = &value
 	}
 	if value, ok := wc.mutation.CreatedAt(); ok {
 		_spec.SetField(word.FieldCreatedAt, field.TypeTime, value)

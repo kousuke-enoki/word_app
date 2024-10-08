@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"math"
 	"word_app/ent/japanesemean"
-	"word_app/ent/partofspeech"
 	"word_app/ent/predicate"
 	"word_app/ent/registeredword"
 	"word_app/ent/word"
@@ -28,7 +27,6 @@ type WordInfoQuery struct {
 	inters              []Interceptor
 	predicates          []predicate.WordInfo
 	withWord            *WordQuery
-	withPartOfSpeech    *PartOfSpeechQuery
 	withJapaneseMeans   *JapaneseMeanQuery
 	withRegisteredWords *RegisteredWordQuery
 	// intermediate query (i.e. traversal path).
@@ -82,28 +80,6 @@ func (wiq *WordInfoQuery) QueryWord() *WordQuery {
 			sqlgraph.From(wordinfo.Table, wordinfo.FieldID, selector),
 			sqlgraph.To(word.Table, word.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, wordinfo.WordTable, wordinfo.WordColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(wiq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryPartOfSpeech chains the current query on the "part_of_speech" edge.
-func (wiq *WordInfoQuery) QueryPartOfSpeech() *PartOfSpeechQuery {
-	query := (&PartOfSpeechClient{config: wiq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := wiq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := wiq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(wordinfo.Table, wordinfo.FieldID, selector),
-			sqlgraph.To(partofspeech.Table, partofspeech.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, wordinfo.PartOfSpeechTable, wordinfo.PartOfSpeechColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(wiq.driver.Dialect(), step)
 		return fromU, nil
@@ -348,7 +324,6 @@ func (wiq *WordInfoQuery) Clone() *WordInfoQuery {
 		inters:              append([]Interceptor{}, wiq.inters...),
 		predicates:          append([]predicate.WordInfo{}, wiq.predicates...),
 		withWord:            wiq.withWord.Clone(),
-		withPartOfSpeech:    wiq.withPartOfSpeech.Clone(),
 		withJapaneseMeans:   wiq.withJapaneseMeans.Clone(),
 		withRegisteredWords: wiq.withRegisteredWords.Clone(),
 		// clone intermediate query.
@@ -365,17 +340,6 @@ func (wiq *WordInfoQuery) WithWord(opts ...func(*WordQuery)) *WordInfoQuery {
 		opt(query)
 	}
 	wiq.withWord = query
-	return wiq
-}
-
-// WithPartOfSpeech tells the query-builder to eager-load the nodes that are connected to
-// the "part_of_speech" edge. The optional arguments are used to configure the query builder of the edge.
-func (wiq *WordInfoQuery) WithPartOfSpeech(opts ...func(*PartOfSpeechQuery)) *WordInfoQuery {
-	query := (&PartOfSpeechClient{config: wiq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	wiq.withPartOfSpeech = query
 	return wiq
 }
 
@@ -479,9 +443,8 @@ func (wiq *WordInfoQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Wo
 	var (
 		nodes       = []*WordInfo{}
 		_spec       = wiq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [3]bool{
 			wiq.withWord != nil,
-			wiq.withPartOfSpeech != nil,
 			wiq.withJapaneseMeans != nil,
 			wiq.withRegisteredWords != nil,
 		}
@@ -507,12 +470,6 @@ func (wiq *WordInfoQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Wo
 	if query := wiq.withWord; query != nil {
 		if err := wiq.loadWord(ctx, query, nodes, nil,
 			func(n *WordInfo, e *Word) { n.Edges.Word = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := wiq.withPartOfSpeech; query != nil {
-		if err := wiq.loadPartOfSpeech(ctx, query, nodes, nil,
-			func(n *WordInfo, e *PartOfSpeech) { n.Edges.PartOfSpeech = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -555,35 +512,6 @@ func (wiq *WordInfoQuery) loadWord(ctx context.Context, query *WordQuery, nodes 
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "word_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (wiq *WordInfoQuery) loadPartOfSpeech(ctx context.Context, query *PartOfSpeechQuery, nodes []*WordInfo, init func(*WordInfo), assign func(*WordInfo, *PartOfSpeech)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*WordInfo)
-	for i := range nodes {
-		fk := nodes[i].PartOfSpeechID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(partofspeech.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "part_of_speech_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -679,9 +607,6 @@ func (wiq *WordInfoQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if wiq.withWord != nil {
 			_spec.Node.AddColumnOnce(wordinfo.FieldWordID)
-		}
-		if wiq.withPartOfSpeech != nil {
-			_spec.Node.AddColumnOnce(wordinfo.FieldPartOfSpeechID)
 		}
 	}
 	if ps := wiq.predicates; len(ps) > 0 {

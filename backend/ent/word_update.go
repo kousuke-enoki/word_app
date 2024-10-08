@@ -44,23 +44,22 @@ func (wu *WordUpdate) SetNillableName(s *string) *WordUpdate {
 }
 
 // SetVoiceID sets the "voice_id" field.
-func (wu *WordUpdate) SetVoiceID(i int) *WordUpdate {
-	wu.mutation.ResetVoiceID()
-	wu.mutation.SetVoiceID(i)
+func (wu *WordUpdate) SetVoiceID(s string) *WordUpdate {
+	wu.mutation.SetVoiceID(s)
 	return wu
 }
 
 // SetNillableVoiceID sets the "voice_id" field if the given value is not nil.
-func (wu *WordUpdate) SetNillableVoiceID(i *int) *WordUpdate {
-	if i != nil {
-		wu.SetVoiceID(*i)
+func (wu *WordUpdate) SetNillableVoiceID(s *string) *WordUpdate {
+	if s != nil {
+		wu.SetVoiceID(*s)
 	}
 	return wu
 }
 
-// AddVoiceID adds i to the "voice_id" field.
-func (wu *WordUpdate) AddVoiceID(i int) *WordUpdate {
-	wu.mutation.AddVoiceID(i)
+// ClearVoiceID clears the value of the "voice_id" field.
+func (wu *WordUpdate) ClearVoiceID() *WordUpdate {
+	wu.mutation.ClearVoiceID()
 	return wu
 }
 
@@ -168,11 +167,6 @@ func (wu *WordUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Word.name": %w`, err)}
 		}
 	}
-	if v, ok := wu.mutation.VoiceID(); ok {
-		if err := word.VoiceIDValidator(v); err != nil {
-			return &ValidationError{Name: "voice_id", err: fmt.Errorf(`ent: validator failed for field "Word.voice_id": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -192,10 +186,10 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(word.FieldName, field.TypeString, value)
 	}
 	if value, ok := wu.mutation.VoiceID(); ok {
-		_spec.SetField(word.FieldVoiceID, field.TypeInt, value)
+		_spec.SetField(word.FieldVoiceID, field.TypeString, value)
 	}
-	if value, ok := wu.mutation.AddedVoiceID(); ok {
-		_spec.AddField(word.FieldVoiceID, field.TypeInt, value)
+	if wu.mutation.VoiceIDCleared() {
+		_spec.ClearField(word.FieldVoiceID, field.TypeString)
 	}
 	if value, ok := wu.mutation.CreatedAt(); ok {
 		_spec.SetField(word.FieldCreatedAt, field.TypeTime, value)
@@ -283,23 +277,22 @@ func (wuo *WordUpdateOne) SetNillableName(s *string) *WordUpdateOne {
 }
 
 // SetVoiceID sets the "voice_id" field.
-func (wuo *WordUpdateOne) SetVoiceID(i int) *WordUpdateOne {
-	wuo.mutation.ResetVoiceID()
-	wuo.mutation.SetVoiceID(i)
+func (wuo *WordUpdateOne) SetVoiceID(s string) *WordUpdateOne {
+	wuo.mutation.SetVoiceID(s)
 	return wuo
 }
 
 // SetNillableVoiceID sets the "voice_id" field if the given value is not nil.
-func (wuo *WordUpdateOne) SetNillableVoiceID(i *int) *WordUpdateOne {
-	if i != nil {
-		wuo.SetVoiceID(*i)
+func (wuo *WordUpdateOne) SetNillableVoiceID(s *string) *WordUpdateOne {
+	if s != nil {
+		wuo.SetVoiceID(*s)
 	}
 	return wuo
 }
 
-// AddVoiceID adds i to the "voice_id" field.
-func (wuo *WordUpdateOne) AddVoiceID(i int) *WordUpdateOne {
-	wuo.mutation.AddVoiceID(i)
+// ClearVoiceID clears the value of the "voice_id" field.
+func (wuo *WordUpdateOne) ClearVoiceID() *WordUpdateOne {
+	wuo.mutation.ClearVoiceID()
 	return wuo
 }
 
@@ -420,11 +413,6 @@ func (wuo *WordUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Word.name": %w`, err)}
 		}
 	}
-	if v, ok := wuo.mutation.VoiceID(); ok {
-		if err := word.VoiceIDValidator(v); err != nil {
-			return &ValidationError{Name: "voice_id", err: fmt.Errorf(`ent: validator failed for field "Word.voice_id": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -461,10 +449,10 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (_node *Word, err error) 
 		_spec.SetField(word.FieldName, field.TypeString, value)
 	}
 	if value, ok := wuo.mutation.VoiceID(); ok {
-		_spec.SetField(word.FieldVoiceID, field.TypeInt, value)
+		_spec.SetField(word.FieldVoiceID, field.TypeString, value)
 	}
-	if value, ok := wuo.mutation.AddedVoiceID(); ok {
-		_spec.AddField(word.FieldVoiceID, field.TypeInt, value)
+	if wuo.mutation.VoiceIDCleared() {
+		_spec.ClearField(word.FieldVoiceID, field.TypeString)
 	}
 	if value, ok := wuo.mutation.CreatedAt(); ok {
 		_spec.SetField(word.FieldCreatedAt, field.TypeTime, value)

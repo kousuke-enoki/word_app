@@ -27,10 +27,17 @@ SELECT * FROM users;
 
 
 
-〇ent　generate
+
+〇ent generate
 
 # スキーマを作成
 ent/schema で作成
 
 #  generate
 go generate ./ent
+
+
+〇dockerキャッシュ削除
+docker-compose down --volumes --rmi all
+docker-compose build --no-cache
+docker-compose up

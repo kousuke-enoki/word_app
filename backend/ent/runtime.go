@@ -5,6 +5,7 @@ package ent
 import (
 	"time"
 	"word_app/ent/japanesemean"
+	"word_app/ent/partofspeech"
 	"word_app/ent/registeredword"
 	"word_app/ent/schema"
 	"word_app/ent/test"
@@ -38,6 +39,22 @@ func init() {
 	japanesemean.DefaultUpdatedAt = japanesemeanDescUpdatedAt.Default.(func() time.Time)
 	// japanesemean.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	japanesemean.UpdateDefaultUpdatedAt = japanesemeanDescUpdatedAt.UpdateDefault.(func() time.Time)
+	partofspeechFields := schema.PartOfSpeech{}.Fields()
+	_ = partofspeechFields
+	// partofspeechDescName is the schema descriptor for name field.
+	partofspeechDescName := partofspeechFields[0].Descriptor()
+	// partofspeech.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	partofspeech.NameValidator = partofspeechDescName.Validators[0].(func(string) error)
+	// partofspeechDescCreatedAt is the schema descriptor for created_at field.
+	partofspeechDescCreatedAt := partofspeechFields[1].Descriptor()
+	// partofspeech.DefaultCreatedAt holds the default value on creation for the created_at field.
+	partofspeech.DefaultCreatedAt = partofspeechDescCreatedAt.Default.(func() time.Time)
+	// partofspeechDescUpdatedAt is the schema descriptor for updated_at field.
+	partofspeechDescUpdatedAt := partofspeechFields[2].Descriptor()
+	// partofspeech.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	partofspeech.DefaultUpdatedAt = partofspeechDescUpdatedAt.Default.(func() time.Time)
+	// partofspeech.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	partofspeech.UpdateDefaultUpdatedAt = partofspeechDescUpdatedAt.UpdateDefault.(func() time.Time)
 	registeredwordFields := schema.RegisteredWord{}.Fields()
 	_ = registeredwordFields
 	// registeredwordDescIsActive is the schema descriptor for is_active field.
@@ -136,10 +153,10 @@ func init() {
 	wordinfoDescWordID := wordinfoFields[0].Descriptor()
 	// wordinfo.WordIDValidator is a validator for the "word_id" field. It is called by the builders before save.
 	wordinfo.WordIDValidator = wordinfoDescWordID.Validators[0].(func(int) error)
-	// wordinfoDescPartOfSpeech is the schema descriptor for part_of_speech field.
-	wordinfoDescPartOfSpeech := wordinfoFields[1].Descriptor()
-	// wordinfo.PartOfSpeechValidator is a validator for the "part_of_speech" field. It is called by the builders before save.
-	wordinfo.PartOfSpeechValidator = wordinfoDescPartOfSpeech.Validators[0].(func(int) error)
+	// wordinfoDescPartOfSpeechID is the schema descriptor for part_of_speech_id field.
+	wordinfoDescPartOfSpeechID := wordinfoFields[1].Descriptor()
+	// wordinfo.PartOfSpeechIDValidator is a validator for the "part_of_speech_id" field. It is called by the builders before save.
+	wordinfo.PartOfSpeechIDValidator = wordinfoDescPartOfSpeechID.Validators[0].(func(int) error)
 	// wordinfoDescRegistrationCount is the schema descriptor for registration_count field.
 	wordinfoDescRegistrationCount := wordinfoFields[2].Descriptor()
 	// wordinfo.DefaultRegistrationCount holds the default value on creation for the registration_count field.

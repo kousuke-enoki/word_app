@@ -30,6 +30,19 @@ var (
 			},
 		},
 	}
+	// PartOfSpeechesColumns holds the columns for the "part_of_speeches" table.
+	PartOfSpeechesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// PartOfSpeechesTable holds the schema information for the "part_of_speeches" table.
+	PartOfSpeechesTable = &schema.Table{
+		Name:       "part_of_speeches",
+		Columns:    PartOfSpeechesColumns,
+		PrimaryKey: []*schema.Column{PartOfSpeechesColumns[0]},
+	}
 	// RegisteredWordsColumns holds the columns for the "registered_words" table.
 	RegisteredWordsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -145,10 +158,10 @@ var (
 	// WordInfosColumns holds the columns for the "word_infos" table.
 	WordInfosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "part_of_speech", Type: field.TypeInt},
 		{Name: "registration_count", Type: field.TypeInt, Default: 0},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "part_of_speech_id", Type: field.TypeInt},
 		{Name: "word_id", Type: field.TypeInt},
 	}
 	// WordInfosTable holds the schema information for the "word_infos" table.
@@ -157,6 +170,12 @@ var (
 		Columns:    WordInfosColumns,
 		PrimaryKey: []*schema.Column{WordInfosColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "word_infos_part_of_speeches_word_infos",
+				Columns:    []*schema.Column{WordInfosColumns[4]},
+				RefColumns: []*schema.Column{PartOfSpeechesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
 			{
 				Symbol:     "word_infos_words_word_infos",
 				Columns:    []*schema.Column{WordInfosColumns[5]},
@@ -168,6 +187,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		JapaneseMeansTable,
+		PartOfSpeechesTable,
 		RegisteredWordsTable,
 		TestsTable,
 		TestQuestionsTable,
@@ -184,5 +204,6 @@ func init() {
 	TestsTable.ForeignKeys[0].RefTable = UsersTable
 	TestQuestionsTable.ForeignKeys[0].RefTable = RegisteredWordsTable
 	TestQuestionsTable.ForeignKeys[1].RefTable = TestsTable
-	WordInfosTable.ForeignKeys[0].RefTable = WordsTable
+	WordInfosTable.ForeignKeys[0].RefTable = PartOfSpeechesTable
+	WordInfosTable.ForeignKeys[1].RefTable = WordsTable
 }

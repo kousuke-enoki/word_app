@@ -20,6 +20,18 @@ func (f JapaneseMeanFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.JapaneseMeanMutation", m)
 }
 
+// The PartOfSpeechFunc type is an adapter to allow the use of ordinary
+// function as PartOfSpeech mutator.
+type PartOfSpeechFunc func(context.Context, *ent.PartOfSpeechMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PartOfSpeechFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PartOfSpeechMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartOfSpeechMutation", m)
+}
+
 // The RegisteredWordFunc type is an adapter to allow the use of ordinary
 // function as RegisteredWord mutator.
 type RegisteredWordFunc func(context.Context, *ent.RegisteredWordMutation) (ent.Value, error)

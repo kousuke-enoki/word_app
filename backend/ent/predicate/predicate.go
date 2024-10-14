@@ -9,6 +9,9 @@ import (
 // JapaneseMean is the predicate function for japanesemean builders.
 type JapaneseMean func(*sql.Selector)
 
+// PartOfSpeech is the predicate function for partofspeech builders.
+type PartOfSpeech func(*sql.Selector)
+
 // RegisteredWord is the predicate function for registeredword builders.
 type RegisteredWord func(*sql.Selector)
 

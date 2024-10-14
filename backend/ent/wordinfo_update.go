@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 	"word_app/ent/japanesemean"
+	"word_app/ent/partofspeech"
 	"word_app/ent/predicate"
 	"word_app/ent/registeredword"
 	"word_app/ent/word"
@@ -45,24 +46,17 @@ func (wiu *WordInfoUpdate) SetNillableWordID(i *int) *WordInfoUpdate {
 	return wiu
 }
 
-// SetPartOfSpeech sets the "part_of_speech" field.
-func (wiu *WordInfoUpdate) SetPartOfSpeech(i int) *WordInfoUpdate {
-	wiu.mutation.ResetPartOfSpeech()
-	wiu.mutation.SetPartOfSpeech(i)
+// SetPartOfSpeechID sets the "part_of_speech_id" field.
+func (wiu *WordInfoUpdate) SetPartOfSpeechID(i int) *WordInfoUpdate {
+	wiu.mutation.SetPartOfSpeechID(i)
 	return wiu
 }
 
-// SetNillablePartOfSpeech sets the "part_of_speech" field if the given value is not nil.
-func (wiu *WordInfoUpdate) SetNillablePartOfSpeech(i *int) *WordInfoUpdate {
+// SetNillablePartOfSpeechID sets the "part_of_speech_id" field if the given value is not nil.
+func (wiu *WordInfoUpdate) SetNillablePartOfSpeechID(i *int) *WordInfoUpdate {
 	if i != nil {
-		wiu.SetPartOfSpeech(*i)
+		wiu.SetPartOfSpeechID(*i)
 	}
-	return wiu
-}
-
-// AddPartOfSpeech adds i to the "part_of_speech" field.
-func (wiu *WordInfoUpdate) AddPartOfSpeech(i int) *WordInfoUpdate {
-	wiu.mutation.AddPartOfSpeech(i)
 	return wiu
 }
 
@@ -112,6 +106,11 @@ func (wiu *WordInfoUpdate) SetWord(w *Word) *WordInfoUpdate {
 	return wiu.SetWordID(w.ID)
 }
 
+// SetPartOfSpeech sets the "part_of_speech" edge to the PartOfSpeech entity.
+func (wiu *WordInfoUpdate) SetPartOfSpeech(p *PartOfSpeech) *WordInfoUpdate {
+	return wiu.SetPartOfSpeechID(p.ID)
+}
+
 // AddJapaneseMeanIDs adds the "japanese_means" edge to the JapaneseMean entity by IDs.
 func (wiu *WordInfoUpdate) AddJapaneseMeanIDs(ids ...int) *WordInfoUpdate {
 	wiu.mutation.AddJapaneseMeanIDs(ids...)
@@ -150,6 +149,12 @@ func (wiu *WordInfoUpdate) Mutation() *WordInfoMutation {
 // ClearWord clears the "word" edge to the Word entity.
 func (wiu *WordInfoUpdate) ClearWord() *WordInfoUpdate {
 	wiu.mutation.ClearWord()
+	return wiu
+}
+
+// ClearPartOfSpeech clears the "part_of_speech" edge to the PartOfSpeech entity.
+func (wiu *WordInfoUpdate) ClearPartOfSpeech() *WordInfoUpdate {
+	wiu.mutation.ClearPartOfSpeech()
 	return wiu
 }
 
@@ -238,13 +243,16 @@ func (wiu *WordInfoUpdate) check() error {
 			return &ValidationError{Name: "word_id", err: fmt.Errorf(`ent: validator failed for field "WordInfo.word_id": %w`, err)}
 		}
 	}
-	if v, ok := wiu.mutation.PartOfSpeech(); ok {
-		if err := wordinfo.PartOfSpeechValidator(v); err != nil {
-			return &ValidationError{Name: "part_of_speech", err: fmt.Errorf(`ent: validator failed for field "WordInfo.part_of_speech": %w`, err)}
+	if v, ok := wiu.mutation.PartOfSpeechID(); ok {
+		if err := wordinfo.PartOfSpeechIDValidator(v); err != nil {
+			return &ValidationError{Name: "part_of_speech_id", err: fmt.Errorf(`ent: validator failed for field "WordInfo.part_of_speech_id": %w`, err)}
 		}
 	}
 	if wiu.mutation.WordCleared() && len(wiu.mutation.WordIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "WordInfo.word"`)
+	}
+	if wiu.mutation.PartOfSpeechCleared() && len(wiu.mutation.PartOfSpeechIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "WordInfo.part_of_speech"`)
 	}
 	return nil
 }
@@ -260,12 +268,6 @@ func (wiu *WordInfoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := wiu.mutation.PartOfSpeech(); ok {
-		_spec.SetField(wordinfo.FieldPartOfSpeech, field.TypeInt, value)
-	}
-	if value, ok := wiu.mutation.AddedPartOfSpeech(); ok {
-		_spec.AddField(wordinfo.FieldPartOfSpeech, field.TypeInt, value)
 	}
 	if value, ok := wiu.mutation.RegistrationCount(); ok {
 		_spec.SetField(wordinfo.FieldRegistrationCount, field.TypeInt, value)
@@ -301,6 +303,35 @@ func (wiu *WordInfoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if wiu.mutation.PartOfSpeechCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   wordinfo.PartOfSpeechTable,
+			Columns: []string{wordinfo.PartOfSpeechColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partofspeech.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wiu.mutation.PartOfSpeechIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   wordinfo.PartOfSpeechTable,
+			Columns: []string{wordinfo.PartOfSpeechColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partofspeech.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -432,24 +463,17 @@ func (wiuo *WordInfoUpdateOne) SetNillableWordID(i *int) *WordInfoUpdateOne {
 	return wiuo
 }
 
-// SetPartOfSpeech sets the "part_of_speech" field.
-func (wiuo *WordInfoUpdateOne) SetPartOfSpeech(i int) *WordInfoUpdateOne {
-	wiuo.mutation.ResetPartOfSpeech()
-	wiuo.mutation.SetPartOfSpeech(i)
+// SetPartOfSpeechID sets the "part_of_speech_id" field.
+func (wiuo *WordInfoUpdateOne) SetPartOfSpeechID(i int) *WordInfoUpdateOne {
+	wiuo.mutation.SetPartOfSpeechID(i)
 	return wiuo
 }
 
-// SetNillablePartOfSpeech sets the "part_of_speech" field if the given value is not nil.
-func (wiuo *WordInfoUpdateOne) SetNillablePartOfSpeech(i *int) *WordInfoUpdateOne {
+// SetNillablePartOfSpeechID sets the "part_of_speech_id" field if the given value is not nil.
+func (wiuo *WordInfoUpdateOne) SetNillablePartOfSpeechID(i *int) *WordInfoUpdateOne {
 	if i != nil {
-		wiuo.SetPartOfSpeech(*i)
+		wiuo.SetPartOfSpeechID(*i)
 	}
-	return wiuo
-}
-
-// AddPartOfSpeech adds i to the "part_of_speech" field.
-func (wiuo *WordInfoUpdateOne) AddPartOfSpeech(i int) *WordInfoUpdateOne {
-	wiuo.mutation.AddPartOfSpeech(i)
 	return wiuo
 }
 
@@ -499,6 +523,11 @@ func (wiuo *WordInfoUpdateOne) SetWord(w *Word) *WordInfoUpdateOne {
 	return wiuo.SetWordID(w.ID)
 }
 
+// SetPartOfSpeech sets the "part_of_speech" edge to the PartOfSpeech entity.
+func (wiuo *WordInfoUpdateOne) SetPartOfSpeech(p *PartOfSpeech) *WordInfoUpdateOne {
+	return wiuo.SetPartOfSpeechID(p.ID)
+}
+
 // AddJapaneseMeanIDs adds the "japanese_means" edge to the JapaneseMean entity by IDs.
 func (wiuo *WordInfoUpdateOne) AddJapaneseMeanIDs(ids ...int) *WordInfoUpdateOne {
 	wiuo.mutation.AddJapaneseMeanIDs(ids...)
@@ -537,6 +566,12 @@ func (wiuo *WordInfoUpdateOne) Mutation() *WordInfoMutation {
 // ClearWord clears the "word" edge to the Word entity.
 func (wiuo *WordInfoUpdateOne) ClearWord() *WordInfoUpdateOne {
 	wiuo.mutation.ClearWord()
+	return wiuo
+}
+
+// ClearPartOfSpeech clears the "part_of_speech" edge to the PartOfSpeech entity.
+func (wiuo *WordInfoUpdateOne) ClearPartOfSpeech() *WordInfoUpdateOne {
+	wiuo.mutation.ClearPartOfSpeech()
 	return wiuo
 }
 
@@ -638,13 +673,16 @@ func (wiuo *WordInfoUpdateOne) check() error {
 			return &ValidationError{Name: "word_id", err: fmt.Errorf(`ent: validator failed for field "WordInfo.word_id": %w`, err)}
 		}
 	}
-	if v, ok := wiuo.mutation.PartOfSpeech(); ok {
-		if err := wordinfo.PartOfSpeechValidator(v); err != nil {
-			return &ValidationError{Name: "part_of_speech", err: fmt.Errorf(`ent: validator failed for field "WordInfo.part_of_speech": %w`, err)}
+	if v, ok := wiuo.mutation.PartOfSpeechID(); ok {
+		if err := wordinfo.PartOfSpeechIDValidator(v); err != nil {
+			return &ValidationError{Name: "part_of_speech_id", err: fmt.Errorf(`ent: validator failed for field "WordInfo.part_of_speech_id": %w`, err)}
 		}
 	}
 	if wiuo.mutation.WordCleared() && len(wiuo.mutation.WordIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "WordInfo.word"`)
+	}
+	if wiuo.mutation.PartOfSpeechCleared() && len(wiuo.mutation.PartOfSpeechIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "WordInfo.part_of_speech"`)
 	}
 	return nil
 }
@@ -677,12 +715,6 @@ func (wiuo *WordInfoUpdateOne) sqlSave(ctx context.Context) (_node *WordInfo, er
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := wiuo.mutation.PartOfSpeech(); ok {
-		_spec.SetField(wordinfo.FieldPartOfSpeech, field.TypeInt, value)
-	}
-	if value, ok := wiuo.mutation.AddedPartOfSpeech(); ok {
-		_spec.AddField(wordinfo.FieldPartOfSpeech, field.TypeInt, value)
 	}
 	if value, ok := wiuo.mutation.RegistrationCount(); ok {
 		_spec.SetField(wordinfo.FieldRegistrationCount, field.TypeInt, value)
@@ -718,6 +750,35 @@ func (wiuo *WordInfoUpdateOne) sqlSave(ctx context.Context) (_node *WordInfo, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if wiuo.mutation.PartOfSpeechCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   wordinfo.PartOfSpeechTable,
+			Columns: []string{wordinfo.PartOfSpeechColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partofspeech.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wiuo.mutation.PartOfSpeechIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   wordinfo.PartOfSpeechTable,
+			Columns: []string{wordinfo.PartOfSpeechColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partofspeech.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

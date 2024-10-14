@@ -18,8 +18,8 @@ func (WordInfo) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int("word_id").
 			Positive(),
-		field.Int("part_of_speech").
-			Range(0, 9),
+		field.Int("part_of_speech_id").
+			Positive(),
 		field.Int("registration_count").
 			Default(0),
 		field.Time("created_at").
@@ -36,6 +36,11 @@ func (WordInfo) Edges() []ent.Edge {
 		edge.From("word", Word.Type).
 			Ref("word_infos").
 			Field("word_id").
+			Unique().
+			Required(),
+		edge.From("part_of_speech", PartOfSpeech.Type).
+			Ref("word_infos").
+			Field("part_of_speech_id").
 			Unique().
 			Required(),
 		edge.To("japanese_means", JapaneseMean.Type),

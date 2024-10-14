@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"word_app/ent"
+	"word_app/ent/partofspeech"
 	"word_app/ent/user"
 	"word_app/ent/word"
 )
@@ -28,18 +29,40 @@ func SeedAdminUsers(ctx context.Context, client *ent.Client) {
 	}
 }
 
+// SeedPartOfSpeech 品詞データのシード
+func SeedPartOfSpeech(ctx context.Context, client *ent.Client) {
+	partsOfSpeech := []string{"noun", "pronoun", "verb", "djective", "adverb",
+		"auxiliary_verb", "preposition", "article", "interjection", "onjunction"}
+
+	for _, name := range partsOfSpeech {
+		exists, err := client.PartOfSpeech.Query().Where(partofspeech.Name(name)).Exist(ctx)
+		if err != nil {
+			log.Fatalf("failed to query part of speech: %v", err)
+		}
+		if !exists {
+			_, err := client.PartOfSpeech.Create().
+				SetName(name).
+				Save(ctx)
+			if err != nil {
+				log.Fatalf("failed to create part of speech: %v", err)
+			}
+			log.Printf("Part of speech '%s' seeded\n", name)
+		}
+	}
+}
+
 func SeedWords(ctx context.Context, client *ent.Client) {
 	// 単語、品詞、日本語の意味を持つデータセット
 	words := []struct {
-		name         string
-		partOfSpeech int // 品詞を整数で管理 (例: 0 = 形容詞, 1 = 動詞, 2 = 副詞など)
-		japaneseMean string
+		name           string
+		partOfSpeechId int // 品詞を整数で管理 (例: 0 = 形容詞, 1 = 動詞, 2 = 副詞など)
+		japaneseMean   string
 	}{
-		{"able", 0, "できる"},    // 0 = 形容詞
-		{"abroad", 2, "海外で"},  // 2 = 副詞
-		{"actually", 2, "実際"}, // 2 = 副詞
-		{"add", 1, "加える"},     // 1 = 動詞
-		{"agree", 1, "同意する"},  // 1 = 動詞
+		{"able", 3, "できる"},    // 3 = 形容詞
+		{"abroad", 4, "海外で"},  // 4 = 副詞
+		{"actually", 4, "実際"}, // 4 = 副詞
+		{"add", 2, "加える"},     // 2 = 動詞
+		{"agree", 2, "同意する"},  // 2 = 動詞
 	}
 
 	for _, w := range words {
@@ -61,7 +84,7 @@ func SeedWords(ctx context.Context, client *ent.Client) {
 			// 次に、word_info テーブルに品詞情報を追加
 			wordInfo, err := client.WordInfo.Create().
 				SetWordID(createdWord.ID).
-				SetPartOfSpeech(w.partOfSpeech).
+				SetPartOfSpeechID(w.partOfSpeechId).
 				Save(ctx)
 			if err != nil {
 				log.Fatalf("failed to create word info: %v", err)
@@ -98,5 +121,6 @@ func SeedWords(ctx context.Context, client *ent.Client) {
 // RunSeeder 初回のみシード実行
 func RunSeeder(ctx context.Context, client *ent.Client) {
 	SeedAdminUsers(ctx, client)
+	SeedPartOfSpeech(ctx, client)
 	SeedWords(ctx, client)
 }

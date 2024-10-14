@@ -38,6 +38,18 @@ go generate ./ent
 
 
 〇dockerキャッシュ削除
-docker-compose down --volumes --rmi all
-docker-compose build --no-cache
-docker-compose up
+docker compose down --volumes --rmi all
+docker compose build --no-cache
+docker compose up
+
+
+0 名詞（noun）
+1 代名詞（pronoun）
+2 動詞（verb）
+3 形容詞（adjective）
+4 副詞（adverb）
+5 助動詞（auxiliary verb）
+6 前置詞（preposition）
+7 冠詞（article）
+8 間投詞（interjection）
+9 接続詞（conjunction）

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 	"word_app/ent/japanesemean"
+	"word_app/ent/partofspeech"
 	"word_app/ent/registeredword"
 	"word_app/ent/word"
 	"word_app/ent/wordinfo"
@@ -29,9 +30,9 @@ func (wic *WordInfoCreate) SetWordID(i int) *WordInfoCreate {
 	return wic
 }
 
-// SetPartOfSpeech sets the "part_of_speech" field.
-func (wic *WordInfoCreate) SetPartOfSpeech(i int) *WordInfoCreate {
-	wic.mutation.SetPartOfSpeech(i)
+// SetPartOfSpeechID sets the "part_of_speech_id" field.
+func (wic *WordInfoCreate) SetPartOfSpeechID(i int) *WordInfoCreate {
+	wic.mutation.SetPartOfSpeechID(i)
 	return wic
 }
 
@@ -80,6 +81,11 @@ func (wic *WordInfoCreate) SetNillableUpdatedAt(t *time.Time) *WordInfoCreate {
 // SetWord sets the "word" edge to the Word entity.
 func (wic *WordInfoCreate) SetWord(w *Word) *WordInfoCreate {
 	return wic.SetWordID(w.ID)
+}
+
+// SetPartOfSpeech sets the "part_of_speech" edge to the PartOfSpeech entity.
+func (wic *WordInfoCreate) SetPartOfSpeech(p *PartOfSpeech) *WordInfoCreate {
+	return wic.SetPartOfSpeechID(p.ID)
 }
 
 // AddJapaneseMeanIDs adds the "japanese_means" edge to the JapaneseMean entity by IDs.
@@ -171,12 +177,12 @@ func (wic *WordInfoCreate) check() error {
 			return &ValidationError{Name: "word_id", err: fmt.Errorf(`ent: validator failed for field "WordInfo.word_id": %w`, err)}
 		}
 	}
-	if _, ok := wic.mutation.PartOfSpeech(); !ok {
-		return &ValidationError{Name: "part_of_speech", err: errors.New(`ent: missing required field "WordInfo.part_of_speech"`)}
+	if _, ok := wic.mutation.PartOfSpeechID(); !ok {
+		return &ValidationError{Name: "part_of_speech_id", err: errors.New(`ent: missing required field "WordInfo.part_of_speech_id"`)}
 	}
-	if v, ok := wic.mutation.PartOfSpeech(); ok {
-		if err := wordinfo.PartOfSpeechValidator(v); err != nil {
-			return &ValidationError{Name: "part_of_speech", err: fmt.Errorf(`ent: validator failed for field "WordInfo.part_of_speech": %w`, err)}
+	if v, ok := wic.mutation.PartOfSpeechID(); ok {
+		if err := wordinfo.PartOfSpeechIDValidator(v); err != nil {
+			return &ValidationError{Name: "part_of_speech_id", err: fmt.Errorf(`ent: validator failed for field "WordInfo.part_of_speech_id": %w`, err)}
 		}
 	}
 	if _, ok := wic.mutation.RegistrationCount(); !ok {
@@ -190,6 +196,9 @@ func (wic *WordInfoCreate) check() error {
 	}
 	if len(wic.mutation.WordIDs()) == 0 {
 		return &ValidationError{Name: "word", err: errors.New(`ent: missing required edge "WordInfo.word"`)}
+	}
+	if len(wic.mutation.PartOfSpeechIDs()) == 0 {
+		return &ValidationError{Name: "part_of_speech", err: errors.New(`ent: missing required edge "WordInfo.part_of_speech"`)}
 	}
 	return nil
 }
@@ -217,10 +226,6 @@ func (wic *WordInfoCreate) createSpec() (*WordInfo, *sqlgraph.CreateSpec) {
 		_node = &WordInfo{config: wic.config}
 		_spec = sqlgraph.NewCreateSpec(wordinfo.Table, sqlgraph.NewFieldSpec(wordinfo.FieldID, field.TypeInt))
 	)
-	if value, ok := wic.mutation.PartOfSpeech(); ok {
-		_spec.SetField(wordinfo.FieldPartOfSpeech, field.TypeInt, value)
-		_node.PartOfSpeech = value
-	}
 	if value, ok := wic.mutation.RegistrationCount(); ok {
 		_spec.SetField(wordinfo.FieldRegistrationCount, field.TypeInt, value)
 		_node.RegistrationCount = value
@@ -248,6 +253,23 @@ func (wic *WordInfoCreate) createSpec() (*WordInfo, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.WordID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := wic.mutation.PartOfSpeechIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   wordinfo.PartOfSpeechTable,
+			Columns: []string{wordinfo.PartOfSpeechColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partofspeech.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.PartOfSpeechID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := wic.mutation.JapaneseMeansIDs(); len(nodes) > 0 {

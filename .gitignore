@@ -3,7 +3,7 @@
 # *.dll
 
 # # ログファイル
-# *.log
+*.log
 
 # # ディレクトリ
 # /node_modules
@@ -13,3 +13,4 @@
 # .DS_Store
 # Thumbs.db
 .history
+backup.sql

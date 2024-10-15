@@ -28,57 +28,75 @@ func AllWordListHandler(c *gin.Context, client *ent.Client) {
 
 	// 検索機能 (Wordの名前で検索)
 	if search != "" {
-		query = query.Where(
-			word.NameContains(search), // Wordのnameフィールドで検索
-		)
+		query = query.Where(word.NameContains(search))
 	}
-	log.Println(query)
 
+	// 総レコード数をカウント
+	totalCount, err := query.Count(ctx)
+	if err != nil {
+		log.Println("Error counting words:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count words"})
+		return
+	}
+	log.Println("totalCount")
+	log.Println(totalCount)
 	// ページネーション機能
 	offset := (page - 1) * limit
 	query = query.Offset(offset).Limit(limit)
 
 	// Wordに紐づくWordInfo, JapaneseMean, PartOfSpeechを取得
-	query = query.
-		WithWordInfos( // Wordに紐づくWordInfoを取得
-			func(wiQuery *ent.WordInfoQuery) {
-				wiQuery.WithJapaneseMeans().WithPartOfSpeech()
-			},
-		)
+	query = query.WithWordInfos(
+		func(wiQuery *ent.WordInfoQuery) {
+			wiQuery.WithJapaneseMeans().WithPartOfSpeech()
+		},
+	)
 
 	// ソート機能
-	if sortBy == "name" {
-		// Word の name フィールドでソート
+	switch sortBy {
+	case "name":
 		if order == "asc" {
-			query = query.Order(
-				ent.Asc(word.FieldName), // Word の name で昇順ソート
-			)
+			query = query.Order(ent.Asc(word.FieldName))
 		} else {
-			query = query.Order(
-				ent.Desc(word.FieldName), // Word の name で降順ソート
-			)
+			query = query.Order(ent.Desc(word.FieldName))
 		}
-	} else {
-		// それ以外のフィールドでソート
+	// case "part_of_speech_name":
+	// PartOfSpeechのnameフィールドでソート
+	// query = query.Join("word_infos").
+	// 	Join("part_of_speech").
+	// 	OrderFunc(func(builder *sql.Selector) {
+	// 		if order == "asc" {
+	// 			builder.OrderBy(sql.Asc("part_of_speech.name"))
+	// 		} else {
+	// 			builder.OrderBy(sql.Desc("part_of_speech.name"))
+	// 		}
+	// 	})
+	default:
 		if order == "asc" {
 			query = query.Order(ent.Asc(sortBy))
 		} else {
 			query = query.Order(ent.Desc(sortBy))
 		}
 	}
-	log.Println(query)
 
 	// クエリ実行
 	words, err := query.All(ctx)
 	if err != nil {
-		log.Println("Error fetching words:", err) // エラーを詳細に出力
+		log.Println("Error fetching words:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch words"})
 		return
 	}
 
+	// 総ページ数を計算
+	totalPages := (totalCount + limit - 1) / limit
+	log.Println("totalPages")
+	log.Println(totalPages)
 	// ログに取得したデータを表示
 	log.Println("words_with_relations", words)
 
-	// レスポンスとしてWordのリストを返す
-	c.JSON(http.StatusOK, words)
+	// レスポンスとしてWordのリストと総ページ数を返す
+	c.JSON(http.StatusOK, gin.H{
+		"words":      words,
+		"totalPages": totalPages,
+		"totalCount": totalCount,
+	})
 }

@@ -36,7 +36,7 @@ const AllWordList: React.FC = () => {
   const [order, setOrder] = useState<string>('asc');
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-  // const [limit, setLimit] = useState<number>(10);
+  const [limit, setLimit] = useState<number>(10);
 
 
 // プロパティ名を変換する関数
@@ -73,7 +73,7 @@ const transformResponseData = (data: any): Word[] => {
           sortBy,
           order,
           page,
-          // limit,
+          limit,
         },
       });
       console.log(response)
@@ -158,6 +158,14 @@ const transformResponseData = (data: any): Word[] => {
           最後へ
         </button>
       </div>
+      {/* ソート選択 */}
+      <select value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="30">30</option>
+        <option value="40">40</option>
+        <option value="50">50</option>
+      </select>
     </div>
   );
 };

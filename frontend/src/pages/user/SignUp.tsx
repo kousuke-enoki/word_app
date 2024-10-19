@@ -1,31 +1,42 @@
 import React, { useState } from 'react';
-import axiosInstance from '../axiosConfig';
+import axiosInstance from '../../axiosConfig';
 
-const SignIn: React.FC = () => {
+const SignUp: React.FC = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
 
-const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
+const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
   try {
-    const response = await axiosInstance.post('/users/sign_in', {
-      email,
-      password,
+    const response = await axiosInstance.post('/users/sign_up', {
+        name,
+        email,
+        password,
     });
     const token = response.data.token;
     localStorage.setItem('token', token);
-    setMessage('Sign in successful!');
-    console.log(response)
+    setMessage('Sign up successful!');
   } catch (error) {
-    setMessage('Sign in failed. Please try again.');
+    setMessage('Sign up failed. Please try again.');
   }
 };
 
   return (
     <div>
-      <h1>サインイン</h1>
-      <form onSubmit={handleSignIn}>
+      <h1>サインアップ</h1>
+      <form onSubmit={handleSignUp}>
+        <div>
+          <label htmlFor="name">Name:</label>
+          <input
+            type="name"
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
         <div>
           <label htmlFor="email">Email:</label>
           <input
@@ -46,11 +57,11 @@ const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
             required
           />
         </div>
-        <button type="submit">サインイン</button>
+        <button type="submit">サインアップ</button>
       </form>
       {message && <p>{message}</p>}
     </div>
   );
 };
 
-export default SignIn;
+export default SignUp;

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 // Propsの型定義
 interface MyPageProps {
@@ -7,7 +8,6 @@ interface MyPageProps {
 }
 
 const MyPage: React.FC<MyPageProps> = ({ user, onSignOut }) => {
-  console.log("mypage")
   // 今日の日付を取得
   const today = new Date().toLocaleDateString();
 
@@ -16,6 +16,7 @@ const MyPage: React.FC<MyPageProps> = ({ user, onSignOut }) => {
       <h2>マイページ</h2>
       <p>ようこそ、{user.name}さん！</p>
       <p>今日の日付: {today}</p>
+      <p>全単語リスト: <Link to="allwordlist">word app</Link></p>
       <button onClick={onSignOut}>サインアウト</button>
     </div>
   );

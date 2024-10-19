@@ -6,6 +6,7 @@ import (
 
 func RootHandler(c *gin.Context) {
 	c.JSON(200, gin.H{
-		"message": "Hello, Bookers!",
+		"message":      "Redirect to root",
+		"redirect_url": "/",
 	})
 }

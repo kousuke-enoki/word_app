@@ -7,6 +7,7 @@ import (
 	"word_app/src/handlers"
 	"word_app/src/handlers/middleware"
 	"word_app/src/handlers/user"
+	"word_app/src/handlers/word"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,6 +26,9 @@ func SetupRouter(router *gin.Engine, client *ent.Client) {
 	protected := router.Group("/")
 	protected.Use(middleware.AuthMiddleware())
 	protected.GET("users/my_page", user.MyPageHandler(client))
+	protected.GET("words/all_list", func(c *gin.Context) {
+		word.AllWordListHandler(c, client)
+	})
 
 	// リクエストの詳細をログに出力
 	router.Use(func(c *gin.Context) {

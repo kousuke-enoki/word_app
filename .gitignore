@@ -4,6 +4,7 @@
 
 # # ログファイル
 *.log
+backend/tmp
 
 # # ディレクトリ
 # /node_modules

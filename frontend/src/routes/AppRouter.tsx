@@ -1,9 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Home from '../pages/Home';
-import SignIn from '../pages/SignIn';
-import SignUp from '../pages/SignUp';
-import AllWordList from '../pages/AllWordList';
+import Home from '../pages/user/Home';
+import SignIn from '../pages/user/SignIn';
+import SignUp from '../pages/user/SignUp';
+import AllWordList from '../pages/word/AllWordList';
 import Header from '../components/Header';
 // import Dashboard from '../pages/Dashboard';
 // import Footer from '../components/Footer';

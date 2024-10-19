@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axiosInstance from '../axiosConfig';
+import axiosInstance from '../../axiosConfig';
 import { resolveProjectReferencePath } from 'typescript';
 
 // 単語の型定義
@@ -37,7 +37,6 @@ const AllWordList: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
-
 
 // プロパティ名を変換する関数
 const transformResponseData = (data: any): Word[] => {
@@ -89,7 +88,7 @@ const transformResponseData = (data: any): Word[] => {
   // 初回レンダリング時と依存する値が変わったときにデータを取得
   useEffect(() => {
     fetchWords();
-  }, [search, sortBy, order, page]);
+  }, [search, sortBy, order, page, limit]);
 
   // ページング処理
   const handlePageChange = (newPage: React.SetStateAction<number>) => {
@@ -97,7 +96,7 @@ const transformResponseData = (data: any): Word[] => {
   };
 
   return (
-    <div>
+    <div className="wordList-container">
       <h1>単語一覧</h1>
 
       {/* 検索フォーム */}
@@ -142,30 +141,20 @@ const transformResponseData = (data: any): Word[] => {
         </tbody>
       </table>
 
-      {/* ページネーション */}
-      <div>
-        <button onClick={() => handlePageChange(1)} disabled={page === 1}>
-          最初へ
-        </button>
-        <button onClick={() => handlePageChange(page - 1)} disabled={page === 1}>
-          前へ
-        </button>
+      <div className="pagination-container">
+        <select className="select-limit" value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="30">30</option>
+          <option value="50">50</option>
+        </select>
+
+        <button onClick={() => handlePageChange(1)} disabled={page === 1}>最初へ</button>
+        <button onClick={() => handlePageChange(page - 1)} disabled={page === 1}>前へ</button>
         <span>ページ {page} / {totalPages}</span>
-        <button onClick={() => handlePageChange(page + 1)} disabled={page === totalPages}>
-          次へ
-        </button>
-        <button onClick={() => handlePageChange(totalPages)} disabled={page === totalPages}>
-          最後へ
-        </button>
+        <button onClick={() => handlePageChange(page + 1)} disabled={page === totalPages}>次へ</button>
+        <button onClick={() => handlePageChange(totalPages)} disabled={page === totalPages}>最後へ</button>
       </div>
-      {/* ソート選択 */}
-      <select value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
-        <option value="10">10</option>
-        <option value="20">20</option>
-        <option value="30">30</option>
-        <option value="40">40</option>
-        <option value="50">50</option>
-      </select>
     </div>
   );
 };

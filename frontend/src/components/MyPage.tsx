@@ -8,7 +8,6 @@ interface MyPageProps {
 }
 
 const MyPage: React.FC<MyPageProps> = ({ user, onSignOut }) => {
-  console.log("mypage")
   // 今日の日付を取得
   const today = new Date().toLocaleDateString();
 

@@ -10,7 +10,7 @@ import (
 	"word_app/ent/registeredword"
 	"word_app/ent/testquestion"
 	"word_app/ent/user"
-	"word_app/ent/wordinfo"
+	"word_app/ent/word"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -29,9 +29,9 @@ func (rwc *RegisteredWordCreate) SetUserID(i int) *RegisteredWordCreate {
 	return rwc
 }
 
-// SetWordInfoID sets the "word_info_id" field.
-func (rwc *RegisteredWordCreate) SetWordInfoID(i int) *RegisteredWordCreate {
-	rwc.mutation.SetWordInfoID(i)
+// SetWordID sets the "word_id" field.
+func (rwc *RegisteredWordCreate) SetWordID(i int) *RegisteredWordCreate {
+	rwc.mutation.SetWordID(i)
 	return rwc
 }
 
@@ -124,9 +124,9 @@ func (rwc *RegisteredWordCreate) SetUser(u *User) *RegisteredWordCreate {
 	return rwc.SetUserID(u.ID)
 }
 
-// SetWordInfo sets the "word_info" edge to the WordInfo entity.
-func (rwc *RegisteredWordCreate) SetWordInfo(w *WordInfo) *RegisteredWordCreate {
-	return rwc.SetWordInfoID(w.ID)
+// SetWord sets the "word" edge to the Word entity.
+func (rwc *RegisteredWordCreate) SetWord(w *Word) *RegisteredWordCreate {
+	return rwc.SetWordID(w.ID)
 }
 
 // AddTestQuestionIDs adds the "test_questions" edge to the TestQuestion entity by IDs.
@@ -206,8 +206,13 @@ func (rwc *RegisteredWordCreate) check() error {
 	if _, ok := rwc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "RegisteredWord.user_id"`)}
 	}
-	if _, ok := rwc.mutation.WordInfoID(); !ok {
-		return &ValidationError{Name: "word_info_id", err: errors.New(`ent: missing required field "RegisteredWord.word_info_id"`)}
+	if v, ok := rwc.mutation.UserID(); ok {
+		if err := registeredword.UserIDValidator(v); err != nil {
+			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "RegisteredWord.user_id": %w`, err)}
+		}
+	}
+	if _, ok := rwc.mutation.WordID(); !ok {
+		return &ValidationError{Name: "word_id", err: errors.New(`ent: missing required field "RegisteredWord.word_id"`)}
 	}
 	if _, ok := rwc.mutation.IsActive(); !ok {
 		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "RegisteredWord.is_active"`)}
@@ -227,8 +232,8 @@ func (rwc *RegisteredWordCreate) check() error {
 	if len(rwc.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "RegisteredWord.user"`)}
 	}
-	if len(rwc.mutation.WordInfoIDs()) == 0 {
-		return &ValidationError{Name: "word_info", err: errors.New(`ent: missing required edge "RegisteredWord.word_info"`)}
+	if len(rwc.mutation.WordIDs()) == 0 {
+		return &ValidationError{Name: "word", err: errors.New(`ent: missing required edge "RegisteredWord.word"`)}
 	}
 	return nil
 }
@@ -297,21 +302,21 @@ func (rwc *RegisteredWordCreate) createSpec() (*RegisteredWord, *sqlgraph.Create
 		_node.UserID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := rwc.mutation.WordInfoIDs(); len(nodes) > 0 {
+	if nodes := rwc.mutation.WordIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   registeredword.WordInfoTable,
-			Columns: []string{registeredword.WordInfoColumn},
+			Table:   registeredword.WordTable,
+			Columns: []string{registeredword.WordColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(wordinfo.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.WordInfoID = nodes[0]
+		_node.WordID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := rwc.mutation.TestQuestionsIDs(); len(nodes) > 0 {

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"word_app/ent/registeredword"
 	"word_app/ent/word"
 	"word_app/ent/wordinfo"
 
@@ -37,6 +38,20 @@ func (wc *WordCreate) SetVoiceID(s string) *WordCreate {
 func (wc *WordCreate) SetNillableVoiceID(s *string) *WordCreate {
 	if s != nil {
 		wc.SetVoiceID(*s)
+	}
+	return wc
+}
+
+// SetRegistrationCount sets the "registration_count" field.
+func (wc *WordCreate) SetRegistrationCount(i int) *WordCreate {
+	wc.mutation.SetRegistrationCount(i)
+	return wc
+}
+
+// SetNillableRegistrationCount sets the "registration_count" field if the given value is not nil.
+func (wc *WordCreate) SetNillableRegistrationCount(i *int) *WordCreate {
+	if i != nil {
+		wc.SetRegistrationCount(*i)
 	}
 	return wc
 }
@@ -84,6 +99,21 @@ func (wc *WordCreate) AddWordInfos(w ...*WordInfo) *WordCreate {
 	return wc.AddWordInfoIDs(ids...)
 }
 
+// AddRegisteredWordIDs adds the "registered_words" edge to the RegisteredWord entity by IDs.
+func (wc *WordCreate) AddRegisteredWordIDs(ids ...int) *WordCreate {
+	wc.mutation.AddRegisteredWordIDs(ids...)
+	return wc
+}
+
+// AddRegisteredWords adds the "registered_words" edges to the RegisteredWord entity.
+func (wc *WordCreate) AddRegisteredWords(r ...*RegisteredWord) *WordCreate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return wc.AddRegisteredWordIDs(ids...)
+}
+
 // Mutation returns the WordMutation object of the builder.
 func (wc *WordCreate) Mutation() *WordMutation {
 	return wc.mutation
@@ -119,6 +149,10 @@ func (wc *WordCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (wc *WordCreate) defaults() {
+	if _, ok := wc.mutation.RegistrationCount(); !ok {
+		v := word.DefaultRegistrationCount
+		wc.mutation.SetRegistrationCount(v)
+	}
 	if _, ok := wc.mutation.CreatedAt(); !ok {
 		v := word.DefaultCreatedAt()
 		wc.mutation.SetCreatedAt(v)
@@ -138,6 +172,9 @@ func (wc *WordCreate) check() error {
 		if err := word.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Word.name": %w`, err)}
 		}
+	}
+	if _, ok := wc.mutation.RegistrationCount(); !ok {
+		return &ValidationError{Name: "registration_count", err: errors.New(`ent: missing required field "Word.registration_count"`)}
 	}
 	if _, ok := wc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Word.created_at"`)}
@@ -179,6 +216,10 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 		_spec.SetField(word.FieldVoiceID, field.TypeString, value)
 		_node.VoiceID = &value
 	}
+	if value, ok := wc.mutation.RegistrationCount(); ok {
+		_spec.SetField(word.FieldRegistrationCount, field.TypeInt, value)
+		_node.RegistrationCount = value
+	}
 	if value, ok := wc.mutation.CreatedAt(); ok {
 		_spec.SetField(word.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -196,6 +237,22 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(wordinfo.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := wc.mutation.RegisteredWordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.RegisteredWordsTable,
+			Columns: []string{word.RegisteredWordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

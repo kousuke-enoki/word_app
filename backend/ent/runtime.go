@@ -57,6 +57,10 @@ func init() {
 	partofspeech.UpdateDefaultUpdatedAt = partofspeechDescUpdatedAt.UpdateDefault.(func() time.Time)
 	registeredwordFields := schema.RegisteredWord{}.Fields()
 	_ = registeredwordFields
+	// registeredwordDescUserID is the schema descriptor for user_id field.
+	registeredwordDescUserID := registeredwordFields[0].Descriptor()
+	// registeredword.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	registeredword.UserIDValidator = registeredwordDescUserID.Validators[0].(func(int) error)
 	// registeredwordDescIsActive is the schema descriptor for is_active field.
 	registeredwordDescIsActive := registeredwordFields[2].Descriptor()
 	// registeredword.DefaultIsActive holds the default value on creation for the is_active field.
@@ -137,12 +141,16 @@ func init() {
 	wordDescName := wordFields[0].Descriptor()
 	// word.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	word.NameValidator = wordDescName.Validators[0].(func(string) error)
+	// wordDescRegistrationCount is the schema descriptor for registration_count field.
+	wordDescRegistrationCount := wordFields[2].Descriptor()
+	// word.DefaultRegistrationCount holds the default value on creation for the registration_count field.
+	word.DefaultRegistrationCount = wordDescRegistrationCount.Default.(int)
 	// wordDescCreatedAt is the schema descriptor for created_at field.
-	wordDescCreatedAt := wordFields[2].Descriptor()
+	wordDescCreatedAt := wordFields[3].Descriptor()
 	// word.DefaultCreatedAt holds the default value on creation for the created_at field.
 	word.DefaultCreatedAt = wordDescCreatedAt.Default.(func() time.Time)
 	// wordDescUpdatedAt is the schema descriptor for updated_at field.
-	wordDescUpdatedAt := wordFields[3].Descriptor()
+	wordDescUpdatedAt := wordFields[4].Descriptor()
 	// word.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	word.DefaultUpdatedAt = wordDescUpdatedAt.Default.(func() time.Time)
 	// word.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -157,16 +165,12 @@ func init() {
 	wordinfoDescPartOfSpeechID := wordinfoFields[1].Descriptor()
 	// wordinfo.PartOfSpeechIDValidator is a validator for the "part_of_speech_id" field. It is called by the builders before save.
 	wordinfo.PartOfSpeechIDValidator = wordinfoDescPartOfSpeechID.Validators[0].(func(int) error)
-	// wordinfoDescRegistrationCount is the schema descriptor for registration_count field.
-	wordinfoDescRegistrationCount := wordinfoFields[2].Descriptor()
-	// wordinfo.DefaultRegistrationCount holds the default value on creation for the registration_count field.
-	wordinfo.DefaultRegistrationCount = wordinfoDescRegistrationCount.Default.(int)
 	// wordinfoDescCreatedAt is the schema descriptor for created_at field.
-	wordinfoDescCreatedAt := wordinfoFields[3].Descriptor()
+	wordinfoDescCreatedAt := wordinfoFields[2].Descriptor()
 	// wordinfo.DefaultCreatedAt holds the default value on creation for the created_at field.
 	wordinfo.DefaultCreatedAt = wordinfoDescCreatedAt.Default.(func() time.Time)
 	// wordinfoDescUpdatedAt is the schema descriptor for updated_at field.
-	wordinfoDescUpdatedAt := wordinfoFields[4].Descriptor()
+	wordinfoDescUpdatedAt := wordinfoFields[3].Descriptor()
 	// wordinfo.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	wordinfo.DefaultUpdatedAt = wordinfoDescUpdatedAt.Default.(func() time.Time)
 	// wordinfo.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

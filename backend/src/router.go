@@ -19,17 +19,18 @@ func SetupRouter(router *gin.Engine, client *ent.Client) {
 	})
 
 	router.GET("/", handlers.RootHandler)
-	router.POST("users/sign_up", user.SignUpHandler(client))
-	router.POST("users/sign_in", user.SignInHandler(client))
+	router.POST("/users/sign_up", user.SignUpHandler(client))
+	router.POST("/users/sign_in", user.SignInHandler(client))
 
-	// 認証が必要なエンドポイント
 	protected := router.Group("/")
 	protected.Use(middleware.AuthMiddleware())
-	protected.GET("users/my_page", user.MyPageHandler(client))
-	protected.GET("words/all_list", func(c *gin.Context) {
+	protected.GET("/users/my_page", user.MyPageHandler(client))
+	protected.GET("/words/all_list", func(c *gin.Context) {
 		word.AllWordListHandler(c, client)
 	})
-
+	protected.GET("/words/:id", func(c *gin.Context) {
+		word.WordShowHandler(c, client)
+	})
 	// リクエストの詳細をログに出力
 	router.Use(func(c *gin.Context) {
 		c.Next()

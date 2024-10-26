@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 	"word_app/ent/predicate"
+	"word_app/ent/registeredword"
 	"word_app/ent/word"
 	"word_app/ent/wordinfo"
 
@@ -20,11 +21,12 @@ import (
 // WordQuery is the builder for querying Word entities.
 type WordQuery struct {
 	config
-	ctx           *QueryContext
-	order         []word.OrderOption
-	inters        []Interceptor
-	predicates    []predicate.Word
-	withWordInfos *WordInfoQuery
+	ctx                 *QueryContext
+	order               []word.OrderOption
+	inters              []Interceptor
+	predicates          []predicate.Word
+	withWordInfos       *WordInfoQuery
+	withRegisteredWords *RegisteredWordQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +78,28 @@ func (wq *WordQuery) QueryWordInfos() *WordInfoQuery {
 			sqlgraph.From(word.Table, word.FieldID, selector),
 			sqlgraph.To(wordinfo.Table, wordinfo.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, word.WordInfosTable, word.WordInfosColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(wq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRegisteredWords chains the current query on the "registered_words" edge.
+func (wq *WordQuery) QueryRegisteredWords() *RegisteredWordQuery {
+	query := (&RegisteredWordClient{config: wq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := wq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := wq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(word.Table, word.FieldID, selector),
+			sqlgraph.To(registeredword.Table, registeredword.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, word.RegisteredWordsTable, word.RegisteredWordsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(wq.driver.Dialect(), step)
 		return fromU, nil
@@ -270,12 +294,13 @@ func (wq *WordQuery) Clone() *WordQuery {
 		return nil
 	}
 	return &WordQuery{
-		config:        wq.config,
-		ctx:           wq.ctx.Clone(),
-		order:         append([]word.OrderOption{}, wq.order...),
-		inters:        append([]Interceptor{}, wq.inters...),
-		predicates:    append([]predicate.Word{}, wq.predicates...),
-		withWordInfos: wq.withWordInfos.Clone(),
+		config:              wq.config,
+		ctx:                 wq.ctx.Clone(),
+		order:               append([]word.OrderOption{}, wq.order...),
+		inters:              append([]Interceptor{}, wq.inters...),
+		predicates:          append([]predicate.Word{}, wq.predicates...),
+		withWordInfos:       wq.withWordInfos.Clone(),
+		withRegisteredWords: wq.withRegisteredWords.Clone(),
 		// clone intermediate query.
 		sql:  wq.sql.Clone(),
 		path: wq.path,
@@ -290,6 +315,17 @@ func (wq *WordQuery) WithWordInfos(opts ...func(*WordInfoQuery)) *WordQuery {
 		opt(query)
 	}
 	wq.withWordInfos = query
+	return wq
+}
+
+// WithRegisteredWords tells the query-builder to eager-load the nodes that are connected to
+// the "registered_words" edge. The optional arguments are used to configure the query builder of the edge.
+func (wq *WordQuery) WithRegisteredWords(opts ...func(*RegisteredWordQuery)) *WordQuery {
+	query := (&RegisteredWordClient{config: wq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	wq.withRegisteredWords = query
 	return wq
 }
 
@@ -371,8 +407,9 @@ func (wq *WordQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Word, e
 	var (
 		nodes       = []*Word{}
 		_spec       = wq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			wq.withWordInfos != nil,
+			wq.withRegisteredWords != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -400,6 +437,13 @@ func (wq *WordQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Word, e
 			return nil, err
 		}
 	}
+	if query := wq.withRegisteredWords; query != nil {
+		if err := wq.loadRegisteredWords(ctx, query, nodes,
+			func(n *Word) { n.Edges.RegisteredWords = []*RegisteredWord{} },
+			func(n *Word, e *RegisteredWord) { n.Edges.RegisteredWords = append(n.Edges.RegisteredWords, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -418,6 +462,36 @@ func (wq *WordQuery) loadWordInfos(ctx context.Context, query *WordInfoQuery, no
 	}
 	query.Where(predicate.WordInfo(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(word.WordInfosColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.WordID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "word_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (wq *WordQuery) loadRegisteredWords(ctx context.Context, query *RegisteredWordQuery, nodes []*Word, init func(*Word), assign func(*Word, *RegisteredWord)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Word)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(registeredword.FieldWordID)
+	}
+	query.Where(predicate.RegisteredWord(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(word.RegisteredWordsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

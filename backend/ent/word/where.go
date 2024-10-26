@@ -65,6 +65,11 @@ func VoiceID(v string) predicate.Word {
 	return predicate.Word(sql.FieldEQ(FieldVoiceID, v))
 }
 
+// RegistrationCount applies equality check predicate on the "registration_count" field. It's identical to RegistrationCountEQ.
+func RegistrationCount(v int) predicate.Word {
+	return predicate.Word(sql.FieldEQ(FieldRegistrationCount, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Word {
 	return predicate.Word(sql.FieldEQ(FieldCreatedAt, v))
@@ -215,6 +220,46 @@ func VoiceIDContainsFold(v string) predicate.Word {
 	return predicate.Word(sql.FieldContainsFold(FieldVoiceID, v))
 }
 
+// RegistrationCountEQ applies the EQ predicate on the "registration_count" field.
+func RegistrationCountEQ(v int) predicate.Word {
+	return predicate.Word(sql.FieldEQ(FieldRegistrationCount, v))
+}
+
+// RegistrationCountNEQ applies the NEQ predicate on the "registration_count" field.
+func RegistrationCountNEQ(v int) predicate.Word {
+	return predicate.Word(sql.FieldNEQ(FieldRegistrationCount, v))
+}
+
+// RegistrationCountIn applies the In predicate on the "registration_count" field.
+func RegistrationCountIn(vs ...int) predicate.Word {
+	return predicate.Word(sql.FieldIn(FieldRegistrationCount, vs...))
+}
+
+// RegistrationCountNotIn applies the NotIn predicate on the "registration_count" field.
+func RegistrationCountNotIn(vs ...int) predicate.Word {
+	return predicate.Word(sql.FieldNotIn(FieldRegistrationCount, vs...))
+}
+
+// RegistrationCountGT applies the GT predicate on the "registration_count" field.
+func RegistrationCountGT(v int) predicate.Word {
+	return predicate.Word(sql.FieldGT(FieldRegistrationCount, v))
+}
+
+// RegistrationCountGTE applies the GTE predicate on the "registration_count" field.
+func RegistrationCountGTE(v int) predicate.Word {
+	return predicate.Word(sql.FieldGTE(FieldRegistrationCount, v))
+}
+
+// RegistrationCountLT applies the LT predicate on the "registration_count" field.
+func RegistrationCountLT(v int) predicate.Word {
+	return predicate.Word(sql.FieldLT(FieldRegistrationCount, v))
+}
+
+// RegistrationCountLTE applies the LTE predicate on the "registration_count" field.
+func RegistrationCountLTE(v int) predicate.Word {
+	return predicate.Word(sql.FieldLTE(FieldRegistrationCount, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Word {
 	return predicate.Word(sql.FieldEQ(FieldCreatedAt, v))
@@ -310,6 +355,29 @@ func HasWordInfos() predicate.Word {
 func HasWordInfosWith(preds ...predicate.WordInfo) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
 		step := newWordInfosStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRegisteredWords applies the HasEdge predicate on the "registered_words" edge.
+func HasRegisteredWords() predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RegisteredWordsTable, RegisteredWordsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRegisteredWordsWith applies the HasEdge predicate on the "registered_words" edge with a given conditions (other predicates).
+func HasRegisteredWordsWith(preds ...predicate.RegisteredWord) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		step := newRegisteredWordsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

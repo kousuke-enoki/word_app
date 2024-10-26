@@ -11,7 +11,7 @@ import (
 	"word_app/ent/registeredword"
 	"word_app/ent/testquestion"
 	"word_app/ent/user"
-	"word_app/ent/wordinfo"
+	"word_app/ent/word"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -27,7 +27,7 @@ type RegisteredWordQuery struct {
 	inters            []Interceptor
 	predicates        []predicate.RegisteredWord
 	withUser          *UserQuery
-	withWordInfo      *WordInfoQuery
+	withWord          *WordQuery
 	withTestQuestions *TestQuestionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -87,9 +87,9 @@ func (rwq *RegisteredWordQuery) QueryUser() *UserQuery {
 	return query
 }
 
-// QueryWordInfo chains the current query on the "word_info" edge.
-func (rwq *RegisteredWordQuery) QueryWordInfo() *WordInfoQuery {
-	query := (&WordInfoClient{config: rwq.config}).Query()
+// QueryWord chains the current query on the "word" edge.
+func (rwq *RegisteredWordQuery) QueryWord() *WordQuery {
+	query := (&WordClient{config: rwq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := rwq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -100,8 +100,8 @@ func (rwq *RegisteredWordQuery) QueryWordInfo() *WordInfoQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(registeredword.Table, registeredword.FieldID, selector),
-			sqlgraph.To(wordinfo.Table, wordinfo.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, registeredword.WordInfoTable, registeredword.WordInfoColumn),
+			sqlgraph.To(word.Table, word.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, registeredword.WordTable, registeredword.WordColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rwq.driver.Dialect(), step)
 		return fromU, nil
@@ -324,7 +324,7 @@ func (rwq *RegisteredWordQuery) Clone() *RegisteredWordQuery {
 		inters:            append([]Interceptor{}, rwq.inters...),
 		predicates:        append([]predicate.RegisteredWord{}, rwq.predicates...),
 		withUser:          rwq.withUser.Clone(),
-		withWordInfo:      rwq.withWordInfo.Clone(),
+		withWord:          rwq.withWord.Clone(),
 		withTestQuestions: rwq.withTestQuestions.Clone(),
 		// clone intermediate query.
 		sql:  rwq.sql.Clone(),
@@ -343,14 +343,14 @@ func (rwq *RegisteredWordQuery) WithUser(opts ...func(*UserQuery)) *RegisteredWo
 	return rwq
 }
 
-// WithWordInfo tells the query-builder to eager-load the nodes that are connected to
-// the "word_info" edge. The optional arguments are used to configure the query builder of the edge.
-func (rwq *RegisteredWordQuery) WithWordInfo(opts ...func(*WordInfoQuery)) *RegisteredWordQuery {
-	query := (&WordInfoClient{config: rwq.config}).Query()
+// WithWord tells the query-builder to eager-load the nodes that are connected to
+// the "word" edge. The optional arguments are used to configure the query builder of the edge.
+func (rwq *RegisteredWordQuery) WithWord(opts ...func(*WordQuery)) *RegisteredWordQuery {
+	query := (&WordClient{config: rwq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	rwq.withWordInfo = query
+	rwq.withWord = query
 	return rwq
 }
 
@@ -445,7 +445,7 @@ func (rwq *RegisteredWordQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 		_spec       = rwq.querySpec()
 		loadedTypes = [3]bool{
 			rwq.withUser != nil,
-			rwq.withWordInfo != nil,
+			rwq.withWord != nil,
 			rwq.withTestQuestions != nil,
 		}
 	)
@@ -473,9 +473,9 @@ func (rwq *RegisteredWordQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 			return nil, err
 		}
 	}
-	if query := rwq.withWordInfo; query != nil {
-		if err := rwq.loadWordInfo(ctx, query, nodes, nil,
-			func(n *RegisteredWord, e *WordInfo) { n.Edges.WordInfo = e }); err != nil {
+	if query := rwq.withWord; query != nil {
+		if err := rwq.loadWord(ctx, query, nodes, nil,
+			func(n *RegisteredWord, e *Word) { n.Edges.Word = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -518,11 +518,11 @@ func (rwq *RegisteredWordQuery) loadUser(ctx context.Context, query *UserQuery, 
 	}
 	return nil
 }
-func (rwq *RegisteredWordQuery) loadWordInfo(ctx context.Context, query *WordInfoQuery, nodes []*RegisteredWord, init func(*RegisteredWord), assign func(*RegisteredWord, *WordInfo)) error {
+func (rwq *RegisteredWordQuery) loadWord(ctx context.Context, query *WordQuery, nodes []*RegisteredWord, init func(*RegisteredWord), assign func(*RegisteredWord, *Word)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*RegisteredWord)
 	for i := range nodes {
-		fk := nodes[i].WordInfoID
+		fk := nodes[i].WordID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -531,7 +531,7 @@ func (rwq *RegisteredWordQuery) loadWordInfo(ctx context.Context, query *WordInf
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(wordinfo.IDIn(ids...))
+	query.Where(word.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -539,7 +539,7 @@ func (rwq *RegisteredWordQuery) loadWordInfo(ctx context.Context, query *WordInf
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "word_info_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "word_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -606,8 +606,8 @@ func (rwq *RegisteredWordQuery) querySpec() *sqlgraph.QuerySpec {
 		if rwq.withUser != nil {
 			_spec.Node.AddColumnOnce(registeredword.FieldUserID)
 		}
-		if rwq.withWordInfo != nil {
-			_spec.Node.AddColumnOnce(registeredword.FieldWordInfoID)
+		if rwq.withWord != nil {
+			_spec.Node.AddColumnOnce(registeredword.FieldWordID)
 		}
 	}
 	if ps := rwq.predicates; len(ps) > 0 {

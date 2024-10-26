@@ -16,8 +16,9 @@ type RegisteredWord struct {
 // Fields of the RegisteredWord.
 func (RegisteredWord) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("user_id"),
-		field.Int("word_info_id"),
+		field.Int("user_id").
+			Positive(),
+		field.Int("word_id"),
 		field.Bool("is_active").
 			Default(true),
 		field.Int("test_count").
@@ -43,10 +44,10 @@ func (RegisteredWord) Edges() []ent.Edge {
 			Unique().
 			Field("user_id").
 			Required(),
-		edge.From("word_info", WordInfo.Type).
+		edge.From("word", Word.Type).
 			Ref("registered_words").
 			Unique().
-			Field("word_info_id").
+			Field("word_id").
 			Required(),
 		edge.To("test_questions", TestQuestion.Type),
 	}

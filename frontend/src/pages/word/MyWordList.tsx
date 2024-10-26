@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../axiosConfig';
 import { resolveProjectReferencePath } from 'typescript';
-import { useNavigate, useLocation } from 'react-router-dom';
+
+
+
 
 // 単語の型定義
 
@@ -30,16 +32,14 @@ interface JapaneseMean {
   name: string,
 }
 
-const AllWordList: React.FC = () => {
-  const [words, setWords] = useState<Word[]>([]);
+const MyWordList: React.FC = () => {
+  const [words, setWords] = useState<Word[]>([]); // Word[] 型の単語リスト
   const [search, setSearch] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('name');
   const [order, setOrder] = useState<string>('asc');
-  const location = useLocation();
-  const [page, setPage] = useState<number>(location.state?.page || 1);
+  const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
-  const navigate = useNavigate();
 
 // プロパティ名を変換する関数
 const transformResponseData = (data: any): Word[] => {
@@ -69,7 +69,7 @@ const transformResponseData = (data: any): Word[] => {
     console.log(order)
     console.log(page)
     try {
-      const response = await axiosInstance.get('words/all_list', {
+      const response = await axiosInstance.get('words/my_list', {
         params: {
           search,
           sortBy,
@@ -98,14 +98,9 @@ const transformResponseData = (data: any): Word[] => {
     setPage(newPage);
   };
 
-    // 詳細ページに遷移する関数
-    const handleDetailClick = (id: number) => {
-      navigate(`/words/${id}`, { state: { page } });
-    };
-
   return (
     <div className="wordList-container">
-      <h1>単語一覧</h1>
+      <h1>My単語一覧</h1>
 
       {/* 検索フォーム */}
       <input
@@ -143,7 +138,7 @@ const transformResponseData = (data: any): Word[] => {
                 (JapaneseMean: JapaneseMean) => JapaneseMean.name).join(', ')).join(', ')}</td>
               <td>{word.edges.WordInfos.map((info: WordInfo) => info.edges.PartOfSpeech.name).join(', ')}</td>
               <td><button>編集</button></td>
-              <td><button onClick={() => handleDetailClick(word.id)}>詳細</button></td> 
+              <td><button>詳細</button></td>
             </tr>
           ))}
         </tbody>
@@ -167,4 +162,4 @@ const transformResponseData = (data: any): Word[] => {
   );
 };
 
-export default AllWordList;
+export default MyWordList;

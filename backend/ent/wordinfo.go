@@ -23,8 +23,6 @@ type WordInfo struct {
 	WordID int `json:"word_id,omitempty"`
 	// PartOfSpeechID holds the value of the "part_of_speech_id" field.
 	PartOfSpeechID int `json:"part_of_speech_id,omitempty"`
-	// RegistrationCount holds the value of the "registration_count" field.
-	RegistrationCount int `json:"registration_count,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -43,11 +41,9 @@ type WordInfoEdges struct {
 	PartOfSpeech *PartOfSpeech `json:"part_of_speech,omitempty"`
 	// JapaneseMeans holds the value of the japanese_means edge.
 	JapaneseMeans []*JapaneseMean `json:"japanese_means,omitempty"`
-	// RegisteredWords holds the value of the registered_words edge.
-	RegisteredWords []*RegisteredWord `json:"registered_words,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [3]bool
 }
 
 // WordOrErr returns the Word value or an error if the edge
@@ -81,21 +77,12 @@ func (e WordInfoEdges) JapaneseMeansOrErr() ([]*JapaneseMean, error) {
 	return nil, &NotLoadedError{edge: "japanese_means"}
 }
 
-// RegisteredWordsOrErr returns the RegisteredWords value or an error if the edge
-// was not loaded in eager-loading.
-func (e WordInfoEdges) RegisteredWordsOrErr() ([]*RegisteredWord, error) {
-	if e.loadedTypes[3] {
-		return e.RegisteredWords, nil
-	}
-	return nil, &NotLoadedError{edge: "registered_words"}
-}
-
 // scanValues returns the types for scanning values from sql.Rows.
 func (*WordInfo) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case wordinfo.FieldID, wordinfo.FieldWordID, wordinfo.FieldPartOfSpeechID, wordinfo.FieldRegistrationCount:
+		case wordinfo.FieldID, wordinfo.FieldWordID, wordinfo.FieldPartOfSpeechID:
 			values[i] = new(sql.NullInt64)
 		case wordinfo.FieldCreatedAt, wordinfo.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -131,12 +118,6 @@ func (wi *WordInfo) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field part_of_speech_id", values[i])
 			} else if value.Valid {
 				wi.PartOfSpeechID = int(value.Int64)
-			}
-		case wordinfo.FieldRegistrationCount:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field registration_count", values[i])
-			} else if value.Valid {
-				wi.RegistrationCount = int(value.Int64)
 			}
 		case wordinfo.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -178,11 +159,6 @@ func (wi *WordInfo) QueryJapaneseMeans() *JapaneseMeanQuery {
 	return NewWordInfoClient(wi.config).QueryJapaneseMeans(wi)
 }
 
-// QueryRegisteredWords queries the "registered_words" edge of the WordInfo entity.
-func (wi *WordInfo) QueryRegisteredWords() *RegisteredWordQuery {
-	return NewWordInfoClient(wi.config).QueryRegisteredWords(wi)
-}
-
 // Update returns a builder for updating this WordInfo.
 // Note that you need to call WordInfo.Unwrap() before calling this method if this WordInfo
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -211,9 +187,6 @@ func (wi *WordInfo) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("part_of_speech_id=")
 	builder.WriteString(fmt.Sprintf("%v", wi.PartOfSpeechID))
-	builder.WriteString(", ")
-	builder.WriteString("registration_count=")
-	builder.WriteString(fmt.Sprintf("%v", wi.RegistrationCount))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(wi.CreatedAt.Format(time.ANSIC))

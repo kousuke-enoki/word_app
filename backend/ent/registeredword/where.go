@@ -60,9 +60,9 @@ func UserID(v int) predicate.RegisteredWord {
 	return predicate.RegisteredWord(sql.FieldEQ(FieldUserID, v))
 }
 
-// WordInfoID applies equality check predicate on the "word_info_id" field. It's identical to WordInfoIDEQ.
-func WordInfoID(v int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldEQ(FieldWordInfoID, v))
+// WordID applies equality check predicate on the "word_id" field. It's identical to WordIDEQ.
+func WordID(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldEQ(FieldWordID, v))
 }
 
 // IsActive applies equality check predicate on the "is_active" field. It's identical to IsActiveEQ.
@@ -115,24 +115,24 @@ func UserIDNotIn(vs ...int) predicate.RegisteredWord {
 	return predicate.RegisteredWord(sql.FieldNotIn(FieldUserID, vs...))
 }
 
-// WordInfoIDEQ applies the EQ predicate on the "word_info_id" field.
-func WordInfoIDEQ(v int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldEQ(FieldWordInfoID, v))
+// WordIDEQ applies the EQ predicate on the "word_id" field.
+func WordIDEQ(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldEQ(FieldWordID, v))
 }
 
-// WordInfoIDNEQ applies the NEQ predicate on the "word_info_id" field.
-func WordInfoIDNEQ(v int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldNEQ(FieldWordInfoID, v))
+// WordIDNEQ applies the NEQ predicate on the "word_id" field.
+func WordIDNEQ(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldNEQ(FieldWordID, v))
 }
 
-// WordInfoIDIn applies the In predicate on the "word_info_id" field.
-func WordInfoIDIn(vs ...int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldIn(FieldWordInfoID, vs...))
+// WordIDIn applies the In predicate on the "word_id" field.
+func WordIDIn(vs ...int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldIn(FieldWordID, vs...))
 }
 
-// WordInfoIDNotIn applies the NotIn predicate on the "word_info_id" field.
-func WordInfoIDNotIn(vs ...int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldNotIn(FieldWordInfoID, vs...))
+// WordIDNotIn applies the NotIn predicate on the "word_id" field.
+func WordIDNotIn(vs ...int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldNotIn(FieldWordID, vs...))
 }
 
 // IsActiveEQ applies the EQ predicate on the "is_active" field.
@@ -403,21 +403,21 @@ func HasUserWith(preds ...predicate.User) predicate.RegisteredWord {
 	})
 }
 
-// HasWordInfo applies the HasEdge predicate on the "word_info" edge.
-func HasWordInfo() predicate.RegisteredWord {
+// HasWord applies the HasEdge predicate on the "word" edge.
+func HasWord() predicate.RegisteredWord {
 	return predicate.RegisteredWord(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, WordInfoTable, WordInfoColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, WordTable, WordColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasWordInfoWith applies the HasEdge predicate on the "word_info" edge with a given conditions (other predicates).
-func HasWordInfoWith(preds ...predicate.WordInfo) predicate.RegisteredWord {
+// HasWordWith applies the HasEdge predicate on the "word" edge with a given conditions (other predicates).
+func HasWordWith(preds ...predicate.Word) predicate.RegisteredWord {
 	return predicate.RegisteredWord(func(s *sql.Selector) {
-		step := newWordInfoStep()
+		step := newWordStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

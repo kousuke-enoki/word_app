@@ -1,14 +1,16 @@
 # # バイナリファイル
 # *.exe
 # *.dll
+main
 
 # # ログファイル
 *.log
-backend/tmp
+backend/tmp/build-error.log
 
 # # ディレクトリ
 # /node_modules
 # /dist
+backend/tmp/
 
 # # OSやエディタの一時ファイル
 # .DS_Store

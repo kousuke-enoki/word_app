@@ -11,7 +11,7 @@ import (
 	"word_app/ent/registeredword"
 	"word_app/ent/testquestion"
 	"word_app/ent/user"
-	"word_app/ent/wordinfo"
+	"word_app/ent/word"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -45,16 +45,16 @@ func (rwu *RegisteredWordUpdate) SetNillableUserID(i *int) *RegisteredWordUpdate
 	return rwu
 }
 
-// SetWordInfoID sets the "word_info_id" field.
-func (rwu *RegisteredWordUpdate) SetWordInfoID(i int) *RegisteredWordUpdate {
-	rwu.mutation.SetWordInfoID(i)
+// SetWordID sets the "word_id" field.
+func (rwu *RegisteredWordUpdate) SetWordID(i int) *RegisteredWordUpdate {
+	rwu.mutation.SetWordID(i)
 	return rwu
 }
 
-// SetNillableWordInfoID sets the "word_info_id" field if the given value is not nil.
-func (rwu *RegisteredWordUpdate) SetNillableWordInfoID(i *int) *RegisteredWordUpdate {
+// SetNillableWordID sets the "word_id" field if the given value is not nil.
+func (rwu *RegisteredWordUpdate) SetNillableWordID(i *int) *RegisteredWordUpdate {
 	if i != nil {
-		rwu.SetWordInfoID(*i)
+		rwu.SetWordID(*i)
 	}
 	return rwu
 }
@@ -160,9 +160,9 @@ func (rwu *RegisteredWordUpdate) SetUser(u *User) *RegisteredWordUpdate {
 	return rwu.SetUserID(u.ID)
 }
 
-// SetWordInfo sets the "word_info" edge to the WordInfo entity.
-func (rwu *RegisteredWordUpdate) SetWordInfo(w *WordInfo) *RegisteredWordUpdate {
-	return rwu.SetWordInfoID(w.ID)
+// SetWord sets the "word" edge to the Word entity.
+func (rwu *RegisteredWordUpdate) SetWord(w *Word) *RegisteredWordUpdate {
+	return rwu.SetWordID(w.ID)
 }
 
 // AddTestQuestionIDs adds the "test_questions" edge to the TestQuestion entity by IDs.
@@ -191,9 +191,9 @@ func (rwu *RegisteredWordUpdate) ClearUser() *RegisteredWordUpdate {
 	return rwu
 }
 
-// ClearWordInfo clears the "word_info" edge to the WordInfo entity.
-func (rwu *RegisteredWordUpdate) ClearWordInfo() *RegisteredWordUpdate {
-	rwu.mutation.ClearWordInfo()
+// ClearWord clears the "word" edge to the Word entity.
+func (rwu *RegisteredWordUpdate) ClearWord() *RegisteredWordUpdate {
+	rwu.mutation.ClearWord()
 	return rwu
 }
 
@@ -256,11 +256,16 @@ func (rwu *RegisteredWordUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (rwu *RegisteredWordUpdate) check() error {
+	if v, ok := rwu.mutation.UserID(); ok {
+		if err := registeredword.UserIDValidator(v); err != nil {
+			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "RegisteredWord.user_id": %w`, err)}
+		}
+	}
 	if rwu.mutation.UserCleared() && len(rwu.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "RegisteredWord.user"`)
 	}
-	if rwu.mutation.WordInfoCleared() && len(rwu.mutation.WordInfoIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "RegisteredWord.word_info"`)
+	if rwu.mutation.WordCleared() && len(rwu.mutation.WordIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "RegisteredWord.word"`)
 	}
 	return nil
 }
@@ -333,28 +338,28 @@ func (rwu *RegisteredWordUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if rwu.mutation.WordInfoCleared() {
+	if rwu.mutation.WordCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   registeredword.WordInfoTable,
-			Columns: []string{registeredword.WordInfoColumn},
+			Table:   registeredword.WordTable,
+			Columns: []string{registeredword.WordColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(wordinfo.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rwu.mutation.WordInfoIDs(); len(nodes) > 0 {
+	if nodes := rwu.mutation.WordIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   registeredword.WordInfoTable,
-			Columns: []string{registeredword.WordInfoColumn},
+			Table:   registeredword.WordTable,
+			Columns: []string{registeredword.WordColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(wordinfo.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -441,16 +446,16 @@ func (rwuo *RegisteredWordUpdateOne) SetNillableUserID(i *int) *RegisteredWordUp
 	return rwuo
 }
 
-// SetWordInfoID sets the "word_info_id" field.
-func (rwuo *RegisteredWordUpdateOne) SetWordInfoID(i int) *RegisteredWordUpdateOne {
-	rwuo.mutation.SetWordInfoID(i)
+// SetWordID sets the "word_id" field.
+func (rwuo *RegisteredWordUpdateOne) SetWordID(i int) *RegisteredWordUpdateOne {
+	rwuo.mutation.SetWordID(i)
 	return rwuo
 }
 
-// SetNillableWordInfoID sets the "word_info_id" field if the given value is not nil.
-func (rwuo *RegisteredWordUpdateOne) SetNillableWordInfoID(i *int) *RegisteredWordUpdateOne {
+// SetNillableWordID sets the "word_id" field if the given value is not nil.
+func (rwuo *RegisteredWordUpdateOne) SetNillableWordID(i *int) *RegisteredWordUpdateOne {
 	if i != nil {
-		rwuo.SetWordInfoID(*i)
+		rwuo.SetWordID(*i)
 	}
 	return rwuo
 }
@@ -556,9 +561,9 @@ func (rwuo *RegisteredWordUpdateOne) SetUser(u *User) *RegisteredWordUpdateOne {
 	return rwuo.SetUserID(u.ID)
 }
 
-// SetWordInfo sets the "word_info" edge to the WordInfo entity.
-func (rwuo *RegisteredWordUpdateOne) SetWordInfo(w *WordInfo) *RegisteredWordUpdateOne {
-	return rwuo.SetWordInfoID(w.ID)
+// SetWord sets the "word" edge to the Word entity.
+func (rwuo *RegisteredWordUpdateOne) SetWord(w *Word) *RegisteredWordUpdateOne {
+	return rwuo.SetWordID(w.ID)
 }
 
 // AddTestQuestionIDs adds the "test_questions" edge to the TestQuestion entity by IDs.
@@ -587,9 +592,9 @@ func (rwuo *RegisteredWordUpdateOne) ClearUser() *RegisteredWordUpdateOne {
 	return rwuo
 }
 
-// ClearWordInfo clears the "word_info" edge to the WordInfo entity.
-func (rwuo *RegisteredWordUpdateOne) ClearWordInfo() *RegisteredWordUpdateOne {
-	rwuo.mutation.ClearWordInfo()
+// ClearWord clears the "word" edge to the Word entity.
+func (rwuo *RegisteredWordUpdateOne) ClearWord() *RegisteredWordUpdateOne {
+	rwuo.mutation.ClearWord()
 	return rwuo
 }
 
@@ -665,11 +670,16 @@ func (rwuo *RegisteredWordUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (rwuo *RegisteredWordUpdateOne) check() error {
+	if v, ok := rwuo.mutation.UserID(); ok {
+		if err := registeredword.UserIDValidator(v); err != nil {
+			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "RegisteredWord.user_id": %w`, err)}
+		}
+	}
 	if rwuo.mutation.UserCleared() && len(rwuo.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "RegisteredWord.user"`)
 	}
-	if rwuo.mutation.WordInfoCleared() && len(rwuo.mutation.WordInfoIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "RegisteredWord.word_info"`)
+	if rwuo.mutation.WordCleared() && len(rwuo.mutation.WordIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "RegisteredWord.word"`)
 	}
 	return nil
 }
@@ -759,28 +769,28 @@ func (rwuo *RegisteredWordUpdateOne) sqlSave(ctx context.Context) (_node *Regist
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if rwuo.mutation.WordInfoCleared() {
+	if rwuo.mutation.WordCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   registeredword.WordInfoTable,
-			Columns: []string{registeredword.WordInfoColumn},
+			Table:   registeredword.WordTable,
+			Columns: []string{registeredword.WordColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(wordinfo.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rwuo.mutation.WordInfoIDs(); len(nodes) > 0 {
+	if nodes := rwuo.mutation.WordIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   registeredword.WordInfoTable,
-			Columns: []string{registeredword.WordInfoColumn},
+			Table:   registeredword.WordTable,
+			Columns: []string{registeredword.WordColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(wordinfo.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

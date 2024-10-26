@@ -686,15 +686,15 @@ func (c *RegisteredWordClient) QueryUser(rw *RegisteredWord) *UserQuery {
 	return query
 }
 
-// QueryWordInfo queries the word_info edge of a RegisteredWord.
-func (c *RegisteredWordClient) QueryWordInfo(rw *RegisteredWord) *WordInfoQuery {
-	query := (&WordInfoClient{config: c.config}).Query()
+// QueryWord queries the word edge of a RegisteredWord.
+func (c *RegisteredWordClient) QueryWord(rw *RegisteredWord) *WordQuery {
+	query := (&WordClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := rw.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(registeredword.Table, registeredword.FieldID, id),
-			sqlgraph.To(wordinfo.Table, wordinfo.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, registeredword.WordInfoTable, registeredword.WordInfoColumn),
+			sqlgraph.To(word.Table, word.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, registeredword.WordTable, registeredword.WordColumn),
 		)
 		fromV = sqlgraph.Neighbors(rw.driver.Dialect(), step)
 		return fromV, nil
@@ -1362,6 +1362,22 @@ func (c *WordClient) QueryWordInfos(w *Word) *WordInfoQuery {
 	return query
 }
 
+// QueryRegisteredWords queries the registered_words edge of a Word.
+func (c *WordClient) QueryRegisteredWords(w *Word) *RegisteredWordQuery {
+	query := (&RegisteredWordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := w.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(word.Table, word.FieldID, id),
+			sqlgraph.To(registeredword.Table, registeredword.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, word.RegisteredWordsTable, word.RegisteredWordsColumn),
+		)
+		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *WordClient) Hooks() []Hook {
 	return c.hooks.Word
@@ -1536,22 +1552,6 @@ func (c *WordInfoClient) QueryJapaneseMeans(wi *WordInfo) *JapaneseMeanQuery {
 			sqlgraph.From(wordinfo.Table, wordinfo.FieldID, id),
 			sqlgraph.To(japanesemean.Table, japanesemean.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, wordinfo.JapaneseMeansTable, wordinfo.JapaneseMeansColumn),
-		)
-		fromV = sqlgraph.Neighbors(wi.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryRegisteredWords queries the registered_words edge of a WordInfo.
-func (c *WordInfoClient) QueryRegisteredWords(wi *WordInfo) *RegisteredWordQuery {
-	query := (&RegisteredWordClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := wi.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(wordinfo.Table, wordinfo.FieldID, id),
-			sqlgraph.To(registeredword.Table, registeredword.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, wordinfo.RegisteredWordsTable, wordinfo.RegisteredWordsColumn),
 		)
 		fromV = sqlgraph.Neighbors(wi.driver.Dialect(), step)
 		return fromV, nil

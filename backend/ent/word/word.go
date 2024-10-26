@@ -18,12 +18,16 @@ const (
 	FieldName = "name"
 	// FieldVoiceID holds the string denoting the voice_id field in the database.
 	FieldVoiceID = "voice_id"
+	// FieldRegistrationCount holds the string denoting the registration_count field in the database.
+	FieldRegistrationCount = "registration_count"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
 	// EdgeWordInfos holds the string denoting the word_infos edge name in mutations.
 	EdgeWordInfos = "word_infos"
+	// EdgeRegisteredWords holds the string denoting the registered_words edge name in mutations.
+	EdgeRegisteredWords = "registered_words"
 	// Table holds the table name of the word in the database.
 	Table = "words"
 	// WordInfosTable is the table that holds the word_infos relation/edge.
@@ -33,6 +37,13 @@ const (
 	WordInfosInverseTable = "word_infos"
 	// WordInfosColumn is the table column denoting the word_infos relation/edge.
 	WordInfosColumn = "word_id"
+	// RegisteredWordsTable is the table that holds the registered_words relation/edge.
+	RegisteredWordsTable = "registered_words"
+	// RegisteredWordsInverseTable is the table name for the RegisteredWord entity.
+	// It exists in this package in order to avoid circular dependency with the "registeredword" package.
+	RegisteredWordsInverseTable = "registered_words"
+	// RegisteredWordsColumn is the table column denoting the registered_words relation/edge.
+	RegisteredWordsColumn = "word_id"
 )
 
 // Columns holds all SQL columns for word fields.
@@ -40,6 +51,7 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldVoiceID,
+	FieldRegistrationCount,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -57,6 +69,8 @@ func ValidColumn(column string) bool {
 var (
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
+	// DefaultRegistrationCount holds the default value on creation for the "registration_count" field.
+	DefaultRegistrationCount int
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -83,6 +97,11 @@ func ByVoiceID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVoiceID, opts...).ToFunc()
 }
 
+// ByRegistrationCount orders the results by the registration_count field.
+func ByRegistrationCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRegistrationCount, opts...).ToFunc()
+}
+
 // ByCreatedAt orders the results by the created_at field.
 func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
@@ -106,10 +125,31 @@ func ByWordInfos(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newWordInfosStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByRegisteredWordsCount orders the results by registered_words count.
+func ByRegisteredWordsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRegisteredWordsStep(), opts...)
+	}
+}
+
+// ByRegisteredWords orders the results by registered_words terms.
+func ByRegisteredWords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRegisteredWordsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newWordInfosStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(WordInfosInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, WordInfosTable, WordInfosColumn),
+	)
+}
+func newRegisteredWordsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RegisteredWordsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RegisteredWordsTable, RegisteredWordsColumn),
 	)
 }

@@ -16,8 +16,8 @@ const (
 	FieldID = "id"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
-	// FieldWordInfoID holds the string denoting the word_info_id field in the database.
-	FieldWordInfoID = "word_info_id"
+	// FieldWordID holds the string denoting the word_id field in the database.
+	FieldWordID = "word_id"
 	// FieldIsActive holds the string denoting the is_active field in the database.
 	FieldIsActive = "is_active"
 	// FieldTestCount holds the string denoting the test_count field in the database.
@@ -32,8 +32,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
-	// EdgeWordInfo holds the string denoting the word_info edge name in mutations.
-	EdgeWordInfo = "word_info"
+	// EdgeWord holds the string denoting the word edge name in mutations.
+	EdgeWord = "word"
 	// EdgeTestQuestions holds the string denoting the test_questions edge name in mutations.
 	EdgeTestQuestions = "test_questions"
 	// Table holds the table name of the registeredword in the database.
@@ -45,13 +45,13 @@ const (
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
 	UserColumn = "user_id"
-	// WordInfoTable is the table that holds the word_info relation/edge.
-	WordInfoTable = "registered_words"
-	// WordInfoInverseTable is the table name for the WordInfo entity.
-	// It exists in this package in order to avoid circular dependency with the "wordinfo" package.
-	WordInfoInverseTable = "word_infos"
-	// WordInfoColumn is the table column denoting the word_info relation/edge.
-	WordInfoColumn = "word_info_id"
+	// WordTable is the table that holds the word relation/edge.
+	WordTable = "registered_words"
+	// WordInverseTable is the table name for the Word entity.
+	// It exists in this package in order to avoid circular dependency with the "word" package.
+	WordInverseTable = "words"
+	// WordColumn is the table column denoting the word relation/edge.
+	WordColumn = "word_id"
 	// TestQuestionsTable is the table that holds the test_questions relation/edge.
 	TestQuestionsTable = "test_questions"
 	// TestQuestionsInverseTable is the table name for the TestQuestion entity.
@@ -65,7 +65,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldUserID,
-	FieldWordInfoID,
+	FieldWordID,
 	FieldIsActive,
 	FieldTestCount,
 	FieldCheckCount,
@@ -85,6 +85,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	UserIDValidator func(int) error
 	// DefaultIsActive holds the default value on creation for the "is_active" field.
 	DefaultIsActive bool
 	// DefaultTestCount holds the default value on creation for the "test_count" field.
@@ -112,9 +114,9 @@ func ByUserID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUserID, opts...).ToFunc()
 }
 
-// ByWordInfoID orders the results by the word_info_id field.
-func ByWordInfoID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldWordInfoID, opts...).ToFunc()
+// ByWordID orders the results by the word_id field.
+func ByWordID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWordID, opts...).ToFunc()
 }
 
 // ByIsActive orders the results by the is_active field.
@@ -154,10 +156,10 @@ func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
-// ByWordInfoField orders the results by word_info field.
-func ByWordInfoField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByWordField orders the results by word field.
+func ByWordField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newWordInfoStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborTerms(s, newWordStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -181,11 +183,11 @@ func newUserStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
 	)
 }
-func newWordInfoStep() *sqlgraph.Step {
+func newWordStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(WordInfoInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, WordInfoTable, WordInfoColumn),
+		sqlgraph.To(WordInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, WordTable, WordColumn),
 	)
 }
 func newTestQuestionsStep() *sqlgraph.Step {

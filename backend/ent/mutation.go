@@ -1130,8 +1130,8 @@ type RegisteredWordMutation struct {
 	clearedFields         map[string]struct{}
 	user                  *int
 	cleareduser           bool
-	word_info             *int
-	clearedword_info      bool
+	word                  *int
+	clearedword           bool
 	test_questions        map[int]struct{}
 	removedtest_questions map[int]struct{}
 	clearedtest_questions bool
@@ -1274,40 +1274,40 @@ func (m *RegisteredWordMutation) ResetUserID() {
 	m.user = nil
 }
 
-// SetWordInfoID sets the "word_info_id" field.
-func (m *RegisteredWordMutation) SetWordInfoID(i int) {
-	m.word_info = &i
+// SetWordID sets the "word_id" field.
+func (m *RegisteredWordMutation) SetWordID(i int) {
+	m.word = &i
 }
 
-// WordInfoID returns the value of the "word_info_id" field in the mutation.
-func (m *RegisteredWordMutation) WordInfoID() (r int, exists bool) {
-	v := m.word_info
+// WordID returns the value of the "word_id" field in the mutation.
+func (m *RegisteredWordMutation) WordID() (r int, exists bool) {
+	v := m.word
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldWordInfoID returns the old "word_info_id" field's value of the RegisteredWord entity.
+// OldWordID returns the old "word_id" field's value of the RegisteredWord entity.
 // If the RegisteredWord object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RegisteredWordMutation) OldWordInfoID(ctx context.Context) (v int, err error) {
+func (m *RegisteredWordMutation) OldWordID(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldWordInfoID is only allowed on UpdateOne operations")
+		return v, errors.New("OldWordID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldWordInfoID requires an ID field in the mutation")
+		return v, errors.New("OldWordID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldWordInfoID: %w", err)
+		return v, fmt.Errorf("querying old value for OldWordID: %w", err)
 	}
-	return oldValue.WordInfoID, nil
+	return oldValue.WordID, nil
 }
 
-// ResetWordInfoID resets all changes to the "word_info_id" field.
-func (m *RegisteredWordMutation) ResetWordInfoID() {
-	m.word_info = nil
+// ResetWordID resets all changes to the "word_id" field.
+func (m *RegisteredWordMutation) ResetWordID() {
+	m.word = nil
 }
 
 // SetIsActive sets the "is_active" field.
@@ -1606,31 +1606,31 @@ func (m *RegisteredWordMutation) ResetUser() {
 	m.cleareduser = false
 }
 
-// ClearWordInfo clears the "word_info" edge to the WordInfo entity.
-func (m *RegisteredWordMutation) ClearWordInfo() {
-	m.clearedword_info = true
-	m.clearedFields[registeredword.FieldWordInfoID] = struct{}{}
+// ClearWord clears the "word" edge to the Word entity.
+func (m *RegisteredWordMutation) ClearWord() {
+	m.clearedword = true
+	m.clearedFields[registeredword.FieldWordID] = struct{}{}
 }
 
-// WordInfoCleared reports if the "word_info" edge to the WordInfo entity was cleared.
-func (m *RegisteredWordMutation) WordInfoCleared() bool {
-	return m.clearedword_info
+// WordCleared reports if the "word" edge to the Word entity was cleared.
+func (m *RegisteredWordMutation) WordCleared() bool {
+	return m.clearedword
 }
 
-// WordInfoIDs returns the "word_info" edge IDs in the mutation.
+// WordIDs returns the "word" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// WordInfoID instead. It exists only for internal usage by the builders.
-func (m *RegisteredWordMutation) WordInfoIDs() (ids []int) {
-	if id := m.word_info; id != nil {
+// WordID instead. It exists only for internal usage by the builders.
+func (m *RegisteredWordMutation) WordIDs() (ids []int) {
+	if id := m.word; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetWordInfo resets all changes to the "word_info" edge.
-func (m *RegisteredWordMutation) ResetWordInfo() {
-	m.word_info = nil
-	m.clearedword_info = false
+// ResetWord resets all changes to the "word" edge.
+func (m *RegisteredWordMutation) ResetWord() {
+	m.word = nil
+	m.clearedword = false
 }
 
 // AddTestQuestionIDs adds the "test_questions" edge to the TestQuestion entity by ids.
@@ -1725,8 +1725,8 @@ func (m *RegisteredWordMutation) Fields() []string {
 	if m.user != nil {
 		fields = append(fields, registeredword.FieldUserID)
 	}
-	if m.word_info != nil {
-		fields = append(fields, registeredword.FieldWordInfoID)
+	if m.word != nil {
+		fields = append(fields, registeredword.FieldWordID)
 	}
 	if m.is_active != nil {
 		fields = append(fields, registeredword.FieldIsActive)
@@ -1756,8 +1756,8 @@ func (m *RegisteredWordMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case registeredword.FieldUserID:
 		return m.UserID()
-	case registeredword.FieldWordInfoID:
-		return m.WordInfoID()
+	case registeredword.FieldWordID:
+		return m.WordID()
 	case registeredword.FieldIsActive:
 		return m.IsActive()
 	case registeredword.FieldTestCount:
@@ -1781,8 +1781,8 @@ func (m *RegisteredWordMutation) OldField(ctx context.Context, name string) (ent
 	switch name {
 	case registeredword.FieldUserID:
 		return m.OldUserID(ctx)
-	case registeredword.FieldWordInfoID:
-		return m.OldWordInfoID(ctx)
+	case registeredword.FieldWordID:
+		return m.OldWordID(ctx)
 	case registeredword.FieldIsActive:
 		return m.OldIsActive(ctx)
 	case registeredword.FieldTestCount:
@@ -1811,12 +1811,12 @@ func (m *RegisteredWordMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUserID(v)
 		return nil
-	case registeredword.FieldWordInfoID:
+	case registeredword.FieldWordID:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetWordInfoID(v)
+		m.SetWordID(v)
 		return nil
 	case registeredword.FieldIsActive:
 		v, ok := value.(bool)
@@ -1948,8 +1948,8 @@ func (m *RegisteredWordMutation) ResetField(name string) error {
 	case registeredword.FieldUserID:
 		m.ResetUserID()
 		return nil
-	case registeredword.FieldWordInfoID:
-		m.ResetWordInfoID()
+	case registeredword.FieldWordID:
+		m.ResetWordID()
 		return nil
 	case registeredword.FieldIsActive:
 		m.ResetIsActive()
@@ -1979,8 +1979,8 @@ func (m *RegisteredWordMutation) AddedEdges() []string {
 	if m.user != nil {
 		edges = append(edges, registeredword.EdgeUser)
 	}
-	if m.word_info != nil {
-		edges = append(edges, registeredword.EdgeWordInfo)
+	if m.word != nil {
+		edges = append(edges, registeredword.EdgeWord)
 	}
 	if m.test_questions != nil {
 		edges = append(edges, registeredword.EdgeTestQuestions)
@@ -1996,8 +1996,8 @@ func (m *RegisteredWordMutation) AddedIDs(name string) []ent.Value {
 		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
-	case registeredword.EdgeWordInfo:
-		if id := m.word_info; id != nil {
+	case registeredword.EdgeWord:
+		if id := m.word; id != nil {
 			return []ent.Value{*id}
 		}
 	case registeredword.EdgeTestQuestions:
@@ -2039,8 +2039,8 @@ func (m *RegisteredWordMutation) ClearedEdges() []string {
 	if m.cleareduser {
 		edges = append(edges, registeredword.EdgeUser)
 	}
-	if m.clearedword_info {
-		edges = append(edges, registeredword.EdgeWordInfo)
+	if m.clearedword {
+		edges = append(edges, registeredword.EdgeWord)
 	}
 	if m.clearedtest_questions {
 		edges = append(edges, registeredword.EdgeTestQuestions)
@@ -2054,8 +2054,8 @@ func (m *RegisteredWordMutation) EdgeCleared(name string) bool {
 	switch name {
 	case registeredword.EdgeUser:
 		return m.cleareduser
-	case registeredword.EdgeWordInfo:
-		return m.clearedword_info
+	case registeredword.EdgeWord:
+		return m.clearedword
 	case registeredword.EdgeTestQuestions:
 		return m.clearedtest_questions
 	}
@@ -2069,8 +2069,8 @@ func (m *RegisteredWordMutation) ClearEdge(name string) error {
 	case registeredword.EdgeUser:
 		m.ClearUser()
 		return nil
-	case registeredword.EdgeWordInfo:
-		m.ClearWordInfo()
+	case registeredword.EdgeWord:
+		m.ClearWord()
 		return nil
 	}
 	return fmt.Errorf("unknown RegisteredWord unique edge %s", name)
@@ -2083,8 +2083,8 @@ func (m *RegisteredWordMutation) ResetEdge(name string) error {
 	case registeredword.EdgeUser:
 		m.ResetUser()
 		return nil
-	case registeredword.EdgeWordInfo:
-		m.ResetWordInfo()
+	case registeredword.EdgeWord:
+		m.ResetWord()
 		return nil
 	case registeredword.EdgeTestQuestions:
 		m.ResetTestQuestions()
@@ -4155,20 +4155,25 @@ func (m *UserMutation) ResetEdge(name string) error {
 // WordMutation represents an operation that mutates the Word nodes in the graph.
 type WordMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *int
-	name              *string
-	voice_id          *string
-	created_at        *time.Time
-	updated_at        *time.Time
-	clearedFields     map[string]struct{}
-	word_infos        map[int]struct{}
-	removedword_infos map[int]struct{}
-	clearedword_infos bool
-	done              bool
-	oldValue          func(context.Context) (*Word, error)
-	predicates        []predicate.Word
+	op                      Op
+	typ                     string
+	id                      *int
+	name                    *string
+	voice_id                *string
+	registration_count      *int
+	addregistration_count   *int
+	created_at              *time.Time
+	updated_at              *time.Time
+	clearedFields           map[string]struct{}
+	word_infos              map[int]struct{}
+	removedword_infos       map[int]struct{}
+	clearedword_infos       bool
+	registered_words        map[int]struct{}
+	removedregistered_words map[int]struct{}
+	clearedregistered_words bool
+	done                    bool
+	oldValue                func(context.Context) (*Word, error)
+	predicates              []predicate.Word
 }
 
 var _ ent.Mutation = (*WordMutation)(nil)
@@ -4354,6 +4359,62 @@ func (m *WordMutation) ResetVoiceID() {
 	delete(m.clearedFields, word.FieldVoiceID)
 }
 
+// SetRegistrationCount sets the "registration_count" field.
+func (m *WordMutation) SetRegistrationCount(i int) {
+	m.registration_count = &i
+	m.addregistration_count = nil
+}
+
+// RegistrationCount returns the value of the "registration_count" field in the mutation.
+func (m *WordMutation) RegistrationCount() (r int, exists bool) {
+	v := m.registration_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRegistrationCount returns the old "registration_count" field's value of the Word entity.
+// If the Word object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WordMutation) OldRegistrationCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRegistrationCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRegistrationCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRegistrationCount: %w", err)
+	}
+	return oldValue.RegistrationCount, nil
+}
+
+// AddRegistrationCount adds i to the "registration_count" field.
+func (m *WordMutation) AddRegistrationCount(i int) {
+	if m.addregistration_count != nil {
+		*m.addregistration_count += i
+	} else {
+		m.addregistration_count = &i
+	}
+}
+
+// AddedRegistrationCount returns the value that was added to the "registration_count" field in this mutation.
+func (m *WordMutation) AddedRegistrationCount() (r int, exists bool) {
+	v := m.addregistration_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRegistrationCount resets all changes to the "registration_count" field.
+func (m *WordMutation) ResetRegistrationCount() {
+	m.registration_count = nil
+	m.addregistration_count = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *WordMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -4480,6 +4541,60 @@ func (m *WordMutation) ResetWordInfos() {
 	m.removedword_infos = nil
 }
 
+// AddRegisteredWordIDs adds the "registered_words" edge to the RegisteredWord entity by ids.
+func (m *WordMutation) AddRegisteredWordIDs(ids ...int) {
+	if m.registered_words == nil {
+		m.registered_words = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.registered_words[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRegisteredWords clears the "registered_words" edge to the RegisteredWord entity.
+func (m *WordMutation) ClearRegisteredWords() {
+	m.clearedregistered_words = true
+}
+
+// RegisteredWordsCleared reports if the "registered_words" edge to the RegisteredWord entity was cleared.
+func (m *WordMutation) RegisteredWordsCleared() bool {
+	return m.clearedregistered_words
+}
+
+// RemoveRegisteredWordIDs removes the "registered_words" edge to the RegisteredWord entity by IDs.
+func (m *WordMutation) RemoveRegisteredWordIDs(ids ...int) {
+	if m.removedregistered_words == nil {
+		m.removedregistered_words = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.registered_words, ids[i])
+		m.removedregistered_words[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRegisteredWords returns the removed IDs of the "registered_words" edge to the RegisteredWord entity.
+func (m *WordMutation) RemovedRegisteredWordsIDs() (ids []int) {
+	for id := range m.removedregistered_words {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RegisteredWordsIDs returns the "registered_words" edge IDs in the mutation.
+func (m *WordMutation) RegisteredWordsIDs() (ids []int) {
+	for id := range m.registered_words {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRegisteredWords resets all changes to the "registered_words" edge.
+func (m *WordMutation) ResetRegisteredWords() {
+	m.registered_words = nil
+	m.clearedregistered_words = false
+	m.removedregistered_words = nil
+}
+
 // Where appends a list predicates to the WordMutation builder.
 func (m *WordMutation) Where(ps ...predicate.Word) {
 	m.predicates = append(m.predicates, ps...)
@@ -4514,12 +4629,15 @@ func (m *WordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *WordMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.name != nil {
 		fields = append(fields, word.FieldName)
 	}
 	if m.voice_id != nil {
 		fields = append(fields, word.FieldVoiceID)
+	}
+	if m.registration_count != nil {
+		fields = append(fields, word.FieldRegistrationCount)
 	}
 	if m.created_at != nil {
 		fields = append(fields, word.FieldCreatedAt)
@@ -4539,6 +4657,8 @@ func (m *WordMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case word.FieldVoiceID:
 		return m.VoiceID()
+	case word.FieldRegistrationCount:
+		return m.RegistrationCount()
 	case word.FieldCreatedAt:
 		return m.CreatedAt()
 	case word.FieldUpdatedAt:
@@ -4556,6 +4676,8 @@ func (m *WordMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldName(ctx)
 	case word.FieldVoiceID:
 		return m.OldVoiceID(ctx)
+	case word.FieldRegistrationCount:
+		return m.OldRegistrationCount(ctx)
 	case word.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case word.FieldUpdatedAt:
@@ -4583,6 +4705,13 @@ func (m *WordMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetVoiceID(v)
 		return nil
+	case word.FieldRegistrationCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRegistrationCount(v)
+		return nil
 	case word.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -4604,13 +4733,21 @@ func (m *WordMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *WordMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addregistration_count != nil {
+		fields = append(fields, word.FieldRegistrationCount)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *WordMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case word.FieldRegistrationCount:
+		return m.AddedRegistrationCount()
+	}
 	return nil, false
 }
 
@@ -4619,6 +4756,13 @@ func (m *WordMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *WordMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case word.FieldRegistrationCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRegistrationCount(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Word numeric field %s", name)
 }
@@ -4661,6 +4805,9 @@ func (m *WordMutation) ResetField(name string) error {
 	case word.FieldVoiceID:
 		m.ResetVoiceID()
 		return nil
+	case word.FieldRegistrationCount:
+		m.ResetRegistrationCount()
+		return nil
 	case word.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
@@ -4673,9 +4820,12 @@ func (m *WordMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *WordMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.word_infos != nil {
 		edges = append(edges, word.EdgeWordInfos)
+	}
+	if m.registered_words != nil {
+		edges = append(edges, word.EdgeRegisteredWords)
 	}
 	return edges
 }
@@ -4690,15 +4840,24 @@ func (m *WordMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case word.EdgeRegisteredWords:
+		ids := make([]ent.Value, 0, len(m.registered_words))
+		for id := range m.registered_words {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *WordMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedword_infos != nil {
 		edges = append(edges, word.EdgeWordInfos)
+	}
+	if m.removedregistered_words != nil {
+		edges = append(edges, word.EdgeRegisteredWords)
 	}
 	return edges
 }
@@ -4713,15 +4872,24 @@ func (m *WordMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case word.EdgeRegisteredWords:
+		ids := make([]ent.Value, 0, len(m.removedregistered_words))
+		for id := range m.removedregistered_words {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *WordMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedword_infos {
 		edges = append(edges, word.EdgeWordInfos)
+	}
+	if m.clearedregistered_words {
+		edges = append(edges, word.EdgeRegisteredWords)
 	}
 	return edges
 }
@@ -4732,6 +4900,8 @@ func (m *WordMutation) EdgeCleared(name string) bool {
 	switch name {
 	case word.EdgeWordInfos:
 		return m.clearedword_infos
+	case word.EdgeRegisteredWords:
+		return m.clearedregistered_words
 	}
 	return false
 }
@@ -4751,6 +4921,9 @@ func (m *WordMutation) ResetEdge(name string) error {
 	case word.EdgeWordInfos:
 		m.ResetWordInfos()
 		return nil
+	case word.EdgeRegisteredWords:
+		m.ResetRegisteredWords()
+		return nil
 	}
 	return fmt.Errorf("unknown Word edge %s", name)
 }
@@ -4758,27 +4931,22 @@ func (m *WordMutation) ResetEdge(name string) error {
 // WordInfoMutation represents an operation that mutates the WordInfo nodes in the graph.
 type WordInfoMutation struct {
 	config
-	op                      Op
-	typ                     string
-	id                      *int
-	registration_count      *int
-	addregistration_count   *int
-	created_at              *time.Time
-	updated_at              *time.Time
-	clearedFields           map[string]struct{}
-	word                    *int
-	clearedword             bool
-	part_of_speech          *int
-	clearedpart_of_speech   bool
-	japanese_means          map[int]struct{}
-	removedjapanese_means   map[int]struct{}
-	clearedjapanese_means   bool
-	registered_words        map[int]struct{}
-	removedregistered_words map[int]struct{}
-	clearedregistered_words bool
-	done                    bool
-	oldValue                func(context.Context) (*WordInfo, error)
-	predicates              []predicate.WordInfo
+	op                    Op
+	typ                   string
+	id                    *int
+	created_at            *time.Time
+	updated_at            *time.Time
+	clearedFields         map[string]struct{}
+	word                  *int
+	clearedword           bool
+	part_of_speech        *int
+	clearedpart_of_speech bool
+	japanese_means        map[int]struct{}
+	removedjapanese_means map[int]struct{}
+	clearedjapanese_means bool
+	done                  bool
+	oldValue              func(context.Context) (*WordInfo, error)
+	predicates            []predicate.WordInfo
 }
 
 var _ ent.Mutation = (*WordInfoMutation)(nil)
@@ -4949,62 +5117,6 @@ func (m *WordInfoMutation) OldPartOfSpeechID(ctx context.Context) (v int, err er
 // ResetPartOfSpeechID resets all changes to the "part_of_speech_id" field.
 func (m *WordInfoMutation) ResetPartOfSpeechID() {
 	m.part_of_speech = nil
-}
-
-// SetRegistrationCount sets the "registration_count" field.
-func (m *WordInfoMutation) SetRegistrationCount(i int) {
-	m.registration_count = &i
-	m.addregistration_count = nil
-}
-
-// RegistrationCount returns the value of the "registration_count" field in the mutation.
-func (m *WordInfoMutation) RegistrationCount() (r int, exists bool) {
-	v := m.registration_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRegistrationCount returns the old "registration_count" field's value of the WordInfo entity.
-// If the WordInfo object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *WordInfoMutation) OldRegistrationCount(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRegistrationCount is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRegistrationCount requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRegistrationCount: %w", err)
-	}
-	return oldValue.RegistrationCount, nil
-}
-
-// AddRegistrationCount adds i to the "registration_count" field.
-func (m *WordInfoMutation) AddRegistrationCount(i int) {
-	if m.addregistration_count != nil {
-		*m.addregistration_count += i
-	} else {
-		m.addregistration_count = &i
-	}
-}
-
-// AddedRegistrationCount returns the value that was added to the "registration_count" field in this mutation.
-func (m *WordInfoMutation) AddedRegistrationCount() (r int, exists bool) {
-	v := m.addregistration_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetRegistrationCount resets all changes to the "registration_count" field.
-func (m *WordInfoMutation) ResetRegistrationCount() {
-	m.registration_count = nil
-	m.addregistration_count = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -5187,60 +5299,6 @@ func (m *WordInfoMutation) ResetJapaneseMeans() {
 	m.removedjapanese_means = nil
 }
 
-// AddRegisteredWordIDs adds the "registered_words" edge to the RegisteredWord entity by ids.
-func (m *WordInfoMutation) AddRegisteredWordIDs(ids ...int) {
-	if m.registered_words == nil {
-		m.registered_words = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.registered_words[ids[i]] = struct{}{}
-	}
-}
-
-// ClearRegisteredWords clears the "registered_words" edge to the RegisteredWord entity.
-func (m *WordInfoMutation) ClearRegisteredWords() {
-	m.clearedregistered_words = true
-}
-
-// RegisteredWordsCleared reports if the "registered_words" edge to the RegisteredWord entity was cleared.
-func (m *WordInfoMutation) RegisteredWordsCleared() bool {
-	return m.clearedregistered_words
-}
-
-// RemoveRegisteredWordIDs removes the "registered_words" edge to the RegisteredWord entity by IDs.
-func (m *WordInfoMutation) RemoveRegisteredWordIDs(ids ...int) {
-	if m.removedregistered_words == nil {
-		m.removedregistered_words = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.registered_words, ids[i])
-		m.removedregistered_words[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedRegisteredWords returns the removed IDs of the "registered_words" edge to the RegisteredWord entity.
-func (m *WordInfoMutation) RemovedRegisteredWordsIDs() (ids []int) {
-	for id := range m.removedregistered_words {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// RegisteredWordsIDs returns the "registered_words" edge IDs in the mutation.
-func (m *WordInfoMutation) RegisteredWordsIDs() (ids []int) {
-	for id := range m.registered_words {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetRegisteredWords resets all changes to the "registered_words" edge.
-func (m *WordInfoMutation) ResetRegisteredWords() {
-	m.registered_words = nil
-	m.clearedregistered_words = false
-	m.removedregistered_words = nil
-}
-
 // Where appends a list predicates to the WordInfoMutation builder.
 func (m *WordInfoMutation) Where(ps ...predicate.WordInfo) {
 	m.predicates = append(m.predicates, ps...)
@@ -5275,15 +5333,12 @@ func (m *WordInfoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *WordInfoMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 4)
 	if m.word != nil {
 		fields = append(fields, wordinfo.FieldWordID)
 	}
 	if m.part_of_speech != nil {
 		fields = append(fields, wordinfo.FieldPartOfSpeechID)
-	}
-	if m.registration_count != nil {
-		fields = append(fields, wordinfo.FieldRegistrationCount)
 	}
 	if m.created_at != nil {
 		fields = append(fields, wordinfo.FieldCreatedAt)
@@ -5303,8 +5358,6 @@ func (m *WordInfoMutation) Field(name string) (ent.Value, bool) {
 		return m.WordID()
 	case wordinfo.FieldPartOfSpeechID:
 		return m.PartOfSpeechID()
-	case wordinfo.FieldRegistrationCount:
-		return m.RegistrationCount()
 	case wordinfo.FieldCreatedAt:
 		return m.CreatedAt()
 	case wordinfo.FieldUpdatedAt:
@@ -5322,8 +5375,6 @@ func (m *WordInfoMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldWordID(ctx)
 	case wordinfo.FieldPartOfSpeechID:
 		return m.OldPartOfSpeechID(ctx)
-	case wordinfo.FieldRegistrationCount:
-		return m.OldRegistrationCount(ctx)
 	case wordinfo.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case wordinfo.FieldUpdatedAt:
@@ -5351,13 +5402,6 @@ func (m *WordInfoMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetPartOfSpeechID(v)
 		return nil
-	case wordinfo.FieldRegistrationCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRegistrationCount(v)
-		return nil
 	case wordinfo.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -5380,9 +5424,6 @@ func (m *WordInfoMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *WordInfoMutation) AddedFields() []string {
 	var fields []string
-	if m.addregistration_count != nil {
-		fields = append(fields, wordinfo.FieldRegistrationCount)
-	}
 	return fields
 }
 
@@ -5391,8 +5432,6 @@ func (m *WordInfoMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *WordInfoMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case wordinfo.FieldRegistrationCount:
-		return m.AddedRegistrationCount()
 	}
 	return nil, false
 }
@@ -5402,13 +5441,6 @@ func (m *WordInfoMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *WordInfoMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case wordinfo.FieldRegistrationCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddRegistrationCount(v)
-		return nil
 	}
 	return fmt.Errorf("unknown WordInfo numeric field %s", name)
 }
@@ -5442,9 +5474,6 @@ func (m *WordInfoMutation) ResetField(name string) error {
 	case wordinfo.FieldPartOfSpeechID:
 		m.ResetPartOfSpeechID()
 		return nil
-	case wordinfo.FieldRegistrationCount:
-		m.ResetRegistrationCount()
-		return nil
 	case wordinfo.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
@@ -5457,7 +5486,7 @@ func (m *WordInfoMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *WordInfoMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 3)
 	if m.word != nil {
 		edges = append(edges, wordinfo.EdgeWord)
 	}
@@ -5466,9 +5495,6 @@ func (m *WordInfoMutation) AddedEdges() []string {
 	}
 	if m.japanese_means != nil {
 		edges = append(edges, wordinfo.EdgeJapaneseMeans)
-	}
-	if m.registered_words != nil {
-		edges = append(edges, wordinfo.EdgeRegisteredWords)
 	}
 	return edges
 }
@@ -5491,24 +5517,15 @@ func (m *WordInfoMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case wordinfo.EdgeRegisteredWords:
-		ids := make([]ent.Value, 0, len(m.registered_words))
-		for id := range m.registered_words {
-			ids = append(ids, id)
-		}
-		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *WordInfoMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 3)
 	if m.removedjapanese_means != nil {
 		edges = append(edges, wordinfo.EdgeJapaneseMeans)
-	}
-	if m.removedregistered_words != nil {
-		edges = append(edges, wordinfo.EdgeRegisteredWords)
 	}
 	return edges
 }
@@ -5523,19 +5540,13 @@ func (m *WordInfoMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case wordinfo.EdgeRegisteredWords:
-		ids := make([]ent.Value, 0, len(m.removedregistered_words))
-		for id := range m.removedregistered_words {
-			ids = append(ids, id)
-		}
-		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *WordInfoMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 3)
 	if m.clearedword {
 		edges = append(edges, wordinfo.EdgeWord)
 	}
@@ -5544,9 +5555,6 @@ func (m *WordInfoMutation) ClearedEdges() []string {
 	}
 	if m.clearedjapanese_means {
 		edges = append(edges, wordinfo.EdgeJapaneseMeans)
-	}
-	if m.clearedregistered_words {
-		edges = append(edges, wordinfo.EdgeRegisteredWords)
 	}
 	return edges
 }
@@ -5561,8 +5569,6 @@ func (m *WordInfoMutation) EdgeCleared(name string) bool {
 		return m.clearedpart_of_speech
 	case wordinfo.EdgeJapaneseMeans:
 		return m.clearedjapanese_means
-	case wordinfo.EdgeRegisteredWords:
-		return m.clearedregistered_words
 	}
 	return false
 }
@@ -5593,9 +5599,6 @@ func (m *WordInfoMutation) ResetEdge(name string) error {
 		return nil
 	case wordinfo.EdgeJapaneseMeans:
 		m.ResetJapaneseMeans()
-		return nil
-	case wordinfo.EdgeRegisteredWords:
-		m.ResetRegisteredWords()
 		return nil
 	}
 	return fmt.Errorf("unknown WordInfo edge %s", name)

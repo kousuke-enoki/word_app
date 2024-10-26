@@ -14,7 +14,6 @@ import (
 // AllWordListHandler 単語を取得するための関数。検索、ソート、ページネーションに対応。
 func AllWordListHandler(c *gin.Context, client *ent.Client) {
 	ctx := context.Background()
-	log.Println("AllWordListHandler")
 
 	// クエリパラメータの取得
 	search := c.Query("search")                             // 検索クエリ
@@ -38,8 +37,7 @@ func AllWordListHandler(c *gin.Context, client *ent.Client) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count words"})
 		return
 	}
-	log.Println("totalCount")
-	log.Println(totalCount)
+
 	// ページネーション機能
 	offset := (page - 1) * limit
 	query = query.Offset(offset).Limit(limit)
@@ -59,17 +57,7 @@ func AllWordListHandler(c *gin.Context, client *ent.Client) {
 		} else {
 			query = query.Order(ent.Desc(word.FieldName))
 		}
-	// case "part_of_speech_name":
-	// PartOfSpeechのnameフィールドでソート
-	// query = query.Join("word_infos").
-	// 	Join("part_of_speech").
-	// 	OrderFunc(func(builder *sql.Selector) {
-	// 		if order == "asc" {
-	// 			builder.OrderBy(sql.Asc("part_of_speech.name"))
-	// 		} else {
-	// 			builder.OrderBy(sql.Desc("part_of_speech.name"))
-	// 		}
-	// 	})
+
 	default:
 		if order == "asc" {
 			query = query.Order(ent.Asc(sortBy))
@@ -81,17 +69,12 @@ func AllWordListHandler(c *gin.Context, client *ent.Client) {
 	// クエリ実行
 	words, err := query.All(ctx)
 	if err != nil {
-		log.Println("Error fetching words:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch words"})
 		return
 	}
 
 	// 総ページ数を計算
 	totalPages := (totalCount + limit - 1) / limit
-	log.Println("totalPages")
-	log.Println(totalPages)
-	// ログに取得したデータを表示
-	log.Println("words_with_relations", words)
 
 	// レスポンスとしてWordのリストと総ページ数を返す
 	c.JSON(http.StatusOK, gin.H{

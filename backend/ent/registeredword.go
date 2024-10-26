@@ -8,7 +8,7 @@ import (
 	"time"
 	"word_app/ent/registeredword"
 	"word_app/ent/user"
-	"word_app/ent/wordinfo"
+	"word_app/ent/word"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -21,8 +21,8 @@ type RegisteredWord struct {
 	ID int `json:"id,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID int `json:"user_id,omitempty"`
-	// WordInfoID holds the value of the "word_info_id" field.
-	WordInfoID int `json:"word_info_id,omitempty"`
+	// WordID holds the value of the "word_id" field.
+	WordID int `json:"word_id,omitempty"`
 	// IsActive holds the value of the "is_active" field.
 	IsActive bool `json:"is_active,omitempty"`
 	// TestCount holds the value of the "test_count" field.
@@ -45,8 +45,8 @@ type RegisteredWord struct {
 type RegisteredWordEdges struct {
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
-	// WordInfo holds the value of the word_info edge.
-	WordInfo *WordInfo `json:"word_info,omitempty"`
+	// Word holds the value of the word edge.
+	Word *Word `json:"word,omitempty"`
 	// TestQuestions holds the value of the test_questions edge.
 	TestQuestions []*TestQuestion `json:"test_questions,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -65,15 +65,15 @@ func (e RegisteredWordEdges) UserOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "user"}
 }
 
-// WordInfoOrErr returns the WordInfo value or an error if the edge
+// WordOrErr returns the Word value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e RegisteredWordEdges) WordInfoOrErr() (*WordInfo, error) {
-	if e.WordInfo != nil {
-		return e.WordInfo, nil
+func (e RegisteredWordEdges) WordOrErr() (*Word, error) {
+	if e.Word != nil {
+		return e.Word, nil
 	} else if e.loadedTypes[1] {
-		return nil, &NotFoundError{label: wordinfo.Label}
+		return nil, &NotFoundError{label: word.Label}
 	}
-	return nil, &NotLoadedError{edge: "word_info"}
+	return nil, &NotLoadedError{edge: "word"}
 }
 
 // TestQuestionsOrErr returns the TestQuestions value or an error if the edge
@@ -92,7 +92,7 @@ func (*RegisteredWord) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case registeredword.FieldIsActive:
 			values[i] = new(sql.NullBool)
-		case registeredword.FieldID, registeredword.FieldUserID, registeredword.FieldWordInfoID, registeredword.FieldTestCount, registeredword.FieldCheckCount:
+		case registeredword.FieldID, registeredword.FieldUserID, registeredword.FieldWordID, registeredword.FieldTestCount, registeredword.FieldCheckCount:
 			values[i] = new(sql.NullInt64)
 		case registeredword.FieldMemo:
 			values[i] = new(sql.NullString)
@@ -125,11 +125,11 @@ func (rw *RegisteredWord) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				rw.UserID = int(value.Int64)
 			}
-		case registeredword.FieldWordInfoID:
+		case registeredword.FieldWordID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field word_info_id", values[i])
+				return fmt.Errorf("unexpected type %T for field word_id", values[i])
 			} else if value.Valid {
-				rw.WordInfoID = int(value.Int64)
+				rw.WordID = int(value.Int64)
 			}
 		case registeredword.FieldIsActive:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -186,9 +186,9 @@ func (rw *RegisteredWord) QueryUser() *UserQuery {
 	return NewRegisteredWordClient(rw.config).QueryUser(rw)
 }
 
-// QueryWordInfo queries the "word_info" edge of the RegisteredWord entity.
-func (rw *RegisteredWord) QueryWordInfo() *WordInfoQuery {
-	return NewRegisteredWordClient(rw.config).QueryWordInfo(rw)
+// QueryWord queries the "word" edge of the RegisteredWord entity.
+func (rw *RegisteredWord) QueryWord() *WordQuery {
+	return NewRegisteredWordClient(rw.config).QueryWord(rw)
 }
 
 // QueryTestQuestions queries the "test_questions" edge of the RegisteredWord entity.
@@ -222,8 +222,8 @@ func (rw *RegisteredWord) String() string {
 	builder.WriteString("user_id=")
 	builder.WriteString(fmt.Sprintf("%v", rw.UserID))
 	builder.WriteString(", ")
-	builder.WriteString("word_info_id=")
-	builder.WriteString(fmt.Sprintf("%v", rw.WordInfoID))
+	builder.WriteString("word_id=")
+	builder.WriteString(fmt.Sprintf("%v", rw.WordID))
 	builder.WriteString(", ")
 	builder.WriteString("is_active=")
 	builder.WriteString(fmt.Sprintf("%v", rw.IsActive))

@@ -20,8 +20,6 @@ func (WordInfo) Fields() []ent.Field {
 			Positive(),
 		field.Int("part_of_speech_id").
 			Positive(),
-		field.Int("registration_count").
-			Default(0),
 		field.Time("created_at").
 			Default(time.Now),
 		field.Time("updated_at").
@@ -44,6 +42,5 @@ func (WordInfo) Edges() []ent.Edge {
 			Unique().
 			Required(),
 		edge.To("japanese_means", JapaneseMean.Type),
-		edge.To("registered_words", RegisteredWord.Type),
 	}
 }

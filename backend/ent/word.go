@@ -21,6 +21,8 @@ type Word struct {
 	Name string `json:"name,omitempty"`
 	// VoiceID holds the value of the "voice_id" field.
 	VoiceID *string `json:"voice_id,omitempty"`
+	// RegistrationCount holds the value of the "registration_count" field.
+	RegistrationCount int `json:"registration_count,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -35,9 +37,11 @@ type Word struct {
 type WordEdges struct {
 	// WordInfos holds the value of the word_infos edge.
 	WordInfos []*WordInfo `json:"word_infos,omitempty"`
+	// RegisteredWords holds the value of the registered_words edge.
+	RegisteredWords []*RegisteredWord `json:"registered_words,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // WordInfosOrErr returns the WordInfos value or an error if the edge
@@ -49,12 +53,21 @@ func (e WordEdges) WordInfosOrErr() ([]*WordInfo, error) {
 	return nil, &NotLoadedError{edge: "word_infos"}
 }
 
+// RegisteredWordsOrErr returns the RegisteredWords value or an error if the edge
+// was not loaded in eager-loading.
+func (e WordEdges) RegisteredWordsOrErr() ([]*RegisteredWord, error) {
+	if e.loadedTypes[1] {
+		return e.RegisteredWords, nil
+	}
+	return nil, &NotLoadedError{edge: "registered_words"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Word) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case word.FieldID:
+		case word.FieldID, word.FieldRegistrationCount:
 			values[i] = new(sql.NullInt64)
 		case word.FieldName, word.FieldVoiceID:
 			values[i] = new(sql.NullString)
@@ -94,6 +107,12 @@ func (w *Word) assignValues(columns []string, values []any) error {
 				w.VoiceID = new(string)
 				*w.VoiceID = value.String
 			}
+		case word.FieldRegistrationCount:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field registration_count", values[i])
+			} else if value.Valid {
+				w.RegistrationCount = int(value.Int64)
+			}
 		case word.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -122,6 +141,11 @@ func (w *Word) Value(name string) (ent.Value, error) {
 // QueryWordInfos queries the "word_infos" edge of the Word entity.
 func (w *Word) QueryWordInfos() *WordInfoQuery {
 	return NewWordClient(w.config).QueryWordInfos(w)
+}
+
+// QueryRegisteredWords queries the "registered_words" edge of the Word entity.
+func (w *Word) QueryRegisteredWords() *RegisteredWordQuery {
+	return NewWordClient(w.config).QueryRegisteredWords(w)
 }
 
 // Update returns a builder for updating this Word.
@@ -154,6 +178,9 @@ func (w *Word) String() string {
 		builder.WriteString("voice_id=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("registration_count=")
+	builder.WriteString(fmt.Sprintf("%v", w.RegistrationCount))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(w.CreatedAt.Format(time.ANSIC))

@@ -4,6 +4,7 @@ import Home from '../pages/user/Home';
 import SignIn from '../pages/user/SignIn';
 import SignUp from '../pages/user/SignUp';
 import AllWordList from '../pages/word/AllWordList';
+import WordShow from '../pages/word/WordShow';
 import Header from '../components/Header';
 // import Dashboard from '../pages/Dashboard';
 // import Footer from '../components/Footer';
@@ -17,9 +18,8 @@ const AppRouter: React.FC = () => {
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/allwordlist" element={<AllWordList />} />
-        {/* 他のルートをここに追加 */}
+        <Route path="/words/:id" element={<WordShow />} />
       </Routes>
-      {/* <Footer /> */}
     </Router>
   );
 };

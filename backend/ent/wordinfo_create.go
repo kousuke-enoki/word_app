@@ -9,7 +9,6 @@ import (
 	"time"
 	"word_app/ent/japanesemean"
 	"word_app/ent/partofspeech"
-	"word_app/ent/registeredword"
 	"word_app/ent/word"
 	"word_app/ent/wordinfo"
 
@@ -33,20 +32,6 @@ func (wic *WordInfoCreate) SetWordID(i int) *WordInfoCreate {
 // SetPartOfSpeechID sets the "part_of_speech_id" field.
 func (wic *WordInfoCreate) SetPartOfSpeechID(i int) *WordInfoCreate {
 	wic.mutation.SetPartOfSpeechID(i)
-	return wic
-}
-
-// SetRegistrationCount sets the "registration_count" field.
-func (wic *WordInfoCreate) SetRegistrationCount(i int) *WordInfoCreate {
-	wic.mutation.SetRegistrationCount(i)
-	return wic
-}
-
-// SetNillableRegistrationCount sets the "registration_count" field if the given value is not nil.
-func (wic *WordInfoCreate) SetNillableRegistrationCount(i *int) *WordInfoCreate {
-	if i != nil {
-		wic.SetRegistrationCount(*i)
-	}
 	return wic
 }
 
@@ -103,21 +88,6 @@ func (wic *WordInfoCreate) AddJapaneseMeans(j ...*JapaneseMean) *WordInfoCreate 
 	return wic.AddJapaneseMeanIDs(ids...)
 }
 
-// AddRegisteredWordIDs adds the "registered_words" edge to the RegisteredWord entity by IDs.
-func (wic *WordInfoCreate) AddRegisteredWordIDs(ids ...int) *WordInfoCreate {
-	wic.mutation.AddRegisteredWordIDs(ids...)
-	return wic
-}
-
-// AddRegisteredWords adds the "registered_words" edges to the RegisteredWord entity.
-func (wic *WordInfoCreate) AddRegisteredWords(r ...*RegisteredWord) *WordInfoCreate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
-	}
-	return wic.AddRegisteredWordIDs(ids...)
-}
-
 // Mutation returns the WordInfoMutation object of the builder.
 func (wic *WordInfoCreate) Mutation() *WordInfoMutation {
 	return wic.mutation
@@ -153,10 +123,6 @@ func (wic *WordInfoCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (wic *WordInfoCreate) defaults() {
-	if _, ok := wic.mutation.RegistrationCount(); !ok {
-		v := wordinfo.DefaultRegistrationCount
-		wic.mutation.SetRegistrationCount(v)
-	}
 	if _, ok := wic.mutation.CreatedAt(); !ok {
 		v := wordinfo.DefaultCreatedAt()
 		wic.mutation.SetCreatedAt(v)
@@ -184,9 +150,6 @@ func (wic *WordInfoCreate) check() error {
 		if err := wordinfo.PartOfSpeechIDValidator(v); err != nil {
 			return &ValidationError{Name: "part_of_speech_id", err: fmt.Errorf(`ent: validator failed for field "WordInfo.part_of_speech_id": %w`, err)}
 		}
-	}
-	if _, ok := wic.mutation.RegistrationCount(); !ok {
-		return &ValidationError{Name: "registration_count", err: errors.New(`ent: missing required field "WordInfo.registration_count"`)}
 	}
 	if _, ok := wic.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "WordInfo.created_at"`)}
@@ -226,10 +189,6 @@ func (wic *WordInfoCreate) createSpec() (*WordInfo, *sqlgraph.CreateSpec) {
 		_node = &WordInfo{config: wic.config}
 		_spec = sqlgraph.NewCreateSpec(wordinfo.Table, sqlgraph.NewFieldSpec(wordinfo.FieldID, field.TypeInt))
 	)
-	if value, ok := wic.mutation.RegistrationCount(); ok {
-		_spec.SetField(wordinfo.FieldRegistrationCount, field.TypeInt, value)
-		_node.RegistrationCount = value
-	}
 	if value, ok := wic.mutation.CreatedAt(); ok {
 		_spec.SetField(wordinfo.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -281,22 +240,6 @@ func (wic *WordInfoCreate) createSpec() (*WordInfo, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(japanesemean.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := wic.mutation.RegisteredWordsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   wordinfo.RegisteredWordsTable,
-			Columns: []string{wordinfo.RegisteredWordsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

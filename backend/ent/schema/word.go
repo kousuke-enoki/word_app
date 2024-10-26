@@ -21,6 +21,8 @@ func (Word) Fields() []ent.Field {
 		field.String("voice_id").
 			Optional().
 			Nillable(),
+		field.Int("registration_count").
+			Default(0),
 		field.Time("created_at").
 			Default(time.Now),
 		field.Time("updated_at").
@@ -33,5 +35,6 @@ func (Word) Fields() []ent.Field {
 func (Word) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("word_infos", WordInfo.Type),
+		edge.To("registered_words", RegisteredWord.Type),
 	}
 }

@@ -1,10 +1,11 @@
 package schema
 
 import (
+	"time"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"time"
 )
 
 // JapaneseMean holds the schema definition for the JapaneseMean entity.
@@ -31,9 +32,9 @@ func (JapaneseMean) Fields() []ent.Field {
 func (JapaneseMean) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("word_info", WordInfo.Type).
-				Ref("japanese_means").
-				Field("word_info_id").
-				Unique().
-				Required(),
+			Ref("japanese_means").
+			Field("word_info_id").
+			Unique().
+			Required(),
 	}
 }

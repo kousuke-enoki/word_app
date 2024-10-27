@@ -36,6 +36,10 @@ ent/schema で作成
 #  generate
 go generate ./ent
 
+⚪︎フロントエンドライブラリインストール
+cd frontend
+npm install react-i18next i18next --save 
+
 
 〇dockerキャッシュ削除
 docker compose down --volumes --rmi all

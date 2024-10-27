@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"word_app/ent"
 	"word_app/ent/word"
+	"word_app/src/models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -75,6 +76,41 @@ func AllWordListHandler(c *gin.Context, client *ent.Client) {
 
 	// 総ページ数を計算
 	totalPages := (totalCount + limit - 1) / limit
+	log.Println(words)
+	log.Println(totalPages)
+	log.Println(totalCount)
+
+	words = make([]models.Word, len(words))
+	for i, word := range words {
+		wordInfos := make([]models.WordInfo, len(word.Edges.WordInfos))
+		for i, wordInfo := range word.Edges.WordInfos {
+			partOfSpeech := PartOfSpeech{
+				ID:   wordInfo.Edges.PartOfSpeech.ID,
+				Name: wordInfo.Edges.PartOfSpeech.Name,
+			}
+			japaneseMeans := make([]models.JapaneseMean, len(wordInfo.Edges.JapaneseMeans))
+			for j, mean := range wordInfo.Edges.JapaneseMeans {
+				japaneseMeans[j] = models.JapaneseMean{
+					ID:   mean.ID,
+					Name: mean.Name,
+				}
+			}
+			wordInfos[i] = models.WordInfo{
+				ID:            wordInfo.ID,
+				PartOfSpeech:  partOfSpeech,
+				JapaneseMeans: japaneseMeans,
+			}
+		}
+		words[i] = models.Word{
+			ID:        word.ID,
+			Name:      word.Name,
+			WordInfos: wordInfos,
+		}
+	}
+
+	log.Println(words)
+	log.Println(totalPages)
+	log.Println(totalCount)
 
 	// レスポンスとしてWordのリストと総ページ数を返す
 	c.JSON(http.StatusOK, gin.H{

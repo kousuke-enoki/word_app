@@ -1,27 +1,27 @@
-import React, { useState } from 'react';
-import axiosInstance from '../../axiosConfig';
+import React, { useState } from 'react'
+import axiosInstance from '../../axiosConfig'
 
 const SignUp: React.FC = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [message, setMessage] = useState('')
 
-const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  try {
-    const response = await axiosInstance.post('/users/sign_up', {
+  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    try {
+      const response = await axiosInstance.post('/users/sign_up', {
         name,
         email,
         password,
-    });
-    const token = response.data.token;
-    localStorage.setItem('token', token);
-    setMessage('Sign up successful!');
-  } catch (error) {
-    setMessage('Sign up failed. Please try again.');
+      })
+      const token = response.data.token
+      localStorage.setItem('token', token)
+      setMessage('Sign up successful!')
+    } catch (error) {
+      setMessage('Sign up failed. Please try again.')
+    }
   }
-};
 
   return (
     <div>
@@ -61,7 +61,7 @@ const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
       </form>
       {message && <p>{message}</p>}
     </div>
-  );
-};
+  )
+}
 
-export default SignUp;
+export default SignUp

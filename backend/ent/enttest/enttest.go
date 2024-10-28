@@ -5,11 +5,11 @@ package enttest
 import (
 	"context"
 
-	"word_app/ent"
+	"word_app/backend/ent"
 	// required by schema hooks.
-	_ "word_app/ent/runtime"
+	_ "word_app/backend/ent/runtime"
 
-	"word_app/ent/migrate"
+	"word_app/backend/ent/migrate"
 
 	"entgo.io/ent/dialect/sql/schema"
 )

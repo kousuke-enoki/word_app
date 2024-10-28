@@ -1,4 +1,4 @@
-module backend
+module word_app/backend
 
 go 1.23.0
 

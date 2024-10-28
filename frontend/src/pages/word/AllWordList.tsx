@@ -1,33 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import axiosInstance from '../../axiosConfig'
 import { useNavigate, useLocation } from 'react-router-dom'
-
-// 単語の型定義
-
-interface Word {
-  id: number
-  name: string
-  edges: {
-    WordInfos: WordInfo[]
-  }
-}
-
-interface WordInfo {
-  id: number
-  edges: {
-    PartOfSpeech: PartOfSpeech
-    JapaneseMeans: JapaneseMean[]
-  }
-}
-
-interface PartOfSpeech {
-  id: number
-  name: string
-}
-interface JapaneseMean {
-  id: number
-  name: string
-}
+import { Word, WordInfo, JapaneseMean } from '../../types/wordTypes'
 
 const AllWordList: React.FC = () => {
   const [words, setWords] = useState<Word[]>([])
@@ -40,37 +14,10 @@ const AllWordList: React.FC = () => {
   const [limit, setLimit] = useState<number>(10)
   const navigate = useNavigate()
 
-  // プロパティ名を変換する関数
-  const transformResponseData = (data: any): Word[] => {
-    return data.map((word: any) => {
-      const transformedWordInfos = word.edges.word_infos.map(
-        (wordInfo: any) => ({
-          ...wordInfo,
-          edges: {
-            ...wordInfo.edges,
-            PartOfSpeech: wordInfo.edges.part_of_speech,
-            JapaneseMeans: wordInfo.edges.japanese_means,
-          },
-        }),
-      )
-
-      return {
-        ...word,
-        edges: {
-          WordInfos: transformedWordInfos,
-        },
-      }
-    })
-  }
-
   // 初回レンダリング時と依存する値が変わったときにデータを取得
   useEffect(() => {
     // APIからデータを取得する関数
     const fetchWords = async () => {
-      console.log(search)
-      console.log(sortBy)
-      console.log(order)
-      console.log(page)
       try {
         const response = await axiosInstance.get('words/all_list', {
           params: {
@@ -81,10 +28,7 @@ const AllWordList: React.FC = () => {
             limit,
           },
         })
-        console.log(response)
-        console.log(response.data)
-        const transformedData = transformResponseData(response.data.words)
-        setWords(transformedData)
+        setWords(response.data.words)
         setTotalPages(response.data.totalPages)
       } catch (error) {
         console.error('Failed to fetch words:', error)
@@ -140,16 +84,18 @@ const AllWordList: React.FC = () => {
             <tr key={word.id}>
               <td>{word.name}</td>
               <td>
-                {word.edges.WordInfos.map((info: WordInfo) =>
-                  info.edges.JapaneseMeans.map(
-                    (JapaneseMean: JapaneseMean) => JapaneseMean.name,
-                  ).join(', '),
-                ).join(', ')}
+                {word.wordInfos
+                  .map((info: WordInfo) =>
+                    info.japaneseMeans
+                      .map((japaneseMean: JapaneseMean) => japaneseMean.name)
+                      .join(', '),
+                  )
+                  .join(', ')}
               </td>
               <td>
-                {word.edges.WordInfos.map(
-                  (info: WordInfo) => info.edges.PartOfSpeech.name,
-                ).join(', ')}
+                {word.wordInfos
+                  .map((info: WordInfo) => info.partOfSpeech.name)
+                  .join(', ')}
               </td>
               <td>
                 <button>編集</button>

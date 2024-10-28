@@ -28,11 +28,6 @@ func SignInHandler(client *ent.Client) gin.HandlerFunc {
 			Where(user.EmailEQ(req.Email)).
 			First(context.Background())
 
-		if err != nil {
-			c.JSON(401, gin.H{"error": "Invalid credentials"})
-			return
-		}
-
 		if err != nil || bcrypt.CompareHashAndPassword([]byte(signInUser.Password), []byte(req.Password)) != nil {
 			c.JSON(401, gin.H{"error": "Invalid credentials"})
 			return

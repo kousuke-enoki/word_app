@@ -4,15 +4,15 @@ package ent
 
 import (
 	"time"
-	"word_app/ent/japanesemean"
-	"word_app/ent/partofspeech"
-	"word_app/ent/registeredword"
-	"word_app/ent/schema"
-	"word_app/ent/test"
-	"word_app/ent/testquestion"
-	"word_app/ent/user"
-	"word_app/ent/word"
-	"word_app/ent/wordinfo"
+	"word_app/backend/ent/japanesemean"
+	"word_app/backend/ent/partofspeech"
+	"word_app/backend/ent/registeredword"
+	"word_app/backend/ent/schema"
+	"word_app/backend/ent/test"
+	"word_app/backend/ent/testquestion"
+	"word_app/backend/ent/user"
+	"word_app/backend/ent/word"
+	"word_app/backend/ent/wordinfo"
 )
 
 // The init function reads all schema descriptors with runtime code

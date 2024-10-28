@@ -5,8 +5,9 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"word_app/ent"
-	"word_app/ent/word"
+	"word_app/backend/ent"
+	"word_app/backend/ent/word"
+	"word_app/backend/src/models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -67,14 +68,44 @@ func AllWordListHandler(c *gin.Context, client *ent.Client) {
 	}
 
 	// クエリ実行
-	words, err := query.All(ctx)
+	entWords, err := query.All(ctx)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch words"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch entW"})
 		return
 	}
 
 	// 総ページ数を計算
 	totalPages := (totalCount + limit - 1) / limit
+
+	// entの型からresponse用の型に変換
+	words := make([]models.Word, len(entWords))
+	log.Println(words)
+	for i, entWord := range entWords {
+		wordInfos := make([]models.WordInfo, len(entWord.Edges.WordInfos))
+		for i, wordInfo := range entWord.Edges.WordInfos {
+			partOfSpeech := models.PartOfSpeech{
+				ID:   wordInfo.Edges.PartOfSpeech.ID,
+				Name: wordInfo.Edges.PartOfSpeech.Name,
+			}
+			japaneseMeans := make([]models.JapaneseMean, len(wordInfo.Edges.JapaneseMeans))
+			for j, mean := range wordInfo.Edges.JapaneseMeans {
+				japaneseMeans[j] = models.JapaneseMean{
+					ID:   mean.ID,
+					Name: mean.Name,
+				}
+			}
+			wordInfos[i] = models.WordInfo{
+				ID:            wordInfo.ID,
+				PartOfSpeech:  partOfSpeech,
+				JapaneseMeans: japaneseMeans,
+			}
+		}
+		words[i] = models.Word{
+			ID:        entWord.ID,
+			Name:      entWord.Name,
+			WordInfos: wordInfos,
+		}
+	}
 
 	// レスポンスとしてWordのリストと総ページ数を返す
 	c.JSON(http.StatusOK, gin.H{

@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	"word_app/ent/registeredword"
-	"word_app/ent/user"
-	"word_app/ent/word"
+	"word_app/backend/ent/registeredword"
+	"word_app/backend/ent/user"
+	"word_app/backend/ent/word"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"

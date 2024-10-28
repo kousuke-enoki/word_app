@@ -1,36 +1,37 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import axiosInstance from '../../axiosConfig';
-import MyPage from '../../components/MyPage';
+import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import axiosInstance from '../../axiosConfig'
+import MyPage from '../../components/MyPage'
 
 const Home: React.FC = () => {
-  const [user, setUser] = useState<{ name: string } | null>(null);
-  const [message, setMessage] = useState('');
+  const [user, setUser] = useState<{ name: string } | null>(null)
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
     // ローカルストレージからJWTトークンを取得
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token')
 
     // ユーザー情報を取得するためのリクエストを送信
-    axiosInstance.get('/users/my_page', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    axiosInstance
+      .get('/users/my_page', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((response) => {
-        setUser(response.data.user);  // ユーザー情報を保存
-        setMessage('');
+        setUser(response.data.user) // ユーザー情報を保存
+        setMessage('')
       })
       .catch((error) => {
-        console.error(error);
-        setMessage('ログインしてください');
-      });
-  }, []);
+        console.error(error)
+        setMessage('ログインしてください')
+      })
+  }, [])
 
   // サインアウト処理
   const handleSignOut = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-    setMessage('ログアウトしました');
-  };
+    localStorage.removeItem('token')
+    setUser(null)
+    setMessage('ログアウトしました')
+  }
 
   return (
     <div>
@@ -50,7 +51,7 @@ const Home: React.FC = () => {
         </>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Home;
+export default Home

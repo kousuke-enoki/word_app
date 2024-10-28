@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 	"strconv"
-	"word_app/ent"
-	"word_app/ent/word"
+	"word_app/backend/ent"
+	"word_app/backend/ent/word"
 
 	"github.com/gin-gonic/gin"
 )

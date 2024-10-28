@@ -36,9 +36,12 @@ ent/schema で作成
 #  generate
 go generate ./ent
 
+#  eslint
+npm run eslint
+
 ⚪︎フロントエンドライブラリインストール
 cd frontend
-npm install react-i18next i18next --save 
+npm install react-i18next i18next --save
 
 
 〇dockerキャッシュ削除

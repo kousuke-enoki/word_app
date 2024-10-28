@@ -4,7 +4,7 @@ package japanesemean
 
 import (
 	"time"
-	"word_app/ent/predicate"
+	"word_app/backend/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"

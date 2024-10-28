@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"word_app/ent"
-	"word_app/ent/user"
+	"word_app/backend/ent"
+	"word_app/backend/ent/user"
 
 	"github.com/gin-gonic/gin"
 )

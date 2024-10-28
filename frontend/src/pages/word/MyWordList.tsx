@@ -1,66 +1,64 @@
-import React, { useState, useEffect } from 'react';
-import axiosInstance from '../../axiosConfig';
-import { resolveProjectReferencePath } from 'typescript';
-
-
-
+import React, { useState, useEffect } from 'react'
+import axiosInstance from '../../axiosConfig'
 
 // 単語の型定義
 
 interface Word {
-  id: number,
-  name: string,
+  id: number
+  name: string
   edges: {
-    WordInfos: WordInfo[],
+    WordInfos: WordInfo[]
   }
 }
 
 interface WordInfo {
-  id: number,
-  edges:{
+  id: number
+  edges: {
     PartOfSpeech: PartOfSpeech
     JapaneseMeans: JapaneseMean[]
   }
 }
 
 interface PartOfSpeech {
-  id: number,
-  name: string,
+  id: number
+  name: string
 }
 interface JapaneseMean {
-  id: number,
-  name: string,
+  id: number
+  name: string
 }
 
 const MyWordList: React.FC = () => {
-  const [words, setWords] = useState<Word[]>([]); // Word[] 型の単語リスト
-  const [search, setSearch] = useState<string>('');
-  const [sortBy, setSortBy] = useState<string>('name');
-  const [order, setOrder] = useState<string>('asc');
-  const [page, setPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(10);
+  const [words, setWords] = useState<Word[]>([])
+  const [search, setSearch] = useState<string>('')
+  const [sortBy, setSortBy] = useState<string>('name')
+  const [order, setOrder] = useState<string>('asc')
+  const [page, setPage] = useState<number>(1)
+  const [totalPages, setTotalPages] = useState<number>(1)
+  const [limit, setLimit] = useState<number>(10)
 
-// プロパティ名を変換する関数
-const transformResponseData = (data: any): Word[] => {
-  return data.map((word: any) => {
-    const transformedWordInfos = word.edges.word_infos.map((wordInfo: any) => ({
-      ...wordInfo,
-      edges: {
-        ...wordInfo.edges,
-        PartOfSpeech: wordInfo.edges.part_of_speech,
-        JapaneseMeans: wordInfo.edges.japanese_means,
-      },
-    }));
+  // プロパティ名を変換する関数
+  const transformResponseData = (data: any): Word[] => {
+    return data.map((word: any) => {
+      const transformedWordInfos = word.edges.word_infos.map(
+        (wordInfo: any) => ({
+          ...wordInfo,
+          edges: {
+            ...wordInfo.edges,
+            PartOfSpeech: wordInfo.edges.part_of_speech,
+            JapaneseMeans: wordInfo.edges.japanese_means,
+          },
+        }),
+      )
 
-    return {
-      ...word,
-      edges: {
-        WordInfos: transformedWordInfos,
-      },
-    };
-  });
-}
+      return {
+        ...word,
+        edges: {
+          WordInfos: transformedWordInfos,
+        },
+      }
+    })
+  }
 
   // APIからデータを取得する関数
   const fetchWords = async () => {
@@ -77,26 +75,26 @@ const transformResponseData = (data: any): Word[] => {
           page,
           limit,
         },
-      });
+      })
       console.log(response)
       console.log(response.data)
       const transformedData = transformResponseData(response.data.words)
-      setWords(transformedData);
-      setTotalPages(response.data.totalPages);
+      setWords(transformedData)
+      setTotalPages(response.data.totalPages)
     } catch (error) {
-      console.error('Failed to fetch words:', error);
+      console.error('Failed to fetch words:', error)
     }
-  };
+  }
 
   // 初回レンダリング時と依存する値が変わったときにデータを取得
   useEffect(() => {
-    fetchWords();
-  }, [search, sortBy, order, page, limit]);
+    fetchWords()
+  }, [search, sortBy, order, page, limit])
 
   // ページング処理
   const handlePageChange = (newPage: React.SetStateAction<number>) => {
-    setPage(newPage);
-  };
+    setPage(newPage)
+  }
 
   return (
     <div className="wordList-container">
@@ -134,32 +132,68 @@ const transformResponseData = (data: any): Word[] => {
           {words.map((word) => (
             <tr key={word.id}>
               <td>{word.name}</td>
-              <td>{word.edges.WordInfos.map((info: WordInfo) => info.edges.JapaneseMeans.map(
-                (JapaneseMean: JapaneseMean) => JapaneseMean.name).join(', ')).join(', ')}</td>
-              <td>{word.edges.WordInfos.map((info: WordInfo) => info.edges.PartOfSpeech.name).join(', ')}</td>
-              <td><button>編集</button></td>
-              <td><button>詳細</button></td>
+              <td>
+                {word.edges.WordInfos.map((info: WordInfo) =>
+                  info.edges.JapaneseMeans.map(
+                    (JapaneseMean: JapaneseMean) => JapaneseMean.name,
+                  ).join(', '),
+                ).join(', ')}
+              </td>
+              <td>
+                {word.edges.WordInfos.map(
+                  (info: WordInfo) => info.edges.PartOfSpeech.name,
+                ).join(', ')}
+              </td>
+              <td>
+                <button>編集</button>
+              </td>
+              <td>
+                <button>詳細</button>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
 
       <div className="pagination-container">
-        <select className="select-limit" value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
+        <select
+          className="select-limit"
+          value={limit}
+          onChange={(e) => setLimit(Number(e.target.value))}
+        >
           <option value="10">10</option>
           <option value="20">20</option>
           <option value="30">30</option>
           <option value="50">50</option>
         </select>
 
-        <button onClick={() => handlePageChange(1)} disabled={page === 1}>最初へ</button>
-        <button onClick={() => handlePageChange(page - 1)} disabled={page === 1}>前へ</button>
-        <span>ページ {page} / {totalPages}</span>
-        <button onClick={() => handlePageChange(page + 1)} disabled={page === totalPages}>次へ</button>
-        <button onClick={() => handlePageChange(totalPages)} disabled={page === totalPages}>最後へ</button>
+        <button onClick={() => handlePageChange(1)} disabled={page === 1}>
+          最初へ
+        </button>
+        <button
+          onClick={() => handlePageChange(page - 1)}
+          disabled={page === 1}
+        >
+          前へ
+        </button>
+        <span>
+          ページ {page} / {totalPages}
+        </span>
+        <button
+          onClick={() => handlePageChange(page + 1)}
+          disabled={page === totalPages}
+        >
+          次へ
+        </button>
+        <button
+          onClick={() => handlePageChange(totalPages)}
+          disabled={page === totalPages}
+        >
+          最後へ
+        </button>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default MyWordList;
+export default MyWordList

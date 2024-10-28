@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"log"
-	"word_app/ent"
-	"word_app/ent/user"
-	"word_app/seeder"
-	"word_app/src"
+	"word_app/backend/ent"
+	"word_app/backend/ent/user"
+	"word_app/backend/seeder"
+	"word_app/backend/src"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"

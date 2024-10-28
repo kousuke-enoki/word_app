@@ -5,7 +5,7 @@ package hook
 import (
 	"context"
 	"fmt"
-	"word_app/ent"
+	"word_app/backend/ent"
 )
 
 // The JapaneseMeanFunc type is an adapter to allow the use of ordinary

@@ -1,6 +1,5 @@
 // axiosConfig.ts
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import axios from 'axios'
 
 // axiosのインスタンスを作成
 const axiosInstance = axios.create({
@@ -9,46 +8,43 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json', // リクエストのContent-TypeをJSONに設定
   },
-});
+})
 
 // リクエストインターセプター
 axiosInstance.interceptors.request.use(
   (config) => {
     // ローカルストレージからトークンを取得して、ヘッダーに追加
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token')
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`
     }
-    return config;
+    return config
   },
   (error) => {
     // リクエストエラーが発生した場合
-    return Promise.reject(error);
-  }
-);
+    return Promise.reject(error)
+  },
+)
 
 // レスポンスインターセプター
 axiosInstance.interceptors.response.use(
   (response) => {
-    console.log(response)
     // 成功時の処理
-    return response;
+    return response
   },
   (error) => {
-    console.log(error)
     if (error.response?.status === 401) {
-      console.error('Unauthorized, checking if on home page...');
-      const isHomePage = window.location.pathname === '/';  // 現在のページがトップページかを確認
-      const errorMsg = error.response.data.error;
-      const token = localStorage.getItem('token');
-      // トップページでなければリダイレクト
-      if (!isHomePage && token && errorMsg === "TokenExpired") {
-        console.error('Unauthorized, redirecting to home page...');
-        window.location.href = '/';  // トップページにリダイレクト
+      const isHomePage = window.location.pathname === '/' // 現在のページがトップページかを確認
+      const errorMsg = error.response.data.error
+      const token = localStorage.getItem('token')
+      // トークン切れでトップページでなければリダイレクト
+      if (!isHomePage && token && errorMsg === 'TokenExpired') {
+        console.error('Unauthorized, redirecting to home page...')
+        window.location.href = '/' // トップページにリダイレクト
       }
     }
-    return Promise.reject(error);
-  }
-);
+    return Promise.reject(error)
+  },
+)
 
-export default axiosInstance;
+export default axiosInstance

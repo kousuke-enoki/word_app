@@ -3,10 +3,10 @@ package seeder
 import (
 	"context"
 	"log"
-	"word_app/ent"
-	"word_app/ent/partofspeech"
-	"word_app/ent/user"
-	"word_app/ent/word"
+	"word_app/backend/ent"
+	"word_app/backend/ent/partofspeech"
+	"word_app/backend/ent/user"
+	"word_app/backend/ent/word"
 )
 
 // SeedAdminUsers シードデータを流す

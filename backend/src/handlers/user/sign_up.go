@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"word_app/ent"
-	"word_app/src/utils"
+	"word_app/backend/ent"
+	"word_app/backend/src/utils"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"

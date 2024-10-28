@@ -7,9 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"time"
-	"word_app/ent/registeredword"
-	"word_app/ent/word"
-	"word_app/ent/wordinfo"
+	"word_app/backend/ent/registeredword"
+	"word_app/backend/ent/word"
+	"word_app/backend/ent/wordinfo"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"

@@ -7,9 +7,9 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"math"
-	"word_app/ent/partofspeech"
-	"word_app/ent/predicate"
-	"word_app/ent/wordinfo"
+	"word_app/backend/ent/partofspeech"
+	"word_app/backend/ent/predicate"
+	"word_app/backend/ent/wordinfo"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"

@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
-	"word_app/ent/japanesemean"
-	"word_app/ent/wordinfo"
+	"word_app/backend/ent/japanesemean"
+	"word_app/backend/ent/wordinfo"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"

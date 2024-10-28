@@ -3,11 +3,11 @@ package src
 import (
 	"log"
 	"net/http"
-	"word_app/ent"
-	"word_app/src/handlers"
-	"word_app/src/handlers/middleware"
-	"word_app/src/handlers/user"
-	"word_app/src/handlers/word"
+	"word_app/backend/ent"
+	"word_app/backend/src/handlers"
+	"word_app/backend/src/handlers/middleware"
+	"word_app/backend/src/handlers/user"
+	"word_app/backend/src/handlers/word"
 
 	"github.com/gin-gonic/gin"
 )

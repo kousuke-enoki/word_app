@@ -1,31 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import axiosInstance from '../../axiosConfig'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-
-interface Word {
-  name: string
-  isRegistered: boolean
-  testCount: number
-  checkCount: number
-  registrationActive: boolean
-  memo: string
-  wordInfos: WordInfo[]
-}
-
-interface WordInfo {
-  id: number
-  partOfSpeech: PartOfSpeech
-  japaneseMeans: JapaneseMean[]
-}
-
-interface PartOfSpeech {
-  id: number
-  name: string
-}
-interface JapaneseMean {
-  id: number
-  name: string
-}
+import { Word, WordInfo, JapaneseMean } from '../../types/wordTypes'
 
 const WordShow: React.FC = () => {
   const { id } = useParams()

@@ -49,6 +49,13 @@ docker compose down --volumes --rmi all
 docker compose build --no-cache
 docker compose up
 
+〇gotest
+テスト用DBの起動
+docker-compose up -d db_test
+テスト用DBの確認
+docker compose exec -it db_test psql -U postgres -d db_test
+
+
 
 0 名詞（noun）
 1 代名詞（pronoun）

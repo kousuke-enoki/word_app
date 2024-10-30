@@ -30,8 +30,18 @@ func TestMyPageHandler(t *testing.T) {
 	err = client.Schema.Create(context.Background(), migrate.WithGlobalUniqueID(true))
 	require.NoError(t, err)
 
-	// テスト用のユーザーを作成
-	testUser, err := client.User.Create().
+	// トランザクションを開始
+	tx, err := client.Tx(context.Background())
+	require.NoError(t, err)
+
+	// defer でロールバックを確実に実行する
+	defer func() {
+		err = tx.Rollback()
+		require.NoError(t, err)
+	}()
+
+	// トランザクション内でテスト用のユーザーを作成
+	testUser, err := tx.User.Create().
 		SetName("Test User").
 		SetEmail("testuser@example.com").
 		SetPassword("Password1234").
@@ -45,7 +55,7 @@ func TestMyPageHandler(t *testing.T) {
 	// テストのHTTPリクエストを準備
 	r := gin.Default()
 	r.Use(middleware.AuthMiddleware()) // ミドルウェアを追加
-	r.GET("/mypage", MyPageHandler(client))
+	r.GET("/mypage", MyPageHandler(tx.Client()))
 
 	req, _ := http.NewRequest(http.MethodGet, "/mypage", nil)
 	// トークンをAuthorizationヘッダーに設定
@@ -59,8 +69,8 @@ func TestMyPageHandler(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Contains(t, w.Body.String(), "Test User")
 
-	// ユーザーの確認
-	fetchedUser, err := client.User.Query().Where(user.ID(testUser.ID)).Only(context.Background())
+	// トランザクション内でユーザーの確認
+	fetchedUser, err := tx.User.Query().Where(user.ID(testUser.ID)).Only(context.Background())
 	require.NoError(t, err)
 	assert.Equal(t, "Test User", fetchedUser.Name)
 }

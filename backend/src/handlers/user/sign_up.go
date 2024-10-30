@@ -22,6 +22,10 @@ func SignUpHandler(client *ent.Client) gin.HandlerFunc {
 		}
 
 		// リクエストボディの内容をログに出力
+		if c.Request.Body == nil {
+			c.JSON(400, gin.H{"error": "request body is nil"})
+			return
+		}
 		body, err := io.ReadAll(c.Request.Body)
 		if err != nil {
 			c.JSON(400, gin.H{"error": "Failed to read request body"})

@@ -76,6 +76,8 @@ func AllWordListHandler(c *gin.Context, client *ent.Client) {
 
 	// 総ページ数を計算
 	totalPages := (totalCount + limit - 1) / limit
+	log.Println("entWords")
+	log.Println(entWords)
 
 	// entの型からresponse用の型に変換
 	words := make([]models.Word, len(entWords))
@@ -106,7 +108,7 @@ func AllWordListHandler(c *gin.Context, client *ent.Client) {
 			WordInfos: wordInfos,
 		}
 	}
-
+	log.Println(words)
 	// レスポンスとしてWordのリストと総ページ数を返す
 	c.JSON(http.StatusOK, gin.H{
 		"words":      words,

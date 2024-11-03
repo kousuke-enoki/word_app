@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"word_app/backend/ent"
 	"word_app/backend/ent/user"
+	"word_app/backend/src/models"
 	"word_app/backend/src/utils"
 
 	"github.com/gin-gonic/gin"
@@ -13,11 +14,7 @@ import (
 
 func SignInHandler(client *ent.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		type SignInRequest struct {
-			Email    string `json:"email" binding:"required"`
-			Password string `json:"password" binding:"required"`
-		}
-		var req SignInRequest
+		var req models.SignInRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(400, gin.H{"error": "Invalid request"})
 			return

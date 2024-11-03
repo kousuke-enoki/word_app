@@ -6,36 +6,10 @@ import (
 	"strconv"
 	"word_app/backend/ent"
 	"word_app/backend/ent/word"
+	"word_app/backend/src/models"
 
 	"github.com/gin-gonic/gin"
 )
-
-// WordResponse 構造体でレスポンスを定義
-type WordResponse struct {
-	Name               string     `json:"name"`
-	WordInfos          []WordInfo `json:"wordInfos"`
-	IsRegistered       bool       `json:"isRegistered"`
-	TestCount          int        `json:"testCount"`
-	CheckCount         int        `json:"checkCount"`
-	RegistrationActive bool       `json:"registrationActive"`
-	Memo               string     `json:"memo"`
-}
-
-type WordInfo struct {
-	ID            int            `json:"id"`
-	PartOfSpeech  PartOfSpeech   `json:"partOfSpeech"`
-	JapaneseMeans []JapaneseMean `json:"japaneseMeans"`
-}
-
-type PartOfSpeech struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
-type JapaneseMean struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
 
 // WordShowHandler 単語を取得するための関数
 func WordShowHandler(c *gin.Context, client *ent.Client) {
@@ -78,27 +52,27 @@ func WordShowHandler(c *gin.Context, client *ent.Client) {
 	}
 
 	// WordInfosを変換
-	wordInfos := make([]WordInfo, len(word.Edges.WordInfos))
+	wordInfos := make([]models.WordInfo, len(word.Edges.WordInfos))
 	for i, wordInfo := range word.Edges.WordInfos {
-		partOfSpeech := PartOfSpeech{
+		partOfSpeech := models.PartOfSpeech{
 			ID:   wordInfo.Edges.PartOfSpeech.ID,
 			Name: wordInfo.Edges.PartOfSpeech.Name,
 		}
-		japaneseMeans := make([]JapaneseMean, len(wordInfo.Edges.JapaneseMeans))
+		japaneseMeans := make([]models.JapaneseMean, len(wordInfo.Edges.JapaneseMeans))
 		for j, mean := range wordInfo.Edges.JapaneseMeans {
-			japaneseMeans[j] = JapaneseMean{
+			japaneseMeans[j] = models.JapaneseMean{
 				ID:   mean.ID,
 				Name: mean.Name,
 			}
 		}
-		wordInfos[i] = WordInfo{
+		wordInfos[i] = models.WordInfo{
 			ID:            wordInfo.ID,
 			PartOfSpeech:  partOfSpeech,
 			JapaneseMeans: japaneseMeans,
 		}
 	}
 
-	response := WordResponse{
+	response := models.WordResponse{
 		Name:               word.Name,
 		WordInfos:          wordInfos,
 		IsRegistered:       isRegistered,

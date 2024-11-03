@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"word_app/backend/ent"
+	"word_app/backend/src/models"
 	"word_app/backend/src/utils"
 
 	"github.com/gin-gonic/gin"
@@ -15,11 +16,6 @@ import (
 
 func SignUpHandler(client *ent.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		type SignUpRequest struct {
-			Email    string `json:"email" binding:"required"`
-			Name     string `json:"name" binding:"required"`
-			Password string `json:"password" binding:"required"`
-		}
 
 		// リクエストボディの内容をログに出力
 		body, err := io.ReadAll(c.Request.Body)
@@ -33,7 +29,7 @@ func SignUpHandler(client *ent.Client) gin.HandlerFunc {
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 
 		// リクエストのバインディングと検証
-		var req SignUpRequest
+		var req models.SignUpRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			log.Println("Binding Error:", err)
 			c.JSON(400, gin.H{"error": "Invalid request", "details": err.Error()})

@@ -28,6 +28,7 @@ const AllWordList: React.FC = () => {
             limit,
           },
         })
+        console.log(response)
         setWords(response.data.words)
         setTotalPages(response.data.totalPages)
       } catch (error) {

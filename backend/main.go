@@ -61,7 +61,11 @@ func main() {
 	}))
 
 	// ルータのセットアップ
-	src.SetupRouter(router, client)
+	r := gin.Default()
+	userHandler := user.SignUpHandler(client)
+	wordHandler := handlers.NewWordHandler(client)
+
+	src.SetupRouter(r, client, userHandler, wordHandler)
 
 	// サーバー起動
 	if err := router.Run(":8080"); err != nil {

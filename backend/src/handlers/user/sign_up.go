@@ -6,14 +6,13 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"word_app/backend/ent"
 	"word_app/backend/src/utils"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func SignUpHandler(client *ent.Client) gin.HandlerFunc {
+func SignUpHandler(client UserClientInterface) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		type SignUpRequest struct {
 			Email    string `json:"email" binding:"required"`
@@ -52,7 +51,7 @@ func SignUpHandler(client *ent.Client) gin.HandlerFunc {
 		}
 
 		// 新しいユーザーの作成
-		newUser, err := client.User.
+		newUser, err := client.User().
 			Create().
 			SetEmail(req.Email).
 			SetName(req.Name).

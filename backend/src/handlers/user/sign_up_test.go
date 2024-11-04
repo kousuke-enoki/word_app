@@ -1,53 +1,40 @@
 package user_test
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"word_app/backend/ent"
-	"word_app/backend/ent/migrate"
-	"word_app/backend/src/handlers/user"
+	"word_app/backend/src/handlers/user/mocks"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/mock"
 )
 
 // TestSignUpHandler 正常系・異常系のテストケース
 func TestSignUpHandler(t *testing.T) {
-	// テスト用のデータベース接続
-	client, err := ent.Open("postgres", "host=localhost port=5433 user=postgres dbname=db_test password=password sslmode=disable")
-	require.NoError(t, err)
-	defer client.Close() // テスト後にデータベース接続を閉じる
+	// モックのクライアントとユーザーを生成
+	mockClient := new(mocks.ClientInterface)
+	mockUser := new(mocks.UserClientInterface) // Userメソッドが返すインターフェースのモック
 
-	// マイグレーションを実行
-	err = client.Schema.Create(context.Background(), migrate.WithGlobalUniqueID(true))
-	require.NoError(t, err)
+	// User メソッドの返り値として mockUser を返すように設定
+	mockClient.On("User").Return(mockUser)
 
-	// トランザクションを開始
-	tx, err := client.Tx(context.Background())
-	require.NoError(t, err)
+	// mockUserに対して動作を定義
+	mockUser.On("Create").Return(mockUser) // Createメソッドは mockUser 自身を返す
+	mockUser.On("SetEmail", mock.Anything).Return(mockUser)
+	mockUser.On("SetName", mock.Anything).Return(mockUser)
+	mockUser.On("SetPassword", mock.Anything).Return(mockUser)
+	mockUser.On("Save", mock.Anything).Return(&ent.User{ID: 1, Email: "test@example.com"}, nil)
 
-	// defer でロールバックを確実に実行する
-	defer func() {
-		err = tx.Rollback()
-		require.NoError(t, err)
-	}()
-
-	// Ginのテストモードを使用
-	gin.SetMode(gin.TestMode)
-
-	// Ginのルーターをセットアップ
-	router := gin.Default()
-	router.POST("/users/sign_up", user.SignUpHandler(client))
-
+	// テストハンドラーを呼び出し
+	router := setupRouter(mockClient)
 	t.Run("Valid SignUp Request", func(t *testing.T) {
 		signUpReqBody := `{"email": "test@example.com", "name": "Test User", "password": "password123"}`
 		w := performSignUpRequest(t, router, signUpReqBody)
 
-		// ステータスコードが200であることを確認
 		assert.Equal(t, http.StatusOK, w.Code)
 		assert.Contains(t, w.Body.String(), "token")
 	})
@@ -79,6 +66,10 @@ func TestSignUpHandler(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 		assert.Contains(t, w.Body.String(), "sign up failed")
 	})
+}
+
+func setupRouter(mockClient *mocks.ClientInterface) {
+	panic("unimplemented")
 }
 
 func performSignUpRequest(_ *testing.T, router *gin.Engine, body string) *httptest.ResponseRecorder {

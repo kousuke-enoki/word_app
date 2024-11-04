@@ -12,7 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(router *gin.Engine, client *ent.Client) {
+// SetupRouter sets up the router with routes and middleware
+func SetupRouter(router Router, client *ent.Client) {
 	router.Use(CORSMiddleware())
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "healthy"})

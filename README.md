@@ -6,9 +6,15 @@ docker compose up
 
 docker compose exec backend bash
 
+##dockerキャッシュ削除
+docker compose down --volumes --rmi all
+docker compose build --no-cache
+docker compose up
 
+#mockery(コンテナ内で)
+go install github.com/vektra/mockery/v2@v2.43.2
 
-〇db接続方法
+##db接続方法
 
 # 実行中のコンテナを確認
 docker ps
@@ -28,7 +34,7 @@ SELECT * FROM users;
 
 
 
-〇ent generate
+##ent generate
 
 # スキーマを作成
 ent/schema で作成
@@ -39,15 +45,9 @@ go generate ./ent
 #  eslint
 npm run eslint
 
-⚪︎フロントエンドライブラリインストール
+#フロントエンドライブラリインストール
 cd frontend
 npm install react-i18next i18next --save
-
-
-〇dockerキャッシュ削除
-docker compose down --volumes --rmi all
-docker compose build --no-cache
-docker compose up
 
 
 0 名詞（noun）

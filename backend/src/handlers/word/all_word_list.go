@@ -79,7 +79,7 @@ func AllWordListHandler(c *gin.Context, client *ent.Client) {
 
 	// entの型からresponse用の型に変換
 	words := make([]models.Word, len(entWords))
-	log.Println(words)
+
 	for i, entWord := range entWords {
 		wordInfos := make([]models.WordInfo, len(entWord.Edges.WordInfos))
 		for i, wordInfo := range entWord.Edges.WordInfos {

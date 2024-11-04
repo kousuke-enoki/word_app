@@ -1,8 +1,6 @@
 module word_app/backend
 
-go 1.23.0
-
-toolchain go1.23.1
+go 1.23.2
 
 require (
 	entgo.io/ent v0.14.1

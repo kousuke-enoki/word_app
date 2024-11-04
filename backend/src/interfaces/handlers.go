@@ -2,6 +2,9 @@
 package interfaces
 
 import (
+	"context"
+	"word_app/backend/ent"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,4 +17,8 @@ type UserHandler interface {
 type WordHandler interface {
 	AllWordListHandler() gin.HandlerFunc
 	WordShowHandler() gin.HandlerFunc
+}
+
+type UserClient interface {
+	CreateUser(ctx context.Context, email, name, password string) (*ent.User, error)
 }

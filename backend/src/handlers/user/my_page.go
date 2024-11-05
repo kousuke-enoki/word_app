@@ -1,3 +1,4 @@
+// user/handler.go
 package user
 
 import (
@@ -5,31 +6,28 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"word_app/backend/ent"
-	"word_app/backend/ent/user"
 
 	"github.com/gin-gonic/gin"
 )
 
-func MyPageHandler(client *ent.Client) gin.HandlerFunc {
+func (h *UserHandler) MyPageHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// userId の取得とチェック
 		userId, exists := c.Get("userId")
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 			return
 		}
 
-		// userIdをint型に変換
-		userIDInt, err := strconv.Atoi(userId.(string)) // 変換処理を追加
+		// userId を int に変換
+		userIDInt, err := strconv.Atoi(userId.(string))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID"})
 			return
 		}
-		// userIdでユーザー情報をデータベースから取得
-		signInUser, err := client.User.Query().
-			Where(user.ID(userIDInt)). // <- クエリ部分
-			First(context.Background())
 
+		// ユーザー情報の取得
+		signInUser, err := h.userClient.FindUserByID(context.Background(), userIDInt)
 		if err != nil {
 			log.Println("Error retrieving user:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})

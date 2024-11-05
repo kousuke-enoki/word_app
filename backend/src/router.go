@@ -8,13 +8,18 @@ import (
 	"word_app/backend/src/handlers"
 	"word_app/backend/src/handlers/middleware"
 	"word_app/backend/src/handlers/user"
+	"word_app/backend/src/token"
 
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRouter(router *gin.Engine, client *ent.Client) {
 	entClient := adapters.NewEntUserClient(client)
-	userHandler := user.NewUserHandler(entClient)
+	// JWTGeneratorを初期化
+	jwtGenerator := token.NewMyJWTGenerator("your-secret-key")
+
+	// jwtGeneratorをUserHandlerに渡す
+	userHandler := user.NewUserHandler(entClient, jwtGenerator)
 
 	wordHandler := handlers.NewWordHandler(client)
 

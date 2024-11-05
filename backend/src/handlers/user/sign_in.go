@@ -3,8 +3,9 @@ package user
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/http"
 	"word_app/backend/src/models"
-	"word_app/backend/src/utils"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -25,12 +26,14 @@ func (h *UserHandler) SignInHandler() gin.HandlerFunc {
 			return
 		}
 
-		token, err := utils.GenerateJWT(fmt.Sprintf("%d", signInUser.ID))
+		token, err := h.jwtGenerator.GenerateJWT(fmt.Sprintf("%d", signInUser.ID))
 		if err != nil {
 			c.JSON(500, gin.H{"error": "Failed to generate token"})
 			return
 		}
-
-		utils.SendTokenResponse(c, token)
+		log.Println(signInUser)
+		log.Println(token)
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Authentication successful", "token": token})
 	}
 }

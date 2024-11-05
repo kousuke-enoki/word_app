@@ -12,13 +12,15 @@ import (
 
 func (h *UserHandler) MyPageHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		log.Println("mypage")
+		log.Println(c)
 		// userId の取得とチェック
 		userId, exists := c.Get("userId")
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 			return
 		}
-
+		log.Println(userId)
 		// userId を int に変換
 		userIDInt, err := strconv.Atoi(userId.(string))
 		if err != nil {

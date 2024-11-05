@@ -6,12 +6,12 @@ docker compose up
 
 docker compose exec backend bash
 
-##dockerキャッシュ削除
+## dockerキャッシュ削除
 docker compose down --volumes --rmi all
 docker compose build --no-cache
 docker compose up
 
-#mockery(コンテナ内で)
+# mockery(コンテナ内で)
 go install github.com/vektra/mockery/v2@v2.43.2
 
 ##db接続方法

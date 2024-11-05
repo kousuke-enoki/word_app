@@ -3,31 +3,23 @@ package user
 import (
 	"context"
 	"fmt"
-	"word_app/backend/ent"
-	"word_app/backend/ent/user"
+	"word_app/backend/src/models"
 	"word_app/backend/src/utils"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func SignInHandler(client *ent.Client) gin.HandlerFunc {
+func (h *UserHandler) SignInHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		type SignInRequest struct {
-			Email    string `json:"email" binding:"required"`
-			Password string `json:"password" binding:"required"`
-		}
-		var req SignInRequest
+		var req models.SignInRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(400, gin.H{"error": "Invalid request"})
 			return
 		}
 
 		// ユーザーの検索
-		signInUser, err := client.User.Query().
-			Where(user.EmailEQ(req.Email)).
-			First(context.Background())
-
+		signInUser, err := h.userClient.FindUserByEmail(context.Background(), req.Email)
 		if err != nil || bcrypt.CompareHashAndPassword([]byte(signInUser.Password), []byte(req.Password)) != nil {
 			c.JSON(401, gin.H{"error": "Invalid credentials"})
 			return

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -14,6 +15,7 @@ var jwtKey = []byte("your_secret_key")
 // AuthMiddleware はJWTを使った認証ミドルウェア
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		log.Println(c)
 		// Authorizationヘッダーからトークンを取得
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -21,7 +23,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
+		log.Println(authHeader)
 		// トークン文字列の先頭にある "Bearer " を取り除く
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 

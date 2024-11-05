@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"word_app/backend/src/models"
-	"word_app/backend/src/utils"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -16,7 +16,9 @@ import (
 
 func (h *UserHandler) SignUpHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		log.Println("SignUpHandler")
 		req, err := h.parseRequest(c)
+		log.Println(req)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -35,13 +37,14 @@ func (h *UserHandler) SignUpHandler() gin.HandlerFunc {
 		}
 
 		// サインアップ後にJWTトークンを生成
-		token, err := utils.GenerateJWT(fmt.Sprintf("%d", user.ID))
+		token, err := h.jwtGenerator.GenerateJWT(fmt.Sprintf("%d", user.ID))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"token": token})
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Authentication successful", "token": token})
 	}
 }
 

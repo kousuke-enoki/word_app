@@ -7,6 +7,8 @@ import (
 	"word_app/backend/ent/partofspeech"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/word"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // SeedAdminUsers シードデータを流す
@@ -16,10 +18,16 @@ func SeedAdminUsers(ctx context.Context, client *ent.Client) {
 		log.Fatalf("failed to query users: %v", err)
 	}
 	if !exists {
-		_, err := client.User.Create().
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("Password1234"), bcrypt.DefaultCost)
+		if err != nil {
+			log.Fatalf("Failed to hash password")
+			return
+		}
+
+		_, err = client.User.Create().
 			SetEmail("admin@example.com").
 			SetName("Admin User").
-			SetPassword("hashed_password").
+			SetPassword(string(hashedPassword)).
 			SetAdmin(true).
 			Save(ctx)
 		if err != nil {

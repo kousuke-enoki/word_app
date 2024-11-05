@@ -27,7 +27,7 @@ func main() {
 	ctx := context.Background()
 
 	// マイグレーションを実行
-	if err := client.Schema.Create(context.Background()); err != nil {
+	if err := client.Schema.Create(ctx); err != nil {
 		log.Fatalf("Failed creating schema resources: %v", err)
 	}
 
@@ -48,8 +48,6 @@ func main() {
 	// Ginフレームワークのデフォルトの設定を使用してルータを作成
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery())
-	// 現在はデバッグモードなので本番では下記
-	// gin.SetMode(gin.ReleaseMode)
 
 	// CORSの設定
 	router.Use(cors.New(cors.Config{

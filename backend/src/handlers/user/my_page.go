@@ -3,7 +3,6 @@ package user
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -12,17 +11,14 @@ import (
 
 func (h *UserHandler) MyPageHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log.Println("mypage")
-		log.Println(c)
-		// userId の取得とチェック
-		userId, exists := c.Get("userId")
+		// userID の取得とチェック
+		userID, exists := c.Get("userID")
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 			return
 		}
-		log.Println(userId)
-		// userId を int に変換
-		userIDInt, err := strconv.Atoi(userId.(string))
+		// userID を int に変換
+		userIDInt, err := strconv.Atoi(userID.(string))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID"})
 			return
@@ -31,7 +27,6 @@ func (h *UserHandler) MyPageHandler() gin.HandlerFunc {
 		// ユーザー情報の取得
 		signInUser, err := h.userClient.FindUserByID(context.Background(), userIDInt)
 		if err != nil {
-			log.Println("Error retrieving user:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
 			return
 		}

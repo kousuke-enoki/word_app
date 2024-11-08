@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"word_app/backend/src/models"
 
@@ -31,8 +30,7 @@ func (h *UserHandler) SignInHandler() gin.HandlerFunc {
 			c.JSON(500, gin.H{"error": "Failed to generate token"})
 			return
 		}
-		log.Println(signInUser)
-		log.Println(token)
+
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Authentication successful", "token": token})
 	}

@@ -8,19 +8,32 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"regexp"
+	"unicode"
 	"word_app/backend/src/models"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
+// FieldError defines an error structure for specific fields
+type FieldError struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
+}
+
 func (h *UserHandler) SignUpHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		log.Println("SignUpHandler")
 		req, err := h.parseRequest(c)
-		log.Println(req)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		validationErrors := h.validateSignUp(req)
+		if len(validationErrors) > 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"errors": validationErrors})
 			return
 		}
 
@@ -36,15 +49,13 @@ func (h *UserHandler) SignUpHandler() gin.HandlerFunc {
 			return
 		}
 
-		// サインアップ後にJWTトークンを生成
 		token, err := h.jwtGenerator.GenerateJWT(fmt.Sprintf("%d", user.ID))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Authentication successful", "token": token})
+		c.JSON(http.StatusOK, gin.H{"message": "Authentication successful", "token": token})
 	}
 }
 
@@ -71,4 +82,43 @@ func (h *UserHandler) hashPassword(password string) (string, error) {
 		return "", err
 	}
 	return string(hashedPassword), nil
+}
+
+// validateSignUp checks name, email, and password fields and returns a slice of FieldError.
+func (h *UserHandler) validateSignUp(req *models.SignUpRequest) []FieldError {
+	var errors []FieldError
+
+	// Name: 長さは3〜20文字かチェック。
+	if len(req.Name) < 3 || len(req.Name) > 20 {
+		errors = append(errors, FieldError{Field: "name", Message: "name must be between 3 and 20 characters"})
+	}
+
+	// Email: 有効なメールアドレス形式かをチェック。
+	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	if !emailRegex.MatchString(req.Email) {
+		errors = append(errors, FieldError{Field: "email", Message: "invalid email format"})
+	}
+
+	// Password: 最低8文字、数字、アルファベットの大文字・小文字、特殊文字を含むかを確認。
+	if len(req.Password) < 8 || len(req.Password) > 30 {
+		errors = append(errors, FieldError{Field: "password", Message: "password must be between 8 and 30 characters"})
+	}
+	var hasUpper, hasLower, hasNumber, hasSpecial bool
+	for _, ch := range req.Password {
+		switch {
+		case unicode.IsUpper(ch):
+			hasUpper = true
+		case unicode.IsLower(ch):
+			hasLower = true
+		case unicode.IsNumber(ch):
+			hasNumber = true
+		case unicode.IsPunct(ch) || unicode.IsSymbol(ch):
+			hasSpecial = true
+		}
+	}
+	if !(hasUpper && hasLower && hasNumber && hasSpecial) {
+		errors = append(errors, FieldError{Field: "password", Message: "password must include at least one uppercase letter, one lowercase letter, one number, and one special character"})
+	}
+
+	return errors
 }

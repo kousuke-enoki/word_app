@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import axiosInstance from '../../axiosConfig'
 import MyPage from '../../components/MyPage'
+import { User } from '../../types/userTypes'
 
 const Home: React.FC = () => {
-  const [user, setUser] = useState<{ name: string } | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [message, setMessage] = useState('')
 
   useEffect(() => {
@@ -17,6 +18,7 @@ const Home: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
+        console.log(response)
         setUser(response.data.user) // ユーザー情報を保存
         setMessage('')
       })

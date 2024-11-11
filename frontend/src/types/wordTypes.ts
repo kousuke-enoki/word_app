@@ -1,5 +1,3 @@
-// frontend/src/types/wordTypes.ts
-
 export interface PartOfSpeech {
   id: number
   name: string

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"word_app/backend/src/models"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,10 +33,10 @@ func (h *UserHandler) MyPageHandler() gin.HandlerFunc {
 			return
 		}
 
-		// ユーザー情報を返す
-		c.JSON(http.StatusOK, gin.H{
-			"user": gin.H{
-				"name": signInUser.Name,
+		c.JSON(http.StatusOK, models.MyPageResponse{
+			User: models.User{
+				Name:  signInUser.Name,
+				Admin: signInUser.Admin,
 			},
 		})
 	}

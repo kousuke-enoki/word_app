@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"errors"
+	"regexp"
 	"time"
 
 	"entgo.io/ent"
@@ -19,12 +21,25 @@ func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("email").
 			Unique().
-			NotEmpty(),
+			NotEmpty().
+			Validate(func(email string) error {
+				emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+				if !emailRegex.MatchString(email) {
+					return errors.New("invalid email format")
+				}
+				return nil
+			}),
 		field.String("password").
 			Sensitive().
 			NotEmpty(),
 		field.String("name").
-			NotEmpty(),
+			NotEmpty().
+			Validate(func(name string) error {
+				if len(name) < 3 || len(name) > 20 {
+					return errors.New("name must be between 3 and 20 characters")
+				}
+				return nil
+			}),
 		field.Time("created_at").
 			Default(time.Now),
 		field.Time("updated_at").

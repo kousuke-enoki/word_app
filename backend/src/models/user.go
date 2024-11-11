@@ -10,3 +10,12 @@ type SignUpRequest struct {
 	Name     string `json:"name" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
+
+type User struct {
+	Name  string `json:"name" binding:"required"`
+	Admin bool   `json:"admin" binding:"required"`
+}
+
+type MyPageResponse struct {
+	User User `json:"user" binding:"required"`
+}

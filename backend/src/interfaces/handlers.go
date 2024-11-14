@@ -21,4 +21,6 @@ type WordHandler interface {
 
 type UserClient interface {
 	CreateUser(ctx context.Context, email, name, password string) (*ent.User, error)
+	FindUserByEmail(ctx context.Context, email string) (*ent.User, error)
+	FindUserByID(ctx context.Context, id int) (*ent.User, error)
 }

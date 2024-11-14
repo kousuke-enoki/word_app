@@ -1,11 +1,17 @@
 import React, { useState } from 'react'
 import axiosInstance from '../../axiosConfig'
 
+interface FieldError {
+  field: string
+  message: string
+}
+
 const SignUp: React.FC = () => {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
+  const [errors, setErrors] = useState<FieldError[]>([])
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -18,9 +24,23 @@ const SignUp: React.FC = () => {
       const token = response.data.token
       localStorage.setItem('token', token)
       setMessage('Sign up successful!')
-    } catch (error) {
-      setMessage('Sign up failed. Please try again.')
+      setErrors([])
+    } catch (error: any) {
+      const fieldErrors: FieldError[] = error.response.data.errors || []
+      setErrors(fieldErrors)
+      setMessage('')
     }
+  }
+
+  // フィールドごとにエラーメッセージを取得する関数
+  const getErrorMessages = (field: string) => {
+    return errors
+      .filter((e) => e.field === field)
+      .map((e, index) => (
+        <p key={index} style={{ color: 'red' }}>
+          {e.message}
+        </p>
+      ))
   }
 
   return (
@@ -36,6 +56,7 @@ const SignUp: React.FC = () => {
             onChange={(e) => setName(e.target.value)}
             required
           />
+          {getErrorMessages('name')}
         </div>
         <div>
           <label htmlFor="email">Email:</label>
@@ -46,6 +67,7 @@ const SignUp: React.FC = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
+          {getErrorMessages('email')}
         </div>
         <div>
           <label htmlFor="password">Password:</label>
@@ -56,6 +78,7 @@ const SignUp: React.FC = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+          {getErrorMessages('password')}
         </div>
         <button type="submit">サインアップ</button>
       </form>

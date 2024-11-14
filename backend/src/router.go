@@ -4,14 +4,23 @@ import (
 	"log"
 	"net/http"
 	"word_app/backend/ent"
+	"word_app/backend/src/adapters"
 	"word_app/backend/src/handlers"
 	"word_app/backend/src/handlers/middleware"
+	"word_app/backend/src/handlers/user"
+	"word_app/backend/src/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRouter(router *gin.Engine, client *ent.Client) {
-	userHandler := handlers.NewUserHandler(client)
+	entClient := adapters.NewEntUserClient(client)
+	// JWTGeneratorを初期化
+	jwtGenerator := utils.NewMyJWTGenerator("your_secret_key")
+
+	// jwtGeneratorをUserHandlerに渡す
+	userHandler := user.NewUserHandler(entClient, jwtGenerator)
+
 	wordHandler := handlers.NewWordHandler(client)
 
 	router.Use(CORSMiddleware())
@@ -20,20 +29,17 @@ func SetupRouter(router *gin.Engine, client *ent.Client) {
 	})
 
 	router.GET("/", func(c *gin.Context) { /* RootHandlerの処理 */ })
-	router.POST("/users/sign_up", userHandler.SignUpHandler())
-	router.POST("/users/sign_in", userHandler.SignInHandler())
+	userRoutes := router.Group("/users")
+	{
+		userRoutes.POST("/sign_up", userHandler.SignUpHandler())
+		userRoutes.POST("/sign_in", userHandler.SignInHandler())
+	}
 
-	// router.POST("/users/sign_up", userHandler.SignUp)
-	// router.POST("/users/sign_in", userHandler.SignIn)
-
-	protected := router.Group("/")
-	protected.Use(middleware.AuthMiddleware())
-	protected.GET("/users/my_page", userHandler.MyPageHandler())
-	protected.GET("/words/all_list", wordHandler.AllWordListHandler())
-	protected.GET("/words/:id", wordHandler.WordShowHandler())
-	// protected.GET("/users/my_page", userHandler.MyPage)
-	// protected.GET("/words/all_list", wordHandler.AllWordList)
-	// protected.GET("/words/:id", wordHandler.WordShow)
+	// protected := router.Group("/protected")
+	router.Use(middleware.AuthMiddleware())
+	router.GET("/users/my_page", userHandler.MyPageHandler())
+	router.GET("/words/all_list", wordHandler.AllWordListHandler())
+	router.GET("/words/:id", wordHandler.WordShowHandler())
 
 	// リクエストの詳細をログに出力
 	router.Use(func(c *gin.Context) {

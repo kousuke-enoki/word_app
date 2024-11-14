@@ -3,20 +3,26 @@ package utils
 import (
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 )
 
 var jwtKey = []byte("your_secret_key")
 
 type Claims struct {
-	UserID string `json:"user_id"`
+	UserID string `json:"userID"`
 	jwt.RegisteredClaims
 }
 
-// GenerateJWTは指定されたユーザーIDでJWTトークンを生成します
-func GenerateJWT(userID string) (string, error) {
-	expirationTime := time.Now().Add(1 * time.Hour)
+// JWTGenerator インターフェースを定義
+type JWTGenerator interface {
+	GenerateJWT(userID string) (string, error)
+}
+
+// DefaultJWTGenerator はデフォルトの JWTGenerator 実装
+type DefaultJWTGenerator struct{}
+
+func (d *DefaultJWTGenerator) GenerateJWT(userID string) (string, error) {
+	expirationTime := time.Now().Add(1 * time.Hour) // 本番はDayを想定
 	claims := &Claims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -25,17 +31,5 @@ func GenerateJWT(userID string) (string, error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
-	if err != nil {
-		return "", err
-	}
-	return tokenString, nil
-}
-
-// SendTokenResponseは生成したJWTトークンを含むレスポンスを返します
-func SendTokenResponse(c *gin.Context, token string) {
-	c.JSON(200, gin.H{
-		"message": "Authentication successful",
-		"token":   token,
-	})
+	return token.SignedString(jwtKey)
 }

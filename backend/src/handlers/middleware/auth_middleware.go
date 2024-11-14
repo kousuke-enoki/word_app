@@ -5,13 +5,14 @@ import (
 	"net/http"
 	"strings"
 
+	"word_app/backend/src/utils"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 )
 
 var jwtKey = []byte("your_secret_key")
 
-// AuthMiddleware はJWTを使った認証ミドルウェア
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Authorizationヘッダーからトークンを取得
@@ -26,28 +27,29 @@ func AuthMiddleware() gin.HandlerFunc {
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
 		// トークンを解析
-		token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
-			// トークンの署名アルゴリズムを確認
+		token, err := jwt.ParseWithClaims(tokenString, &utils.Claims{}, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method")
 			}
 			return jwtKey, nil
 		})
-
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token", "details": err.Error()})
 			c.Abort()
 			return
 		}
 
-		// トークンが有効であり、クレームを取得できた場合
-		if claims, ok := token.Claims.(*jwt.RegisteredClaims); ok && token.Valid {
-			// クレームからemailを取得
-			userId := claims.Subject
-			// gin.Context にuserIDを保存
-			c.Set("userId", userId)
+		// トークンが有効であり、クレームからuserIDを取得する
+		if claims, ok := token.Claims.(*utils.Claims); ok && token.Valid {
+			userID := claims.UserID
+			if userID == "" {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token: userID not found"})
+				c.Abort()
+				return
+			}
 
-			// 次のハンドラに処理を渡す
+			// gin.Context にuserIDを保存
+			c.Set("userID", userID)
 			c.Next()
 		} else {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})

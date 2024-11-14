@@ -6,15 +6,15 @@ docker compose up
 
 docker compose exec backend bash
 
-##dockerキャッシュ削除
+## dockerキャッシュ削除
 docker compose down --volumes --rmi all
 docker compose build --no-cache
 docker compose up
 
-#mockery(コンテナ内で)
+# mockery(コンテナ内で)
 go install github.com/vektra/mockery/v2@v2.43.2
 
-##db接続方法
+## db接続方法
 
 # 実行中のコンテナを確認
 docker ps
@@ -34,7 +34,7 @@ SELECT * FROM users;
 
 
 
-##ent generate
+## ent generate
 
 # スキーマを作成
 ent/schema で作成
@@ -45,10 +45,19 @@ go generate ./ent
 #  eslint
 npm run eslint
 
-#フロントエンドライブラリインストール
+# フロントエンドライブラリインストール
 cd frontend
 npm install react-i18next i18next --save
 
+# gotest
+テスト用DBの起動
+docker-compose up -d db_test
+テスト用DBの確認
+docker compose exec -it db_test psql -U postgres -d db_test
+
+# モック作成(mockery)
+interfacesがあるディレクトリで
+mockery --name=UserClient --output=./mocks
 
 0 名詞（noun）
 1 代名詞（pronoun）

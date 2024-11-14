@@ -56,9 +56,8 @@ docker-compose up -d db_test
 docker compose exec -it db_test psql -U postgres -d db_test
 
 # モック作成(mockery)
-cd backend
-mockery --dir=src/interfaces --name=UserClient --output=src/mocks --disable-version-string
-
+interfacesがあるディレクトリで
+mockery --name=UserClient --output=./mocks
 
 0 名詞（noun）
 1 代名詞（pronoun）

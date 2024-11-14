@@ -1,66 +1,164 @@
-package user
+package user_test
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
+	"word_app/backend/ent"
+	"word_app/backend/src/handlers/user"
+	"word_app/backend/src/mocks"
+	"word_app/backend/src/models"
 
-	_ "github.com/lib/pq"
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func TestSignInHandler(t *testing.T) {
-	// // テスト用のデータベース接続
-	// client, err := ent.Open("postgres", "host=localhost port=5433 user=postgres dbname=db_test password=password sslmode=disable")
-	// require.NoError(t, err)
-	// defer client.Close() // テスト後にデータベース接続を閉じる
+// JWT トークン生成のモック関数
+type SignInMockJWTGenerator struct {
+	mock.Mock
+}
 
-	// // マイグレーションを実行
-	// err = client.Schema.Create(context.Background(), migrate.WithGlobalUniqueID(true))
-	// require.NoError(t, err)
+func (m *SignInMockJWTGenerator) GenerateJWT(userID string) (string, error) {
+	args := m.Called(userID)
+	return args.String(0), args.Error(1)
+}
+func TestSignInHandler_ValidRequest(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 
-	// // トランザクションを開始
-	// tx, err := client.Tx(context.Background())
-	// require.NoError(t, err)
+	mockClient := new(mocks.UserClient)
+	mockJWTGen := new(SignInMockJWTGenerator)
 
-	// // defer でロールバックを確実に実行する
-	// defer func() {
-	// 	err = tx.Rollback()
-	// 	require.NoError(t, err)
-	// }()
+	handler := user.NewUserHandler(mockClient, mockJWTGen)
 
-	// // トランザクション内でテスト用のユーザーを作成
-	// testUser, err := tx.User.Create().
-	// 	SetName("Test User").
-	// 	SetEmail("testuser@example.com").
-	// 	SetPassword("Password1234").
-	// 	Save(context.Background())
-	// require.NoError(t, err)
+	// 正常なリクエストデータ
+	reqData := models.SignInRequest{
+		Email:    "test@example.com",
+		Password: "Secure123!",
+	}
+	reqBody, _ := json.Marshal(reqData)
 
-	// // テスト用のJWTトークンを生成
-	// token, err := utils.GenerateJWT(strconv.Itoa(testUser.ID))
-	// require.NoError(t, err)
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("Secure123!"), bcrypt.DefaultCost)
+	mockClient.On("FindUserByEmail", mock.Anything, reqData.Email).
+		Return(&ent.User{ID: 1, Email: reqData.Email, Password: string(hashedPassword)}, nil)
+	mockJWTGen.On("GenerateJWT", "1").Return("mocked_jwt_token", nil)
 
-	// // テストのHTTPリクエストを準備
-	// r := gin.Default()
-	// r.GET("/signin", SignInHandler(tx.Client()))
+	req, _ := http.NewRequest(http.MethodPost, "/signin", bytes.NewBuffer(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
 
-	// req, _ := http.NewRequest(http.MethodGet, "/mypage", nil)
-	// // トークンをAuthorizationヘッダーに設定
-	// req.Header.Set("Authorization", "Bearer "+token)
+	c, _ := gin.CreateTestContext(w)
+	c.Request = req
 
-	// // レスポンスを記録
-	// w := httptest.NewRecorder()
-	// r.ServeHTTP(w, req)
-	// log.Println("test")
-	// log.Println(r)
-	// log.Println(w)
-	// log.Println(w.Body)
-	// log.Println(req)
-	// log.Println(t)
-	// // ステータスコードとレスポンスの検証
-	// assert.Equal(t, http.StatusOK, w.Code)
-	// assert.Contains(t, w.Body.String(), "Test User")
+	handler.SignInHandler()(c)
 
-	// // トランザクション内でユーザーの確認
-	// fetchedUser, err := tx.User.Query().Where(user.ID(testUser.ID)).Only(context.Background())
-	// require.NoError(t, err)
-	// assert.Equal(t, "Test User", fetchedUser.Name)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	responseData := map[string]string{}
+	err := json.Unmarshal(w.Body.Bytes(), &responseData)
+	assert.NoError(t, err)
+	assert.Equal(t, "mocked_jwt_token", responseData["token"])
+	assert.Equal(t, "Authentication successful", responseData["message"])
+
+	mockClient.AssertExpectations(t)
+	mockJWTGen.AssertExpectations(t)
+}
+
+func TestSignInHandler_InvalidCredentials(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockClient := new(mocks.UserClient)
+	mockJWTGen := &SignInMockJWTGenerator{}
+	handler := user.NewUserHandler(mockClient, mockJWTGen)
+
+	// 無効なリクエストデータ
+	password := "InvalidPassword"
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("CorrectPassword"), bcrypt.DefaultCost)
+	signInUser := &ent.User{
+		ID:       1,
+		Email:    "test@example.com",
+		Name:     "Test User",
+		Password: string(hashedPassword),
+	}
+
+	// モックの設定
+	mockClient.On("FindUserByEmail", mock.Anything, "test@example.com").Return(signInUser, nil)
+
+	// リクエスト作成
+	reqData := models.SignInRequest{
+		Email:    "test@example.com",
+		Password: password,
+	}
+	reqBody, _ := json.Marshal(reqData)
+	req, _ := http.NewRequest(http.MethodPost, "/signin", bytes.NewBuffer(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	// レスポンス作成
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = req
+
+	// ハンドラ呼び出し
+	handler.SignInHandler()(c)
+
+	// 検証
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	responseData := map[string]string{}
+	err := json.Unmarshal(w.Body.Bytes(), &responseData)
+	assert.NoError(t, err)
+	assert.Equal(t, "Invalid credentials", responseData["error"])
+
+	mockClient.AssertExpectations(t)
+}
+
+func TestSignInHandler_TokenGenerationError(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockClient := new(mocks.UserClient)
+	mockJWTGen := &SignInMockJWTGenerator{}
+	handler := user.NewUserHandler(mockClient, mockJWTGen)
+
+	// 正常なユーザーデータとトークン生成エラーのモック設定
+	password := "Secure123!"
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	signInUser := &ent.User{
+		ID:       1,
+		Email:    "test@example.com",
+		Name:     "Test User",
+		Password: string(hashedPassword),
+	}
+
+	mockClient.On("FindUserByEmail", mock.Anything, "test@example.com").Return(signInUser, nil)
+	mockJWTGen.On("GenerateJWT", "1").Return("", fmt.Errorf("token generation error"))
+
+	// リクエスト作成
+	reqData := models.SignInRequest{
+		Email:    "test@example.com",
+		Password: password,
+	}
+	reqBody, _ := json.Marshal(reqData)
+	req, _ := http.NewRequest(http.MethodPost, "/signin", bytes.NewBuffer(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	// レスポンス作成
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = req
+
+	// ハンドラ呼び出し
+	handler.SignInHandler()(c)
+
+	// 検証
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	responseData := map[string]string{}
+	err := json.Unmarshal(w.Body.Bytes(), &responseData)
+	assert.NoError(t, err)
+	assert.Equal(t, "Failed to generate token", responseData["error"])
+
+	mockClient.AssertExpectations(t)
+	mockJWTGen.AssertExpectations(t)
 }

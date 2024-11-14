@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"regexp"
 	"unicode"
@@ -24,7 +23,6 @@ type FieldError struct {
 
 func (h *UserHandler) SignUpHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log.Println("SignUpHandler")
 		req, err := h.parseRequest(c)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

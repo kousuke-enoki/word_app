@@ -3,37 +3,19 @@ package user_test
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"word_app/backend/ent"
 	"word_app/backend/src/handlers/user"
+	"word_app/backend/src/mocks"
 	"word_app/backend/src/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
-
-// MockUserClient は UserClient インターフェースをモック化したもの
-type MockUserClient struct {
-	mock.Mock
-}
-
-func (m *MockUserClient) CreateUser(ctx context.Context, email, name, password string) (*ent.User, error) {
-	args := m.Called(ctx, email, name, password)
-	return args.Get(0).(*ent.User), args.Error(1)
-}
-
-func (m *MockUserClient) FindUserByEmail(ctx context.Context, email string) (*ent.User, error) {
-	return &ent.User{Email: email, Name: "Test User"}, nil
-}
-
-func (m *MockUserClient) FindUserByID(ctx context.Context, id int) (*ent.User, error) {
-	return &ent.User{ID: id, Name: "Test User"}, nil
-}
 
 // JWT トークン生成のモック関数
 type MockJWTGenerator struct{}
@@ -42,18 +24,19 @@ func (m *MockJWTGenerator) GenerateJWT(userID string) (string, error) {
 	return "mocked_jwt_token", nil
 }
 
-func TestSignUpHandler(t *testing.T) {
+func TestSignUpHandler_ValidRequest(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	mockClient := new(MockUserClient)
-	mockJWTGen := &MockJWTGenerator{} // モックの JWTGenerator を使用
+	mockClient := new(mocks.UserClient)
+	mockJWTGen := &MockJWTGenerator{}
 
-	handler := user.NewUserHandler(mockClient, mockJWTGen) // モックの JWTGenerator を注入
+	handler := user.NewUserHandler(mockClient, mockJWTGen)
 
+	// 正常なリクエストデータ
 	reqData := models.SignUpRequest{
 		Email:    "test@example.com",
-		Name:     "Test User",
-		Password: "securepassword",
+		Name:     "TestUser",
+		Password: "Secure123!",
 	}
 	reqBody, _ := json.Marshal(reqData)
 
@@ -74,6 +57,45 @@ func TestSignUpHandler(t *testing.T) {
 	err := json.Unmarshal(w.Body.Bytes(), &responseData)
 	assert.NoError(t, err)
 	assert.Equal(t, "mocked_jwt_token", responseData["token"])
+
+	mockClient.AssertExpectations(t)
+}
+
+func TestSignUpHandler_InvalidRequest(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockClient := new(mocks.UserClient)
+	mockJWTGen := &MockJWTGenerator{}
+
+	handler := user.NewUserHandler(mockClient, mockJWTGen)
+
+	// バリデーションエラーケース（短すぎる名前、無効なメール、簡単すぎるパスワード）
+	testCases := []models.SignUpRequest{
+		{Email: "invalid-email", Name: "T", Password: "simple"},
+		{Email: "test@example.com", Name: "TestUser", Password: "short1"},
+		{Email: "test@example.com", Name: "TestUser", Password: "NoSpecialChar1"},
+	}
+
+	for _, reqData := range testCases {
+		reqBody, _ := json.Marshal(reqData)
+
+		req, _ := http.NewRequest(http.MethodPost, "/signup", bytes.NewBuffer(reqBody))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		c, _ := gin.CreateTestContext(w)
+		c.Request = req
+
+		handler.SignUpHandler()(c)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		responseData := map[string][]map[string]string{}
+		err := json.Unmarshal(w.Body.Bytes(), &responseData)
+		assert.NoError(t, err)
+
+		// バリデーションエラーメッセージが返されていることを確認
+		assert.Greater(t, len(responseData["errors"]), 0)
+	}
 
 	mockClient.AssertExpectations(t)
 }

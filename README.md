@@ -49,12 +49,6 @@ npm run eslint
 cd frontend
 npm install react-i18next i18next --save
 
-# gotest
-テスト用DBの起動
-docker-compose up -d db_test
-テスト用DBの確認
-docker compose exec -it db_test psql -U postgres -d db_test
-
 # モック作成(mockery)
 interfacesがあるディレクトリで
 mockery --name=UserClient --output=./mocks

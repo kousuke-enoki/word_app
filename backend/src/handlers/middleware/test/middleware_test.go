@@ -34,7 +34,7 @@ func TestAuthMiddleware_ValidToken(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Contains(t, w.Body.String(), `"userID":"12345"`)
+	assert.Contains(t, w.Body.String(), `"userID":12345`)
 }
 
 func TestAuthMiddleware_InvalidToken(t *testing.T) {

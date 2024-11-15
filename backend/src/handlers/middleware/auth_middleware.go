@@ -3,6 +3,7 @@ package middleware
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"word_app/backend/src/utils"
@@ -48,8 +49,15 @@ func AuthMiddleware() gin.HandlerFunc {
 				return
 			}
 
+			// userID を int に変換
+			userIDInt, err := strconv.Atoi(fmt.Sprintf("%v", userID))
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID"})
+				return
+			}
+
 			// gin.Context にuserIDを保存
-			c.Set("userID", userID)
+			c.Set("userID", userIDInt)
 			c.Next()
 		} else {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})

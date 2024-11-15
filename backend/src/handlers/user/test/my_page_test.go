@@ -1,62 +1,136 @@
-package user
+// user/handler_test.go
+package user_test
 
 import (
+	"context"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 
-	_ "github.com/lib/pq"
+	"word_app/backend/ent"
+	"word_app/backend/src/handlers/user"
+	"word_app/backend/src/mocks"
+
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestMyPageHandler(t *testing.T) {
-	// // テスト用のデータベース接続
-	// client, err := ent.Open("postgres", "host=localhost port=5433 user=postgres dbname=db_test password=password sslmode=disable")
-	// require.NoError(t, err)
-	// defer client.Close() // テスト後にデータベース接続を閉じる
+	// テスト用のGinコンテキストとHTTPリクエストを準備
+	gin.SetMode(gin.TestMode)
+	mockClient := new(mocks.UserClient)
+	mockJWTGen := &MockJWTGenerator{}
 
-	// // マイグレーションを実行
-	// err = client.Schema.Create(context.Background(), migrate.WithGlobalUniqueID(true))
-	// require.NoError(t, err)
+	userHandler := user.NewUserHandler(mockClient, mockJWTGen)
 
-	// // トランザクションを開始
-	// tx, err := client.Tx(context.Background())
-	// require.NoError(t, err)
+	// 正常時
+	t.Run("Success", func(t *testing.T) {
+		// モックの設定
+		userID := 1
+		mockUser := &ent.User{
+			Name:  "Test User",
+			Admin: true,
+		}
+		mockClient.On("FindUserByID", mock.Anything, userID).Return(mockUser, nil)
 
-	// // defer でロールバックを確実に実行する
-	// defer func() {
-	// 	err = tx.Rollback()
-	// 	require.NoError(t, err)
-	// }()
+		// HTTPリクエストとレスポンスのセットアップ
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
 
-	// // トランザクション内でテスト用のユーザーを作成
-	// testUser, err := tx.User.Create().
-	// 	SetName("Test User").
-	// 	SetEmail("testuser@example.com").
-	// 	SetPassword("Password1234").
-	// 	Save(context.Background())
-	// require.NoError(t, err)
+		// コンテキストにユーザーIDを設定
+		c.Set("userID", 1)
+		handler := userHandler.MyPageHandler()
+		handler(c)
 
-	// // テスト用のJWTトークンを生成
-	// token, err := utils.GenerateJWT(strconv.Itoa(testUser.ID))
-	// require.NoError(t, err)
+		// アサーション
+		assert.Equal(t, http.StatusOK, w.Code)
 
-	// // テストのHTTPリクエストを準備
-	// r := gin.Default()
-	// r.Use(middleware.AuthMiddleware()) // ミドルウェアを追加
-	// r.GET("/mypage", MyPageHandler(tx.Client()))
+		// レスポンスボディの内容を確認（小文字の"admin"と"name"に変更）
+		expectedResponse := `{"user":{"name":"Test User","admin":true}}`
+		assert.JSONEq(t, expectedResponse, w.Body.String())
 
-	// req, _ := http.NewRequest(http.MethodGet, "/mypage", nil)
-	// // トークンをAuthorizationヘッダーに設定
-	// req.Header.Set("Authorization", "Bearer "+token)
+		mockClient.AssertExpectations(t)
+	})
 
-	// // レスポンスを記録
-	// w := httptest.NewRecorder()
-	// r.ServeHTTP(w, req)
+	// userIDの型がstringの時
+	t.Run("type_error", func(t *testing.T) {
+		// モックの設定
+		userID := 1
+		mockUser := &ent.User{
+			Name:  "Test User",
+			Admin: true,
+		}
+		mockClient.On("FindUserByID", mock.MatchedBy(func(c context.Context) bool {
+			// コンテキストの確認
+			return c != nil
+		}), userID).Return(mockUser, nil)
 
-	// // ステータスコードとレスポンスの検証
-	// assert.Equal(t, http.StatusOK, w.Code)
-	// assert.Contains(t, w.Body.String(), "Test User")
+		// HTTPリクエストとレスポンスのセットアップ
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
 
-	// // トランザクション内でユーザーの確認
-	// fetchedUser, err := tx.User.Query().Where(user.ID(testUser.ID)).Only(context.Background())
-	// require.NoError(t, err)
-	// assert.Equal(t, "Test User", fetchedUser.Name)
+		// コンテキストにユーザーIDを設定
+		c.Set("userID", "1")
+		handler := userHandler.MyPageHandler()
+		handler(c)
+
+		// アサーション
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		// レスポンスボディの内容を確認（小文字の"admin"と"name"に変更）
+		expectedResponse := `{"error":"Invalid userID type"}`
+		assert.JSONEq(t, expectedResponse, w.Body.String())
+
+		mockClient.AssertExpectations(t)
+	})
+
+	// ユーザーIDが設定されていない場合
+	t.Run("Unauthorized", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		handler := userHandler.MyPageHandler()
+		handler(c)
+
+		// アサーション
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Contains(t, w.Body.String(), "Unauthorized")
+		mockClient.AssertExpectations(t)
+	})
+
+	// データベースエラーが発生した場合
+	t.Run("Database_error", func(t *testing.T) {
+
+		// Mock設定: FindUserByIDがエラーを返すようにする
+		mockClient.On("FindUserByID", mock.Anything, 123).
+			Return(nil, errors.New("some database error"))
+		// Ginのテストコンテキスト作成
+		recorder := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(recorder)
+
+		// リクエスト設定
+		req := httptest.NewRequest("GET", "/mypage", nil)
+		c.Request = req
+
+		// コンテキストに整数型のユーザーIDを設定
+		c.Set("userID", 123)
+
+		// ハンドラーを実行
+		handler := userHandler.MyPageHandler()
+		handler(c)
+
+		// レスポンスを検証
+		if status := recorder.Code; status != http.StatusInternalServerError {
+			t.Errorf("expected status code 500, got %d", status)
+		}
+		if !strings.Contains(recorder.Body.String(), "Failed to retrieve user") {
+			t.Errorf("expected error message 'Failed to retrieve user', got %s", recorder.Body.String())
+		}
+
+		// Mockが正しく呼び出されたかを確認
+		mockClient.AssertExpectations(t)
+	})
 }

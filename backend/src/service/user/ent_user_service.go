@@ -1,4 +1,4 @@
-package adapters
+package user_service
 
 import (
 	"context"

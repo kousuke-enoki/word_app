@@ -51,7 +51,7 @@ npm install react-i18next i18next --save
 
 # モック作成(mockery)
 interfacesがあるディレクトリで
-mockery --name=UserClient --output=./mocks
+mockery --name=UserClient --output=./../mocks
 
 0 名詞（noun）
 1 代名詞（pronoun）

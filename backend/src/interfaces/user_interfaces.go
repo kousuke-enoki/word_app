@@ -14,11 +14,6 @@ type UserHandler interface {
 	MyPageHandler() gin.HandlerFunc
 }
 
-type WordHandler interface {
-	AllWordListHandler() gin.HandlerFunc
-	WordShowHandler() gin.HandlerFunc
-}
-
 type UserClient interface {
 	CreateUser(ctx context.Context, email, name, password string) (*ent.User, error)
 	FindUserByEmail(ctx context.Context, email string) (*ent.User, error)

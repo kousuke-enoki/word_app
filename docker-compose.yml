@@ -6,9 +6,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
@@ -25,15 +25,18 @@ services:
       db:
         condition: service_healthy
     environment:
-      DB_HOST: db
-      DB_USER: postgres
-      DB_PASSWORD: password
-      DB_NAME: db
+      APP_ENV: ${APP_ENV}
+      DB_HOST: ${DB_HOST}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+    env_file:
+      - backend/.env.${APP_ENV}
     ports:
-      - "8080:8080"
+      - "${APP_PORT}:8080"
     volumes:
-      - ./backend:/app  # ソースコードの変更を監視するためにボリュームをマウント
-    command: air  # airを使用してアプリケーションを起動
+      - ./backend:/app
+    command: air
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s

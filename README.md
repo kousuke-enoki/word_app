@@ -1,20 +1,30 @@
 # eng_backend
-
 docker compose build
 
-docker compose up
+bash start.sh development
 
 docker compose exec backend bash
+
+
+## 環境起動コマンド
+ start.shで振り分け
+
+# 開発環境
+bash start.sh development
+
+# 本番環境
+bash start.sh production
+
 
 ## dockerキャッシュ削除
 docker compose down --volumes --rmi all
 docker compose build --no-cache
-docker compose up
+bash start.sh development
+
 
 # mockery(コンテナ内で)
 go install github.com/vektra/mockery/v2@v2.43.2
 
-## db接続方法
 
 # 実行中のコンテナを確認
 docker ps
@@ -32,14 +42,12 @@ SELECT * FROM users;
 \d users
 
 
-
-
 ## ent generate
 
 # スキーマを作成
 ent/schema で作成
 
-#  generate
+#  generate (スキーマ作ったら)
 go generate ./ent
 
 #  eslint

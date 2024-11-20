@@ -15,8 +15,18 @@ func (h *WordHandler) AllWordListHandler(c *gin.Context) {
 	search := c.Query("search")
 	sortBy := c.DefaultQuery("sortBy", "id")
 	order := c.DefaultQuery("order", "asc")
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil || page <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid query parameters"})
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil || limit <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid query parameters"})
+		return
+	}
 
 	// サービスの呼び出し
 	words, totalCount, totalPages, err := h.wordService.GetWords(ctx, search, sortBy, order, page, limit)

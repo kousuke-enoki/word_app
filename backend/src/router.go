@@ -3,6 +3,7 @@ package src
 import (
 	"log"
 	"net/http"
+	"os"
 	"word_app/backend/ent"
 	"word_app/backend/src/handlers/middleware"
 	"word_app/backend/src/handlers/user"
@@ -17,8 +18,11 @@ import (
 func SetupRouter(router *gin.Engine, client *ent.Client) {
 	entClient := user_service.NewEntUserClient(client)
 	wordClient := word_service.NewWordService(client)
-	// JWTGeneratorを初期化
-	jwtGenerator := utils.NewMyJWTGenerator("your_secret_key")
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET environment variable is required")
+	}
+	jwtGenerator := utils.NewMyJWTGenerator(jwtSecret)
 
 	// jwtGeneratorをUserHandlerに渡す
 	userHandler := user.NewUserHandler(entClient, jwtGenerator)

@@ -3,6 +3,7 @@ package middleware_test
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"word_app/backend/src/handlers/middleware"
 	"word_app/backend/src/utils"
@@ -12,6 +13,11 @@ import (
 )
 
 func TestAuthMiddleware_ValidToken(t *testing.T) {
+	// テスト用の JWT_SECRET を設定
+	testSecret := "test_secret_key"
+	err := os.Setenv("JWT_SECRET", testSecret)
+	assert.NoError(t, err, "Setting JWT_SECRET should not produce an error")
+
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 	r.Use(middleware.AuthMiddleware())
@@ -38,6 +44,11 @@ func TestAuthMiddleware_ValidToken(t *testing.T) {
 }
 
 func TestAuthMiddleware_InvalidToken(t *testing.T) {
+	// テスト用の JWT_SECRET を設定
+	testSecret := "test_secret_key"
+	err := os.Setenv("JWT_SECRET", testSecret)
+	assert.NoError(t, err, "Setting JWT_SECRET should not produce an error")
+
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 	r.Use(middleware.AuthMiddleware())
@@ -56,6 +67,11 @@ func TestAuthMiddleware_InvalidToken(t *testing.T) {
 }
 
 func TestAuthMiddleware_NoToken(t *testing.T) {
+	// テスト用の JWT_SECRET を設定
+	testSecret := "test_secret_key"
+	err := os.Setenv("JWT_SECRET", testSecret)
+	assert.NoError(t, err, "Setting JWT_SECRET should not produce an error")
+
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 	r.Use(middleware.AuthMiddleware())

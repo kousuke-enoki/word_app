@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
 	"word_app/backend/ent"
 	"word_app/backend/ent/user"
 	"word_app/backend/seeder"
@@ -14,6 +16,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/sirupsen/logrus"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func main() {
@@ -29,6 +33,7 @@ func main() {
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
+	corsOrigin := os.Getenv("CORS_ORIGIN")
 
 	log.Printf("Environment: %s, Port: %s\n", appEnv, appPort)
 
@@ -70,13 +75,21 @@ func main() {
 		log.Println("Seed data already exists, skipping.")
 	}
 
+	// ロガーを設定
+	configureLogger()
+	setupFileLogger()
+
 	// Ginフレームワークのデフォルトの設定を使用してルータを作成
 	router := gin.New()
+	setupFileLogger()
+
+	// リクエストログの有効化/無効化
+	configureRouterLogging(router)
 	router.Use(gin.Logger(), gin.Recovery())
 
 	// CORSの設定
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowOrigins:     []string{corsOrigin},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -108,4 +121,59 @@ func loadEnv() {
 	} else {
 		log.Printf("Loaded environment file: %s", envFile)
 	}
+}
+
+func configureLogger() {
+	// 環境変数からログレベルを取得
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "info" // デフォルトは info
+	}
+
+	// ログレベルを設定
+	level, err := logrus.ParseLevel(strings.ToLower(logLevel))
+	if err != nil {
+		log.Fatalf("Invalid LOG_LEVEL: %s", logLevel)
+	}
+
+	logrus.SetLevel(level)
+	logrus.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp: true,
+	})
+	logrus.Infof("Log level set to %s", logLevel)
+}
+
+func configureRouterLogging(router *gin.Engine) {
+	enableLogging := os.Getenv("ENABLE_REQUEST_LOGGING")
+	if enableLogging == "true" {
+		router.Use(gin.Logger()) // ログミドルウェアを有効化
+		logrus.Info("Request logging is enabled.")
+	} else {
+		logrus.Info("Request logging is disabled.")
+	}
+}
+
+func setupFileLogger() {
+	logPath := "log/app.log"
+
+	// ディレクトリがなければ作成
+	logDir := filepath.Dir(logPath)
+	if _, err := os.Stat(logDir); os.IsNotExist(err) {
+		if err := os.MkdirAll(logDir, 0755); err != nil {
+			logrus.Fatalf("Failed to create log directory: %v", err)
+		}
+	}
+
+	// ログのローテーションを設定
+	logFile := &lumberjack.Logger{
+		Filename:   logPath,
+		MaxSize:    10, // MB
+		MaxBackups: 3,
+		MaxAge:     30, // 日
+		Compress:   true,
+	}
+
+	// ログ出力をファイルに変更
+	logrus.SetOutput(logFile)
+	logrus.Infof("Logging to file: %s", logPath)
 }

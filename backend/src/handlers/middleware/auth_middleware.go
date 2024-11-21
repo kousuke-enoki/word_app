@@ -2,7 +2,9 @@ package middleware
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -12,11 +14,15 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-var jwtKey = []byte("your_secret_key")
-
 func AuthMiddleware() gin.HandlerFunc {
+	// 環境変数から JWT_SECRET を取得
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET environment variable is required")
+	}
+
 	return func(c *gin.Context) {
-		// Authorizationヘッダーからトークンを取得
+		// Authorization ヘッダーからトークンを取得
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
@@ -32,7 +38,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method")
 			}
-			return jwtKey, nil
+			return []byte(jwtSecret), nil
 		})
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token", "details": err.Error()})
@@ -40,7 +46,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// トークンが有効であり、クレームからuserIDを取得する
+		// トークンが有効であり、クレームから userID を取得する
 		if claims, ok := token.Claims.(*utils.Claims); ok && token.Valid {
 			userID := claims.UserID
 			if userID == "" {
@@ -56,7 +62,7 @@ func AuthMiddleware() gin.HandlerFunc {
 				return
 			}
 
-			// gin.Context にuserIDを保存
+			// gin.Context に userID を保存
 			c.Set("userID", userIDInt)
 			c.Next()
 		} else {

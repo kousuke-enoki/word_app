@@ -1,19 +1,21 @@
 # # バイナリファイル
 # *.exe
 # *.dll
-/backend/tmp/main
+backend/tmp/main
 
 # # ログファイル
 *.log
-/backend/tmp/build-error.log
+backend/tmp/build-error.log
 
 # # ディレクトリ
 # /node_modules
 # /dist
-/backend/tmp/
+backend/tmp/
 
 # # OSやエディタの一時ファイル
 # .DS_Store
 # Thumbs.db
 .history
 backup.sql
+backend/tmp/main
+backend/tmp/build-errors.log

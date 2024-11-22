@@ -1,9 +1,10 @@
-package src
+package router
 
 import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 	"word_app/backend/ent"
 	"word_app/backend/src/handlers/middleware"
 	"word_app/backend/src/handlers/user"
@@ -13,9 +14,13 @@ import (
 	"word_app/backend/src/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func SetupRouter(router *gin.Engine, client *ent.Client) {
+	// リクエストログ用ミドルウェア
+	router.Use(requestLoggerMiddleware())
+
 	entClient := user_service.NewEntUserClient(client)
 	wordClient := word_service.NewWordService(client)
 	jwtSecret := os.Getenv("JWT_SECRET")
@@ -54,9 +59,6 @@ func SetupRouter(router *gin.Engine, client *ent.Client) {
 			wordHandler.WordShowHandler(c)
 		})
 	}
-
-	// リクエストログ用ミドルウェア
-	router.Use(requestLoggerMiddleware())
 }
 
 func CORSMiddleware() gin.HandlerFunc {
@@ -68,6 +70,10 @@ func CORSMiddleware() gin.HandlerFunc {
 
 		// OPTIONSリクエスト（プリフライトリクエスト）の処理
 		if c.Request.Method == "OPTIONS" {
+			logrus.WithFields(logrus.Fields{
+				"method": c.Request.Method,
+				"path":   c.Request.URL.Path,
+			}).Info("Handling CORS preflight request")
 			c.AbortWithStatus(204)
 			return
 		}
@@ -79,11 +85,25 @@ func CORSMiddleware() gin.HandlerFunc {
 // リクエストの詳細をログに出力するミドルウェア
 func requestLoggerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		start := time.Now()
+
+		// リクエスト処理前
+		logrus.WithFields(logrus.Fields{
+			"method": c.Request.Method,
+			"path":   c.Request.URL.Path,
+			"query":  c.Request.URL.RawQuery,
+			"ip":     c.ClientIP(),
+		}).Info("Incoming request")
+
 		c.Next()
-		status := c.Writer.Status()
-		method := c.Request.Method
-		path := c.Request.URL.Path
-		query := c.Request.URL.RawQuery
-		log.Printf("Request: %s %s, Query: %s, Status: %d", method, path, query, status)
+
+		// リクエスト処理後
+		duration := time.Since(start)
+		logrus.WithFields(logrus.Fields{
+			"method":   c.Request.Method,
+			"path":     c.Request.URL.Path,
+			"status":   c.Writer.Status(),
+			"duration": duration,
+		}).Info("Request completed")
 	}
 }

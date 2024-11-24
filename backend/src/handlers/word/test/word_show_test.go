@@ -25,7 +25,7 @@ func TestWordShowHandler_Success(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	router := gin.Default()
-	router.GET("/words/:id", handler.WordShowHandler)
+	router.GET("/words/:id", handler.WordShowHandler())
 
 	req := httptest.NewRequest(http.MethodGet, "/words/1", nil)
 	w := httptest.NewRecorder()
@@ -48,7 +48,7 @@ func TestWordShowHandler_Error(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	router := gin.Default()
-	router.GET("/words/:id", handler.WordShowHandler)
+	router.GET("/words/:id", handler.WordShowHandler())
 
 	req := httptest.NewRequest(http.MethodGet, "/words/1", nil)
 	w := httptest.NewRecorder()

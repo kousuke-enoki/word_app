@@ -77,7 +77,7 @@ func TestAllWordListHandler_success(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/words/all_list?page=1&limit=10", nil)
 	w := httptest.NewRecorder()
 	router := gin.Default()
-	router.GET("/words/all_list", wordHandler.AllWordListHandler)
+	router.GET("/words/all_list", wordHandler.AllWordListHandler())
 
 	// ハンドラーを実行
 	router.ServeHTTP(w, req)
@@ -121,7 +121,7 @@ func TestAllWordListHandler_Failure(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/words/all_list?page=1&limit=10", nil)
 	w := httptest.NewRecorder()
 	router := gin.Default()
-	router.GET("/words/all_list", wordHandler.AllWordListHandler)
+	router.GET("/words/all_list", wordHandler.AllWordListHandler())
 
 	// ハンドラーを実行
 	router.ServeHTTP(w, req)
@@ -152,7 +152,7 @@ func TestAllWordListHandler_InvalidParams(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/words/all_list?page=0&limit=0", nil)
 	w := httptest.NewRecorder()
 	router := gin.Default()
-	router.GET("/words/all_list", wordHandler.AllWordListHandler)
+	router.GET("/words/all_list", wordHandler.AllWordListHandler())
 
 	// ハンドラーを実行
 	router.ServeHTTP(w, req)

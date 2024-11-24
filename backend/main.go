@@ -10,6 +10,11 @@ import (
 	"word_app/backend/logger"
 	routerConfig "word_app/backend/router"
 	"word_app/backend/seeder"
+	userHandler "word_app/backend/src/handlers/user"
+	"word_app/backend/src/handlers/word"
+	userService "word_app/backend/src/service/user"
+	wordService "word_app/backend/src/service/word"
+	"word_app/backend/src/utils"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -92,7 +97,20 @@ func setupRouter(client *ent.Client, corsOrigin string) *gin.Engine {
 		AllowCredentials: true,
 	}))
 
-	routerConfig.SetupRouter(router, client)
+	// Handler の初期化
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		logrus.Fatal("JWT_SECRET environment variable is required")
+	}
+	jwtGenerator := utils.NewMyJWTGenerator(jwtSecret)
+	entClient := userService.NewEntUserClient(client)
+	wordClient := wordService.NewWordService(client)
+	userHandler := userHandler.NewUserHandler(entClient, jwtGenerator)
+
+	wordHandler := word.NewWordHandler(wordClient)
+
+	routerImpl := routerConfig.NewRouter(userHandler, wordHandler)
+	routerImpl.SetupRouter(router)
 	router.SetTrustedProxies([]string{"127.0.0.1"})
 	logrus.Info("Router setup completed")
 

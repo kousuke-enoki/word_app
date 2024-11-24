@@ -2,7 +2,7 @@ package word_test
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -112,7 +112,7 @@ func TestAllWordListHandler_Failure(t *testing.T) {
 
 	// モックの振る舞いを設定（エラーを返す）
 	mockWordService.On("GetWords", mock.Anything, "", "id", "asc", 1, 10).
-		Return(nil, 0, 0, fmt.Errorf(errorMessage))
+		Return(nil, 0, 0, errors.New(errorMessage))
 
 	// ハンドラーを初期化
 	wordHandler := word.NewWordHandler(mockWordService)

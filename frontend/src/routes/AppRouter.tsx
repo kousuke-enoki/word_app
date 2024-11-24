@@ -15,9 +15,9 @@ const AppRouter: React.FC = () => {
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/signin" element={<SignIn />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/allwordlist" element={<AllWordList />} />
+        <Route path="/sign_in" element={<SignIn />} />
+        <Route path="/sign_up" element={<SignUp />} />
+        <Route path="/words" element={<AllWordList />} />
         <Route path="/words/:id" element={<WordShow />} />
       </Routes>
     </Router>

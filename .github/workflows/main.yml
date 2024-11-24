@@ -1,0 +1,56 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:      
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: 1.23
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: Run Go Linter
+      run: golangci-lint run ./...
+
+    - name: Run Backend Tests
+      run: go test ./...
+
+    - name: Install Frontend Dependencies
+      run: npm install
+
+    - name: Run Frontend Linter
+      run: npx eslint src/
+
+    - name: Run Frontend Tests
+      run: npm test
+
+    - name: Build Docker Images
+      run: |
+        docker build -t my-backend:latest -f backend/Dockerfile .
+        docker build -t my-frontend:latest -f frontend/Dockerfile .
+
+    - name: Deploy to AWS Lambda
+      run: |
+        # AWS CLI commands for backend and frontend deployment
+        aws lambda update-function-code \
+          --function-name my-backend-function \
+          --zip-file fileb://backend/deployment.zip
+        aws s3 sync ./frontend/build s3://my-frontend-bucket --delete

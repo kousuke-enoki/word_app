@@ -23,7 +23,7 @@ const MyPage: React.FC<MyPageProps> = ({ user, onSignOut }) => {
       <p>ようこそ、{user.name}さん！</p>
       <p>今日の日付: {today}</p>
       <p>
-        全単語リスト: <Link to="allwordlist">word app</Link>
+        全単語リスト: <Link to="words">word app</Link>
       </p>
       <button onClick={onSignOut}>サインアウト</button>
     </div>

@@ -17,6 +17,31 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: 1.23
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: Run Go Linter
+      run: golangci-lint run ./...
+
+    - name: Run Backend Tests
+      run: go test ./...
+
+    - name: Install Frontend Dependencies
+      run: npm install
+
+    - name: Run Frontend Linter
+      run: npx eslint src/
+
+    - name: Run Frontend Tests
+      run: npm test
+
     - name: Build Docker Images
       run: |
         docker build -t my-backend:latest -f backend/Dockerfile .

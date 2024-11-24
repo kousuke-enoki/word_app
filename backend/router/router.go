@@ -1,63 +1,55 @@
 package router
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"time"
-	"word_app/backend/ent"
 	"word_app/backend/src/handlers/middleware"
-	"word_app/backend/src/handlers/user"
-	"word_app/backend/src/handlers/word"
-	user_service "word_app/backend/src/service/user"
-	word_service "word_app/backend/src/service/word"
-	"word_app/backend/src/utils"
+	"word_app/backend/src/interfaces"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
-func SetupRouter(router *gin.Engine, client *ent.Client) {
-	// リクエストログ用ミドルウェア
-	router.Use(requestLoggerMiddleware())
+type RouterImplementation struct {
+	UserHandler interfaces.UserHandler
+	WordHandler interfaces.WordHandler
+	JWTSecret   string
+}
 
-	entClient := user_service.NewEntUserClient(client)
-	wordClient := word_service.NewWordService(client)
+func NewRouter(userHandler interfaces.UserHandler, wordHandler interfaces.WordHandler) *RouterImplementation {
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
-		log.Fatal("JWT_SECRET environment variable is required")
+		logrus.Fatal("JWT_SECRET environment variable is required")
 	}
-	jwtGenerator := utils.NewMyJWTGenerator(jwtSecret)
 
-	// jwtGeneratorをUserHandlerに渡す
-	userHandler := user.NewUserHandler(entClient, jwtGenerator)
+	return &RouterImplementation{
+		UserHandler: userHandler,
+		WordHandler: wordHandler,
+		JWTSecret:   jwtSecret,
+	}
+}
 
-	wordHandler := word.NewWordHandler(wordClient)
-
+func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
+	router.Use(requestLoggerMiddleware())
 	router.Use(CORSMiddleware())
+
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "healthy"})
 	})
 
-	router.GET("/", func(c *gin.Context) { /* RootHandlerの処理 */ })
 	userRoutes := router.Group("/users")
 	{
-		userRoutes.POST("/sign_up", userHandler.SignUpHandler())
-		userRoutes.POST("/sign_in", userHandler.SignInHandler())
+		userRoutes.POST("/sign_up", r.UserHandler.SignUpHandler())
+		userRoutes.POST("/sign_in", r.UserHandler.SignInHandler())
 	}
 
-	// 認証が必要なルート
 	protectedRoutes := router.Group("/")
 	protectedRoutes.Use(middleware.AuthMiddleware())
 	{
-		protectedRoutes.GET("/users/my_page", userHandler.MyPageHandler())
-
-		protectedRoutes.GET("/words/all_list", func(c *gin.Context) {
-			wordHandler.AllWordListHandler(c)
-		})
-		protectedRoutes.GET("/words/:id", func(c *gin.Context) {
-			wordHandler.WordShowHandler(c)
-		})
+		protectedRoutes.GET("/users/my_page", r.UserHandler.MyPageHandler())
+		protectedRoutes.GET("/words/all_list", r.WordHandler.AllWordListHandler())
+		protectedRoutes.GET("/words/:id", r.WordHandler.WordShowHandler())
 	}
 }
 

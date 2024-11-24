@@ -11,19 +11,21 @@ const Home: React.FC = () => {
   useEffect(() => {
     // ローカルストレージからJWTトークンを取得
     const token = localStorage.getItem('token')
-
+    if (!token) {
+      return
+    }
     // ユーザー情報を取得するためのリクエストを送信
     axiosInstance
       .get('/users/my_page', {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-        console.log(response)
         setUser(response.data.user) // ユーザー情報を保存
         setMessage('')
       })
       .catch((error) => {
         console.error(error)
+        localStorage.removeItem('token')
         setMessage('ログインしてください')
       })
   }, [])

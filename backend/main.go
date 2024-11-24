@@ -111,7 +111,9 @@ func setupRouter(client *ent.Client, corsOrigin string) *gin.Engine {
 
 	routerImpl := routerConfig.NewRouter(userHandler, wordHandler)
 	routerImpl.SetupRouter(router)
-	router.SetTrustedProxies([]string{"127.0.0.1"})
+	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
+		logrus.Fatalf("Failed to set trusted proxies: %v", err)
+	}
 	logrus.Info("Router setup completed")
 
 	return router

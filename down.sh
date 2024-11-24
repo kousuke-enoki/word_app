@@ -6,4 +6,4 @@ else
   ENV_FILE="backend/.env.development"
 fi
 
-docker compose --env-file $ENV_FILE up
+docker compose --env-file $ENV_FILE down

@@ -31,7 +31,7 @@ func (e *EntUserClient) FindUserByEmail(ctx context.Context, email string) (*ent
 		First(ctx)
 }
 
-func (e *EntUserClient) FindUserByID(ctx context.Context, id int) (*ent.User, error) { // 追加
+func (e *EntUserClient) FindUserByID(ctx context.Context, id int) (*ent.User, error) {
 	return e.client.User.
 		Query().
 		Where(user.ID(id)).

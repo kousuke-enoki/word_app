@@ -47,10 +47,10 @@ const Home: React.FC = () => {
           <p>トップページです。</p>
           <p>{message}</p>
           <p>
-            <Link to="/SignUp">サインアップページ</Link>
+            <Link to="/sign_up">サインアップページ</Link>
           </p>
           <p>
-            <Link to="/SignIn">サインインページ</Link>
+            <Link to="/sign_in">サインインページ</Link>
           </p>
         </>
       )}

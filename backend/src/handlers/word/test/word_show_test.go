@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
 	"word_app/backend/src/handlers/word"
 	"word_app/backend/src/mocks"
 	"word_app/backend/src/models"

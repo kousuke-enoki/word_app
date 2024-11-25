@@ -61,6 +61,14 @@ npm install react-i18next i18next --save
 interfacesがあるディレクトリで
 mockery --name=UserClient --output=./../mocks
 
+# goimport
+cd backend
+goimports -w -local word_app/backend src/
+
+# golangci-lint run --verbose
+cd backend
+golangci-lint run --verbose
+
 0 名詞（noun）
 1 代名詞（pronoun）
 2 動詞（verb）

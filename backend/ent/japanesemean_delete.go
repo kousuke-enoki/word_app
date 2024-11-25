@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/predicate"
 

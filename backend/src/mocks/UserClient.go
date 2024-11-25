@@ -4,6 +4,7 @@ package mocks
 
 import (
 	context "context"
+
 	ent "word_app/backend/ent"
 
 	"github.com/gin-gonic/gin"

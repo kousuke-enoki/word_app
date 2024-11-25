@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+
 	"word_app/backend/ent/partofspeech"
 	"word_app/backend/ent/predicate"
 

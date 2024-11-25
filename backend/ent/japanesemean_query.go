@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/predicate"
 	"word_app/backend/ent/wordinfo"

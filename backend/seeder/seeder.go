@@ -3,6 +3,7 @@ package seeder
 import (
 	"context"
 	"log"
+
 	"word_app/backend/ent"
 	"word_app/backend/ent/partofspeech"
 	"word_app/backend/ent/user"

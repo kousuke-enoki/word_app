@@ -1,0 +1,32 @@
+run:
+  timeout: 2m
+  skip-dirs:
+    - "./ent" # このセクションで無視対象ディレクトリを指定
+
+linters-settings:
+  goimports:
+    local-prefixes: "word_app/backend"
+
+  govet:
+    check-shadowing: false
+
+  gocyclo:
+    min-complexity: 15
+
+issues:
+  exclude-dirs:
+    - "./ent" # issuesセクションでも無視ディレクトリを指定
+
+linters:
+  enable:
+    - govet
+    - errcheck
+    - gofmt
+    - goimports
+    - staticcheck
+    - gocyclo
+
+output:
+  formats:
+    colored-line-number
+  sort-results: true

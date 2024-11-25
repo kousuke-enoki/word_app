@@ -28,7 +28,14 @@ jobs:
       with:
         node-version: 18
 
+    - name: Install golangci-lint
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.54.2
+      env:
+        GO111MODULE: "on"
+
     - name: Run Go Linter
+      working-directory: ./backend
       run: golangci-lint run ./...
 
     - name: Run Backend Tests

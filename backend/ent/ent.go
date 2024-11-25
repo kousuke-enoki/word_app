@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/partofspeech"
 	"word_app/backend/ent/registeredword"

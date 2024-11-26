@@ -63,7 +63,7 @@ jobs:
 
     - name: Run Go Linter
       working-directory: ./backend
-      run: 
+      run: |
         go mod tidy
         golangci-lint run
 

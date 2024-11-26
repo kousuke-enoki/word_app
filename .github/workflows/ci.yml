@@ -65,6 +65,7 @@ jobs:
       working-directory: ./backend
       run: |
         go mod tidy
+        go mod download
         golangci-lint run
 
     - name: Run Backend Tests

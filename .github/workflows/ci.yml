@@ -30,7 +30,23 @@ jobs:
       with:
         node-version: 18
 
+    - name: Install dependencies
+      working-directory: ./backend
+      run: |
+        go mod tidy
+        go mod download
+
+    - name: Generate Ent code
+      working-directory: ./backend
+      run: go generate ./ent
+
+    - name: Generate mocks
+      working-directory: ./backend
+      run: mockery --all --output=src/mocks
+
+
     - name: Install golangci-lint
+      working-directory: ./backend
       run: |
         curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.54.2
       env:

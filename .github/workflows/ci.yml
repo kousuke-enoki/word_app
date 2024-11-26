@@ -46,6 +46,14 @@ jobs:
       working-directory: ./backend
       run: go generate ./ent
 
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
     - name: Install golangci-lint
       working-directory: ./backend
       run: |
@@ -55,7 +63,9 @@ jobs:
 
     - name: Run Go Linter
       working-directory: ./backend
-      run: golangci-lint run
+      run: 
+        go mod tidy
+        golangci-lint run
 
     - name: Run Backend Tests
       working-directory: ./backend

@@ -38,7 +38,7 @@ jobs:
     - name: Install dependencies
       working-directory: ./backend
       run: |
-        rm -rf /home/runner/go/pkg/mod
+        sudo rm -rf $(go env GOPATH)/pkg/mod
         go mod tidy
         go mod download
 
@@ -72,10 +72,20 @@ jobs:
       run: go test ./...
 
     - name: Install Frontend Dependencies
+      working-directory: ./frontend
       run: npm install
 
     - name: Run Frontend Linter
+      working-directory: ./frontend
       run: npx eslint src/
 
     - name: Run Frontend Tests
+      working-directory: ./frontend
       run: npm test
+
+    - name: Start Docker Compose
+      working-directory: ./backend
+      run: |
+        docker compose --env-file backend/.env.development up -d 
+      env:
+        DOCKER_BUILDKIT: 1

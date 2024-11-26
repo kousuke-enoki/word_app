@@ -1,7 +1,7 @@
 run:
   timeout: 2m
   skip-dirs:
-    - "./ent" # このセクションで無視対象ディレクトリを指定
+    - "ent"
 
 linters-settings:
   goimports:
@@ -12,10 +12,6 @@ linters-settings:
 
   gocyclo:
     min-complexity: 15
-
-issues:
-  exclude-dirs:
-    - "./ent" # issuesセクションでも無視ディレクトリを指定
 
 linters:
   enable:

@@ -55,7 +55,7 @@ jobs:
 
     - name: Run Go Linter
       working-directory: ./backend
-      run: golangci-lint run ./...
+      run: golangci-lint run
 
     - name: Run Backend Tests
       working-directory: ./backend

@@ -11,7 +11,7 @@ import (
 	"word_app/backend/src/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v4"
+	jwt "github.com/golang-jwt/jwt/v4"
 )
 
 func AuthMiddleware() gin.HandlerFunc {

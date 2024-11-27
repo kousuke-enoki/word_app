@@ -19,20 +19,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// JWT トークン生成のモック関数
-type SignInMockJWTGenerator struct {
-	mock.Mock
-}
-
-func (m *SignInMockJWTGenerator) GenerateJWT(userID string) (string, error) {
-	args := m.Called(userID)
-	return args.String(0), args.Error(1)
-}
 func TestSignInHandler_ValidRequest(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	mockClient := new(mocks.UserClient)
-	mockJWTGen := new(SignInMockJWTGenerator)
+	mockJWTGen := new(mocks.JwtGenerator)
 
 	handler := user.NewUserHandler(mockClient, mockJWTGen)
 
@@ -73,7 +64,7 @@ func TestSignInHandler_InvalidCredentials(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	mockClient := new(mocks.UserClient)
-	mockJWTGen := &SignInMockJWTGenerator{}
+	mockJWTGen := &mocks.JwtGenerator{}
 	handler := user.NewUserHandler(mockClient, mockJWTGen)
 
 	// 無効なリクエストデータ
@@ -120,7 +111,7 @@ func TestSignInHandler_TokenGenerationError(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	mockClient := new(mocks.UserClient)
-	mockJWTGen := &SignInMockJWTGenerator{}
+	mockJWTGen := &mocks.JwtGenerator{}
 	handler := user.NewUserHandler(mockClient, mockJWTGen)
 
 	// 正常なユーザーデータとトークン生成エラーのモック設定

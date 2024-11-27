@@ -18,18 +18,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// JWT トークン生成のモック関数
-type MockJWTGenerator struct{}
-
-func (m *MockJWTGenerator) GenerateJWT(userID string) (string, error) {
-	return "mocked_jwt_token", nil
-}
-
 func TestSignUpHandler_ValidRequest(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	mockClient := new(mocks.UserClient)
-	mockJWTGen := &MockJWTGenerator{}
+	mockJWTGen := &mocks.JwtGenerator{}
 
 	handler := user.NewUserHandler(mockClient, mockJWTGen)
 
@@ -43,6 +36,7 @@ func TestSignUpHandler_ValidRequest(t *testing.T) {
 
 	mockClient.On("CreateUser", mock.Anything, reqData.Email, reqData.Name, mock.Anything).
 		Return(&ent.User{ID: 1, Name: reqData.Name, Email: reqData.Email}, nil)
+	mockJWTGen.On("GenerateJWT", "1").Return("mocked_jwt_token", nil)
 
 	req, _ := http.NewRequest(http.MethodPost, "/signup", bytes.NewBuffer(reqBody))
 	req.Header.Set("Content-Type", "application/json")
@@ -60,13 +54,14 @@ func TestSignUpHandler_ValidRequest(t *testing.T) {
 	assert.Equal(t, "mocked_jwt_token", responseData["token"])
 
 	mockClient.AssertExpectations(t)
+	mockJWTGen.AssertExpectations(t)
 }
 
 func TestSignUpHandler_InvalidRequest(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	mockClient := new(mocks.UserClient)
-	mockJWTGen := &MockJWTGenerator{}
+	mockJWTGen := &mocks.JwtGenerator{}
 
 	handler := user.NewUserHandler(mockClient, mockJWTGen)
 

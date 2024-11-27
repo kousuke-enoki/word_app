@@ -7,7 +7,7 @@ import (
 
 	"word_app/backend/src/utils"
 
-	"github.com/golang-jwt/jwt/v4"
+	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/stretchr/testify/assert"
 )
 

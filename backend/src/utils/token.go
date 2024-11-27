@@ -1,6 +1,6 @@
 package utils
 
-import "github.com/golang-jwt/jwt/v4"
+import jwt "github.com/golang-jwt/jwt/v4"
 
 type MyJWTGenerator struct {
 	secretKey string

@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"errors"
 	"time"
 
 	"entgo.io/ent"
@@ -27,7 +28,13 @@ func (RegisteredWord) Fields() []ent.Field {
 			Default(0),
 		field.String("memo").
 			Optional().
-			Nillable(),
+			Nillable().
+			Validate(func(memo string) error {
+				if len(memo) > 200 {
+					return errors.New("memo must be under 200 characters")
+				}
+				return nil
+			}),
 		field.Time("created_at").
 			Default(time.Now),
 		field.Time("updated_at").

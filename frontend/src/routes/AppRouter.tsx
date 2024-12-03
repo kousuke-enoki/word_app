@@ -1,12 +1,12 @@
 import React from 'react'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
-import Home from '../pages/user/Home'
-import SignIn from '../pages/user/SignIn'
-import SignUp from '../pages/user/SignUp'
-import AllWordList from '../pages/word/AllWordList'
-import WordShow from '../pages/word/WordShow'
+import Home from '../components/user/Home'
+import SignIn from '../components/user/SignIn'
+import SignUp from '../components/user/SignUp'
+import AllWordList from '../components/word/AllWordList'
+import WordShow from '../components/word/WordShow'
 import Header from '../components/Header'
-// import Dashboard from '../pages/Dashboard';
+// import Dashboard from '../components/Dashboard';
 // import Footer from '../components/Footer';
 
 const AppRouter: React.FC = () => {

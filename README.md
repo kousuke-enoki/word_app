@@ -31,6 +31,7 @@ docker ps
 
 # PostgreSQLコンテナに接続
 docker compose exec -it db psql -U postgres -d db
+docker compose --env-file backend/.env.development exec -it db psql -U postgres -d db
 
 # テーブルの一覧を表示
 \dt

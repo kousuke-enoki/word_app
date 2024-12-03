@@ -24,11 +24,25 @@ type JapaneseMean struct {
 }
 
 type WordResponse struct {
-	Name               string     `json:"name"`
-	WordInfos          []WordInfo `json:"wordInfos"`
-	IsRegistered       bool       `json:"isRegistered"`
-	TestCount          int        `json:"testCount"`
-	CheckCount         int        `json:"checkCount"`
-	RegistrationActive bool       `json:"registrationActive"`
-	Memo               string     `json:"memo"`
+	ID           int        `json:"id"`
+	Name         string     `json:"name"`
+	WordInfos    []WordInfo `json:"wordInfos"`
+	IsRegistered bool       `json:"isRegistered"`
+	TestCount    int        `json:"testCount"`
+	CheckCount   int        `json:"checkCount"`
+	Memo         string     `json:"memo"`
+}
+
+type RegisterWordRequest struct {
+	WordID       int    `json:"wordId" binding:"required"`
+	UserID       int    `json:"userId"`
+	IsRegistered bool   `json:"isRegistered"`
+	Memo         string `json:"memo"`
+}
+
+type RegisterWordResponse struct {
+	Name         string `json:"name"`
+	IsRegistered bool   `json:"isRegistered"`
+	Memo         string `json:"memo"`
+	Message      string `json:"message"`
 }

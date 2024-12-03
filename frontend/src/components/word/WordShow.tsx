@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axiosInstance from '../../axiosConfig'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Word, WordInfo, JapaneseMean } from '../../types/wordTypes'
+import { registerWord } from '../../service/word/RegisterWord'
 
 const WordShow: React.FC = () => {
   const { id } = useParams()
@@ -34,6 +35,16 @@ const WordShow: React.FC = () => {
     return <p>No word details found.</p>
   }
 
+  const handleRegister = async () => {
+    if (!word) return
+    try {
+      await registerWord(word.id, !word.isRegistered, word.memo || '')
+      setWord({ ...word, isRegistered: !word.isRegistered })
+    } catch (error) {
+      console.error('Error registering word:', error)
+    }
+  }
+
   return (
     <div>
       <h1>{word.name}</h1>
@@ -51,15 +62,22 @@ const WordShow: React.FC = () => {
       <p>登録済み: {word.isRegistered ? 'はい' : 'いいえ'}</p>
       <p>テスト回数: {word.testCount}</p>
       <p>チェック回数: {word.checkCount}</p>
-      <p>登録活性: {word.registrationActive ? 'はい' : 'いいえ'}</p>
+      <p>登録活性: {word.isRegistered ? 'はい' : 'いいえ'}</p>
       <p>メモ: {word.memo}</p>
-      <button
-        onClick={() =>
-          navigate('/allwordlist', { state: { page: previousPage } })
-        }
-      >
-        一覧に戻る
-      </button>
+      <div>
+        <p>
+          <button onClick={handleRegister}>
+            {word.isRegistered ? '登録解除' : '登録する'}
+          </button>
+        </p>
+      </div>
+      <p>
+        <button
+          onClick={() => navigate('/words', { state: { page: previousPage } })}
+        >
+          一覧に戻る
+        </button>
+      </p>
     </div>
   )
 }

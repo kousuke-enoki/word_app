@@ -30,7 +30,7 @@ func (s *WordServiceImpl) GetWordDetails(ctx context.Context, wordID int) (*mode
 
 	if len(wordEntity.Edges.RegisteredWords) > 0 {
 		registeredWord := wordEntity.Edges.RegisteredWords[0]
-		isRegistered = true
+		isRegistered = registeredWord.IsActive
 		testCount = registeredWord.TestCount
 		checkCount = registeredWord.CheckCount
 		if registeredWord.Memo != nil {
@@ -60,13 +60,13 @@ func (s *WordServiceImpl) GetWordDetails(ctx context.Context, wordID int) (*mode
 	}
 
 	response := &models.WordResponse{
-		Name:               wordEntity.Name,
-		WordInfos:          wordInfos,
-		IsRegistered:       isRegistered,
-		TestCount:          testCount,
-		CheckCount:         checkCount,
-		RegistrationActive: isRegistered,
-		Memo:               memo,
+		ID:           wordEntity.ID,
+		Name:         wordEntity.Name,
+		WordInfos:    wordInfos,
+		IsRegistered: isRegistered,
+		TestCount:    testCount,
+		CheckCount:   checkCount,
+		Memo:         memo,
 	}
 
 	return response, nil

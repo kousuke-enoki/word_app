@@ -21,6 +21,6 @@ export interface Word {
   isRegistered?: boolean
   testCount?: number
   checkCount?: number
-  registrationActive?: boolean
+  registrationActive: boolean
   memo?: string
 }

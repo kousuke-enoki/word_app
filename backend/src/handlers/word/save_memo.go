@@ -13,28 +13,28 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// type FieldError struct {
-// 	Field   string `json:"field"`
-// 	Message string `json:"message"`
-// }
+type FieldError struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
+}
 
-func (h *WordHandler) RegisterWordHandler() gin.HandlerFunc {
+func (h *WordHandler) SaveMemoHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
-		req, err := h.parseRequest(c)
+		req, err := h.parseSaveMemoRequest(c)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		// validationErrors := h.validateWordRegister(req)
-		// if len(validationErrors) > 0 {
-		// 	c.JSON(http.StatusBadRequest, gin.H{"errors": validationErrors})
-		// 	return
-		// }
+		validationErrors := h.validateWordRegister(req)
+		if len(validationErrors) > 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"errors": validationErrors})
+			return
+		}
 
 		// サービス層からデータを取得
-		response, err := h.wordService.RegisterWords(ctx, req.WordID, req.UserID, req.IsRegistered)
+		response, err := h.wordService.SaveMemo(ctx, req.WordID, req.UserID, req.Memo)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -44,7 +44,7 @@ func (h *WordHandler) RegisterWordHandler() gin.HandlerFunc {
 	}
 }
 
-func (h *WordHandler) parseRequest(c *gin.Context) (*models.RegisterWordRequest, error) {
+func (h *WordHandler) parseSaveMemoRequest(c *gin.Context) (*models.SaveMemoRequest, error) {
 	// リクエストボディが空の場合をチェック
 	if c.Request.Body == nil {
 		return nil, errors.New("request body is missing")
@@ -59,8 +59,8 @@ func (h *WordHandler) parseRequest(c *gin.Context) (*models.RegisterWordRequest,
 	// GinのShouldBindJSONを正しく動作させるため、リクエストボディを再設定
 	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 
-	// JSONを`RegisterWordRequest`構造体にバインド
-	var req models.RegisterWordRequest
+	// JSONを`SaveMemoRequest`構造体にバインド
+	var req models.SaveMemoRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		return nil, errors.New("invalid JSON format: " + err.Error())
 	}
@@ -81,22 +81,26 @@ func (h *WordHandler) parseRequest(c *gin.Context) (*models.RegisterWordRequest,
 	req.UserID = userIDInt
 	logrus.Infof("Final parsed request with userID: %+v", req)
 
-	return &req, nil
+	return &models.SaveMemoRequest{
+		WordID: req.WordID,
+		UserID: req.UserID,
+		Memo:   req.Memo,
+	}, nil
 }
 
-// func (h *WordHandler) validateWordRegister(req *models.RegisterWordRequest) []FieldError {
-// 	// var errors []FieldError
-// 	var fieldErrors []FieldError
+func (h *WordHandler) validateWordRegister(req *models.SaveMemoRequest) []FieldError {
+	// var errors []FieldError
+	var fieldErrors []FieldError
 
-// 	// 各フィールドの検証を個別の関数に分割
-// 	fieldErrors = append(fieldErrors, h.validateMemo(req.Memo)...)
+	// 各フィールドの検証を個別の関数に分割
+	fieldErrors = append(fieldErrors, h.validateMemo(req.Memo)...)
 
-// 	return fieldErrors
-// }
-// func (h *WordHandler) validateMemo(memo string) []FieldError {
-// 	var fieldErrors []FieldError
-// 	if len(memo) > 200 {
-// 		fieldErrors = append(fieldErrors, FieldError{Field: "memo", Message: "memo must be less than 200 characters"})
-// 	}
-// 	return fieldErrors
-// }
+	return fieldErrors
+}
+func (h *WordHandler) validateMemo(memo string) []FieldError {
+	var fieldErrors []FieldError
+	if len(memo) > 200 {
+		fieldErrors = append(fieldErrors, FieldError{Field: "memo", Message: "memo must be less than 200 characters"})
+	}
+	return fieldErrors
+}

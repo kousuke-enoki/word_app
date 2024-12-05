@@ -34,15 +34,25 @@ type WordResponse struct {
 }
 
 type RegisterWordRequest struct {
-	WordID       int    `json:"wordId" binding:"required"`
-	UserID       int    `json:"userId"`
-	IsRegistered bool   `json:"isRegistered"`
-	Memo         string `json:"memo"`
+	WordID       int  `json:"wordId" binding:"required"`
+	UserID       int  `json:"userId"`
+	IsRegistered bool `json:"isRegistered"`
 }
 
 type RegisterWordResponse struct {
 	Name         string `json:"name"`
 	IsRegistered bool   `json:"isRegistered"`
-	Memo         string `json:"memo"`
 	Message      string `json:"message"`
+}
+
+type SaveMemoRequest struct {
+	WordID int    `json:"wordId" binding:"required"`
+	UserID int    `json:"userId"`
+	Memo   string `json:"memo"`
+}
+
+type SaveMemoResponse struct {
+	Name    string `json:"name"`
+	Memo    string `json:"memo"`
+	Message string `json:"message"`
 }

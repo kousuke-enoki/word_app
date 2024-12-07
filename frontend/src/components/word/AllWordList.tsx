@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import axiosInstance from '../../axiosConfig'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Word, WordInfo, JapaneseMean } from '../../types/wordTypes'
+import './AllWordList.css'
 
 const AllWordList: React.FC = () => {
   const [words, setWords] = useState<Word[]>([])

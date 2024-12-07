@@ -3,17 +3,17 @@ import axiosInstance from '../../axiosConfig'
 /**
  * 単語を登録するAPI
  * @param wordId 登録する単語のID
- * @param IsRegistered 登録するか、解除するか
+ * @param memo オプションのメモ
  */
-export const registerWord = async (wordId: number, IsRegistered: boolean) => {
+export const saveMemo = async (wordId: number, memo = '') => {
   try {
-    const response = await axiosInstance.post('/words/register', {
+    const response = await axiosInstance.post('/words/memo', {
       wordId,
-      IsRegistered,
+      memo,
     })
     return response.data // 必要なら成功データを返す
   } catch (error) {
-    console.error('Error registering word:', error)
+    console.error('Error saving memo:', error)
     throw error // 呼び出し元でエラーハンドリング
   }
 }

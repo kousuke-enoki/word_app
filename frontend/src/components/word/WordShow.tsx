@@ -3,6 +3,8 @@ import axiosInstance from '../../axiosConfig'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Word, WordInfo, JapaneseMean } from '../../types/wordTypes'
 import { registerWord } from '../../service/word/RegisterWord'
+import { saveMemo } from '../../service/word/SaveMemo'
+import './WordShow.css'
 
 const WordShow: React.FC = () => {
   const { id } = useParams()
@@ -10,6 +12,8 @@ const WordShow: React.FC = () => {
   const location = useLocation()
   const [word, setWord] = useState<Word | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
+  const [memo, setMemo] = useState<string>('')
+  const [successMessage, setSuccessMessage] = useState<string>('') // 保存成功メッセージの状態
 
   const previousPage = location.state?.page || 1
 
@@ -18,6 +22,7 @@ const WordShow: React.FC = () => {
       try {
         const response = await axiosInstance.get(`/words/${id}`)
         setWord(response.data)
+        setMemo(response.data.memo || '')
       } catch (error) {
         console.error('Error fetching word details:', error)
       } finally {
@@ -38,15 +43,30 @@ const WordShow: React.FC = () => {
   const handleRegister = async () => {
     if (!word) return
     try {
-      await registerWord(word.id, !word.isRegistered, word.memo || '')
+      await registerWord(word.id, !word.isRegistered)
       setWord({ ...word, isRegistered: !word.isRegistered })
     } catch (error) {
       console.error('Error registering word:', error)
     }
   }
 
+  const handleSaveMemo = async () => {
+    if (!word) return
+    try {
+      await saveMemo(word.id, memo || '')
+      setSuccessMessage('メモを保存しました！') // 保存成功メッセージをセット
+      setTimeout(() => setSuccessMessage(''), 3000) // 3秒後にメッセージを消す
+    } catch (error) {
+      console.error('Error saving memo:', error)
+    }
+  }
+
+  const handleMemoChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMemo(e.target.value)
+  }
+
   return (
-    <div>
+    <div className="container">
       <h1>{word.name}</h1>
       {word.wordInfos.map((info: WordInfo) => (
         <div key={info.id}>
@@ -59,25 +79,39 @@ const WordShow: React.FC = () => {
           <p>品詞: {info.partOfSpeech.name}</p>
         </div>
       ))}
-      <p>登録済み: {word.isRegistered ? 'はい' : 'いいえ'}</p>
+      <p>{word.isRegistered ? '登録済み' : '未登録'}</p>
       <p>テスト回数: {word.testCount}</p>
       <p>チェック回数: {word.checkCount}</p>
-      <p>登録活性: {word.isRegistered ? 'はい' : 'いいえ'}</p>
-      <p>メモ: {word.memo}</p>
       <div>
-        <p>
-          <button onClick={handleRegister}>
-            {word.isRegistered ? '登録解除' : '登録する'}
-          </button>
-        </p>
-      </div>
-      <p>
-        <button
-          onClick={() => navigate('/words', { state: { page: previousPage } })}
-        >
-          一覧に戻る
+        <label>
+          メモ:
+          <textarea
+            value={memo}
+            onChange={handleMemoChange}
+            rows={6} // 高さ5行
+            cols={35} // 横幅30文字
+            maxLength={200} // 200文字制限
+          />
+        </label>
+        <button className="save-button" onClick={handleSaveMemo}>
+          保存する
         </button>
-      </p>
+      </div>
+      {successMessage && <div className="success-popup">{successMessage}</div>}
+      <div>
+        <button
+          className={`register-button ${word.isRegistered ? 'registered' : ''}`}
+          onClick={handleRegister}
+        >
+          {word.isRegistered ? '登録解除' : '登録する'}
+        </button>
+      </div>
+      <button
+        className="back-button"
+        onClick={() => navigate('/words', { state: { page: previousPage } })}
+      >
+        一覧に戻る
+      </button>
     </div>
   )
 }

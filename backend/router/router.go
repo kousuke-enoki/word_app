@@ -52,6 +52,7 @@ func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
 		protectedRoutes.GET("/words/all_list", r.WordHandler.AllWordListHandler())
 		protectedRoutes.GET("/words/:id", r.WordHandler.WordShowHandler())
 		protectedRoutes.POST("/words/register", r.WordHandler.RegisterWordHandler())
+		protectedRoutes.POST("/words/memo", r.WordHandler.SaveMemoHandler())
 	}
 }
 

@@ -4,7 +4,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Word, WordInfo, JapaneseMean } from '../../types/wordTypes'
 import { registerWord } from '../../service/word/RegisterWord'
 import { saveMemo } from '../../service/word/SaveMemo'
-import './WordShow.css'
+import '../../styles/components/word/WordShow.css'
 
 const WordShow: React.FC = () => {
   const { id } = useParams()
@@ -43,8 +43,15 @@ const WordShow: React.FC = () => {
   const handleRegister = async () => {
     if (!word) return
     try {
-      await registerWord(word.id, !word.isRegistered)
-      setWord({ ...word, isRegistered: !word.isRegistered })
+      // API呼び出しから新しい登録状態と登録数を取得
+      const updatedWord = await registerWord(word.id, !word.isRegistered)
+
+      // 登録状態と登録数を更新
+      setWord({
+        ...word,
+        isRegistered: updatedWord.isRegistered,
+        registrationCount: updatedWord.registrationCount,
+      })
     } catch (error) {
       console.error('Error registering word:', error)
     }
@@ -80,6 +87,8 @@ const WordShow: React.FC = () => {
         </div>
       ))}
       <p>{word.isRegistered ? '登録済み' : '未登録'}</p>
+      <p>全ユーザーの登録数: {word.registrationCount}</p>
+      <p>単語注意レベル: {word.attentionLevel}</p>
       <p>テスト回数: {word.testCount}</p>
       <p>チェック回数: {word.checkCount}</p>
       <div>

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"sync"
 	"time"
-
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/partofspeech"
 	"word_app/backend/ent/predicate"
@@ -1121,6 +1120,8 @@ type RegisteredWordMutation struct {
 	typ                   string
 	id                    *int
 	is_active             *bool
+	attention_level       *int
+	addattention_level    *int
 	test_count            *int
 	addtest_count         *int
 	check_count           *int
@@ -1345,6 +1346,62 @@ func (m *RegisteredWordMutation) OldIsActive(ctx context.Context) (v bool, err e
 // ResetIsActive resets all changes to the "is_active" field.
 func (m *RegisteredWordMutation) ResetIsActive() {
 	m.is_active = nil
+}
+
+// SetAttentionLevel sets the "attention_level" field.
+func (m *RegisteredWordMutation) SetAttentionLevel(i int) {
+	m.attention_level = &i
+	m.addattention_level = nil
+}
+
+// AttentionLevel returns the value of the "attention_level" field in the mutation.
+func (m *RegisteredWordMutation) AttentionLevel() (r int, exists bool) {
+	v := m.attention_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAttentionLevel returns the old "attention_level" field's value of the RegisteredWord entity.
+// If the RegisteredWord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RegisteredWordMutation) OldAttentionLevel(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAttentionLevel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAttentionLevel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAttentionLevel: %w", err)
+	}
+	return oldValue.AttentionLevel, nil
+}
+
+// AddAttentionLevel adds i to the "attention_level" field.
+func (m *RegisteredWordMutation) AddAttentionLevel(i int) {
+	if m.addattention_level != nil {
+		*m.addattention_level += i
+	} else {
+		m.addattention_level = &i
+	}
+}
+
+// AddedAttentionLevel returns the value that was added to the "attention_level" field in this mutation.
+func (m *RegisteredWordMutation) AddedAttentionLevel() (r int, exists bool) {
+	v := m.addattention_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAttentionLevel resets all changes to the "attention_level" field.
+func (m *RegisteredWordMutation) ResetAttentionLevel() {
+	m.attention_level = nil
+	m.addattention_level = nil
 }
 
 // SetTestCount sets the "test_count" field.
@@ -1722,7 +1779,7 @@ func (m *RegisteredWordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RegisteredWordMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.user != nil {
 		fields = append(fields, registeredword.FieldUserID)
 	}
@@ -1731,6 +1788,9 @@ func (m *RegisteredWordMutation) Fields() []string {
 	}
 	if m.is_active != nil {
 		fields = append(fields, registeredword.FieldIsActive)
+	}
+	if m.attention_level != nil {
+		fields = append(fields, registeredword.FieldAttentionLevel)
 	}
 	if m.test_count != nil {
 		fields = append(fields, registeredword.FieldTestCount)
@@ -1761,6 +1821,8 @@ func (m *RegisteredWordMutation) Field(name string) (ent.Value, bool) {
 		return m.WordID()
 	case registeredword.FieldIsActive:
 		return m.IsActive()
+	case registeredword.FieldAttentionLevel:
+		return m.AttentionLevel()
 	case registeredword.FieldTestCount:
 		return m.TestCount()
 	case registeredword.FieldCheckCount:
@@ -1786,6 +1848,8 @@ func (m *RegisteredWordMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldWordID(ctx)
 	case registeredword.FieldIsActive:
 		return m.OldIsActive(ctx)
+	case registeredword.FieldAttentionLevel:
+		return m.OldAttentionLevel(ctx)
 	case registeredword.FieldTestCount:
 		return m.OldTestCount(ctx)
 	case registeredword.FieldCheckCount:
@@ -1825,6 +1889,13 @@ func (m *RegisteredWordMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsActive(v)
+		return nil
+	case registeredword.FieldAttentionLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAttentionLevel(v)
 		return nil
 	case registeredword.FieldTestCount:
 		v, ok := value.(int)
@@ -1869,6 +1940,9 @@ func (m *RegisteredWordMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *RegisteredWordMutation) AddedFields() []string {
 	var fields []string
+	if m.addattention_level != nil {
+		fields = append(fields, registeredword.FieldAttentionLevel)
+	}
 	if m.addtest_count != nil {
 		fields = append(fields, registeredword.FieldTestCount)
 	}
@@ -1883,6 +1957,8 @@ func (m *RegisteredWordMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *RegisteredWordMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case registeredword.FieldAttentionLevel:
+		return m.AddedAttentionLevel()
 	case registeredword.FieldTestCount:
 		return m.AddedTestCount()
 	case registeredword.FieldCheckCount:
@@ -1896,6 +1972,13 @@ func (m *RegisteredWordMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *RegisteredWordMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case registeredword.FieldAttentionLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAttentionLevel(v)
+		return nil
 	case registeredword.FieldTestCount:
 		v, ok := value.(int)
 		if !ok {
@@ -1954,6 +2037,9 @@ func (m *RegisteredWordMutation) ResetField(name string) error {
 		return nil
 	case registeredword.FieldIsActive:
 		m.ResetIsActive()
+		return nil
+	case registeredword.FieldAttentionLevel:
+		m.ResetAttentionLevel()
 		return nil
 	case registeredword.FieldTestCount:
 		m.ResetTestCount()

@@ -10,7 +10,7 @@ import (
 )
 
 // word_show
-func (s *WordServiceImpl) GetWordDetails(ctx context.Context, wordID int) (*models.WordResponse, error) {
+func (s *WordServiceImpl) GetWordDetails(ctx context.Context, wordID int, userID int) (*models.WordShowResponse, error) {
 	wordEntity, err := s.client.Word.
 		Query().
 		Where(word.ID(wordID)).
@@ -25,17 +25,33 @@ func (s *WordServiceImpl) GetWordDetails(ctx context.Context, wordID int) (*mode
 
 	// 登録済み情報を取得
 	var isRegistered bool
-	var testCount, checkCount int
+	var testCount, checkCount, attentionLevel int
 	var memo string
 
-	if len(wordEntity.Edges.RegisteredWords) > 0 {
-		registeredWord := wordEntity.Edges.RegisteredWords[0]
+	// userID に関連付けられた RegisteredWord を検索
+	var registeredWord *ent.RegisteredWord
+	for _, rw := range wordEntity.Edges.RegisteredWords {
+		if rw.UserID == userID {
+			registeredWord = rw
+			break
+		}
+	}
+
+	// registeredWord が存在する場合の処理
+	if registeredWord != nil {
 		isRegistered = registeredWord.IsActive
+		attentionLevel = registeredWord.AttentionLevel
 		testCount = registeredWord.TestCount
 		checkCount = registeredWord.CheckCount
 		if registeredWord.Memo != nil {
 			memo = *registeredWord.Memo
 		}
+	} else {
+		isRegistered = false
+		attentionLevel = 0
+		testCount = 0
+		checkCount = 0
+		memo = ""
 	}
 
 	// WordInfosを変換
@@ -59,14 +75,16 @@ func (s *WordServiceImpl) GetWordDetails(ctx context.Context, wordID int) (*mode
 		}
 	}
 
-	response := &models.WordResponse{
-		ID:           wordEntity.ID,
-		Name:         wordEntity.Name,
-		WordInfos:    wordInfos,
-		IsRegistered: isRegistered,
-		TestCount:    testCount,
-		CheckCount:   checkCount,
-		Memo:         memo,
+	response := &models.WordShowResponse{
+		ID:                wordEntity.ID,
+		Name:              wordEntity.Name,
+		RegistrationCount: wordEntity.RegistrationCount,
+		WordInfos:         wordInfos,
+		IsRegistered:      isRegistered,
+		AttentionLevel:    attentionLevel,
+		TestCount:         testCount,
+		CheckCount:        checkCount,
+		Memo:              memo,
 	}
 
 	return response, nil

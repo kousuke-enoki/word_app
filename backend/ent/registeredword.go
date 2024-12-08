@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/word"
@@ -26,6 +25,8 @@ type RegisteredWord struct {
 	WordID int `json:"word_id,omitempty"`
 	// IsActive holds the value of the "is_active" field.
 	IsActive bool `json:"is_active,omitempty"`
+	// AttentionLevel holds the value of the "attention_level" field.
+	AttentionLevel int `json:"attention_level,omitempty"`
 	// TestCount holds the value of the "test_count" field.
 	TestCount int `json:"test_count,omitempty"`
 	// CheckCount holds the value of the "check_count" field.
@@ -93,7 +94,7 @@ func (*RegisteredWord) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case registeredword.FieldIsActive:
 			values[i] = new(sql.NullBool)
-		case registeredword.FieldID, registeredword.FieldUserID, registeredword.FieldWordID, registeredword.FieldTestCount, registeredword.FieldCheckCount:
+		case registeredword.FieldID, registeredword.FieldUserID, registeredword.FieldWordID, registeredword.FieldAttentionLevel, registeredword.FieldTestCount, registeredword.FieldCheckCount:
 			values[i] = new(sql.NullInt64)
 		case registeredword.FieldMemo:
 			values[i] = new(sql.NullString)
@@ -137,6 +138,12 @@ func (rw *RegisteredWord) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_active", values[i])
 			} else if value.Valid {
 				rw.IsActive = value.Bool
+			}
+		case registeredword.FieldAttentionLevel:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field attention_level", values[i])
+			} else if value.Valid {
+				rw.AttentionLevel = int(value.Int64)
 			}
 		case registeredword.FieldTestCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -228,6 +235,9 @@ func (rw *RegisteredWord) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_active=")
 	builder.WriteString(fmt.Sprintf("%v", rw.IsActive))
+	builder.WriteString(", ")
+	builder.WriteString("attention_level=")
+	builder.WriteString(fmt.Sprintf("%v", rw.AttentionLevel))
 	builder.WriteString(", ")
 	builder.WriteString("test_count=")
 	builder.WriteString(fmt.Sprintf("%v", rw.TestCount))

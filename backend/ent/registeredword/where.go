@@ -4,7 +4,6 @@ package registeredword
 
 import (
 	"time"
-
 	"word_app/backend/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
@@ -69,6 +68,11 @@ func WordID(v int) predicate.RegisteredWord {
 // IsActive applies equality check predicate on the "is_active" field. It's identical to IsActiveEQ.
 func IsActive(v bool) predicate.RegisteredWord {
 	return predicate.RegisteredWord(sql.FieldEQ(FieldIsActive, v))
+}
+
+// AttentionLevel applies equality check predicate on the "attention_level" field. It's identical to AttentionLevelEQ.
+func AttentionLevel(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldEQ(FieldAttentionLevel, v))
 }
 
 // TestCount applies equality check predicate on the "test_count" field. It's identical to TestCountEQ.
@@ -144,6 +148,46 @@ func IsActiveEQ(v bool) predicate.RegisteredWord {
 // IsActiveNEQ applies the NEQ predicate on the "is_active" field.
 func IsActiveNEQ(v bool) predicate.RegisteredWord {
 	return predicate.RegisteredWord(sql.FieldNEQ(FieldIsActive, v))
+}
+
+// AttentionLevelEQ applies the EQ predicate on the "attention_level" field.
+func AttentionLevelEQ(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldEQ(FieldAttentionLevel, v))
+}
+
+// AttentionLevelNEQ applies the NEQ predicate on the "attention_level" field.
+func AttentionLevelNEQ(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldNEQ(FieldAttentionLevel, v))
+}
+
+// AttentionLevelIn applies the In predicate on the "attention_level" field.
+func AttentionLevelIn(vs ...int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldIn(FieldAttentionLevel, vs...))
+}
+
+// AttentionLevelNotIn applies the NotIn predicate on the "attention_level" field.
+func AttentionLevelNotIn(vs ...int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldNotIn(FieldAttentionLevel, vs...))
+}
+
+// AttentionLevelGT applies the GT predicate on the "attention_level" field.
+func AttentionLevelGT(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldGT(FieldAttentionLevel, v))
+}
+
+// AttentionLevelGTE applies the GTE predicate on the "attention_level" field.
+func AttentionLevelGTE(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldGTE(FieldAttentionLevel, v))
+}
+
+// AttentionLevelLT applies the LT predicate on the "attention_level" field.
+func AttentionLevelLT(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldLT(FieldAttentionLevel, v))
+}
+
+// AttentionLevelLTE applies the LTE predicate on the "attention_level" field.
+func AttentionLevelLTE(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldLTE(FieldAttentionLevel, v))
 }
 
 // TestCountEQ applies the EQ predicate on the "test_count" field.

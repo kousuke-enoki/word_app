@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"time"
-
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/testquestion"
 	"word_app/backend/ent/user"
@@ -46,6 +45,20 @@ func (rwc *RegisteredWordCreate) SetIsActive(b bool) *RegisteredWordCreate {
 func (rwc *RegisteredWordCreate) SetNillableIsActive(b *bool) *RegisteredWordCreate {
 	if b != nil {
 		rwc.SetIsActive(*b)
+	}
+	return rwc
+}
+
+// SetAttentionLevel sets the "attention_level" field.
+func (rwc *RegisteredWordCreate) SetAttentionLevel(i int) *RegisteredWordCreate {
+	rwc.mutation.SetAttentionLevel(i)
+	return rwc
+}
+
+// SetNillableAttentionLevel sets the "attention_level" field if the given value is not nil.
+func (rwc *RegisteredWordCreate) SetNillableAttentionLevel(i *int) *RegisteredWordCreate {
+	if i != nil {
+		rwc.SetAttentionLevel(*i)
 	}
 	return rwc
 }
@@ -184,6 +197,10 @@ func (rwc *RegisteredWordCreate) defaults() {
 		v := registeredword.DefaultIsActive
 		rwc.mutation.SetIsActive(v)
 	}
+	if _, ok := rwc.mutation.AttentionLevel(); !ok {
+		v := registeredword.DefaultAttentionLevel
+		rwc.mutation.SetAttentionLevel(v)
+	}
 	if _, ok := rwc.mutation.TestCount(); !ok {
 		v := registeredword.DefaultTestCount
 		rwc.mutation.SetTestCount(v)
@@ -218,11 +235,24 @@ func (rwc *RegisteredWordCreate) check() error {
 	if _, ok := rwc.mutation.IsActive(); !ok {
 		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "RegisteredWord.is_active"`)}
 	}
+	if _, ok := rwc.mutation.AttentionLevel(); !ok {
+		return &ValidationError{Name: "attention_level", err: errors.New(`ent: missing required field "RegisteredWord.attention_level"`)}
+	}
+	if v, ok := rwc.mutation.AttentionLevel(); ok {
+		if err := registeredword.AttentionLevelValidator(v); err != nil {
+			return &ValidationError{Name: "attention_level", err: fmt.Errorf(`ent: validator failed for field "RegisteredWord.attention_level": %w`, err)}
+		}
+	}
 	if _, ok := rwc.mutation.TestCount(); !ok {
 		return &ValidationError{Name: "test_count", err: errors.New(`ent: missing required field "RegisteredWord.test_count"`)}
 	}
 	if _, ok := rwc.mutation.CheckCount(); !ok {
 		return &ValidationError{Name: "check_count", err: errors.New(`ent: missing required field "RegisteredWord.check_count"`)}
+	}
+	if v, ok := rwc.mutation.Memo(); ok {
+		if err := registeredword.MemoValidator(v); err != nil {
+			return &ValidationError{Name: "memo", err: fmt.Errorf(`ent: validator failed for field "RegisteredWord.memo": %w`, err)}
+		}
 	}
 	if _, ok := rwc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "RegisteredWord.created_at"`)}
@@ -265,6 +295,10 @@ func (rwc *RegisteredWordCreate) createSpec() (*RegisteredWord, *sqlgraph.Create
 	if value, ok := rwc.mutation.IsActive(); ok {
 		_spec.SetField(registeredword.FieldIsActive, field.TypeBool, value)
 		_node.IsActive = value
+	}
+	if value, ok := rwc.mutation.AttentionLevel(); ok {
+		_spec.SetField(registeredword.FieldAttentionLevel, field.TypeInt, value)
+		_node.AttentionLevel = value
 	}
 	if value, ok := rwc.mutation.TestCount(); ok {
 		_spec.SetField(registeredword.FieldTestCount, field.TypeInt, value)

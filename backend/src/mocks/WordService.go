@@ -16,23 +16,23 @@ type WordService struct {
 }
 
 // GetWordDetails provides a mock function with given fields: ctx, wordID
-func (_m *WordService) GetWordDetails(ctx context.Context, wordID int) (*models.WordResponse, error) {
+func (_m *WordService) GetWordDetails(ctx context.Context, wordID int) (*models.WordShowResponse, error) {
 	ret := _m.Called(ctx, wordID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetWordDetails")
 	}
 
-	var r0 *models.WordResponse
+	var r0 *models.WordShowResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int) (*models.WordResponse, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int) (*models.WordShowResponse, error)); ok {
 		return rf(ctx, wordID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int) *models.WordResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int) *models.WordShowResponse); ok {
 		r0 = rf(ctx, wordID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.WordResponse)
+			r0 = ret.Get(0).(*models.WordShowResponse)
 		}
 	}
 

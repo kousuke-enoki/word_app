@@ -4,7 +4,6 @@ package ent
 
 import (
 	"time"
-
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/partofspeech"
 	"word_app/backend/ent/registeredword"
@@ -66,20 +65,30 @@ func init() {
 	registeredwordDescIsActive := registeredwordFields[2].Descriptor()
 	// registeredword.DefaultIsActive holds the default value on creation for the is_active field.
 	registeredword.DefaultIsActive = registeredwordDescIsActive.Default.(bool)
+	// registeredwordDescAttentionLevel is the schema descriptor for attention_level field.
+	registeredwordDescAttentionLevel := registeredwordFields[3].Descriptor()
+	// registeredword.DefaultAttentionLevel holds the default value on creation for the attention_level field.
+	registeredword.DefaultAttentionLevel = registeredwordDescAttentionLevel.Default.(int)
+	// registeredword.AttentionLevelValidator is a validator for the "attention_level" field. It is called by the builders before save.
+	registeredword.AttentionLevelValidator = registeredwordDescAttentionLevel.Validators[0].(func(int) error)
 	// registeredwordDescTestCount is the schema descriptor for test_count field.
-	registeredwordDescTestCount := registeredwordFields[3].Descriptor()
+	registeredwordDescTestCount := registeredwordFields[4].Descriptor()
 	// registeredword.DefaultTestCount holds the default value on creation for the test_count field.
 	registeredword.DefaultTestCount = registeredwordDescTestCount.Default.(int)
 	// registeredwordDescCheckCount is the schema descriptor for check_count field.
-	registeredwordDescCheckCount := registeredwordFields[4].Descriptor()
+	registeredwordDescCheckCount := registeredwordFields[5].Descriptor()
 	// registeredword.DefaultCheckCount holds the default value on creation for the check_count field.
 	registeredword.DefaultCheckCount = registeredwordDescCheckCount.Default.(int)
+	// registeredwordDescMemo is the schema descriptor for memo field.
+	registeredwordDescMemo := registeredwordFields[6].Descriptor()
+	// registeredword.MemoValidator is a validator for the "memo" field. It is called by the builders before save.
+	registeredword.MemoValidator = registeredwordDescMemo.Validators[0].(func(string) error)
 	// registeredwordDescCreatedAt is the schema descriptor for created_at field.
-	registeredwordDescCreatedAt := registeredwordFields[6].Descriptor()
+	registeredwordDescCreatedAt := registeredwordFields[7].Descriptor()
 	// registeredword.DefaultCreatedAt holds the default value on creation for the created_at field.
 	registeredword.DefaultCreatedAt = registeredwordDescCreatedAt.Default.(func() time.Time)
 	// registeredwordDescUpdatedAt is the schema descriptor for updated_at field.
-	registeredwordDescUpdatedAt := registeredwordFields[7].Descriptor()
+	registeredwordDescUpdatedAt := registeredwordFields[8].Descriptor()
 	// registeredword.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	registeredword.DefaultUpdatedAt = registeredwordDescUpdatedAt.Default.(func() time.Time)
 	// registeredword.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -113,7 +122,21 @@ func init() {
 	// userDescEmail is the schema descriptor for email field.
 	userDescEmail := userFields[0].Descriptor()
 	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
-	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
+	user.EmailValidator = func() func(string) error {
+		validators := userDescEmail.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(email string) error {
+			for _, fn := range fns {
+				if err := fn(email); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// userDescPassword is the schema descriptor for password field.
 	userDescPassword := userFields[1].Descriptor()
 	// user.PasswordValidator is a validator for the "password" field. It is called by the builders before save.
@@ -121,7 +144,21 @@ func init() {
 	// userDescName is the schema descriptor for name field.
 	userDescName := userFields[2].Descriptor()
 	// user.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	user.NameValidator = userDescName.Validators[0].(func(string) error)
+	user.NameValidator = func() func(string) error {
+		validators := userDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// userDescCreatedAt is the schema descriptor for created_at field.
 	userDescCreatedAt := userFields[3].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.

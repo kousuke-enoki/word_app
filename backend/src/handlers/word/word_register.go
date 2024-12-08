@@ -13,11 +13,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// type FieldError struct {
-// 	Field   string `json:"field"`
-// 	Message string `json:"message"`
-// }
-
 func (h *WordHandler) RegisterWordHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
@@ -26,12 +21,6 @@ func (h *WordHandler) RegisterWordHandler() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-
-		// validationErrors := h.validateWordRegister(req)
-		// if len(validationErrors) > 0 {
-		// 	c.JSON(http.StatusBadRequest, gin.H{"errors": validationErrors})
-		// 	return
-		// }
 
 		// サービス層からデータを取得
 		response, err := h.wordService.RegisterWords(ctx, req.WordID, req.UserID, req.IsRegistered)
@@ -65,7 +54,7 @@ func (h *WordHandler) parseRequest(c *gin.Context) (*models.RegisterWordRequest,
 		return nil, errors.New("invalid JSON format: " + err.Error())
 	}
 
-	// 必要に応じて追加処理（例: ユーザーIDをコンテキストから取得）
+	// ユーザーIDをコンテキストから取得
 	userID, exists := c.Get("userID")
 	if !exists {
 		return nil, errors.New("unauthorized: userID not found in context")
@@ -83,20 +72,3 @@ func (h *WordHandler) parseRequest(c *gin.Context) (*models.RegisterWordRequest,
 
 	return &req, nil
 }
-
-// func (h *WordHandler) validateWordRegister(req *models.RegisterWordRequest) []FieldError {
-// 	// var errors []FieldError
-// 	var fieldErrors []FieldError
-
-// 	// 各フィールドの検証を個別の関数に分割
-// 	fieldErrors = append(fieldErrors, h.validateMemo(req.Memo)...)
-
-// 	return fieldErrors
-// }
-// func (h *WordHandler) validateMemo(memo string) []FieldError {
-// 	var fieldErrors []FieldError
-// 	if len(memo) > 200 {
-// 		fieldErrors = append(fieldErrors, FieldError{Field: "memo", Message: "memo must be less than 200 characters"})
-// 	}
-// 	return fieldErrors
-// }

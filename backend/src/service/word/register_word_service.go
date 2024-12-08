@@ -11,6 +11,7 @@ import (
 )
 
 func (s *WordServiceImpl) RegisterWords(ctx context.Context, wordID int, userID int, IsRegistered bool) (*models.RegisterWordResponse, error) {
+	// wordが存在するかどうか確認
 	word, err := s.client.Word.
 		Query().
 		Where(
@@ -21,6 +22,7 @@ func (s *WordServiceImpl) RegisterWords(ctx context.Context, wordID int, userID 
 		return nil, errors.New("failed to fetch word")
 	}
 
+	// すでに登録されているかどうか（registeredWordがあるか）確認
 	registeredWord, err := s.client.RegisteredWord.
 		Query().
 		Where(
@@ -41,10 +43,16 @@ func (s *WordServiceImpl) RegisterWords(ctx context.Context, wordID int, userID 
 			return nil, errors.New("Failed to create RegisteredWord")
 		}
 
+		registrationCountResponse, err := s.RegisteredWordCount(ctx, wordID, IsRegistered)
+		if err != nil {
+			return nil, err
+		}
+
 		response := &models.RegisterWordResponse{
-			Name:         word.Name,
-			IsRegistered: registeredWord.IsActive,
-			Message:      "RegisteredWord updated",
+			Name:              word.Name,
+			IsRegistered:      registeredWord.IsActive,
+			RegistrationCount: registrationCountResponse.RegistrationCount,
+			Message:           "RegisteredWord updated",
 		}
 
 		return response, nil
@@ -63,10 +71,16 @@ func (s *WordServiceImpl) RegisterWords(ctx context.Context, wordID int, userID 
 		return nil, errors.New("Failed to update RegisteredWord")
 	}
 
+	registrationCountResponse, err := s.RegisteredWordCount(ctx, wordID, IsRegistered)
+	if err != nil {
+		return nil, err
+	}
+
 	response := &models.RegisterWordResponse{
-		Name:         word.Name,
-		IsRegistered: registeredWord.IsActive,
-		Message:      "RegisteredWord updated",
+		Name:              word.Name,
+		IsRegistered:      registeredWord.IsActive,
+		RegistrationCount: registrationCountResponse.RegistrationCount,
+		Message:           "RegisteredWord updated",
 	}
 
 	return response, nil

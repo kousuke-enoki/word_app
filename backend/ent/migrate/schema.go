@@ -47,6 +47,7 @@ var (
 	RegisteredWordsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "attention_level", Type: field.TypeInt, Default: 1},
 		{Name: "test_count", Type: field.TypeInt, Default: 0},
 		{Name: "check_count", Type: field.TypeInt, Default: 0},
 		{Name: "memo", Type: field.TypeString, Nullable: true},
@@ -63,13 +64,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "registered_words_users_registered_words",
-				Columns:    []*schema.Column{RegisteredWordsColumns[7]},
+				Columns:    []*schema.Column{RegisteredWordsColumns[8]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "registered_words_words_registered_words",
-				Columns:    []*schema.Column{RegisteredWordsColumns[8]},
+				Columns:    []*schema.Column{RegisteredWordsColumns[9]},
 				RefColumns: []*schema.Column{WordsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

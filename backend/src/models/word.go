@@ -23,14 +23,21 @@ type JapaneseMean struct {
 	Name string `json:"name"`
 }
 
-type WordResponse struct {
-	ID           int        `json:"id"`
-	Name         string     `json:"name"`
-	WordInfos    []WordInfo `json:"wordInfos"`
-	IsRegistered bool       `json:"isRegistered"`
-	TestCount    int        `json:"testCount"`
-	CheckCount   int        `json:"checkCount"`
-	Memo         string     `json:"memo"`
+type WordShowRequest struct {
+	WordID int `json:"id" binding:"required"`
+	UserID int `json:"userId"`
+}
+
+type WordShowResponse struct {
+	ID                int        `json:"id"`
+	Name              string     `json:"name"`
+	RegistrationCount int        `json:"registrationCount"`
+	WordInfos         []WordInfo `json:"wordInfos"`
+	IsRegistered      bool       `json:"isRegistered"`
+	AttentionLevel    int        `json:"attentionLevel"`
+	TestCount         int        `json:"testCount"`
+	CheckCount        int        `json:"checkCount"`
+	Memo              string     `json:"memo"`
 }
 
 type RegisterWordRequest struct {
@@ -40,9 +47,20 @@ type RegisterWordRequest struct {
 }
 
 type RegisterWordResponse struct {
-	Name         string `json:"name"`
-	IsRegistered bool   `json:"isRegistered"`
-	Message      string `json:"message"`
+	Name              string `json:"name"`
+	IsRegistered      bool   `json:"isRegistered"`
+	RegistrationCount int    `json:"registrationCount"`
+	Message           string `json:"message"`
+}
+
+type RegisteredWordCountRequest struct {
+	WordID       int  `json:"wordId" binding:"required"`
+	UserID       int  `json:"userId"`
+	IsRegistered bool `json:"isRegistered"`
+}
+
+type RegisteredWordCountResponse struct {
+	RegistrationCount int `json:"registrationCount"`
 }
 
 type SaveMemoRequest struct {

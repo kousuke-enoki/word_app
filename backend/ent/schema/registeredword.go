@@ -22,6 +22,14 @@ func (RegisteredWord) Fields() []ent.Field {
 		field.Int("word_id"),
 		field.Bool("is_active").
 			Default(true),
+		field.Int("attention_level").
+			Default(1).
+			Validate(func(level int) error {
+				if level < 1 || level > 5 {
+					return errors.New("attention_level must be between 1 and 5")
+				}
+				return nil
+			}),
 		field.Int("test_count").
 			Default(0),
 		field.Int("check_count").

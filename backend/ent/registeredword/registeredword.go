@@ -20,6 +20,8 @@ const (
 	FieldWordID = "word_id"
 	// FieldIsActive holds the string denoting the is_active field in the database.
 	FieldIsActive = "is_active"
+	// FieldAttentionLevel holds the string denoting the attention_level field in the database.
+	FieldAttentionLevel = "attention_level"
 	// FieldTestCount holds the string denoting the test_count field in the database.
 	FieldTestCount = "test_count"
 	// FieldCheckCount holds the string denoting the check_count field in the database.
@@ -67,6 +69,7 @@ var Columns = []string{
 	FieldUserID,
 	FieldWordID,
 	FieldIsActive,
+	FieldAttentionLevel,
 	FieldTestCount,
 	FieldCheckCount,
 	FieldMemo,
@@ -89,10 +92,16 @@ var (
 	UserIDValidator func(int) error
 	// DefaultIsActive holds the default value on creation for the "is_active" field.
 	DefaultIsActive bool
+	// DefaultAttentionLevel holds the default value on creation for the "attention_level" field.
+	DefaultAttentionLevel int
+	// AttentionLevelValidator is a validator for the "attention_level" field. It is called by the builders before save.
+	AttentionLevelValidator func(int) error
 	// DefaultTestCount holds the default value on creation for the "test_count" field.
 	DefaultTestCount int
 	// DefaultCheckCount holds the default value on creation for the "check_count" field.
 	DefaultCheckCount int
+	// MemoValidator is a validator for the "memo" field. It is called by the builders before save.
+	MemoValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -122,6 +131,11 @@ func ByWordID(opts ...sql.OrderTermOption) OrderOption {
 // ByIsActive orders the results by the is_active field.
 func ByIsActive(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsActive, opts...).ToFunc()
+}
+
+// ByAttentionLevel orders the results by the attention_level field.
+func ByAttentionLevel(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAttentionLevel, opts...).ToFunc()
 }
 
 // ByTestCount orders the results by the test_count field.

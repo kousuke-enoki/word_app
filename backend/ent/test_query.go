@@ -7,7 +7,6 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"math"
-
 	"word_app/backend/ent/predicate"
 	"word_app/backend/ent/test"
 	"word_app/backend/ent/testquestion"

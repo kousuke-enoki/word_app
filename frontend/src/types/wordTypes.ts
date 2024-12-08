@@ -17,10 +17,11 @@ export interface WordInfo {
 export interface Word {
   id: number
   name: string
+  registrationCount: number
   wordInfos: WordInfo[]
-  isRegistered?: boolean
+  isRegistered: boolean
+  attentionLevel: number
   testCount?: number
   checkCount?: number
-  registrationActive: boolean
   memo?: string
 }

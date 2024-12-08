@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"time"
-
 	"word_app/backend/ent/predicate"
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/testquestion"
@@ -71,6 +70,27 @@ func (rwu *RegisteredWordUpdate) SetNillableIsActive(b *bool) *RegisteredWordUpd
 	if b != nil {
 		rwu.SetIsActive(*b)
 	}
+	return rwu
+}
+
+// SetAttentionLevel sets the "attention_level" field.
+func (rwu *RegisteredWordUpdate) SetAttentionLevel(i int) *RegisteredWordUpdate {
+	rwu.mutation.ResetAttentionLevel()
+	rwu.mutation.SetAttentionLevel(i)
+	return rwu
+}
+
+// SetNillableAttentionLevel sets the "attention_level" field if the given value is not nil.
+func (rwu *RegisteredWordUpdate) SetNillableAttentionLevel(i *int) *RegisteredWordUpdate {
+	if i != nil {
+		rwu.SetAttentionLevel(*i)
+	}
+	return rwu
+}
+
+// AddAttentionLevel adds i to the "attention_level" field.
+func (rwu *RegisteredWordUpdate) AddAttentionLevel(i int) *RegisteredWordUpdate {
+	rwu.mutation.AddAttentionLevel(i)
 	return rwu
 }
 
@@ -262,6 +282,16 @@ func (rwu *RegisteredWordUpdate) check() error {
 			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "RegisteredWord.user_id": %w`, err)}
 		}
 	}
+	if v, ok := rwu.mutation.AttentionLevel(); ok {
+		if err := registeredword.AttentionLevelValidator(v); err != nil {
+			return &ValidationError{Name: "attention_level", err: fmt.Errorf(`ent: validator failed for field "RegisteredWord.attention_level": %w`, err)}
+		}
+	}
+	if v, ok := rwu.mutation.Memo(); ok {
+		if err := registeredword.MemoValidator(v); err != nil {
+			return &ValidationError{Name: "memo", err: fmt.Errorf(`ent: validator failed for field "RegisteredWord.memo": %w`, err)}
+		}
+	}
 	if rwu.mutation.UserCleared() && len(rwu.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "RegisteredWord.user"`)
 	}
@@ -285,6 +315,12 @@ func (rwu *RegisteredWordUpdate) sqlSave(ctx context.Context) (n int, err error)
 	}
 	if value, ok := rwu.mutation.IsActive(); ok {
 		_spec.SetField(registeredword.FieldIsActive, field.TypeBool, value)
+	}
+	if value, ok := rwu.mutation.AttentionLevel(); ok {
+		_spec.SetField(registeredword.FieldAttentionLevel, field.TypeInt, value)
+	}
+	if value, ok := rwu.mutation.AddedAttentionLevel(); ok {
+		_spec.AddField(registeredword.FieldAttentionLevel, field.TypeInt, value)
 	}
 	if value, ok := rwu.mutation.TestCount(); ok {
 		_spec.SetField(registeredword.FieldTestCount, field.TypeInt, value)
@@ -472,6 +508,27 @@ func (rwuo *RegisteredWordUpdateOne) SetNillableIsActive(b *bool) *RegisteredWor
 	if b != nil {
 		rwuo.SetIsActive(*b)
 	}
+	return rwuo
+}
+
+// SetAttentionLevel sets the "attention_level" field.
+func (rwuo *RegisteredWordUpdateOne) SetAttentionLevel(i int) *RegisteredWordUpdateOne {
+	rwuo.mutation.ResetAttentionLevel()
+	rwuo.mutation.SetAttentionLevel(i)
+	return rwuo
+}
+
+// SetNillableAttentionLevel sets the "attention_level" field if the given value is not nil.
+func (rwuo *RegisteredWordUpdateOne) SetNillableAttentionLevel(i *int) *RegisteredWordUpdateOne {
+	if i != nil {
+		rwuo.SetAttentionLevel(*i)
+	}
+	return rwuo
+}
+
+// AddAttentionLevel adds i to the "attention_level" field.
+func (rwuo *RegisteredWordUpdateOne) AddAttentionLevel(i int) *RegisteredWordUpdateOne {
+	rwuo.mutation.AddAttentionLevel(i)
 	return rwuo
 }
 
@@ -676,6 +733,16 @@ func (rwuo *RegisteredWordUpdateOne) check() error {
 			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "RegisteredWord.user_id": %w`, err)}
 		}
 	}
+	if v, ok := rwuo.mutation.AttentionLevel(); ok {
+		if err := registeredword.AttentionLevelValidator(v); err != nil {
+			return &ValidationError{Name: "attention_level", err: fmt.Errorf(`ent: validator failed for field "RegisteredWord.attention_level": %w`, err)}
+		}
+	}
+	if v, ok := rwuo.mutation.Memo(); ok {
+		if err := registeredword.MemoValidator(v); err != nil {
+			return &ValidationError{Name: "memo", err: fmt.Errorf(`ent: validator failed for field "RegisteredWord.memo": %w`, err)}
+		}
+	}
 	if rwuo.mutation.UserCleared() && len(rwuo.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "RegisteredWord.user"`)
 	}
@@ -716,6 +783,12 @@ func (rwuo *RegisteredWordUpdateOne) sqlSave(ctx context.Context) (_node *Regist
 	}
 	if value, ok := rwuo.mutation.IsActive(); ok {
 		_spec.SetField(registeredword.FieldIsActive, field.TypeBool, value)
+	}
+	if value, ok := rwuo.mutation.AttentionLevel(); ok {
+		_spec.SetField(registeredword.FieldAttentionLevel, field.TypeInt, value)
+	}
+	if value, ok := rwuo.mutation.AddedAttentionLevel(); ok {
+		_spec.AddField(registeredword.FieldAttentionLevel, field.TypeInt, value)
 	}
 	if value, ok := rwuo.mutation.TestCount(); ok {
 		_spec.SetField(registeredword.FieldTestCount, field.TypeInt, value)

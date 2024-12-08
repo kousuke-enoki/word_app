@@ -97,6 +97,7 @@ func (h *WordHandler) validateWordRegister(req *models.SaveMemoRequest) []FieldE
 
 	return fieldErrors
 }
+
 func (h *WordHandler) validateMemo(memo string) []FieldError {
 	var fieldErrors []FieldError
 	if len(memo) > 200 {

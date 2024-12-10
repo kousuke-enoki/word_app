@@ -11,6 +11,7 @@ backend/tmp/build-error.log
 # /node_modules
 # /dist
 backend/tmp/
+backend/log/
 
 # # OSやエディタの一時ファイル
 # .DS_Store

@@ -13,7 +13,7 @@ const WordShow: React.FC = () => {
   const [word, setWord] = useState<Word | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [memo, setMemo] = useState<string>('')
-  const [successMessage, setSuccessMessage] = useState<string>('') // 保存成功メッセージの状態
+  const [successMessage, setSuccessMessage] = useState<string>('')
 
   const previousPage = location.state?.page || 1
 
@@ -52,6 +52,12 @@ const WordShow: React.FC = () => {
         isRegistered: updatedWord.isRegistered,
         registrationCount: updatedWord.registrationCount,
       })
+      if (updatedWord.isRegistered) {
+        setSuccessMessage('登録しました。')
+      } else {
+        setSuccessMessage('登録解除しました。')
+      }
+      setTimeout(() => setSuccessMessage(''), 3000)
     } catch (error) {
       console.error('Error registering word:', error)
     }
@@ -61,8 +67,8 @@ const WordShow: React.FC = () => {
     if (!word) return
     try {
       await saveMemo(word.id, memo || '')
-      setSuccessMessage('メモを保存しました！') // 保存成功メッセージをセット
-      setTimeout(() => setSuccessMessage(''), 3000) // 3秒後にメッセージを消す
+      setSuccessMessage('メモを保存しました！')
+      setTimeout(() => setSuccessMessage(''), 3000)
     } catch (error) {
       console.error('Error saving memo:', error)
     }

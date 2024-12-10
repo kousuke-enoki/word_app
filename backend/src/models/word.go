@@ -2,9 +2,14 @@ package models
 
 // WordResponse 構造体でレスポンスを定義
 type Word struct {
-	ID        int        `json:"id"`
-	Name      string     `json:"name"`
-	WordInfos []WordInfo `json:"wordInfos"`
+	ID                int        `json:"id"`
+	Name              string     `json:"name"`
+	RegistrationCount int        `json:"registrationCount"`
+	WordInfos         []WordInfo `json:"wordInfos"`
+	IsRegistered      bool       `json:"isRegistered"`
+	AttentionLevel    int        `json:"attentionLevel"`
+	TestCount         int        `json:"testCount"`
+	CheckCount        int        `json:"checkCount"`
 }
 
 type WordInfo struct {
@@ -21,6 +26,20 @@ type PartOfSpeech struct {
 type JapaneseMean struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
+}
+
+type AllWordListRequest struct {
+	UserID int    `json:"userId"`
+	Search string `json:"search"`
+	SortBy string `json:"sortBy"`
+	Order  string `json:"order"`
+	Page   int    `json:"page"`
+	Limit  int    `json:"limit"`
+}
+
+type AllWordListResponse struct {
+	Words      []Word `json:"words"`
+	TotalPages int    `json:"totalPages"`
 }
 
 type WordShowRequest struct {

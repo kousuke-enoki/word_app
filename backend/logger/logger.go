@@ -42,7 +42,7 @@ func setupFileLogger() {
 
 	logFile := &lumberjack.Logger{
 		Filename:   logPath,
-		MaxSize:    10,
+		MaxSize:    3,
 		MaxBackups: 3,
 		MaxAge:     30,
 		Compress:   true,

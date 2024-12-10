@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import axiosInstance from '../../axiosConfig'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Word, WordInfo, JapaneseMean } from '../../types/wordTypes'
+import { registerWord } from '../../service/word/RegisterWord'
 import '../../styles/components/word/AllWordList.css'
 
 const AllWordList: React.FC = () => {
@@ -14,6 +15,7 @@ const AllWordList: React.FC = () => {
   const [totalPages, setTotalPages] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
   const navigate = useNavigate()
+  const [successMessage, setSuccessMessage] = useState<string>('')
 
   // 初回レンダリング時と依存する値が変わったときにデータを取得
   useEffect(() => {
@@ -48,6 +50,35 @@ const AllWordList: React.FC = () => {
     navigate(`/words/${id}`, { state: { page } })
   }
 
+  const handleRegister = async (word: Word) => {
+    if (!word) return
+    try {
+      // API呼び出しから新しい登録状態と登録数を取得
+      const updatedWord = await registerWord(word.id, !word.isRegistered)
+
+      // 単語の登録状態を更新
+      setWords((prevWords) =>
+        prevWords.map((w) =>
+          w.id === word.id
+            ? {
+                ...w,
+                isRegistered: updatedWord.isRegistered,
+                registrationCount: updatedWord.registrationCount,
+              }
+            : w,
+        ),
+      )
+      const registeredWordName = updatedWord.name
+      if (updatedWord.isRegistered) {
+        setSuccessMessage(registeredWordName + ' を登録しました。')
+      } else {
+        setSuccessMessage(registeredWordName + ' を登録解除しました。')
+      }
+    } catch (error) {
+      console.error('Error registering word:', error)
+    }
+  }
+
   return (
     <div className="wordList-container">
       <h1>単語一覧</h1>
@@ -76,14 +107,15 @@ const AllWordList: React.FC = () => {
             <th>単語名</th>
             <th>日本語訳</th>
             <th>品詞</th>
-            <th>編集</th>
+            <th>登録数</th>
+            <th>登録</th>
             <th>詳細</th>
           </tr>
         </thead>
         <tbody>
           {words.map((word) => (
             <tr key={word.id}>
-              <td>{word.name}</td>
+              <td className={`word-name`}>{word.name}</td>
               <td>
                 {word.wordInfos
                   .map((info: WordInfo) =>
@@ -98,11 +130,26 @@ const AllWordList: React.FC = () => {
                   .map((info: WordInfo) => info.partOfSpeech.name)
                   .join(', ')}
               </td>
+              <td> {word.registrationCount} </td>
               <td>
-                <button>編集</button>
+                {successMessage && (
+                  <div className="success-popup">{successMessage}</div>
+                )}
+                <div>
+                  <button
+                    className={`register-button ${word.isRegistered ? 'registered' : ''}`}
+                    onClick={() => handleRegister(word)}
+                  >
+                    {word.isRegistered ? '解除' : '登録'}
+                  </button>
+                </div>
               </td>
               <td>
-                <button onClick={() => handleDetailClick(word.id)}>詳細</button>
+                <div>
+                  <button onClick={() => handleDetailClick(word.id)}>
+                    詳細
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

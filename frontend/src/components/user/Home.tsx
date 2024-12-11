@@ -24,7 +24,6 @@ const Home: React.FC = () => {
         setMessage('')
       })
       .catch((error) => {
-        console.error(error)
         localStorage.removeItem('token')
         setMessage('ログインしてください')
       })

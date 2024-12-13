@@ -25,6 +25,9 @@ const MyPage: React.FC<MyPageProps> = ({ user, onSignOut }) => {
       <p>
         全単語リスト: <Link to="words">word app</Link>
       </p>
+      <p>
+        <Link to="words/new">単語登録画面</Link>
+      </p>
       <button onClick={onSignOut}>サインアウト</button>
     </div>
   )

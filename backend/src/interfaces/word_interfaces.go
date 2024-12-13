@@ -9,6 +9,7 @@ import (
 )
 
 type WordHandler interface {
+	WordNewHandler() gin.HandlerFunc
 	AllWordListHandler() gin.HandlerFunc
 	WordShowHandler() gin.HandlerFunc
 	RegisterWordHandler() gin.HandlerFunc
@@ -16,6 +17,7 @@ type WordHandler interface {
 }
 
 type WordService interface {
+	CreateWord(ctx context.Context, WordCreateRequest *models.WordCreateRequest) (*models.WordCreateResponse, error)
 	GetWordDetails(ctx context.Context, wordID int, userID int) (*models.WordShowResponse, error)
 	GetWords(ctx context.Context, userID int, search string, sortBy string, order string, page int, limit int) (*models.AllWordListResponse, error)
 	RegisterWords(ctx context.Context, wordID int, userID int, IsRegistered bool) (*models.RegisterWordResponse, error)

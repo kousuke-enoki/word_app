@@ -1,6 +1,16 @@
 package models
 
-// WordResponse 構造体でレスポンスを定義
+type WordCreateRequest struct {
+	Name      string     `json:"name"`
+	WordInfos []WordInfo `json:"wordInfos"`
+}
+
+type WordCreateResponse struct {
+	ID      int    `json:"id"`
+	Name    string `json:"name"`
+	Message string `json:"message"`
+}
+
 type Word struct {
 	ID                int        `json:"id"`
 	Name              string     `json:"name"`
@@ -13,9 +23,10 @@ type Word struct {
 }
 
 type WordInfo struct {
-	ID            int            `json:"id"`
-	PartOfSpeech  PartOfSpeech   `json:"partOfSpeech"`
-	JapaneseMeans []JapaneseMean `json:"japaneseMeans"`
+	ID             int            `json:"id"`
+	PartOfSpeech   PartOfSpeech   `json:"partOfSpeech"`
+	PartOfSpeechID int            `json:"partOfSpeechId"`
+	JapaneseMeans  []JapaneseMean `json:"japaneseMeans"`
 }
 
 type PartOfSpeech struct {

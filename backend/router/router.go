@@ -52,6 +52,7 @@ func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
 	{
 		protectedRoutes.GET("/auth/check", r.AuthHandler.AuthCheckHandler())
 		protectedRoutes.GET("/users/my_page", r.UserHandler.MyPageHandler())
+		protectedRoutes.POST("/words/new", r.WordHandler.WordNewHandler())
 		protectedRoutes.DELETE("/words/:id", r.WordHandler.DeleteWordHandler())
 		protectedRoutes.GET("/words/all_list", r.WordHandler.AllWordListHandler())
 		protectedRoutes.GET("/words/:id", r.WordHandler.WordShowHandler())

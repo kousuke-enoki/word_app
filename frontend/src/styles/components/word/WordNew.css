@@ -1,0 +1,89 @@
+/* WordNew.css */
+
+/* 全体のフォームスタイル */
+.word-create-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.word-create-container h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #333;
+}
+
+.word-create-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #555;
+}
+
+.word-create-form input,
+.word-create-form select {
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.word-create-form button {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 10px;
+  margin-right: 10px;
+}
+
+.word-create-form button:hover {
+  background-color: #0056b3;
+}
+
+.word-info-section {
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f1f1f1;
+}
+
+.japanese-mean-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.japanese-mean-section button {
+  background-color: #dc3545;
+  color: #fff;
+  font-size: 12px;
+}
+
+.japanese-mean-section button:hover {
+  background-color: #b02a37;
+}
+
+.word-create-container .submit-button {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.word-create-container .submit-button button {
+  width: 150px;
+  font-size: 16px;
+}

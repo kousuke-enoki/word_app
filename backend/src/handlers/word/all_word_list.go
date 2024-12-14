@@ -8,7 +8,6 @@ import (
 	"word_app/backend/src/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 func (h *WordHandler) AllWordListHandler() gin.HandlerFunc {
@@ -22,13 +21,23 @@ func (h *WordHandler) AllWordListHandler() gin.HandlerFunc {
 		}
 
 		// サービスの呼び出し
-		response, err := h.wordService.GetWords(ctx, req.UserID, req.Search, req.SortBy, req.Order, req.Page, req.Limit)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
+		if req.SortBy == "register" {
+			response, err := h.wordService.GetRegisteredWords(ctx, req.UserID, req.Search, req.Order, req.Page, req.Limit)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			} else {
+				c.JSON(http.StatusOK, response)
+			}
+		} else {
+			response, err := h.wordService.GetWords(ctx, req.UserID, req.Search, req.SortBy, req.Order, req.Page, req.Limit)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			} else {
+				c.JSON(http.StatusOK, response)
+			}
 		}
-
-		c.JSON(http.StatusOK, response)
 	}
 }
 
@@ -70,6 +79,5 @@ func (h *WordHandler) parseAllWordListRequest(c *gin.Context) (*models.AllWordLi
 		Limit:  limit,
 	}
 
-	logrus.Infof("Final parsed request: %+v", req)
 	return req, nil
 }

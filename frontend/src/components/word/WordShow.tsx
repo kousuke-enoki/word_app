@@ -15,8 +15,6 @@ const WordShow: React.FC = () => {
   const [memo, setMemo] = useState<string>('')
   const [successMessage, setSuccessMessage] = useState<string>('')
 
-  const previousPage = location.state?.page || 1
-
   useEffect(() => {
     const fetchWord = async () => {
       try {
@@ -123,7 +121,17 @@ const WordShow: React.FC = () => {
       </div>
       <button
         className="back-button"
-        onClick={() => navigate('/words', { state: { page: previousPage } })}
+        onClick={() =>
+          navigate('/words', {
+            state: {
+              search: location.state?.search || '',
+              sortBy: location.state?.sortBy || 'name',
+              order: location.state?.order || 'asc',
+              page: location.state?.page || 1,
+              limit: location.state?.limit || 10,
+            },
+          })
+        }
       >
         一覧に戻る
       </button>

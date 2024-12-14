@@ -10,20 +10,12 @@ import (
 	"word_app/backend/src/models"
 )
 
-// all_word_list
-func (s *WordServiceImpl) GetWords(ctx context.Context, userID int, search string, sortBy string, order string, page int, limit int) (*models.AllWordListResponse, error) {
+// word_list
+func (s *WordServiceImpl) GetRegisteredWords(ctx context.Context, userID int, search string, order string, page int, limit int) (*models.AllWordListResponse, error) {
 	query := s.client.Word.Query()
 
 	// 検索条件の追加
-	query = addSearchFilter(query, search)
-
-	var totalCount int = 0
-
-	// 総レコード数を取得
-	totalCount, err := query.Count(ctx)
-	if err != nil {
-		return nil, errors.New("failed to count words")
-	}
+	query = addSearchRegisteredWordsFilter(query, search)
 
 	// ページネーション機能
 	offset := (page - 1) * limit
@@ -36,54 +28,32 @@ func (s *WordServiceImpl) GetWords(ctx context.Context, userID int, search strin
 		rwQuery.Where(registeredword.UserID(userID))
 	})
 
-	// ソート機能
-	switch sortBy {
-	case "name":
-		if order == "asc" {
-			query = query.Order(ent.Asc(word.FieldName))
-		} else {
-			query = query.Order(ent.Desc(word.FieldName))
-		}
-	case "registrationCount":
-		if order == "asc" {
-			query = query.Order(ent.Asc(word.FieldRegistrationCount))
-		} else {
-			query = query.Order(ent.Desc(word.FieldRegistrationCount))
-		}
-	case "register":
-		// ページネーション前のフィルタリング用クエリを作成
-		filteredQuery := s.client.Word.Query().Where(
-			word.HasRegisteredWordsWith(
-				registeredword.UserID(userID),
-				registeredword.IsActive(true),
-			),
-		)
+	// ページネーション前のフィルタリング用クエリを作成
+	filteredQuery := s.client.Word.Query().Where(
+		word.HasRegisteredWordsWith(
+			registeredword.UserID(userID),
+			registeredword.IsActive(true),
+		),
+	)
 
-		// フィルタリング後のデータ総数を取得
-		totalCount, err = filteredQuery.Count(ctx)
-		if err != nil {
-			return nil, errors.New("failed to count filtered words")
-		}
+	// フィルタリング後のデータ総数を取得
+	totalCount, err := filteredQuery.Count(ctx)
+	if err != nil {
+		return nil, errors.New("failed to count filtered words")
+	}
 
-		// 現在のページのデータを取得するためのクエリ設定
-		query = query.Where(
-			word.HasRegisteredWordsWith(
-				registeredword.UserID(userID),
-				registeredword.IsActive(true),
-			),
-		)
-		// ソート条件の設定
-		if order == "asc" {
-			query = query.Order(ent.Asc(word.FieldName))
-		} else {
-			query = query.Order(ent.Desc(word.FieldName))
-		}
-	default:
-		if order == "asc" {
-			query = query.Order(ent.Asc(sortBy))
-		} else {
-			query = query.Order(ent.Desc(sortBy))
-		}
+	// 現在のページのデータを取得するためのクエリ設定
+	query = query.Where(
+		word.HasRegisteredWordsWith(
+			registeredword.UserID(userID),
+			registeredword.IsActive(true),
+		),
+	)
+	// ソート条件の設定
+	if order == "asc" {
+		query = query.Order(ent.Asc(word.FieldName))
+	} else {
+		query = query.Order(ent.Desc(word.FieldName))
 	}
 
 	// クエリ実行
@@ -92,8 +62,7 @@ func (s *WordServiceImpl) GetWords(ctx context.Context, userID int, search strin
 		return nil, errors.New("failed to fetch words")
 	}
 
-	// エンティティからレスポンス形式への変換
-	words := convertEntWordsToResponse(entWords)
+	words := convertEntRegisteredWordsToResponse(entWords)
 
 	// 総ページ数を計算
 	totalPages := (totalCount + limit - 1) / limit
@@ -106,37 +75,17 @@ func (s *WordServiceImpl) GetWords(ctx context.Context, userID int, search strin
 }
 
 // 検索条件の追加
-func addSearchFilter(query *ent.WordQuery, search string) *ent.WordQuery {
+func addSearchRegisteredWordsFilter(query *ent.WordQuery, search string) *ent.WordQuery {
 	if search != "" {
 		query = query.Where(word.NameContains(search))
 	}
 	return query
 }
 
-// ソート条件の追加
-func addSortOrder(query *ent.WordQuery, sortBy string, order string, userID int) (*ent.WordQuery, int, error) {
-	var totalCount int
-
-	switch sortBy {
-	case "name":
-		if order == "asc" {
-			query = query.Order(ent.Asc(word.FieldName))
-		} else {
-			query = query.Order(ent.Desc(word.FieldName))
-		}
-	case "registrationCount":
-		if order == "asc" {
-			query = query.Order(ent.Asc(word.FieldRegistrationCount))
-		} else {
-			query = query.Order(ent.Desc(word.FieldRegistrationCount))
-		}
-	}
-	return query, totalCount, nil
-}
-
 // エンティティからレスポンス形式に変換
-func convertEntWordsToResponse(entWords []*ent.Word) []models.Word {
+func convertEntRegisteredWordsToResponse(entWords []*ent.Word) []models.Word {
 	words := make([]models.Word, len(entWords))
+
 	for i, entWord := range entWords {
 		// WordInfoの変換
 		wordInfos := make([]models.WordInfo, len(entWord.Edges.WordInfos))

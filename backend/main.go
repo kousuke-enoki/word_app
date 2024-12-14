@@ -98,6 +98,10 @@ func setupRouter(client *ent.Client, corsOrigin string) *gin.Engine {
 		AllowCredentials: true,
 	}))
 
+	if os.Getenv("ENT_DEBUG") == "1" {
+		client = client.Debug()
+		logrus.Info("Ent debug mode enabled")
+	}
 	// Handler の初期化
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {

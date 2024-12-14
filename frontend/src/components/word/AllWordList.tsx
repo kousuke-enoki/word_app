@@ -15,10 +15,26 @@ const AllWordList: React.FC = () => {
   const [totalPages, setTotalPages] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
   const navigate = useNavigate()
+  const [isInitialized, setIsInitialized] = useState<boolean>(false)
   const [successMessage, setSuccessMessage] = useState<string>('')
+
+  // APIからデータを取得する関数
+  useEffect(() => {
+    // location.state から値を復元（初回のみ実行）
+    if (location.state) {
+      setSearch(location.state.search || '')
+      setSortBy(location.state.sortBy || 'name')
+      setOrder(location.state.order || 'asc')
+      setPage(location.state.page || 1)
+      setLimit(location.state.limit || 10)
+    }
+    setIsInitialized(true) // 初期化完了をマーク
+  }, [location.state])
 
   // 初回レンダリング時と依存する値が変わったときにデータを取得
   useEffect(() => {
+    if (!isInitialized) return // 初期化が完了していなければ実行しない
+
     // APIからデータを取得する関数
     const fetchWords = async () => {
       try {
@@ -38,7 +54,7 @@ const AllWordList: React.FC = () => {
       }
     }
     fetchWords()
-  }, [search, sortBy, order, page, limit])
+  }, [search, sortBy, order, page, limit, isInitialized])
 
   // ページング処理
   const handlePageChange = (newPage: React.SetStateAction<number>) => {
@@ -47,7 +63,7 @@ const AllWordList: React.FC = () => {
 
   // 詳細ページに遷移する関数
   const handleDetailClick = (id: number) => {
-    navigate(`/words/${id}`, { state: { page } })
+    navigate(`/words/${id}`, { state: { search, sortBy, order, page, limit } })
   }
 
   const handleRegister = async (word: Word) => {
@@ -92,9 +108,19 @@ const AllWordList: React.FC = () => {
       />
 
       {/* ソート選択 */}
-      <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+      <select
+        value={sortBy}
+        onChange={(e) => {
+          const newSortBy = e.target.value
+          if (newSortBy === 'register' && sortBy !== 'register') {
+            setPage(1)
+          }
+          setSortBy(newSortBy)
+        }}
+      >
         <option value="name">単語名</option>
-        {/* <option value="part_of_speech_id">品詞</option> */}
+        <option value="registrationCount">登録数</option>
+        <option value="register">登録</option>
       </select>
       <button onClick={() => setOrder(order === 'asc' ? 'desc' : 'asc')}>
         {order === 'asc' ? '昇順' : '降順'}

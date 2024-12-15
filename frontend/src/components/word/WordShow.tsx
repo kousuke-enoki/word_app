@@ -4,6 +4,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Word, WordInfo, JapaneseMean } from '../../types/wordTypes'
 import { registerWord } from '../../service/word/RegisterWord'
 import { saveMemo } from '../../service/word/SaveMemo'
+import { deleteWord } from '../../service/word/DeleteWord'
 import '../../styles/components/word/WordShow.css'
 
 const WordShow: React.FC = () => {
@@ -58,6 +59,31 @@ const WordShow: React.FC = () => {
       setTimeout(() => setSuccessMessage(''), 3000)
     } catch (error) {
       console.error('Error registering word:', error)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!word) return
+    const confirmDelete = window.confirm('本当にこの単語を削除しますか？')
+    if (!confirmDelete) return
+
+    try {
+      await deleteWord(word.id)
+      setSuccessMessage('単語を削除しました。')
+      setTimeout(() => {
+        navigate('/words', {
+          state: {
+            search: location.state?.search || '',
+            sortBy: location.state?.sortBy || 'name',
+            order: location.state?.order || 'asc',
+            page: location.state?.page || 1,
+            limit: location.state?.limit || 10,
+          },
+        })
+      }, 1500)
+    } catch (error) {
+      setSuccessMessage('単語の削除に失敗しました。')
+      setTimeout(() => setSuccessMessage(''), 3000)
     }
   }
 
@@ -119,6 +145,9 @@ const WordShow: React.FC = () => {
           {word.isRegistered ? '登録解除' : '登録する'}
         </button>
       </div>
+      <button className="delete-button" onClick={handleDelete}>
+        削除する
+      </button>
       <button
         className="back-button"
         onClick={() =>

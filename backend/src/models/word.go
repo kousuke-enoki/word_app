@@ -59,6 +59,16 @@ type WordShowResponse struct {
 	Memo              string     `json:"memo"`
 }
 
+type WordDeleteRequest struct {
+	WordID int `json:"id" binding:"required"`
+	UserID int `json:"userId"`
+}
+
+type WordDeleteResponse struct {
+	Name    string `json:"name"`
+	Message string `json:"message"`
+}
+
 type RegisterWordRequest struct {
 	WordID       int  `json:"wordId" binding:"required"`
 	UserID       int  `json:"userId"`

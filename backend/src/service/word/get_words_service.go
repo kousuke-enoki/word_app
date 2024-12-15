@@ -50,40 +50,6 @@ func (s *WordServiceImpl) GetWords(ctx context.Context, userID int, search strin
 		} else {
 			query = query.Order(ent.Desc(word.FieldRegistrationCount))
 		}
-	case "register":
-		// ページネーション前のフィルタリング用クエリを作成
-		filteredQuery := s.client.Word.Query().Where(
-			word.HasRegisteredWordsWith(
-				registeredword.UserID(userID),
-				registeredword.IsActive(true),
-			),
-		)
-
-		// フィルタリング後のデータ総数を取得
-		totalCount, err = filteredQuery.Count(ctx)
-		if err != nil {
-			return nil, errors.New("failed to count filtered words")
-		}
-
-		// 現在のページのデータを取得するためのクエリ設定
-		query = query.Where(
-			word.HasRegisteredWordsWith(
-				registeredword.UserID(userID),
-				registeredword.IsActive(true),
-			),
-		)
-		// ソート条件の設定
-		if order == "asc" {
-			query = query.Order(ent.Asc(word.FieldName))
-		} else {
-			query = query.Order(ent.Desc(word.FieldName))
-		}
-	default:
-		if order == "asc" {
-			query = query.Order(ent.Asc(sortBy))
-		} else {
-			query = query.Order(ent.Desc(sortBy))
-		}
 	}
 
 	// クエリ実行

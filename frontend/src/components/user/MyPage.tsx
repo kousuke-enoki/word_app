@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { User } from '../types/userTypes'
+import { User } from '../../types/userTypes'
 
 // Propsの型定義
 interface MyPageProps {

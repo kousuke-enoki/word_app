@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import axiosInstance from '../../axiosConfig'
-import MyPage from '../../components/MyPage'
+import MyPage from './MyPage'
 import { User } from '../../types/userTypes'
 
 const Home: React.FC = () => {

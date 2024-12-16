@@ -13,18 +13,20 @@ import (
 )
 
 type RouterImplementation struct {
+	AuthHandler interfaces.AuthHandler
 	UserHandler interfaces.UserHandler
 	WordHandler interfaces.WordHandler
 	JWTSecret   string
 }
 
-func NewRouter(userHandler interfaces.UserHandler, wordHandler interfaces.WordHandler) *RouterImplementation {
+func NewRouter(authHandler interfaces.AuthHandler, userHandler interfaces.UserHandler, wordHandler interfaces.WordHandler) *RouterImplementation {
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		logrus.Fatal("JWT_SECRET environment variable is required")
 	}
 
 	return &RouterImplementation{
+		AuthHandler: authHandler,
 		UserHandler: userHandler,
 		WordHandler: wordHandler,
 		JWTSecret:   jwtSecret,
@@ -48,6 +50,7 @@ func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
 	protectedRoutes := router.Group("/")
 	protectedRoutes.Use(middleware.AuthMiddleware())
 	{
+		protectedRoutes.GET("/auth/check", r.AuthHandler.AuthCheckHandler())
 		protectedRoutes.GET("/users/my_page", r.UserHandler.MyPageHandler())
 		protectedRoutes.DELETE("/words/:id", r.WordHandler.DeleteWordHandler())
 		protectedRoutes.GET("/words/all_list", r.WordHandler.AllWordListHandler())

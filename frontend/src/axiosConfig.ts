@@ -35,11 +35,8 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       const isHomePage = window.location.pathname === '/' // 現在のページがトップページかを確認
-      const errorMsg = error.response.data.error
-      const token = localStorage.getItem('token')
       // トークン切れでトップページでなければリダイレクト
-      if (!isHomePage && token && errorMsg === 'TokenExpired') {
-        console.error('Unauthorized, redirecting to home page...')
+      if (!isHomePage) {
         window.location.href = '/' // トップページにリダイレクト
       }
     }

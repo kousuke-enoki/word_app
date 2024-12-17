@@ -2,33 +2,28 @@ package word
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strconv"
+	"word_app/backend/src/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 // Word削除用ハンドラー
 func (h *WordHandler) DeleteWordHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
-		// トークンから userID を取得
-		userID, exists := c.Get("userID")
-		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-			return
-		}
 
-		// クエリパラメータから wordID を取得
-		wordIDParam := c.Param("id")
-		wordID, err := strconv.Atoi(wordIDParam)
-		if err != nil || wordID <= 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid wordID"})
+		req, err := h.parseDeleteWordRequest(c)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
 		// 削除処理を呼び出し
-		response, err := h.wordService.DeleteWord(ctx, userID.(int), wordID)
+		response, err := h.wordService.DeleteWord(ctx, req.UserID, req.WordID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -37,4 +32,33 @@ func (h *WordHandler) DeleteWordHandler() gin.HandlerFunc {
 		// 成功レスポンス
 		c.JSON(http.StatusOK, response)
 	}
+}
+
+func (h *WordHandler) parseDeleteWordRequest(c *gin.Context) (*models.DeleteWordRequest, error) {
+	// パラメータの取得と検証
+	wordID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return nil, errors.New("Invalid word ID")
+	}
+
+	// ユーザーIDをコンテキストから取得
+	userID, exists := c.Get("userID")
+	if !exists {
+		return nil, errors.New("unauthorized: userID not found in context")
+	}
+
+	// userIDの型チェック
+	userIDInt, ok := userID.(int)
+	if !ok {
+		return nil, errors.New("invalid userID type")
+	}
+
+	// リクエストオブジェクトを構築
+	req := &models.DeleteWordRequest{
+		WordID: wordID,
+		UserID: userIDInt,
+	}
+
+	logrus.Infof("Final parsed request: %+v", req)
+	return req, nil
 }

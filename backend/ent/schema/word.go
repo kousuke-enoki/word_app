@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"errors"
+	"regexp"
 	"time"
 
 	"entgo.io/ent"
@@ -17,7 +19,15 @@ type Word struct {
 func (Word) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
-			NotEmpty(),
+			NotEmpty().
+			Validate(func(s string) error {
+				// 半角アルファベットのみ許可
+				match, _ := regexp.MatchString(`^[a-zA-Z]+$`, s)
+				if !match {
+					return errors.New("name must contain only alphabetic characters")
+				}
+				return nil
+			}),
 		field.String("voice_id").
 			Optional().
 			Nillable(),

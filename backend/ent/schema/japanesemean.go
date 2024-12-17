@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"errors"
+	"regexp"
 	"time"
 
 	"entgo.io/ent"
@@ -17,7 +19,15 @@ type JapaneseMean struct {
 func (JapaneseMean) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
-			NotEmpty(),
+			NotEmpty().
+			Validate(func(s string) error {
+				// アルファベット以外の文字列のみ許可（ひらがな、カタカナ、漢字など）
+				match, _ := regexp.MatchString(`^[^\x00-\x7F]+$`, s)
+				if !match {
+					return errors.New("name must contain only non-alphabetic characters (e.g., Hiragana, Katakana, Kanji)")
+				}
+				return nil
+			}),
 		field.Int("word_info_id").
 			Positive(),
 		field.Time("created_at").

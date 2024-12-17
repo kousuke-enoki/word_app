@@ -2,7 +2,6 @@ package word_service
 
 import (
 	"context"
-	"errors"
 	"word_app/backend/ent"
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/registeredword"
@@ -13,13 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	ErrWordNotFound = errors.New("word not found")
-	ErrUnauthorized = errors.New("unauthorized")
-	ErrDeleteWord   = errors.New("failed to delete word")
-)
-
-func (s *WordServiceImpl) DeleteWord(ctx context.Context, userID int, wordID int) (*models.WordDeleteResponse, error) {
+func (s *WordServiceImpl) DeleteWord(ctx context.Context, userID int, wordID int) (*models.DeleteWordResponse, error) {
 	// トランザクション開始
 	tx, err := s.client.Tx(ctx)
 	if err != nil {
@@ -34,17 +27,6 @@ func (s *WordServiceImpl) DeleteWord(ctx context.Context, userID int, wordID int
 		}
 	}()
 
-	// word を取得して存在確認
-	wordEntity, err := tx.Word.Query().Where(word.IDEQ(wordID)).Only(ctx)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, ErrWordNotFound
-		}
-		logrus.Error(err)
-		tx.Rollback()
-		return nil, ErrDeleteWord
-	}
-
 	// 管理者チェック (将来の拡張を考慮)
 	userEntity, err := tx.User.Get(ctx, userID)
 	if err != nil {
@@ -56,6 +38,17 @@ func (s *WordServiceImpl) DeleteWord(ctx context.Context, userID int, wordID int
 		logrus.Error(err)
 		tx.Rollback()
 		return nil, ErrUnauthorized
+	}
+
+	// word を取得して存在確認
+	wordEntity, err := tx.Word.Query().Where(word.IDEQ(wordID)).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, ErrWordNotFound
+		}
+		logrus.Error(err)
+		tx.Rollback()
+		return nil, ErrDeleteWord
 	}
 
 	// wordInfo に紐づく japaneseMean を削除
@@ -97,7 +90,7 @@ func (s *WordServiceImpl) DeleteWord(ctx context.Context, userID int, wordID int
 		return nil, ErrDeleteWord
 	}
 
-	response := &models.WordDeleteResponse{
+	response := &models.DeleteWordResponse{
 		Name:    wordEntity.Name,
 		Message: "word delete complete",
 	}

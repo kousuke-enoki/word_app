@@ -11,11 +11,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (h *WordHandler) WordNewHandler() gin.HandlerFunc {
+func (h *WordHandler) CreateWordHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
-		logrus.Info("wordNew")
-		logrus.Info(c)
+
 		// リクエストを解析
 		req, err := h.parseWordNewRequest(c)
 		if err != nil {
@@ -23,7 +22,6 @@ func (h *WordHandler) WordNewHandler() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		logrus.Info(req)
 
 		// サービス層にリクエストを渡して処理
 		response, err := h.wordService.CreateWord(ctx, req)
@@ -32,7 +30,6 @@ func (h *WordHandler) WordNewHandler() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create word"})
 			return
 		}
-		logrus.Info(response)
 
 		c.JSON(http.StatusOK, response)
 	}

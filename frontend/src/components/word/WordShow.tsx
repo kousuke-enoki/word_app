@@ -62,6 +62,11 @@ const WordShow: React.FC = () => {
     }
   }
 
+  const handleEdit = async () => {
+    console.log(word.id)
+    window.location.href = '/words/edit/' + word.id
+  }
+
   const handleDelete = async () => {
     if (!word) return
     const confirmDelete = window.confirm('本当にこの単語を削除しますか？')
@@ -145,9 +150,14 @@ const WordShow: React.FC = () => {
           {word.isRegistered ? '登録解除' : '登録する'}
         </button>
       </div>
-      <button className="delete-button" onClick={handleDelete}>
-        削除する
-      </button>
+      <div>
+        <button className="delete-button" onClick={handleEdit}>
+          編集する
+        </button>
+        <button className="delete-button" onClick={handleDelete}>
+          削除する
+        </button>
+      </div>
       <button
         className="back-button"
         onClick={() =>

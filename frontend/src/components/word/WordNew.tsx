@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import axiosInstance from '../../axiosConfig'
 import {
   getPartOfSpeech,
@@ -31,6 +32,7 @@ const WordNew: React.FC = () => {
     ],
   })
   const [successMessage, setSuccessMessage] = useState<string>('')
+  const navigate = useNavigate()
 
   const MAX_PART_OF_SPEECH = 10
   const MAX_JAPANESE_MEANS = 10
@@ -233,6 +235,11 @@ const WordNew: React.FC = () => {
 
         <div className="submit-button">
           <button type="submit">単語を登録</button>
+        </div>
+        <div>
+          <button className="back-button" onClick={() => navigate('/', {})}>
+            mypageに戻る
+          </button>
         </div>
       </form>
     </div>

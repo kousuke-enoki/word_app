@@ -7,6 +7,8 @@ import (
 	"word_app/backend/ent"
 	"word_app/backend/ent/word"
 	"word_app/backend/src/models"
+
+	"github.com/sirupsen/logrus"
 )
 
 // word_show
@@ -68,13 +70,17 @@ func (s *WordServiceImpl) GetWordDetails(ctx context.Context, wordID int, userID
 				Name: mean.Name,
 			}
 		}
+		logrus.Info("partOfSpeech")
+		logrus.Info(partOfSpeech)
 		wordInfos[i] = models.WordInfo{
-			ID:            wordInfo.ID,
-			PartOfSpeech:  partOfSpeech,
-			JapaneseMeans: japaneseMeans,
+			ID:             wordInfo.ID,
+			PartOfSpeech:   partOfSpeech,
+			PartOfSpeechID: partOfSpeech.ID,
+			JapaneseMeans:  japaneseMeans,
 		}
 	}
-
+	logrus.Info("wordInfos")
+	logrus.Info(wordInfos)
 	response := &models.WordShowResponse{
 		ID:                wordEntity.ID,
 		Name:              wordEntity.Name,

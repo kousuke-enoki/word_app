@@ -12,6 +12,19 @@ type CreateWordResponse struct {
 	Message string `json:"message"`
 }
 
+type UpdateWordRequest struct {
+	ID        int        `json:"id"`
+	Name      string     `json:"name"`
+	WordInfos []WordInfo `json:"wordInfos"`
+	UserID    int        `json:"userId"`
+}
+
+type UpdateWordResponse struct {
+	ID      int    `json:"id"`
+	Name    string `json:"name"`
+	Message string `json:"message"`
+}
+
 type Word struct {
 	ID                int        `json:"id"`
 	Name              string     `json:"name"`

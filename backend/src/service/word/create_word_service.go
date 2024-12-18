@@ -14,9 +14,6 @@ import (
 
 // create_word
 func (s *WordServiceImpl) CreateWord(ctx context.Context, CreateWordRequest *models.CreateWordRequest) (*models.CreateWordResponse, error) {
-
-	logrus.Info("CreateWord")
-	logrus.Info(CreateWordRequest)
 	// トランザクション開始
 	tx, err := s.client.Tx(ctx)
 	if err != nil {

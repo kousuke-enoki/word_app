@@ -82,6 +82,20 @@ func (uc *UserCreate) SetNillableAdmin(b *bool) *UserCreate {
 	return uc
 }
 
+// SetRoot sets the "root" field.
+func (uc *UserCreate) SetRoot(b bool) *UserCreate {
+	uc.mutation.SetRoot(b)
+	return uc
+}
+
+// SetNillableRoot sets the "root" field if the given value is not nil.
+func (uc *UserCreate) SetNillableRoot(b *bool) *UserCreate {
+	if b != nil {
+		uc.SetRoot(*b)
+	}
+	return uc
+}
+
 // AddRegisteredWordIDs adds the "registered_words" edge to the RegisteredWord entity by IDs.
 func (uc *UserCreate) AddRegisteredWordIDs(ids ...int) *UserCreate {
 	uc.mutation.AddRegisteredWordIDs(ids...)
@@ -159,6 +173,10 @@ func (uc *UserCreate) defaults() {
 		v := user.DefaultAdmin
 		uc.mutation.SetAdmin(v)
 	}
+	if _, ok := uc.mutation.Root(); !ok {
+		v := user.DefaultRoot
+		uc.mutation.SetRoot(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -195,6 +213,9 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.Admin(); !ok {
 		return &ValidationError{Name: "admin", err: errors.New(`ent: missing required field "User.admin"`)}
+	}
+	if _, ok := uc.mutation.Root(); !ok {
+		return &ValidationError{Name: "root", err: errors.New(`ent: missing required field "User.root"`)}
 	}
 	return nil
 }
@@ -245,6 +266,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.Admin(); ok {
 		_spec.SetField(user.FieldAdmin, field.TypeBool, value)
 		_node.Admin = value
+	}
+	if value, ok := uc.mutation.Root(); ok {
+		_spec.SetField(user.FieldRoot, field.TypeBool, value)
+		_node.Root = value
 	}
 	if nodes := uc.mutation.RegisteredWordsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

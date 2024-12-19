@@ -47,6 +47,8 @@ func (User) Fields() []ent.Field {
 			UpdateDefault(time.Now),
 		field.Bool("admin").
 			Default(false),
+		field.Bool("root").
+			Default(false),
 	}
 }
 

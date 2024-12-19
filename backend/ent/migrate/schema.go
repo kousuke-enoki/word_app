@@ -76,6 +76,17 @@ var (
 			},
 		},
 	}
+	// RootConfigsColumns holds the columns for the "root_configs" table.
+	RootConfigsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "editing_permission", Type: field.TypeInt, Default: 0},
+	}
+	// RootConfigsTable holds the schema information for the "root_configs" table.
+	RootConfigsTable = &schema.Table{
+		Name:       "root_configs",
+		Columns:    RootConfigsColumns,
+		PrimaryKey: []*schema.Column{RootConfigsColumns[0]},
+	}
 	// TestsColumns holds the columns for the "tests" table.
 	TestsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -135,6 +146,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "admin", Type: field.TypeBool, Default: false},
+		{Name: "root", Type: field.TypeBool, Default: false},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -190,6 +202,7 @@ var (
 		JapaneseMeansTable,
 		PartOfSpeechesTable,
 		RegisteredWordsTable,
+		RootConfigsTable,
 		TestsTable,
 		TestQuestionsTable,
 		UsersTable,

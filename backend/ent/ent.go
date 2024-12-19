@@ -11,6 +11,7 @@ import (
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/partofspeech"
 	"word_app/backend/ent/registeredword"
+	"word_app/backend/ent/rootconfig"
 	"word_app/backend/ent/test"
 	"word_app/backend/ent/testquestion"
 	"word_app/backend/ent/user"
@@ -83,6 +84,7 @@ func checkColumn(table, column string) error {
 			japanesemean.Table:   japanesemean.ValidColumn,
 			partofspeech.Table:   partofspeech.ValidColumn,
 			registeredword.Table: registeredword.ValidColumn,
+			rootconfig.Table:     rootconfig.ValidColumn,
 			test.Table:           test.ValidColumn,
 			testquestion.Table:   testquestion.ValidColumn,
 			user.Table:           user.ValidColumn,

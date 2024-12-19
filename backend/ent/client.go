@@ -14,6 +14,7 @@ import (
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/partofspeech"
 	"word_app/backend/ent/registeredword"
+	"word_app/backend/ent/rootconfig"
 	"word_app/backend/ent/test"
 	"word_app/backend/ent/testquestion"
 	"word_app/backend/ent/user"
@@ -37,6 +38,8 @@ type Client struct {
 	PartOfSpeech *PartOfSpeechClient
 	// RegisteredWord is the client for interacting with the RegisteredWord builders.
 	RegisteredWord *RegisteredWordClient
+	// RootConfig is the client for interacting with the RootConfig builders.
+	RootConfig *RootConfigClient
 	// Test is the client for interacting with the Test builders.
 	Test *TestClient
 	// TestQuestion is the client for interacting with the TestQuestion builders.
@@ -61,6 +64,7 @@ func (c *Client) init() {
 	c.JapaneseMean = NewJapaneseMeanClient(c.config)
 	c.PartOfSpeech = NewPartOfSpeechClient(c.config)
 	c.RegisteredWord = NewRegisteredWordClient(c.config)
+	c.RootConfig = NewRootConfigClient(c.config)
 	c.Test = NewTestClient(c.config)
 	c.TestQuestion = NewTestQuestionClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -161,6 +165,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		JapaneseMean:   NewJapaneseMeanClient(cfg),
 		PartOfSpeech:   NewPartOfSpeechClient(cfg),
 		RegisteredWord: NewRegisteredWordClient(cfg),
+		RootConfig:     NewRootConfigClient(cfg),
 		Test:           NewTestClient(cfg),
 		TestQuestion:   NewTestQuestionClient(cfg),
 		User:           NewUserClient(cfg),
@@ -188,6 +193,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		JapaneseMean:   NewJapaneseMeanClient(cfg),
 		PartOfSpeech:   NewPartOfSpeechClient(cfg),
 		RegisteredWord: NewRegisteredWordClient(cfg),
+		RootConfig:     NewRootConfigClient(cfg),
 		Test:           NewTestClient(cfg),
 		TestQuestion:   NewTestQuestionClient(cfg),
 		User:           NewUserClient(cfg),
@@ -222,8 +228,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.JapaneseMean, c.PartOfSpeech, c.RegisteredWord, c.Test, c.TestQuestion,
-		c.User, c.Word, c.WordInfo,
+		c.JapaneseMean, c.PartOfSpeech, c.RegisteredWord, c.RootConfig, c.Test,
+		c.TestQuestion, c.User, c.Word, c.WordInfo,
 	} {
 		n.Use(hooks...)
 	}
@@ -233,8 +239,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.JapaneseMean, c.PartOfSpeech, c.RegisteredWord, c.Test, c.TestQuestion,
-		c.User, c.Word, c.WordInfo,
+		c.JapaneseMean, c.PartOfSpeech, c.RegisteredWord, c.RootConfig, c.Test,
+		c.TestQuestion, c.User, c.Word, c.WordInfo,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -249,6 +255,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PartOfSpeech.mutate(ctx, m)
 	case *RegisteredWordMutation:
 		return c.RegisteredWord.mutate(ctx, m)
+	case *RootConfigMutation:
+		return c.RootConfig.mutate(ctx, m)
 	case *TestMutation:
 		return c.Test.mutate(ctx, m)
 	case *TestQuestionMutation:
@@ -740,6 +748,139 @@ func (c *RegisteredWordClient) mutate(ctx context.Context, m *RegisteredWordMuta
 		return (&RegisteredWordDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown RegisteredWord mutation op: %q", m.Op())
+	}
+}
+
+// RootConfigClient is a client for the RootConfig schema.
+type RootConfigClient struct {
+	config
+}
+
+// NewRootConfigClient returns a client for the RootConfig from the given config.
+func NewRootConfigClient(c config) *RootConfigClient {
+	return &RootConfigClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `rootconfig.Hooks(f(g(h())))`.
+func (c *RootConfigClient) Use(hooks ...Hook) {
+	c.hooks.RootConfig = append(c.hooks.RootConfig, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `rootconfig.Intercept(f(g(h())))`.
+func (c *RootConfigClient) Intercept(interceptors ...Interceptor) {
+	c.inters.RootConfig = append(c.inters.RootConfig, interceptors...)
+}
+
+// Create returns a builder for creating a RootConfig entity.
+func (c *RootConfigClient) Create() *RootConfigCreate {
+	mutation := newRootConfigMutation(c.config, OpCreate)
+	return &RootConfigCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of RootConfig entities.
+func (c *RootConfigClient) CreateBulk(builders ...*RootConfigCreate) *RootConfigCreateBulk {
+	return &RootConfigCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RootConfigClient) MapCreateBulk(slice any, setFunc func(*RootConfigCreate, int)) *RootConfigCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RootConfigCreateBulk{err: fmt.Errorf("calling to RootConfigClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RootConfigCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RootConfigCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for RootConfig.
+func (c *RootConfigClient) Update() *RootConfigUpdate {
+	mutation := newRootConfigMutation(c.config, OpUpdate)
+	return &RootConfigUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RootConfigClient) UpdateOne(rc *RootConfig) *RootConfigUpdateOne {
+	mutation := newRootConfigMutation(c.config, OpUpdateOne, withRootConfig(rc))
+	return &RootConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RootConfigClient) UpdateOneID(id int) *RootConfigUpdateOne {
+	mutation := newRootConfigMutation(c.config, OpUpdateOne, withRootConfigID(id))
+	return &RootConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for RootConfig.
+func (c *RootConfigClient) Delete() *RootConfigDelete {
+	mutation := newRootConfigMutation(c.config, OpDelete)
+	return &RootConfigDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RootConfigClient) DeleteOne(rc *RootConfig) *RootConfigDeleteOne {
+	return c.DeleteOneID(rc.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RootConfigClient) DeleteOneID(id int) *RootConfigDeleteOne {
+	builder := c.Delete().Where(rootconfig.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RootConfigDeleteOne{builder}
+}
+
+// Query returns a query builder for RootConfig.
+func (c *RootConfigClient) Query() *RootConfigQuery {
+	return &RootConfigQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRootConfig},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a RootConfig entity by its id.
+func (c *RootConfigClient) Get(ctx context.Context, id int) (*RootConfig, error) {
+	return c.Query().Where(rootconfig.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RootConfigClient) GetX(ctx context.Context, id int) *RootConfig {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *RootConfigClient) Hooks() []Hook {
+	return c.hooks.RootConfig
+}
+
+// Interceptors returns the client interceptors.
+func (c *RootConfigClient) Interceptors() []Interceptor {
+	return c.inters.RootConfig
+}
+
+func (c *RootConfigClient) mutate(ctx context.Context, m *RootConfigMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RootConfigCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RootConfigUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RootConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RootConfigDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown RootConfig mutation op: %q", m.Op())
 	}
 }
 
@@ -1587,11 +1728,11 @@ func (c *WordInfoClient) mutate(ctx context.Context, m *WordInfoMutation) (Value
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		JapaneseMean, PartOfSpeech, RegisteredWord, Test, TestQuestion, User, Word,
-		WordInfo []ent.Hook
+		JapaneseMean, PartOfSpeech, RegisteredWord, RootConfig, Test, TestQuestion,
+		User, Word, WordInfo []ent.Hook
 	}
 	inters struct {
-		JapaneseMean, PartOfSpeech, RegisteredWord, Test, TestQuestion, User, Word,
-		WordInfo []ent.Interceptor
+		JapaneseMean, PartOfSpeech, RegisteredWord, RootConfig, Test, TestQuestion,
+		User, Word, WordInfo []ent.Interceptor
 	}
 )

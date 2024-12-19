@@ -85,6 +85,11 @@ func Admin(v bool) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldAdmin, v))
 }
 
+// Root applies equality check predicate on the "root" field. It's identical to RootEQ.
+func Root(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldRoot, v))
+}
+
 // EmailEQ applies the EQ predicate on the "email" field.
 func EmailEQ(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldEmail, v))
@@ -368,6 +373,16 @@ func AdminEQ(v bool) predicate.User {
 // AdminNEQ applies the NEQ predicate on the "admin" field.
 func AdminNEQ(v bool) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldAdmin, v))
+}
+
+// RootEQ applies the EQ predicate on the "root" field.
+func RootEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldRoot, v))
+}
+
+// RootNEQ applies the NEQ predicate on the "root" field.
+func RootNEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldRoot, v))
 }
 
 // HasRegisteredWords applies the HasEdge predicate on the "registered_words" edge.

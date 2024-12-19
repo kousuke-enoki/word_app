@@ -44,6 +44,18 @@ func (f RegisteredWordFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RegisteredWordMutation", m)
 }
 
+// The RootConfigFunc type is an adapter to allow the use of ordinary
+// function as RootConfig mutator.
+type RootConfigFunc func(context.Context, *ent.RootConfigMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RootConfigFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RootConfigMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RootConfigMutation", m)
+}
+
 // The TestFunc type is an adapter to allow the use of ordinary
 // function as Test mutator.
 type TestFunc func(context.Context, *ent.TestMutation) (ent.Value, error)

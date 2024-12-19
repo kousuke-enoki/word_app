@@ -14,34 +14,35 @@ import (
 
 // SeedAdminUsers シードデータを流す
 func SeedAdminUsers(ctx context.Context, client *ent.Client) {
-	exists, err := client.User.Query().Where(user.Email("admin@example.com")).Exist(ctx)
+	exists, err := client.User.Query().Where(user.Email("root@example.com")).Exist(ctx)
 	if err != nil {
 		log.Fatalf("failed to query users: %v", err)
 	}
 	if !exists {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("Password1234"), bcrypt.DefaultCost)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("Password123$"), bcrypt.DefaultCost)
 		if err != nil {
 			log.Fatalf("Failed to hash password")
 			return
 		}
 
 		_, err = client.User.Create().
-			SetEmail("admin@example.com").
-			SetName("Admin User").
+			SetEmail("root@example.com").
+			SetName("Root User").
 			SetPassword(string(hashedPassword)).
 			SetAdmin(true).
+			SetRoot(true).
 			Save(ctx)
 		if err != nil {
-			log.Fatalf("failed to create admin user: %v", err)
+			log.Fatalf("failed to create root user: %v", err)
 		}
-		log.Println("Admin user seeded")
+		log.Println("Root user seeded")
 	}
 }
 
 // SeedPartOfSpeech 品詞データのシード
 func SeedPartOfSpeech(ctx context.Context, client *ent.Client) {
-	partsOfSpeech := []string{"noun", "pronoun", "verb", "djective", "adverb",
-		"auxiliary_verb", "preposition", "article", "interjection", "conjunction"}
+	partsOfSpeech := []string{"名詞", "代名詞", "動詞", "形容詞", "副詞",
+		"助動詞", "前置詞", "冠詞", "間投詞", "接続詞"}
 
 	for _, name := range partsOfSpeech {
 		exists, err := client.PartOfSpeech.Query().Where(partofspeech.Name(name)).Exist(ctx)

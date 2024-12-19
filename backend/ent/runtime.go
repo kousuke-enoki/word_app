@@ -7,6 +7,7 @@ import (
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/partofspeech"
 	"word_app/backend/ent/registeredword"
+	"word_app/backend/ent/rootconfig"
 	"word_app/backend/ent/schema"
 	"word_app/backend/ent/test"
 	"word_app/backend/ent/testquestion"
@@ -24,7 +25,21 @@ func init() {
 	// japanesemeanDescName is the schema descriptor for name field.
 	japanesemeanDescName := japanesemeanFields[0].Descriptor()
 	// japanesemean.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	japanesemean.NameValidator = japanesemeanDescName.Validators[0].(func(string) error)
+	japanesemean.NameValidator = func() func(string) error {
+		validators := japanesemeanDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// japanesemeanDescWordInfoID is the schema descriptor for word_info_id field.
 	japanesemeanDescWordInfoID := japanesemeanFields[1].Descriptor()
 	// japanesemean.WordInfoIDValidator is a validator for the "word_info_id" field. It is called by the builders before save.
@@ -93,6 +108,12 @@ func init() {
 	registeredword.DefaultUpdatedAt = registeredwordDescUpdatedAt.Default.(func() time.Time)
 	// registeredword.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	registeredword.UpdateDefaultUpdatedAt = registeredwordDescUpdatedAt.UpdateDefault.(func() time.Time)
+	rootconfigFields := schema.RootConfig{}.Fields()
+	_ = rootconfigFields
+	// rootconfigDescEditingPermission is the schema descriptor for editing_permission field.
+	rootconfigDescEditingPermission := rootconfigFields[0].Descriptor()
+	// rootconfig.DefaultEditingPermission holds the default value on creation for the editing_permission field.
+	rootconfig.DefaultEditingPermission = rootconfigDescEditingPermission.Default.(int)
 	testFields := schema.Test{}.Fields()
 	_ = testFields
 	// testDescTotalQuestions is the schema descriptor for total_questions field.
@@ -173,12 +194,30 @@ func init() {
 	userDescAdmin := userFields[5].Descriptor()
 	// user.DefaultAdmin holds the default value on creation for the admin field.
 	user.DefaultAdmin = userDescAdmin.Default.(bool)
+	// userDescRoot is the schema descriptor for root field.
+	userDescRoot := userFields[6].Descriptor()
+	// user.DefaultRoot holds the default value on creation for the root field.
+	user.DefaultRoot = userDescRoot.Default.(bool)
 	wordFields := schema.Word{}.Fields()
 	_ = wordFields
 	// wordDescName is the schema descriptor for name field.
 	wordDescName := wordFields[0].Descriptor()
 	// word.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	word.NameValidator = wordDescName.Validators[0].(func(string) error)
+	word.NameValidator = func() func(string) error {
+		validators := wordDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// wordDescRegistrationCount is the schema descriptor for registration_count field.
 	wordDescRegistrationCount := wordFields[2].Descriptor()
 	// word.DefaultRegistrationCount holds the default value on creation for the registration_count field.

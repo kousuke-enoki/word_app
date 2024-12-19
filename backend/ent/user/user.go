@@ -26,6 +26,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// FieldAdmin holds the string denoting the admin field in the database.
 	FieldAdmin = "admin"
+	// FieldRoot holds the string denoting the root field in the database.
+	FieldRoot = "root"
 	// EdgeRegisteredWords holds the string denoting the registered_words edge name in mutations.
 	EdgeRegisteredWords = "registered_words"
 	// EdgeTests holds the string denoting the tests edge name in mutations.
@@ -57,6 +59,7 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldAdmin,
+	FieldRoot,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -84,6 +87,8 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// DefaultAdmin holds the default value on creation for the "admin" field.
 	DefaultAdmin bool
+	// DefaultRoot holds the default value on creation for the "root" field.
+	DefaultRoot bool
 )
 
 // OrderOption defines the ordering options for the User queries.
@@ -122,6 +127,11 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByAdmin orders the results by the admin field.
 func ByAdmin(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAdmin, opts...).ToFunc()
+}
+
+// ByRoot orders the results by the root field.
+func ByRoot(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRoot, opts...).ToFunc()
 }
 
 // ByRegisteredWordsCount orders the results by registered_words count.

@@ -106,6 +106,20 @@ func (uu *UserUpdate) SetNillableAdmin(b *bool) *UserUpdate {
 	return uu
 }
 
+// SetRoot sets the "root" field.
+func (uu *UserUpdate) SetRoot(b bool) *UserUpdate {
+	uu.mutation.SetRoot(b)
+	return uu
+}
+
+// SetNillableRoot sets the "root" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableRoot(b *bool) *UserUpdate {
+	if b != nil {
+		uu.SetRoot(*b)
+	}
+	return uu
+}
+
 // AddRegisteredWordIDs adds the "registered_words" edge to the RegisteredWord entity by IDs.
 func (uu *UserUpdate) AddRegisteredWordIDs(ids ...int) *UserUpdate {
 	uu.mutation.AddRegisteredWordIDs(ids...)
@@ -268,6 +282,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.Admin(); ok {
 		_spec.SetField(user.FieldAdmin, field.TypeBool, value)
+	}
+	if value, ok := uu.mutation.Root(); ok {
+		_spec.SetField(user.FieldRoot, field.TypeBool, value)
 	}
 	if uu.mutation.RegisteredWordsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -451,6 +468,20 @@ func (uuo *UserUpdateOne) SetAdmin(b bool) *UserUpdateOne {
 func (uuo *UserUpdateOne) SetNillableAdmin(b *bool) *UserUpdateOne {
 	if b != nil {
 		uuo.SetAdmin(*b)
+	}
+	return uuo
+}
+
+// SetRoot sets the "root" field.
+func (uuo *UserUpdateOne) SetRoot(b bool) *UserUpdateOne {
+	uuo.mutation.SetRoot(b)
+	return uuo
+}
+
+// SetNillableRoot sets the "root" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableRoot(b *bool) *UserUpdateOne {
+	if b != nil {
+		uuo.SetRoot(*b)
 	}
 	return uuo
 }
@@ -647,6 +678,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.Admin(); ok {
 		_spec.SetField(user.FieldAdmin, field.TypeBool, value)
+	}
+	if value, ok := uuo.mutation.Root(); ok {
+		_spec.SetField(user.FieldRoot, field.TypeBool, value)
 	}
 	if uuo.mutation.RegisteredWordsCleared() {
 		edge := &sqlgraph.EdgeSpec{

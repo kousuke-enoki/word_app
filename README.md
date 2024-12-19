@@ -17,7 +17,7 @@ bash start.sh production
 
 
 ## dockerキャッシュ削除
-docker compose down --volumes --rmi all
+docker compose --env-file backend/.env.development down --volumes --rmi all
 docker compose build --no-cache
 bash start.sh development
 

@@ -8,11 +8,13 @@ import (
 	"word_app/backend/src/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func (h *WordHandler) AllWordListHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
+		logrus.Info("ajklsdhfakjhdfak")
 
 		req, err := h.parseAllWordListRequest(c)
 		if err != nil {
@@ -22,20 +24,28 @@ func (h *WordHandler) AllWordListHandler() gin.HandlerFunc {
 
 		// サービスの呼び出し
 		if req.SortBy == "register" {
-			response, err := h.wordService.GetRegisteredWords(ctx, req.UserID, req.Search, req.Order, req.Page, req.Limit)
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			response, err := h.wordService.GetRegisteredWords(ctx, req)
+			logrus.Info("response")
+			logrus.Info(response)
+			logrus.Info(err)
+			if err == nil {
+				c.JSON(http.StatusOK, response)
 				return
 			} else {
-				c.JSON(http.StatusOK, response)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
 			}
 		} else {
-			response, err := h.wordService.GetWords(ctx, req.UserID, req.Search, req.SortBy, req.Order, req.Page, req.Limit)
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			response, err := h.wordService.GetWords(ctx, req)
+			logrus.Info("response")
+			logrus.Info(response)
+			logrus.Info(err)
+			if err == nil {
+				c.JSON(http.StatusOK, response)
 				return
 			} else {
-				c.JSON(http.StatusOK, response)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
 			}
 		}
 	}
@@ -49,12 +59,12 @@ func (h *WordHandler) parseAllWordListRequest(c *gin.Context) (*models.AllWordLi
 
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil || page <= 0 {
-		return nil, errors.New("Invalid query parameters")
+		return nil, errors.New("Invalid 'page' query parameter: must be a positive integer")
 	}
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	if err != nil || limit <= 0 {
-		return nil, errors.New("Invalid query parameters")
+		return nil, errors.New("Invalid 'limit' query parameter: must be a positive integer")
 	}
 
 	// ユーザーIDをコンテキストから取得

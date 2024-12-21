@@ -7,10 +7,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"regexp"
-	"unicode"
 
 	"word_app/backend/src/models"
+	"word_app/backend/src/validators/user"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -30,7 +29,7 @@ func (h *UserHandler) SignUpHandler() gin.HandlerFunc {
 			return
 		}
 
-		validationErrors := h.validateSignUp(req)
+		validationErrors := user.ValidateSignUp(req)
 		if len(validationErrors) > 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"errors": validationErrors})
 			return
@@ -81,61 +80,4 @@ func (h *UserHandler) hashPassword(password string) (string, error) {
 		return "", err
 	}
 	return string(hashedPassword), nil
-}
-
-// validateSignUp checks name, email, and password fields and returns a slice of FieldError.
-func (h *UserHandler) validateSignUp(req *models.SignUpRequest) []FieldError {
-	// var errors []FieldError
-	var fieldErrors []FieldError
-
-	// 各フィールドの検証を個別の関数に分割
-	fieldErrors = append(fieldErrors, h.validateName(req.Name)...)
-	fieldErrors = append(fieldErrors, h.validateEmail(req.Email)...)
-	fieldErrors = append(fieldErrors, h.validatePassword(req.Password)...)
-
-	return fieldErrors
-}
-
-// Name: 長さは3〜20文字かチェック。
-func (h *UserHandler) validateName(name string) []FieldError {
-	var fieldErrors []FieldError
-	if len(name) < 3 || len(name) > 20 {
-		fieldErrors = append(fieldErrors, FieldError{Field: "name", Message: "name must be between 3 and 20 characters"})
-	}
-	return fieldErrors
-}
-
-// Email: 有効なメールアドレス形式かをチェック。
-func (h *UserHandler) validateEmail(email string) []FieldError {
-	var fieldErrors []FieldError
-	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	if !emailRegex.MatchString(email) {
-		fieldErrors = append(fieldErrors, FieldError{Field: "email", Message: "invalid email format"})
-	}
-	return fieldErrors
-}
-
-// Password: 最低8文字、数字、アルファベットの大文字・小文字、特殊文字を含むかを確認。
-func (h *UserHandler) validatePassword(password string) []FieldError {
-	var fieldErrors []FieldError
-	if len(password) < 8 || len(password) > 30 {
-		fieldErrors = append(fieldErrors, FieldError{Field: "password", Message: "password must be between 8 and 30 characters"})
-	}
-	var hasUpper, hasLower, hasNumber, hasSpecial bool
-	for _, ch := range password {
-		switch {
-		case unicode.IsUpper(ch):
-			hasUpper = true
-		case unicode.IsLower(ch):
-			hasLower = true
-		case unicode.IsNumber(ch):
-			hasNumber = true
-		case unicode.IsPunct(ch) || unicode.IsSymbol(ch):
-			hasSpecial = true
-		}
-	}
-	if !(hasUpper && hasLower && hasNumber && hasSpecial) {
-		fieldErrors = append(fieldErrors, FieldError{Field: "password", Message: "password must include at least one uppercase letter, one lowercase letter, one number, and one special character"})
-	}
-	return fieldErrors
 }

@@ -38,7 +38,7 @@ const AllWordList: React.FC = () => {
     // APIからデータを取得する関数
     const fetchWords = async () => {
       try {
-        const response = await axiosInstance.get('words/all_list', {
+        const response = await axiosInstance.get('words', {
           params: {
             search,
             sortBy,

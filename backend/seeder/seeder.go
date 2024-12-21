@@ -8,13 +8,22 @@ import (
 	"word_app/backend/ent/partofspeech"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/word"
+	"word_app/backend/src/interfaces"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
+// RunSeeder 初回のみシード実行
+func RunSeeder(ctx context.Context, client interfaces.ClientInterface) {
+	SeedAdminUsers(ctx, client)
+	SeedPartOfSpeech(ctx, client)
+	SeedWords(ctx, client)
+}
+
 // SeedAdminUsers シードデータを流す
-func SeedAdminUsers(ctx context.Context, client *ent.Client) {
-	exists, err := client.User.Query().Where(user.Email("root@example.com")).Exist(ctx)
+func SeedAdminUsers(ctx context.Context, client interfaces.ClientInterface) {
+	entClient := client.EntClient()
+	exists, err := entClient.User.Query().Where(user.Email("root@example.com")).Exist(ctx)
 	if err != nil {
 		log.Fatalf("failed to query users: %v", err)
 	}
@@ -25,7 +34,7 @@ func SeedAdminUsers(ctx context.Context, client *ent.Client) {
 			return
 		}
 
-		_, err = client.User.Create().
+		_, err = entClient.User.Create().
 			SetEmail("root@example.com").
 			SetName("Root User").
 			SetPassword(string(hashedPassword)).
@@ -40,17 +49,18 @@ func SeedAdminUsers(ctx context.Context, client *ent.Client) {
 }
 
 // SeedPartOfSpeech 品詞データのシード
-func SeedPartOfSpeech(ctx context.Context, client *ent.Client) {
+func SeedPartOfSpeech(ctx context.Context, client interfaces.ClientInterface) {
+	entClient := client.EntClient()
 	partsOfSpeech := []string{"名詞", "代名詞", "動詞", "形容詞", "副詞",
 		"助動詞", "前置詞", "冠詞", "間投詞", "接続詞"}
 
 	for _, name := range partsOfSpeech {
-		exists, err := client.PartOfSpeech.Query().Where(partofspeech.Name(name)).Exist(ctx)
+		exists, err := entClient.PartOfSpeech.Query().Where(partofspeech.Name(name)).Exist(ctx)
 		if err != nil {
 			log.Fatalf("failed to query part of speech: %v", err)
 		}
 		if !exists {
-			_, err := client.PartOfSpeech.Create().
+			_, err := entClient.PartOfSpeech.Create().
 				SetName(name).
 				Save(ctx)
 			if err != nil {
@@ -61,7 +71,8 @@ func SeedPartOfSpeech(ctx context.Context, client *ent.Client) {
 	}
 }
 
-func SeedWords(ctx context.Context, client *ent.Client) {
+func SeedWords(ctx context.Context, client interfaces.ClientInterface) {
+	entClient := client.EntClient()
 	// 単語、品詞、日本語の意味を持つデータセット
 	words := []struct {
 		name           string
@@ -323,7 +334,7 @@ func SeedWords(ctx context.Context, client *ent.Client) {
 
 	for _, w := range words {
 		// まず、word テーブルに単語を追加または取得
-		existingWord, err := client.Word.Query().Where(word.Name(w.name)).Only(ctx)
+		existingWord, err := entClient.Word.Query().Where(word.Name(w.name)).Only(ctx)
 		if err != nil && !ent.IsNotFound(err) {
 			log.Fatalf("failed to query word: %v", err)
 		}
@@ -334,7 +345,7 @@ func SeedWords(ctx context.Context, client *ent.Client) {
 			createdWord = existingWord
 		} else {
 			// ない場合は新しい単語を作成
-			createdWord, err = client.Word.Create().
+			createdWord, err = entClient.Word.Create().
 				SetName(w.name).
 				SetVoiceID("").
 				Save(ctx)
@@ -345,7 +356,7 @@ func SeedWords(ctx context.Context, client *ent.Client) {
 		}
 
 		// word_info テーブルに品詞情報を追加
-		wordInfo, err := client.WordInfo.Create().
+		wordInfo, err := entClient.WordInfo.Create().
 			SetWordID(createdWord.ID).
 			SetPartOfSpeechID(w.partOfSpeechId).
 			Save(ctx)
@@ -354,7 +365,7 @@ func SeedWords(ctx context.Context, client *ent.Client) {
 		}
 
 		// japanese_mean テーブルに日本語の意味を追加
-		_, err = client.JapaneseMean.Create().
+		_, err = entClient.JapaneseMean.Create().
 			SetWordInfoID(wordInfo.ID).
 			SetName(w.japaneseMean).
 			Save(ctx)
@@ -379,10 +390,3 @@ func SeedWords(ctx context.Context, client *ent.Client) {
 // 5
 // ■■ agree
 // 動 同意する
-
-// RunSeeder 初回のみシード実行
-func RunSeeder(ctx context.Context, client *ent.Client) {
-	SeedAdminUsers(ctx, client)
-	SeedPartOfSpeech(ctx, client)
-	SeedWords(ctx, client)
-}

@@ -14,6 +14,8 @@ import (
 	auth "word_app/backend/src/handlers/middleware"
 	userHandler "word_app/backend/src/handlers/user"
 	"word_app/backend/src/handlers/word"
+	"word_app/backend/src/infrastructure"
+	"word_app/backend/src/interfaces"
 	userService "word_app/backend/src/service/user"
 	wordService "word_app/backend/src/service/word"
 	"word_app/backend/src/utils"
@@ -37,12 +39,14 @@ func initializeServer() {
 	logger.InitLogger()
 
 	appEnv, appPort, corsOrigin := config.LoadAppConfig()
-	client := connectToDatabase()
-	defer client.Close()
+	// client := connectToDatabase()
+	entClient := connectToDatabase()
+	defer entClient.Close()
 
+	client := infrastructure.NewAppClient(entClient)
 	setupDatabase(client)
 
-	router := setupRouter(client, corsOrigin)
+	router := setupRouter(client.EntClient(), corsOrigin)
 
 	startServer(router, appPort, appEnv)
 }
@@ -65,18 +69,24 @@ func connectToDatabase() *ent.Client {
 }
 
 // データベースのセットアップ
-func setupDatabase(client *ent.Client) {
+func setupDatabase(client interfaces.ClientInterface) {
 	ctx := context.Background()
-
-	if err := client.Schema.Create(ctx); err != nil {
+	entClient := client.EntClient()
+	if entClient == nil {
+		logrus.Fatalf("ent.Client is nil")
+	}
+	// Schema を作成
+	if err := entClient.Schema.Create(ctx); err != nil {
 		logrus.Fatalf("Failed to create schema: %v", err)
 	}
 
-	adminExists, err := client.User.Query().Where(user.Email("admin@example.com")).Exist(ctx)
+	// Admin の存在を確認
+	adminExists, err := entClient.User.Query().Where(user.Email("root@example.com")).Exist(ctx)
 	if err != nil {
 		logrus.Fatalf("Failed to check admin existence: %v", err)
 	}
 
+	// Seeder の実行
 	if !adminExists {
 		logrus.Info("Running initial seeder...")
 		seeder.RunSeeder(ctx, client)

@@ -8,11 +8,19 @@ import (
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/word"
 	"word_app/backend/src/models"
+
+	"github.com/sirupsen/logrus"
 )
 
 // all_word_list
-func (s *WordServiceImpl) GetWords(ctx context.Context, userID int, search string, sortBy string, order string, page int, limit int) (*models.AllWordListResponse, error) {
+func (s *WordServiceImpl) GetWords(ctx context.Context, AllWordListRequest *models.AllWordListRequest) (*models.AllWordListResponse, error) {
 	query := s.client.Word.Query()
+	userID := AllWordListRequest.UserID
+	search := AllWordListRequest.Search
+	sortBy := AllWordListRequest.SortBy
+	order := AllWordListRequest.Order
+	page := AllWordListRequest.Page
+	limit := AllWordListRequest.Limit
 
 	// 検索条件の追加
 	query = addSearchFilter(query, search)
@@ -147,5 +155,8 @@ func convertEntWordsToResponse(entWords []*ent.Word) []models.Word {
 			CheckCount:        checkCount,
 		}
 	}
+	logrus.Info("qwer")
+	logrus.Info(words)
+	logrus.Info("qwer")
 	return words
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"word_app/backend/src/models"
+	"word_app/backend/src/validators/user"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -19,10 +20,16 @@ func (h *UserHandler) SignInHandler() gin.HandlerFunc {
 			return
 		}
 
+		validationErrors := user.ValidateSignIn(&req)
+		if len(validationErrors) > 0 {
+			c.JSON(400, gin.H{"errors": "Invalid request"})
+			return
+		}
+
 		// ユーザーの検索
 		signInUser, err := h.userClient.FindUserByEmail(context.Background(), req.Email)
 		if err != nil || bcrypt.CompareHashAndPassword([]byte(signInUser.Password), []byte(req.Password)) != nil {
-			c.JSON(401, gin.H{"error": "Invalid credentials"})
+			c.JSON(400, gin.H{"error": "Invalid request"})
 			return
 		}
 

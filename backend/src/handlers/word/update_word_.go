@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"regexp"
 	"word_app/backend/src/models"
+	"word_app/backend/src/validators/word"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -19,6 +19,13 @@ func (h *WordHandler) UpdateWordHandler() gin.HandlerFunc {
 		if err != nil {
 			logrus.Errorf("Failed to parse request: %v", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// バリデーション
+		validationErrors := word.ValidateUpdateWordRequest(req)
+		if len(validationErrors) > 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"errors": validationErrors})
 			return
 		}
 
@@ -44,12 +51,6 @@ func (h *WordHandler) parseUpdateWordRequest(c *gin.Context) (*models.UpdateWord
 		return nil, err
 	}
 
-	// バリデーション
-	if err := validateUpdateWordRequest(&req); err != nil {
-		logrus.Errorf("Validation error: %v", err)
-		return nil, err
-	}
-
 	logrus.Infof("Parsed request: %+v", req)
 
 	// ユーザーIDをコンテキストから取得
@@ -69,47 +70,4 @@ func (h *WordHandler) parseUpdateWordRequest(c *gin.Context) (*models.UpdateWord
 	logrus.Infof("Final parsed request with userID: %+v", req)
 
 	return &req, nil
-}
-
-// バリデーション関数
-func validateUpdateWordRequest(req *models.UpdateWordRequest) error {
-	// 半角アルファベットのみの正規表現
-	wordNameRegex := regexp.MustCompile(`^[a-zA-Z]+$`)
-
-	// 日本語（ひらがな、カタカナ、漢字）と記号「~」のみの正規表現
-	japaneseMeanRegex := regexp.MustCompile(`^[ぁ-んァ-ヶ一-龠々ー～]+$`)
-
-	// word.nameの検証
-	if !wordNameRegex.MatchString(req.Name) {
-		return errors.New("word.name must contain only alphabetic characters")
-	}
-
-	// WordInfosの検証
-	if len(req.WordInfos) < 1 || len(req.WordInfos) > 10 {
-		return errors.New("wordInfos must contain between 1 and 10 items")
-	}
-
-	// PartOfSpeechIDの重複チェック用マップ
-	partOfSpeechIDMap := make(map[int]bool)
-
-	for _, wordInfo := range req.WordInfos {
-		// JapaneseMeansの検証
-		if len(wordInfo.JapaneseMeans) < 1 || len(wordInfo.JapaneseMeans) > 10 {
-			return errors.New("japaneseMeans must contain between 1 and 10 items")
-		}
-
-		for _, mean := range wordInfo.JapaneseMeans {
-			if !japaneseMeanRegex.MatchString(mean.Name) {
-				return errors.New("japaneseMean.name must contain only Japanese characters and the '~' symbol")
-			}
-		}
-
-		// PartOfSpeechIDの重複検証
-		if partOfSpeechIDMap[wordInfo.PartOfSpeechID] {
-			return errors.New("duplicate PartOfSpeechID found in WordInfos")
-		}
-		partOfSpeechIDMap[wordInfo.PartOfSpeechID] = true
-	}
-
-	return nil
 }

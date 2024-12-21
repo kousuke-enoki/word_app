@@ -21,11 +21,6 @@ docker compose --env-file backend/.env.development down --volumes --rmi all
 docker compose build --no-cache
 bash start.sh development
 
-
-# mockery(コンテナ内で)
-go install github.com/vektra/mockery/v2@v2.43.2
-
-
 # 実行中のコンテナを確認
 docker ps
 
@@ -59,6 +54,9 @@ cd frontend
 npm install react-i18next i18next --save
 
 # モック作成(mockery)
+mockery(コンテナ内で)
+go install github.com/vektra/mockery/v2@v2.43.2
+
 interfacesがあるディレクトリで
 mockery --name=UserClient --output=./../mocks
 

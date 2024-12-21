@@ -11,8 +11,13 @@ import (
 )
 
 // word_list
-func (s *WordServiceImpl) GetRegisteredWords(ctx context.Context, userID int, search string, order string, page int, limit int) (*models.AllWordListResponse, error) {
+func (s *WordServiceImpl) GetRegisteredWords(ctx context.Context, AllWordListRequest *models.AllWordListRequest) (*models.AllWordListResponse, error) {
 	query := s.client.Word.Query()
+	userID := AllWordListRequest.UserID
+	search := AllWordListRequest.Search
+	order := AllWordListRequest.Order
+	page := AllWordListRequest.Page
+	limit := AllWordListRequest.Limit
 
 	// 検索条件の追加
 	query = addSearchRegisteredWordsFilter(query, search)

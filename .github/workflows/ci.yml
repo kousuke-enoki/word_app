@@ -66,7 +66,7 @@ jobs:
       run: |
         go mod tidy
         go mod download
-        golangci-lint run
+        golangci-lint run --verbose
 
     - name: Run Backend Tests
       working-directory: ./backend
@@ -84,9 +84,3 @@ jobs:
       working-directory: ./frontend
       run: npm test
 
-    - name: Start Docker Compose
-      working-directory: ./backend
-      run: |
-        docker compose --env-file backend/.env.development up -d 
-      env:
-        DOCKER_BUILDKIT: 1

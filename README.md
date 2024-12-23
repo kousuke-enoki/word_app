@@ -7,13 +7,19 @@ docker compose exec backend bash
 
 
 ## 環境起動コマンド
- start.shで振り分け
+ docker.shで振り分け
 
-# 開発環境
-bash start.sh development
+# 開発環境 sh コマンド
+bash docker.sh up dev
+bash docker.sh down dev
+bash docker.sh exec backend dev
+bash docker.sh exec frontend dev
 
 # 本番環境
-bash start.sh production
+bash docker.sh up prod
+bash docker.sh down prod
+bash docker.sh exec backend prod
+bash docker.sh exec frontend prod
 
 
 ## dockerキャッシュ削除

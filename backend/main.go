@@ -39,7 +39,6 @@ func initializeServer() {
 	logger.InitLogger()
 
 	appEnv, appPort, corsOrigin := config.LoadAppConfig()
-	// client := connectToDatabase()
 	entClient := connectToDatabase()
 	defer entClient.Close()
 
@@ -57,12 +56,18 @@ func connectToDatabase() *ent.Client {
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
+	// entDebug := os.Getenv("ENT_DEBUG")
 
 	dsn := fmt.Sprintf("host=%s port=5432 user=%s dbname=%s password=%s sslmode=disable", dbHost, dbUser, dbName, dbPassword)
 	client, err := ent.Open("postgres", dsn)
 	if err != nil {
 		logrus.Fatalf("Failed to connect to database: %v", err)
 	}
+
+	// if entDebug == "1" {
+	// 	client = client.Debug()
+	// 	logrus.Info("Ent debug mode enabled")
+	// }
 
 	logrus.Info("Database connection established")
 	return client
@@ -109,10 +114,6 @@ func setupRouter(client *ent.Client, corsOrigin string) *gin.Engine {
 		AllowCredentials: true,
 	}))
 
-	if os.Getenv("ENT_DEBUG") == "1" {
-		client = client.Debug()
-		logrus.Info("Ent debug mode enabled")
-	}
 	// Handler の初期化
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {

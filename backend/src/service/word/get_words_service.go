@@ -8,8 +8,6 @@ import (
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/word"
 	"word_app/backend/src/models"
-
-	"github.com/sirupsen/logrus"
 )
 
 // all_word_list
@@ -155,8 +153,6 @@ func convertEntWordsToResponse(entWords []*ent.Word) []models.Word {
 			CheckCount:        checkCount,
 		}
 	}
-	logrus.Info("qwer")
-	logrus.Info(words)
-	logrus.Info("qwer")
+
 	return words
 }

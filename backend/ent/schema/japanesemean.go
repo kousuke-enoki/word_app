@@ -46,5 +46,6 @@ func (JapaneseMean) Edges() []ent.Edge {
 			Field("word_info_id").
 			Unique().
 			Required(),
+		edge.To("exam_questions", ExamQuestion.Type),
 	}
 }

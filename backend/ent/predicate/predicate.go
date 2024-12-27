@@ -6,6 +6,12 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Exam is the predicate function for exam builders.
+type Exam func(*sql.Selector)
+
+// ExamQuestion is the predicate function for examquestion builders.
+type ExamQuestion func(*sql.Selector)
+
 // JapaneseMean is the predicate function for japanesemean builders.
 type JapaneseMean func(*sql.Selector)
 
@@ -17,12 +23,6 @@ type RegisteredWord func(*sql.Selector)
 
 // RootConfig is the predicate function for rootconfig builders.
 type RootConfig func(*sql.Selector)
-
-// Test is the predicate function for test builders.
-type Test func(*sql.Selector)
-
-// TestQuestion is the predicate function for testquestion builders.
-type TestQuestion func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

@@ -16,10 +16,12 @@ type RouterImplementation struct {
 	AuthHandler interfaces.AuthHandler
 	UserHandler interfaces.UserHandler
 	WordHandler interfaces.WordHandler
+	ExamHandler interfaces.ExamHandler
 	JWTSecret   string
 }
 
-func NewRouter(authHandler interfaces.AuthHandler, userHandler interfaces.UserHandler, wordHandler interfaces.WordHandler) *RouterImplementation {
+func NewRouter(authHandler interfaces.AuthHandler, userHandler interfaces.UserHandler,
+	wordHandler interfaces.WordHandler, examHandler interfaces.ExamHandler) *RouterImplementation {
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		logrus.Fatal("JWT_SECRET environment variable is required")
@@ -29,6 +31,7 @@ func NewRouter(authHandler interfaces.AuthHandler, userHandler interfaces.UserHa
 		AuthHandler: authHandler,
 		UserHandler: userHandler,
 		WordHandler: wordHandler,
+		ExamHandler: examHandler,
 		JWTSecret:   jwtSecret,
 	}
 }
@@ -61,6 +64,7 @@ func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
 		protectedRoutes.GET("/words/:id", r.WordHandler.WordShowHandler())
 		protectedRoutes.POST("/words/register", r.WordHandler.RegisterWordHandler())
 		protectedRoutes.POST("/words/memo", r.WordHandler.SaveMemoHandler())
+		protectedRoutes.POST("/exams/new", r.ExamHandler.CreateExamHandler())
 	}
 }
 

@@ -408,21 +408,21 @@ func HasRegisteredWordsWith(preds ...predicate.RegisteredWord) predicate.User {
 	})
 }
 
-// HasTests applies the HasEdge predicate on the "tests" edge.
-func HasTests() predicate.User {
+// HasExams applies the HasEdge predicate on the "exams" edge.
+func HasExams() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, TestsTable, TestsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, ExamsTable, ExamsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasTestsWith applies the HasEdge predicate on the "tests" edge with a given conditions (other predicates).
-func HasTestsWith(preds ...predicate.Test) predicate.User {
+// HasExamsWith applies the HasEdge predicate on the "exams" edge with a given conditions (other predicates).
+func HasExamsWith(preds ...predicate.Exam) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := newTestsStep()
+		step := newExamsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

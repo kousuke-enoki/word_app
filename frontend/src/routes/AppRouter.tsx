@@ -12,6 +12,7 @@ import WordNew from '../components/word/WordNew'
 import WordEdit from '../components/word/WordEdit'
 import AllWordList from '../components/word/AllWordList'
 import WordShow from '../components/word/WordShow'
+import ExamMenu from '../components/exam/ExamMenu'
 import Header from '../components/Header'
 import PrivateRoute from '../components/PrivateRoute' // 後述するPrivateRouteをインポート
 // import Dashboard from '../components/Dashboard';
@@ -63,6 +64,14 @@ const AppRouter: React.FC = () => {
           element={
             <PrivateRoute>
               <WordShow />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/exams"
+          element={
+            <PrivateRoute>
+              <ExamMenu />
             </PrivateRoute>
           }
         />

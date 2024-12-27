@@ -15,3 +15,8 @@ export const getPartOfSpeech: PartOfSpeechOption[] = [
   { id: 9, name: '間投詞' },
   { id: 10, name: '接続詞' },
 ]
+
+// フィルタリングされた品詞を取得する関数
+export const getPartsOfSpeechForExam = (): PartOfSpeechOption[] => {
+  return getPartOfSpeech.filter((pos) => [1, 3, 4, 5].includes(pos.id))
+}

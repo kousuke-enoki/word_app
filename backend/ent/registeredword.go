@@ -49,11 +49,9 @@ type RegisteredWordEdges struct {
 	User *User `json:"user,omitempty"`
 	// Word holds the value of the word edge.
 	Word *Word `json:"word,omitempty"`
-	// TestQuestions holds the value of the test_questions edge.
-	TestQuestions []*TestQuestion `json:"test_questions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [2]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -76,15 +74,6 @@ func (e RegisteredWordEdges) WordOrErr() (*Word, error) {
 		return nil, &NotFoundError{label: word.Label}
 	}
 	return nil, &NotLoadedError{edge: "word"}
-}
-
-// TestQuestionsOrErr returns the TestQuestions value or an error if the edge
-// was not loaded in eager-loading.
-func (e RegisteredWordEdges) TestQuestionsOrErr() ([]*TestQuestion, error) {
-	if e.loadedTypes[2] {
-		return e.TestQuestions, nil
-	}
-	return nil, &NotLoadedError{edge: "test_questions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -197,11 +186,6 @@ func (rw *RegisteredWord) QueryUser() *UserQuery {
 // QueryWord queries the "word" edge of the RegisteredWord entity.
 func (rw *RegisteredWord) QueryWord() *WordQuery {
 	return NewRegisteredWordClient(rw.config).QueryWord(rw)
-}
-
-// QueryTestQuestions queries the "test_questions" edge of the RegisteredWord entity.
-func (rw *RegisteredWord) QueryTestQuestions() *TestQuestionQuery {
-	return NewRegisteredWordClient(rw.config).QueryTestQuestions(rw)
 }
 
 // Update returns a builder for updating this RegisteredWord.

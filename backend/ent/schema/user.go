@@ -56,6 +56,6 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("registered_words", RegisteredWord.Type),
-		edge.To("tests", Test.Type),
+		edge.To("exams", Exam.Type),
 	}
 }

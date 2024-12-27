@@ -30,8 +30,8 @@ const (
 	FieldRoot = "root"
 	// EdgeRegisteredWords holds the string denoting the registered_words edge name in mutations.
 	EdgeRegisteredWords = "registered_words"
-	// EdgeTests holds the string denoting the tests edge name in mutations.
-	EdgeTests = "tests"
+	// EdgeExams holds the string denoting the exams edge name in mutations.
+	EdgeExams = "exams"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// RegisteredWordsTable is the table that holds the registered_words relation/edge.
@@ -41,13 +41,13 @@ const (
 	RegisteredWordsInverseTable = "registered_words"
 	// RegisteredWordsColumn is the table column denoting the registered_words relation/edge.
 	RegisteredWordsColumn = "user_id"
-	// TestsTable is the table that holds the tests relation/edge.
-	TestsTable = "tests"
-	// TestsInverseTable is the table name for the Test entity.
-	// It exists in this package in order to avoid circular dependency with the "test" package.
-	TestsInverseTable = "tests"
-	// TestsColumn is the table column denoting the tests relation/edge.
-	TestsColumn = "user_id"
+	// ExamsTable is the table that holds the exams relation/edge.
+	ExamsTable = "exams"
+	// ExamsInverseTable is the table name for the Exam entity.
+	// It exists in this package in order to avoid circular dependency with the "exam" package.
+	ExamsInverseTable = "exams"
+	// ExamsColumn is the table column denoting the exams relation/edge.
+	ExamsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -148,17 +148,17 @@ func ByRegisteredWords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByTestsCount orders the results by tests count.
-func ByTestsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByExamsCount orders the results by exams count.
+func ByExamsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newTestsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newExamsStep(), opts...)
 	}
 }
 
-// ByTests orders the results by tests terms.
-func ByTests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByExams orders the results by exams terms.
+func ByExams(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newTestsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newExamsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newRegisteredWordsStep() *sqlgraph.Step {
@@ -168,10 +168,10 @@ func newRegisteredWordsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, RegisteredWordsTable, RegisteredWordsColumn),
 	)
 }
-func newTestsStep() *sqlgraph.Step {
+func newExamsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(TestsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, TestsTable, TestsColumn),
+		sqlgraph.To(ExamsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ExamsTable, ExamsColumn),
 	)
 }

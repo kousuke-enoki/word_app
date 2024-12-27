@@ -28,6 +28,9 @@ const MyPage: React.FC<MyPageProps> = ({ user, onSignOut }) => {
       <p>
         <Link to="words/new">単語登録画面</Link>
       </p>
+      <p>
+        <Link to="exams">test</Link>
+      </p>
       <button onClick={onSignOut}>サインアウト</button>
     </div>
   )

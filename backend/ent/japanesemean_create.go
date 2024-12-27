@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"word_app/backend/ent/examquestion"
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/wordinfo"
 
@@ -64,6 +65,21 @@ func (jmc *JapaneseMeanCreate) SetNillableUpdatedAt(t *time.Time) *JapaneseMeanC
 // SetWordInfo sets the "word_info" edge to the WordInfo entity.
 func (jmc *JapaneseMeanCreate) SetWordInfo(w *WordInfo) *JapaneseMeanCreate {
 	return jmc.SetWordInfoID(w.ID)
+}
+
+// AddExamQuestionIDs adds the "exam_questions" edge to the ExamQuestion entity by IDs.
+func (jmc *JapaneseMeanCreate) AddExamQuestionIDs(ids ...int) *JapaneseMeanCreate {
+	jmc.mutation.AddExamQuestionIDs(ids...)
+	return jmc
+}
+
+// AddExamQuestions adds the "exam_questions" edges to the ExamQuestion entity.
+func (jmc *JapaneseMeanCreate) AddExamQuestions(e ...*ExamQuestion) *JapaneseMeanCreate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return jmc.AddExamQuestionIDs(ids...)
 }
 
 // Mutation returns the JapaneseMeanMutation object of the builder.
@@ -191,6 +207,22 @@ func (jmc *JapaneseMeanCreate) createSpec() (*JapaneseMean, *sqlgraph.CreateSpec
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.WordInfoID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := jmc.mutation.ExamQuestionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   japanesemean.ExamQuestionsTable,
+			Columns: []string{japanesemean.ExamQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(examquestion.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -36,9 +36,11 @@ type JapaneseMean struct {
 type JapaneseMeanEdges struct {
 	// WordInfo holds the value of the word_info edge.
 	WordInfo *WordInfo `json:"word_info,omitempty"`
+	// ExamQuestions holds the value of the exam_questions edge.
+	ExamQuestions []*ExamQuestion `json:"exam_questions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // WordInfoOrErr returns the WordInfo value or an error if the edge
@@ -50,6 +52,15 @@ func (e JapaneseMeanEdges) WordInfoOrErr() (*WordInfo, error) {
 		return nil, &NotFoundError{label: wordinfo.Label}
 	}
 	return nil, &NotLoadedError{edge: "word_info"}
+}
+
+// ExamQuestionsOrErr returns the ExamQuestions value or an error if the edge
+// was not loaded in eager-loading.
+func (e JapaneseMeanEdges) ExamQuestionsOrErr() ([]*ExamQuestion, error) {
+	if e.loadedTypes[1] {
+		return e.ExamQuestions, nil
+	}
+	return nil, &NotLoadedError{edge: "exam_questions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -124,6 +135,11 @@ func (jm *JapaneseMean) Value(name string) (ent.Value, error) {
 // QueryWordInfo queries the "word_info" edge of the JapaneseMean entity.
 func (jm *JapaneseMean) QueryWordInfo() *WordInfoQuery {
 	return NewJapaneseMeanClient(jm.config).QueryWordInfo(jm)
+}
+
+// QueryExamQuestions queries the "exam_questions" edge of the JapaneseMean entity.
+func (jm *JapaneseMean) QueryExamQuestions() *ExamQuestionQuery {
+	return NewJapaneseMeanClient(jm.config).QueryExamQuestions(jm)
 }
 
 // Update returns a builder for updating this JapaneseMean.

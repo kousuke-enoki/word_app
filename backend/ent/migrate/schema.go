@@ -8,6 +8,61 @@ import (
 )
 
 var (
+	// ExamsColumns holds the columns for the "exams" table.
+	ExamsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "total_questions", Type: field.TypeInt, Default: 10},
+		{Name: "correct_count", Type: field.TypeInt, Default: 0},
+		{Name: "is_running", Type: field.TypeBool, Default: false},
+		{Name: "target_word_types", Type: field.TypeString},
+		{Name: "choices_pos_ids", Type: field.TypeJSON},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// ExamsTable holds the schema information for the "exams" table.
+	ExamsTable = &schema.Table{
+		Name:       "exams",
+		Columns:    ExamsColumns,
+		PrimaryKey: []*schema.Column{ExamsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "exams_users_exams",
+				Columns:    []*schema.Column{ExamsColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// ExamQuestionsColumns holds the columns for the "exam_questions" table.
+	ExamQuestionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "choices_jpm_ids", Type: field.TypeJSON},
+		{Name: "answer", Type: field.TypeString, Default: ""},
+		{Name: "is_correct", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "exam_id", Type: field.TypeInt},
+		{Name: "correct_jpm_id", Type: field.TypeInt},
+	}
+	// ExamQuestionsTable holds the schema information for the "exam_questions" table.
+	ExamQuestionsTable = &schema.Table{
+		Name:       "exam_questions",
+		Columns:    ExamQuestionsColumns,
+		PrimaryKey: []*schema.Column{ExamQuestionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "exam_questions_exams_exam_questions",
+				Columns:    []*schema.Column{ExamQuestionsColumns[5]},
+				RefColumns: []*schema.Column{ExamsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "exam_questions_japanese_means_exam_questions",
+				Columns:    []*schema.Column{ExamQuestionsColumns[6]},
+				RefColumns: []*schema.Column{JapaneseMeansColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// JapaneseMeansColumns holds the columns for the "japanese_means" table.
 	JapaneseMeansColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -87,56 +142,6 @@ var (
 		Columns:    RootConfigsColumns,
 		PrimaryKey: []*schema.Column{RootConfigsColumns[0]},
 	}
-	// TestsColumns holds the columns for the "tests" table.
-	TestsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "total_questions", Type: field.TypeInt, Default: 10},
-		{Name: "correct_count", Type: field.TypeInt, Default: 0},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "user_id", Type: field.TypeInt},
-	}
-	// TestsTable holds the schema information for the "tests" table.
-	TestsTable = &schema.Table{
-		Name:       "tests",
-		Columns:    TestsColumns,
-		PrimaryKey: []*schema.Column{TestsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "tests_users_tests",
-				Columns:    []*schema.Column{TestsColumns[4]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-	}
-	// TestQuestionsColumns holds the columns for the "test_questions" table.
-	TestQuestionsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "is_correct", Type: field.TypeBool, Default: false},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "registered_word_id", Type: field.TypeInt},
-		{Name: "test_id", Type: field.TypeInt},
-	}
-	// TestQuestionsTable holds the schema information for the "test_questions" table.
-	TestQuestionsTable = &schema.Table{
-		Name:       "test_questions",
-		Columns:    TestQuestionsColumns,
-		PrimaryKey: []*schema.Column{TestQuestionsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "test_questions_registered_words_test_questions",
-				Columns:    []*schema.Column{TestQuestionsColumns[3]},
-				RefColumns: []*schema.Column{RegisteredWordsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "test_questions_tests_test_questions",
-				Columns:    []*schema.Column{TestQuestionsColumns[4]},
-				RefColumns: []*schema.Column{TestsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -199,12 +204,12 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		ExamsTable,
+		ExamQuestionsTable,
 		JapaneseMeansTable,
 		PartOfSpeechesTable,
 		RegisteredWordsTable,
 		RootConfigsTable,
-		TestsTable,
-		TestQuestionsTable,
 		UsersTable,
 		WordsTable,
 		WordInfosTable,
@@ -212,12 +217,12 @@ var (
 )
 
 func init() {
+	ExamsTable.ForeignKeys[0].RefTable = UsersTable
+	ExamQuestionsTable.ForeignKeys[0].RefTable = ExamsTable
+	ExamQuestionsTable.ForeignKeys[1].RefTable = JapaneseMeansTable
 	JapaneseMeansTable.ForeignKeys[0].RefTable = WordInfosTable
 	RegisteredWordsTable.ForeignKeys[0].RefTable = UsersTable
 	RegisteredWordsTable.ForeignKeys[1].RefTable = WordsTable
-	TestsTable.ForeignKeys[0].RefTable = UsersTable
-	TestQuestionsTable.ForeignKeys[0].RefTable = RegisteredWordsTable
-	TestQuestionsTable.ForeignKeys[1].RefTable = TestsTable
 	WordInfosTable.ForeignKeys[0].RefTable = PartOfSpeechesTable
 	WordInfosTable.ForeignKeys[1].RefTable = WordsTable
 }

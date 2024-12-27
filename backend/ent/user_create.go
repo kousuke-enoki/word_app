@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"word_app/backend/ent/exam"
 	"word_app/backend/ent/registeredword"
-	"word_app/backend/ent/test"
 	"word_app/backend/ent/user"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -111,19 +111,19 @@ func (uc *UserCreate) AddRegisteredWords(r ...*RegisteredWord) *UserCreate {
 	return uc.AddRegisteredWordIDs(ids...)
 }
 
-// AddTestIDs adds the "tests" edge to the Test entity by IDs.
-func (uc *UserCreate) AddTestIDs(ids ...int) *UserCreate {
-	uc.mutation.AddTestIDs(ids...)
+// AddExamIDs adds the "exams" edge to the Exam entity by IDs.
+func (uc *UserCreate) AddExamIDs(ids ...int) *UserCreate {
+	uc.mutation.AddExamIDs(ids...)
 	return uc
 }
 
-// AddTests adds the "tests" edges to the Test entity.
-func (uc *UserCreate) AddTests(t ...*Test) *UserCreate {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// AddExams adds the "exams" edges to the Exam entity.
+func (uc *UserCreate) AddExams(e ...*Exam) *UserCreate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
 	}
-	return uc.AddTestIDs(ids...)
+	return uc.AddExamIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -287,15 +287,15 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.mutation.TestsIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.ExamsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TestsTable,
-			Columns: []string{user.TestsColumn},
+			Table:   user.ExamsTable,
+			Columns: []string{user.ExamsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(test.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(exam.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

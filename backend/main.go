@@ -10,12 +10,14 @@ import (
 	"word_app/backend/logger"
 	routerConfig "word_app/backend/router"
 	"word_app/backend/seeder"
+	"word_app/backend/src/handlers/exam"
 	auth "word_app/backend/src/handlers/middleware"
 	settingHandler "word_app/backend/src/handlers/setting"
 	userHandler "word_app/backend/src/handlers/user"
 	"word_app/backend/src/handlers/word"
 	"word_app/backend/src/infrastructure"
 	"word_app/backend/src/interfaces"
+	examService "word_app/backend/src/service/exam"
 	settingService "word_app/backend/src/service/setting"
 	userService "word_app/backend/src/service/user"
 	wordService "word_app/backend/src/service/word"
@@ -108,10 +110,13 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 	userHandler := userHandler.NewUserHandler(entUserClient, jwtGenerator)
 	settingHandler := settingHandler.NewSettingHandler(entSettingClient)
 
+	examClient := examService.NewExamService(client)
+
 	wordHandler := word.NewWordHandler(wordClient)
+	examHandler := exam.NewExamHandler(examClient)
 	authHandler := auth.NewAuthHandler()
 
-	routerImpl := routerConfig.NewRouter(authHandler, userHandler, settingHandler, wordHandler)
+	routerImpl := routerConfig.NewRouter(authHandler, userHandler, settingHandler, wordHandler, examHandler)
 	routerImpl.SetupRouter(router)
 	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
 		logrus.Fatalf("Failed to set trusted proxies: %v", err)

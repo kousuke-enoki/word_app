@@ -12,6 +12,10 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Exam is the client for interacting with the Exam builders.
+	Exam *ExamClient
+	// ExamQuestion is the client for interacting with the ExamQuestion builders.
+	ExamQuestion *ExamQuestionClient
 	// JapaneseMean is the client for interacting with the JapaneseMean builders.
 	JapaneseMean *JapaneseMeanClient
 	// PartOfSpeech is the client for interacting with the PartOfSpeech builders.
@@ -20,10 +24,6 @@ type Tx struct {
 	RegisteredWord *RegisteredWordClient
 	// RootConfig is the client for interacting with the RootConfig builders.
 	RootConfig *RootConfigClient
-	// Test is the client for interacting with the Test builders.
-	Test *TestClient
-	// TestQuestion is the client for interacting with the TestQuestion builders.
-	TestQuestion *TestQuestionClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserConfig is the client for interacting with the UserConfig builders.
@@ -163,12 +163,12 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Exam = NewExamClient(tx.config)
+	tx.ExamQuestion = NewExamQuestionClient(tx.config)
 	tx.JapaneseMean = NewJapaneseMeanClient(tx.config)
 	tx.PartOfSpeech = NewPartOfSpeechClient(tx.config)
 	tx.RegisteredWord = NewRegisteredWordClient(tx.config)
 	tx.RootConfig = NewRootConfigClient(tx.config)
-	tx.Test = NewTestClient(tx.config)
-	tx.TestQuestion = NewTestQuestionClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserConfig = NewUserConfigClient(tx.config)
 	tx.Word = NewWordClient(tx.config)
@@ -182,7 +182,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: JapaneseMean.QueryXXX(), the query will be executed
+// applies a query, for example: Exam.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

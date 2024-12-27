@@ -36,8 +36,6 @@ const (
 	EdgeUser = "user"
 	// EdgeWord holds the string denoting the word edge name in mutations.
 	EdgeWord = "word"
-	// EdgeTestQuestions holds the string denoting the test_questions edge name in mutations.
-	EdgeTestQuestions = "test_questions"
 	// Table holds the table name of the registeredword in the database.
 	Table = "registered_words"
 	// UserTable is the table that holds the user relation/edge.
@@ -54,13 +52,6 @@ const (
 	WordInverseTable = "words"
 	// WordColumn is the table column denoting the word relation/edge.
 	WordColumn = "word_id"
-	// TestQuestionsTable is the table that holds the test_questions relation/edge.
-	TestQuestionsTable = "test_questions"
-	// TestQuestionsInverseTable is the table name for the TestQuestion entity.
-	// It exists in this package in order to avoid circular dependency with the "testquestion" package.
-	TestQuestionsInverseTable = "test_questions"
-	// TestQuestionsColumn is the table column denoting the test_questions relation/edge.
-	TestQuestionsColumn = "registered_word_id"
 )
 
 // Columns holds all SQL columns for registeredword fields.
@@ -176,20 +167,6 @@ func ByWordField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newWordStep(), sql.OrderByField(field, opts...))
 	}
 }
-
-// ByTestQuestionsCount orders the results by test_questions count.
-func ByTestQuestionsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newTestQuestionsStep(), opts...)
-	}
-}
-
-// ByTestQuestions orders the results by test_questions terms.
-func ByTestQuestions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newTestQuestionsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -202,12 +179,5 @@ func newWordStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(WordInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, WordTable, WordColumn),
-	)
-}
-func newTestQuestionsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(TestQuestionsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, TestQuestionsTable, TestQuestionsColumn),
 	)
 }

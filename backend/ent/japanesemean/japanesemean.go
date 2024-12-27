@@ -24,6 +24,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeWordInfo holds the string denoting the word_info edge name in mutations.
 	EdgeWordInfo = "word_info"
+	// EdgeExamQuestions holds the string denoting the exam_questions edge name in mutations.
+	EdgeExamQuestions = "exam_questions"
 	// Table holds the table name of the japanesemean in the database.
 	Table = "japanese_means"
 	// WordInfoTable is the table that holds the word_info relation/edge.
@@ -33,6 +35,13 @@ const (
 	WordInfoInverseTable = "word_infos"
 	// WordInfoColumn is the table column denoting the word_info relation/edge.
 	WordInfoColumn = "word_info_id"
+	// ExamQuestionsTable is the table that holds the exam_questions relation/edge.
+	ExamQuestionsTable = "exam_questions"
+	// ExamQuestionsInverseTable is the table name for the ExamQuestion entity.
+	// It exists in this package in order to avoid circular dependency with the "examquestion" package.
+	ExamQuestionsInverseTable = "exam_questions"
+	// ExamQuestionsColumn is the table column denoting the exam_questions relation/edge.
+	ExamQuestionsColumn = "correct_jpm_id"
 )
 
 // Columns holds all SQL columns for japanesemean fields.
@@ -101,10 +110,31 @@ func ByWordInfoField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newWordInfoStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByExamQuestionsCount orders the results by exam_questions count.
+func ByExamQuestionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newExamQuestionsStep(), opts...)
+	}
+}
+
+// ByExamQuestions orders the results by exam_questions terms.
+func ByExamQuestions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newExamQuestionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newWordInfoStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(WordInfoInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, WordInfoTable, WordInfoColumn),
+	)
+}
+func newExamQuestionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ExamQuestionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ExamQuestionsTable, ExamQuestionsColumn),
 	)
 }

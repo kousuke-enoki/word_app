@@ -9,7 +9,6 @@ import (
 	"time"
 	"word_app/backend/ent/predicate"
 	"word_app/backend/ent/registeredword"
-	"word_app/backend/ent/testquestion"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/word"
 
@@ -186,21 +185,6 @@ func (rwu *RegisteredWordUpdate) SetWord(w *Word) *RegisteredWordUpdate {
 	return rwu.SetWordID(w.ID)
 }
 
-// AddTestQuestionIDs adds the "test_questions" edge to the TestQuestion entity by IDs.
-func (rwu *RegisteredWordUpdate) AddTestQuestionIDs(ids ...int) *RegisteredWordUpdate {
-	rwu.mutation.AddTestQuestionIDs(ids...)
-	return rwu
-}
-
-// AddTestQuestions adds the "test_questions" edges to the TestQuestion entity.
-func (rwu *RegisteredWordUpdate) AddTestQuestions(t ...*TestQuestion) *RegisteredWordUpdate {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
-	}
-	return rwu.AddTestQuestionIDs(ids...)
-}
-
 // Mutation returns the RegisteredWordMutation object of the builder.
 func (rwu *RegisteredWordUpdate) Mutation() *RegisteredWordMutation {
 	return rwu.mutation
@@ -216,27 +200,6 @@ func (rwu *RegisteredWordUpdate) ClearUser() *RegisteredWordUpdate {
 func (rwu *RegisteredWordUpdate) ClearWord() *RegisteredWordUpdate {
 	rwu.mutation.ClearWord()
 	return rwu
-}
-
-// ClearTestQuestions clears all "test_questions" edges to the TestQuestion entity.
-func (rwu *RegisteredWordUpdate) ClearTestQuestions() *RegisteredWordUpdate {
-	rwu.mutation.ClearTestQuestions()
-	return rwu
-}
-
-// RemoveTestQuestionIDs removes the "test_questions" edge to TestQuestion entities by IDs.
-func (rwu *RegisteredWordUpdate) RemoveTestQuestionIDs(ids ...int) *RegisteredWordUpdate {
-	rwu.mutation.RemoveTestQuestionIDs(ids...)
-	return rwu
-}
-
-// RemoveTestQuestions removes "test_questions" edges to TestQuestion entities.
-func (rwu *RegisteredWordUpdate) RemoveTestQuestions(t ...*TestQuestion) *RegisteredWordUpdate {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
-	}
-	return rwu.RemoveTestQuestionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -397,51 +360,6 @@ func (rwu *RegisteredWordUpdate) sqlSave(ctx context.Context) (n int, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if rwu.mutation.TestQuestionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   registeredword.TestQuestionsTable,
-			Columns: []string{registeredword.TestQuestionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(testquestion.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := rwu.mutation.RemovedTestQuestionsIDs(); len(nodes) > 0 && !rwu.mutation.TestQuestionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   registeredword.TestQuestionsTable,
-			Columns: []string{registeredword.TestQuestionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(testquestion.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := rwu.mutation.TestQuestionsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   registeredword.TestQuestionsTable,
-			Columns: []string{registeredword.TestQuestionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(testquestion.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -624,21 +542,6 @@ func (rwuo *RegisteredWordUpdateOne) SetWord(w *Word) *RegisteredWordUpdateOne {
 	return rwuo.SetWordID(w.ID)
 }
 
-// AddTestQuestionIDs adds the "test_questions" edge to the TestQuestion entity by IDs.
-func (rwuo *RegisteredWordUpdateOne) AddTestQuestionIDs(ids ...int) *RegisteredWordUpdateOne {
-	rwuo.mutation.AddTestQuestionIDs(ids...)
-	return rwuo
-}
-
-// AddTestQuestions adds the "test_questions" edges to the TestQuestion entity.
-func (rwuo *RegisteredWordUpdateOne) AddTestQuestions(t ...*TestQuestion) *RegisteredWordUpdateOne {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
-	}
-	return rwuo.AddTestQuestionIDs(ids...)
-}
-
 // Mutation returns the RegisteredWordMutation object of the builder.
 func (rwuo *RegisteredWordUpdateOne) Mutation() *RegisteredWordMutation {
 	return rwuo.mutation
@@ -654,27 +557,6 @@ func (rwuo *RegisteredWordUpdateOne) ClearUser() *RegisteredWordUpdateOne {
 func (rwuo *RegisteredWordUpdateOne) ClearWord() *RegisteredWordUpdateOne {
 	rwuo.mutation.ClearWord()
 	return rwuo
-}
-
-// ClearTestQuestions clears all "test_questions" edges to the TestQuestion entity.
-func (rwuo *RegisteredWordUpdateOne) ClearTestQuestions() *RegisteredWordUpdateOne {
-	rwuo.mutation.ClearTestQuestions()
-	return rwuo
-}
-
-// RemoveTestQuestionIDs removes the "test_questions" edge to TestQuestion entities by IDs.
-func (rwuo *RegisteredWordUpdateOne) RemoveTestQuestionIDs(ids ...int) *RegisteredWordUpdateOne {
-	rwuo.mutation.RemoveTestQuestionIDs(ids...)
-	return rwuo
-}
-
-// RemoveTestQuestions removes "test_questions" edges to TestQuestion entities.
-func (rwuo *RegisteredWordUpdateOne) RemoveTestQuestions(t ...*TestQuestion) *RegisteredWordUpdateOne {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
-	}
-	return rwuo.RemoveTestQuestionIDs(ids...)
 }
 
 // Where appends a list predicates to the RegisteredWordUpdate builder.
@@ -865,51 +747,6 @@ func (rwuo *RegisteredWordUpdateOne) sqlSave(ctx context.Context) (_node *Regist
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if rwuo.mutation.TestQuestionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   registeredword.TestQuestionsTable,
-			Columns: []string{registeredword.TestQuestionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(testquestion.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := rwuo.mutation.RemovedTestQuestionsIDs(); len(nodes) > 0 && !rwuo.mutation.TestQuestionsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   registeredword.TestQuestionsTable,
-			Columns: []string{registeredword.TestQuestionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(testquestion.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := rwuo.mutation.TestQuestionsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   registeredword.TestQuestionsTable,
-			Columns: []string{registeredword.TestQuestionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(testquestion.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

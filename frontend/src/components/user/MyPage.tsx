@@ -80,6 +80,9 @@ const MyPage: React.FC = () => {
           <Link to="/user/rootSetting">管理設定画面</Link>
         </p>
       ) : null}
+      <p>
+        <Link to="exams">test</Link>
+      </p>
       <button onClick={handleSignOut}>サインアウト</button>
     </div>
   )

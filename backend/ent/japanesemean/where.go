@@ -263,6 +263,29 @@ func HasWordInfoWith(preds ...predicate.WordInfo) predicate.JapaneseMean {
 	})
 }
 
+// HasExamQuestions applies the HasEdge predicate on the "exam_questions" edge.
+func HasExamQuestions() predicate.JapaneseMean {
+	return predicate.JapaneseMean(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ExamQuestionsTable, ExamQuestionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasExamQuestionsWith applies the HasEdge predicate on the "exam_questions" edge with a given conditions (other predicates).
+func HasExamQuestionsWith(preds ...predicate.ExamQuestion) predicate.JapaneseMean {
+	return predicate.JapaneseMean(func(s *sql.Selector) {
+		step := newExamQuestionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.JapaneseMean) predicate.JapaneseMean {
 	return predicate.JapaneseMean(sql.AndPredicates(predicates...))

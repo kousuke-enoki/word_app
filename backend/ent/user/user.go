@@ -159,17 +159,17 @@ func ByRegisteredWords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByTestsCount orders the results by tests count.
-func ByTestsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByExamsCount orders the results by exams count.
+func ByExamsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newTestsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newExamsStep(), opts...)
 	}
 }
 
-// ByTests orders the results by tests terms.
-func ByTests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByExams orders the results by exams terms.
+func ByExams(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newTestsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newExamsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -186,11 +186,11 @@ func newRegisteredWordsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, RegisteredWordsTable, RegisteredWordsColumn),
 	)
 }
-func newTestsStep() *sqlgraph.Step {
+func newExamsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(TestsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, TestsTable, TestsColumn),
+		sqlgraph.To(ExamsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ExamsTable, ExamsColumn),
 	)
 }
 func newUserConfigStep() *sqlgraph.Step {

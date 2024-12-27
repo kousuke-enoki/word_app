@@ -7,9 +7,9 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"math"
+	"word_app/backend/ent/exam"
 	"word_app/backend/ent/predicate"
 	"word_app/backend/ent/registeredword"
-	"word_app/backend/ent/test"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
 
@@ -87,9 +87,9 @@ func (uq *UserQuery) QueryRegisteredWords() *RegisteredWordQuery {
 	return query
 }
 
-// QueryTests chains the current query on the "tests" edge.
-func (uq *UserQuery) QueryTests() *TestQuery {
-	query := (&TestClient{config: uq.config}).Query()
+// QueryExams chains the current query on the "exams" edge.
+func (uq *UserQuery) QueryExams() *ExamQuery {
+	query := (&ExamClient{config: uq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -100,8 +100,8 @@ func (uq *UserQuery) QueryTests() *TestQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(test.Table, test.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.TestsTable, user.TestsColumn),
+			sqlgraph.To(exam.Table, exam.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ExamsTable, user.ExamsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -343,14 +343,14 @@ func (uq *UserQuery) WithRegisteredWords(opts ...func(*RegisteredWordQuery)) *Us
 	return uq
 }
 
-// WithTests tells the query-builder to eager-load the nodes that are connected to
-// the "tests" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithTests(opts ...func(*TestQuery)) *UserQuery {
-	query := (&TestClient{config: uq.config}).Query()
+// WithExams tells the query-builder to eager-load the nodes that are connected to
+// the "exams" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithExams(opts ...func(*ExamQuery)) *UserQuery {
+	query := (&ExamClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withTests = query
+	uq.withExams = query
 	return uq
 }
 
@@ -474,10 +474,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
-	if query := uq.withTests; query != nil {
-		if err := uq.loadTests(ctx, query, nodes,
-			func(n *User) { n.Edges.Tests = []*Test{} },
-			func(n *User, e *Test) { n.Edges.Tests = append(n.Edges.Tests, e) }); err != nil {
+	if query := uq.withExams; query != nil {
+		if err := uq.loadExams(ctx, query, nodes,
+			func(n *User) { n.Edges.Exams = []*Exam{} },
+			func(n *User, e *Exam) { n.Edges.Exams = append(n.Edges.Exams, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -520,7 +520,7 @@ func (uq *UserQuery) loadRegisteredWords(ctx context.Context, query *RegisteredW
 	}
 	return nil
 }
-func (uq *UserQuery) loadTests(ctx context.Context, query *TestQuery, nodes []*User, init func(*User), assign func(*User, *Test)) error {
+func (uq *UserQuery) loadExams(ctx context.Context, query *ExamQuery, nodes []*User, init func(*User), assign func(*User, *Exam)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*User)
 	for i := range nodes {
@@ -531,10 +531,10 @@ func (uq *UserQuery) loadTests(ctx context.Context, query *TestQuery, nodes []*U
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(test.FieldUserID)
+		query.ctx.AppendFieldOnce(exam.FieldUserID)
 	}
-	query.Where(predicate.Test(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.TestsColumn), fks...))
+	query.Where(predicate.Exam(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ExamsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 	"word_app/backend/ent/registeredword"
-	"word_app/backend/ent/testquestion"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/word"
 
@@ -141,21 +140,6 @@ func (rwc *RegisteredWordCreate) SetUser(u *User) *RegisteredWordCreate {
 // SetWord sets the "word" edge to the Word entity.
 func (rwc *RegisteredWordCreate) SetWord(w *Word) *RegisteredWordCreate {
 	return rwc.SetWordID(w.ID)
-}
-
-// AddTestQuestionIDs adds the "test_questions" edge to the TestQuestion entity by IDs.
-func (rwc *RegisteredWordCreate) AddTestQuestionIDs(ids ...int) *RegisteredWordCreate {
-	rwc.mutation.AddTestQuestionIDs(ids...)
-	return rwc
-}
-
-// AddTestQuestions adds the "test_questions" edges to the TestQuestion entity.
-func (rwc *RegisteredWordCreate) AddTestQuestions(t ...*TestQuestion) *RegisteredWordCreate {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
-	}
-	return rwc.AddTestQuestionIDs(ids...)
 }
 
 // Mutation returns the RegisteredWordMutation object of the builder.
@@ -352,22 +336,6 @@ func (rwc *RegisteredWordCreate) createSpec() (*RegisteredWord, *sqlgraph.Create
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.WordID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := rwc.mutation.TestQuestionsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   registeredword.TestQuestionsTable,
-			Columns: []string{registeredword.TestQuestionsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(testquestion.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

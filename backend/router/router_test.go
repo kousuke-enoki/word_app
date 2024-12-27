@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-
 	"word_app/backend/src/mocks"
 
 	"github.com/gin-gonic/gin"

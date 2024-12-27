@@ -64,6 +64,5 @@ func (RegisteredWord) Edges() []ent.Edge {
 			Unique().
 			Field("word_id").
 			Required(),
-		edge.To("test_questions", TestQuestion.Type),
 	}
 }

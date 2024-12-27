@@ -4,13 +4,13 @@ package ent
 
 import (
 	"time"
+	"word_app/backend/ent/exam"
+	"word_app/backend/ent/examquestion"
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/partofspeech"
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/rootconfig"
 	"word_app/backend/ent/schema"
-	"word_app/backend/ent/test"
-	"word_app/backend/ent/testquestion"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
 	"word_app/backend/ent/word"
@@ -21,6 +21,42 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	examFields := schema.Exam{}.Fields()
+	_ = examFields
+	// examDescTotalQuestions is the schema descriptor for total_questions field.
+	examDescTotalQuestions := examFields[1].Descriptor()
+	// exam.DefaultTotalQuestions holds the default value on creation for the total_questions field.
+	exam.DefaultTotalQuestions = examDescTotalQuestions.Default.(int)
+	// examDescCorrectCount is the schema descriptor for correct_count field.
+	examDescCorrectCount := examFields[2].Descriptor()
+	// exam.DefaultCorrectCount holds the default value on creation for the correct_count field.
+	exam.DefaultCorrectCount = examDescCorrectCount.Default.(int)
+	// examDescIsRunning is the schema descriptor for is_running field.
+	examDescIsRunning := examFields[3].Descriptor()
+	// exam.DefaultIsRunning holds the default value on creation for the is_running field.
+	exam.DefaultIsRunning = examDescIsRunning.Default.(bool)
+	// examDescTargetWordTypes is the schema descriptor for target_word_types field.
+	examDescTargetWordTypes := examFields[4].Descriptor()
+	// exam.TargetWordTypesValidator is a validator for the "target_word_types" field. It is called by the builders before save.
+	exam.TargetWordTypesValidator = examDescTargetWordTypes.Validators[0].(func(string) error)
+	// examDescCreatedAt is the schema descriptor for created_at field.
+	examDescCreatedAt := examFields[6].Descriptor()
+	// exam.DefaultCreatedAt holds the default value on creation for the created_at field.
+	exam.DefaultCreatedAt = examDescCreatedAt.Default.(func() time.Time)
+	examquestionFields := schema.ExamQuestion{}.Fields()
+	_ = examquestionFields
+	// examquestionDescAnswer is the schema descriptor for answer field.
+	examquestionDescAnswer := examquestionFields[3].Descriptor()
+	// examquestion.DefaultAnswer holds the default value on creation for the answer field.
+	examquestion.DefaultAnswer = examquestionDescAnswer.Default.(string)
+	// examquestionDescIsCorrect is the schema descriptor for is_correct field.
+	examquestionDescIsCorrect := examquestionFields[4].Descriptor()
+	// examquestion.DefaultIsCorrect holds the default value on creation for the is_correct field.
+	examquestion.DefaultIsCorrect = examquestionDescIsCorrect.Default.(bool)
+	// examquestionDescCreatedAt is the schema descriptor for created_at field.
+	examquestionDescCreatedAt := examquestionFields[5].Descriptor()
+	// examquestion.DefaultCreatedAt holds the default value on creation for the created_at field.
+	examquestion.DefaultCreatedAt = examquestionDescCreatedAt.Default.(func() time.Time)
 	japanesemeanFields := schema.JapaneseMean{}.Fields()
 	_ = japanesemeanFields
 	// japanesemeanDescName is the schema descriptor for name field.

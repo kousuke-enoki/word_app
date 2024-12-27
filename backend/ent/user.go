@@ -61,13 +61,13 @@ func (e UserEdges) RegisteredWordsOrErr() ([]*RegisteredWord, error) {
 	return nil, &NotLoadedError{edge: "registered_words"}
 }
 
-// TestsOrErr returns the Tests value or an error if the edge
+// ExamsOrErr returns the Exams value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) TestsOrErr() ([]*Test, error) {
+func (e UserEdges) ExamsOrErr() ([]*Exam, error) {
 	if e.loadedTypes[1] {
-		return e.Tests, nil
+		return e.Exams, nil
 	}
-	return nil, &NotLoadedError{edge: "tests"}
+	return nil, &NotLoadedError{edge: "exams"}
 }
 
 // UserConfigOrErr returns the UserConfig value or an error if the edge
@@ -175,9 +175,9 @@ func (u *User) QueryRegisteredWords() *RegisteredWordQuery {
 	return NewUserClient(u.config).QueryRegisteredWords(u)
 }
 
-// QueryTests queries the "tests" edge of the User entity.
-func (u *User) QueryTests() *TestQuery {
-	return NewUserClient(u.config).QueryTests(u)
+// QueryExams queries the "exams" edge of the User entity.
+func (u *User) QueryExams() *ExamQuery {
+	return NewUserClient(u.config).QueryExams(u)
 }
 
 // QueryUserConfig queries the "user_config" edge of the User entity.

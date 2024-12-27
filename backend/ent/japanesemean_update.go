@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"word_app/backend/ent/examquestion"
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/predicate"
 	"word_app/backend/ent/wordinfo"
@@ -82,6 +83,21 @@ func (jmu *JapaneseMeanUpdate) SetWordInfo(w *WordInfo) *JapaneseMeanUpdate {
 	return jmu.SetWordInfoID(w.ID)
 }
 
+// AddExamQuestionIDs adds the "exam_questions" edge to the ExamQuestion entity by IDs.
+func (jmu *JapaneseMeanUpdate) AddExamQuestionIDs(ids ...int) *JapaneseMeanUpdate {
+	jmu.mutation.AddExamQuestionIDs(ids...)
+	return jmu
+}
+
+// AddExamQuestions adds the "exam_questions" edges to the ExamQuestion entity.
+func (jmu *JapaneseMeanUpdate) AddExamQuestions(e ...*ExamQuestion) *JapaneseMeanUpdate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return jmu.AddExamQuestionIDs(ids...)
+}
+
 // Mutation returns the JapaneseMeanMutation object of the builder.
 func (jmu *JapaneseMeanUpdate) Mutation() *JapaneseMeanMutation {
 	return jmu.mutation
@@ -91,6 +107,27 @@ func (jmu *JapaneseMeanUpdate) Mutation() *JapaneseMeanMutation {
 func (jmu *JapaneseMeanUpdate) ClearWordInfo() *JapaneseMeanUpdate {
 	jmu.mutation.ClearWordInfo()
 	return jmu
+}
+
+// ClearExamQuestions clears all "exam_questions" edges to the ExamQuestion entity.
+func (jmu *JapaneseMeanUpdate) ClearExamQuestions() *JapaneseMeanUpdate {
+	jmu.mutation.ClearExamQuestions()
+	return jmu
+}
+
+// RemoveExamQuestionIDs removes the "exam_questions" edge to ExamQuestion entities by IDs.
+func (jmu *JapaneseMeanUpdate) RemoveExamQuestionIDs(ids ...int) *JapaneseMeanUpdate {
+	jmu.mutation.RemoveExamQuestionIDs(ids...)
+	return jmu
+}
+
+// RemoveExamQuestions removes "exam_questions" edges to ExamQuestion entities.
+func (jmu *JapaneseMeanUpdate) RemoveExamQuestions(e ...*ExamQuestion) *JapaneseMeanUpdate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return jmu.RemoveExamQuestionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -197,6 +234,51 @@ func (jmu *JapaneseMeanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if jmu.mutation.ExamQuestionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   japanesemean.ExamQuestionsTable,
+			Columns: []string{japanesemean.ExamQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(examquestion.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := jmu.mutation.RemovedExamQuestionsIDs(); len(nodes) > 0 && !jmu.mutation.ExamQuestionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   japanesemean.ExamQuestionsTable,
+			Columns: []string{japanesemean.ExamQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(examquestion.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := jmu.mutation.ExamQuestionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   japanesemean.ExamQuestionsTable,
+			Columns: []string{japanesemean.ExamQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(examquestion.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, jmu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{japanesemean.Label}
@@ -270,6 +352,21 @@ func (jmuo *JapaneseMeanUpdateOne) SetWordInfo(w *WordInfo) *JapaneseMeanUpdateO
 	return jmuo.SetWordInfoID(w.ID)
 }
 
+// AddExamQuestionIDs adds the "exam_questions" edge to the ExamQuestion entity by IDs.
+func (jmuo *JapaneseMeanUpdateOne) AddExamQuestionIDs(ids ...int) *JapaneseMeanUpdateOne {
+	jmuo.mutation.AddExamQuestionIDs(ids...)
+	return jmuo
+}
+
+// AddExamQuestions adds the "exam_questions" edges to the ExamQuestion entity.
+func (jmuo *JapaneseMeanUpdateOne) AddExamQuestions(e ...*ExamQuestion) *JapaneseMeanUpdateOne {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return jmuo.AddExamQuestionIDs(ids...)
+}
+
 // Mutation returns the JapaneseMeanMutation object of the builder.
 func (jmuo *JapaneseMeanUpdateOne) Mutation() *JapaneseMeanMutation {
 	return jmuo.mutation
@@ -279,6 +376,27 @@ func (jmuo *JapaneseMeanUpdateOne) Mutation() *JapaneseMeanMutation {
 func (jmuo *JapaneseMeanUpdateOne) ClearWordInfo() *JapaneseMeanUpdateOne {
 	jmuo.mutation.ClearWordInfo()
 	return jmuo
+}
+
+// ClearExamQuestions clears all "exam_questions" edges to the ExamQuestion entity.
+func (jmuo *JapaneseMeanUpdateOne) ClearExamQuestions() *JapaneseMeanUpdateOne {
+	jmuo.mutation.ClearExamQuestions()
+	return jmuo
+}
+
+// RemoveExamQuestionIDs removes the "exam_questions" edge to ExamQuestion entities by IDs.
+func (jmuo *JapaneseMeanUpdateOne) RemoveExamQuestionIDs(ids ...int) *JapaneseMeanUpdateOne {
+	jmuo.mutation.RemoveExamQuestionIDs(ids...)
+	return jmuo
+}
+
+// RemoveExamQuestions removes "exam_questions" edges to ExamQuestion entities.
+func (jmuo *JapaneseMeanUpdateOne) RemoveExamQuestions(e ...*ExamQuestion) *JapaneseMeanUpdateOne {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return jmuo.RemoveExamQuestionIDs(ids...)
 }
 
 // Where appends a list predicates to the JapaneseMeanUpdate builder.
@@ -408,6 +526,51 @@ func (jmuo *JapaneseMeanUpdateOne) sqlSave(ctx context.Context) (_node *Japanese
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(wordinfo.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if jmuo.mutation.ExamQuestionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   japanesemean.ExamQuestionsTable,
+			Columns: []string{japanesemean.ExamQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(examquestion.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := jmuo.mutation.RemovedExamQuestionsIDs(); len(nodes) > 0 && !jmuo.mutation.ExamQuestionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   japanesemean.ExamQuestionsTable,
+			Columns: []string{japanesemean.ExamQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(examquestion.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := jmuo.mutation.ExamQuestionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   japanesemean.ExamQuestionsTable,
+			Columns: []string{japanesemean.ExamQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(examquestion.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -7,9 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"word_app/backend/ent/exam"
 	"word_app/backend/ent/predicate"
 	"word_app/backend/ent/registeredword"
-	"word_app/backend/ent/test"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
 
@@ -136,19 +136,19 @@ func (uu *UserUpdate) AddRegisteredWords(r ...*RegisteredWord) *UserUpdate {
 	return uu.AddRegisteredWordIDs(ids...)
 }
 
-// AddTestIDs adds the "tests" edge to the Test entity by IDs.
-func (uu *UserUpdate) AddTestIDs(ids ...int) *UserUpdate {
-	uu.mutation.AddTestIDs(ids...)
+// AddExamIDs adds the "exams" edge to the Exam entity by IDs.
+func (uu *UserUpdate) AddExamIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddExamIDs(ids...)
 	return uu
 }
 
-// AddTests adds the "tests" edges to the Test entity.
-func (uu *UserUpdate) AddTests(t ...*Test) *UserUpdate {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// AddExams adds the "exams" edges to the Exam entity.
+func (uu *UserUpdate) AddExams(e ...*Exam) *UserUpdate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
 	}
-	return uu.AddTestIDs(ids...)
+	return uu.AddExamIDs(ids...)
 }
 
 // SetUserConfigID sets the "user_config" edge to the UserConfig entity by ID.
@@ -196,25 +196,25 @@ func (uu *UserUpdate) RemoveRegisteredWords(r ...*RegisteredWord) *UserUpdate {
 	return uu.RemoveRegisteredWordIDs(ids...)
 }
 
-// ClearTests clears all "tests" edges to the Test entity.
-func (uu *UserUpdate) ClearTests() *UserUpdate {
-	uu.mutation.ClearTests()
+// ClearExams clears all "exams" edges to the Exam entity.
+func (uu *UserUpdate) ClearExams() *UserUpdate {
+	uu.mutation.ClearExams()
 	return uu
 }
 
-// RemoveTestIDs removes the "tests" edge to Test entities by IDs.
-func (uu *UserUpdate) RemoveTestIDs(ids ...int) *UserUpdate {
-	uu.mutation.RemoveTestIDs(ids...)
+// RemoveExamIDs removes the "exams" edge to Exam entities by IDs.
+func (uu *UserUpdate) RemoveExamIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveExamIDs(ids...)
 	return uu
 }
 
-// RemoveTests removes "tests" edges to Test entities.
-func (uu *UserUpdate) RemoveTests(t ...*Test) *UserUpdate {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// RemoveExams removes "exams" edges to Exam entities.
+func (uu *UserUpdate) RemoveExams(e ...*Exam) *UserUpdate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
 	}
-	return uu.RemoveTestIDs(ids...)
+	return uu.RemoveExamIDs(ids...)
 }
 
 // ClearUserConfig clears the "user_config" edge to the UserConfig entity.
@@ -357,28 +357,28 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uu.mutation.TestsCleared() {
+	if uu.mutation.ExamsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TestsTable,
-			Columns: []string{user.TestsColumn},
+			Table:   user.ExamsTable,
+			Columns: []string{user.ExamsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(test.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(exam.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedTestsIDs(); len(nodes) > 0 && !uu.mutation.TestsCleared() {
+	if nodes := uu.mutation.RemovedExamsIDs(); len(nodes) > 0 && !uu.mutation.ExamsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TestsTable,
-			Columns: []string{user.TestsColumn},
+			Table:   user.ExamsTable,
+			Columns: []string{user.ExamsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(test.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(exam.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -386,15 +386,15 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.TestsIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.ExamsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TestsTable,
-			Columns: []string{user.TestsColumn},
+			Table:   user.ExamsTable,
+			Columns: []string{user.ExamsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(test.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(exam.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -556,19 +556,19 @@ func (uuo *UserUpdateOne) AddRegisteredWords(r ...*RegisteredWord) *UserUpdateOn
 	return uuo.AddRegisteredWordIDs(ids...)
 }
 
-// AddTestIDs adds the "tests" edge to the Test entity by IDs.
-func (uuo *UserUpdateOne) AddTestIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.AddTestIDs(ids...)
+// AddExamIDs adds the "exams" edge to the Exam entity by IDs.
+func (uuo *UserUpdateOne) AddExamIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddExamIDs(ids...)
 	return uuo
 }
 
-// AddTests adds the "tests" edges to the Test entity.
-func (uuo *UserUpdateOne) AddTests(t ...*Test) *UserUpdateOne {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// AddExams adds the "exams" edges to the Exam entity.
+func (uuo *UserUpdateOne) AddExams(e ...*Exam) *UserUpdateOne {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
 	}
-	return uuo.AddTestIDs(ids...)
+	return uuo.AddExamIDs(ids...)
 }
 
 // SetUserConfigID sets the "user_config" edge to the UserConfig entity by ID.
@@ -616,25 +616,25 @@ func (uuo *UserUpdateOne) RemoveRegisteredWords(r ...*RegisteredWord) *UserUpdat
 	return uuo.RemoveRegisteredWordIDs(ids...)
 }
 
-// ClearTests clears all "tests" edges to the Test entity.
-func (uuo *UserUpdateOne) ClearTests() *UserUpdateOne {
-	uuo.mutation.ClearTests()
+// ClearExams clears all "exams" edges to the Exam entity.
+func (uuo *UserUpdateOne) ClearExams() *UserUpdateOne {
+	uuo.mutation.ClearExams()
 	return uuo
 }
 
-// RemoveTestIDs removes the "tests" edge to Test entities by IDs.
-func (uuo *UserUpdateOne) RemoveTestIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.RemoveTestIDs(ids...)
+// RemoveExamIDs removes the "exams" edge to Exam entities by IDs.
+func (uuo *UserUpdateOne) RemoveExamIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveExamIDs(ids...)
 	return uuo
 }
 
-// RemoveTests removes "tests" edges to Test entities.
-func (uuo *UserUpdateOne) RemoveTests(t ...*Test) *UserUpdateOne {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// RemoveExams removes "exams" edges to Exam entities.
+func (uuo *UserUpdateOne) RemoveExams(e ...*Exam) *UserUpdateOne {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
 	}
-	return uuo.RemoveTestIDs(ids...)
+	return uuo.RemoveExamIDs(ids...)
 }
 
 // ClearUserConfig clears the "user_config" edge to the UserConfig entity.
@@ -807,28 +807,28 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uuo.mutation.TestsCleared() {
+	if uuo.mutation.ExamsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TestsTable,
-			Columns: []string{user.TestsColumn},
+			Table:   user.ExamsTable,
+			Columns: []string{user.ExamsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(test.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(exam.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedTestsIDs(); len(nodes) > 0 && !uuo.mutation.TestsCleared() {
+	if nodes := uuo.mutation.RemovedExamsIDs(); len(nodes) > 0 && !uuo.mutation.ExamsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TestsTable,
-			Columns: []string{user.TestsColumn},
+			Table:   user.ExamsTable,
+			Columns: []string{user.ExamsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(test.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(exam.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -836,15 +836,15 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.TestsIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.ExamsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TestsTable,
-			Columns: []string{user.TestsColumn},
+			Table:   user.ExamsTable,
+			Columns: []string{user.ExamsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(test.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(exam.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

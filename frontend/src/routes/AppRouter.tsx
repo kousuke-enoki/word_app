@@ -18,6 +18,7 @@ import WordEdit from '../components/word/WordEdit'
 import WordList from '../components/word/WordList'
 import WordShow from '../components/word/WordShow'
 import WordBulkRegister from '../components/word/WordBulkRegister'
+import ExamMenu from '../components/exam/ExamMenu'
 import Header from '../components/Header'
 // import Dashboard from '../components/Dashboard';
 // import Footer from '../components/Footer';
@@ -116,6 +117,14 @@ const AppRouter: React.FC = () => {
           element={
             <PrivateRoute>
               <WordBulkRegister />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/exams"
+          element={
+            <PrivateRoute>
+              <ExamMenu />
             </PrivateRoute>
           }
         />

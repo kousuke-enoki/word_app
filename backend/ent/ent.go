@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"word_app/backend/ent/exam"
+	"word_app/backend/ent/examquestion"
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/partofspeech"
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/rootconfig"
-	"word_app/backend/ent/test"
-	"word_app/backend/ent/testquestion"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
 	"word_app/backend/ent/word"
@@ -82,12 +82,12 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			exam.Table:           exam.ValidColumn,
+			examquestion.Table:   examquestion.ValidColumn,
 			japanesemean.Table:   japanesemean.ValidColumn,
 			partofspeech.Table:   partofspeech.ValidColumn,
 			registeredword.Table: registeredword.ValidColumn,
 			rootconfig.Table:     rootconfig.ValidColumn,
-			test.Table:           test.ValidColumn,
-			testquestion.Table:   testquestion.ValidColumn,
 			user.Table:           user.ValidColumn,
 			userconfig.Table:     userconfig.ValidColumn,
 			word.Table:           word.ValidColumn,

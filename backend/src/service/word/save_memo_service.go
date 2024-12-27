@@ -10,7 +10,10 @@ import (
 	"word_app/backend/src/models"
 )
 
-func (s *WordServiceImpl) SaveMemo(ctx context.Context, wordID int, userID int, Memo string) (*models.SaveMemoResponse, error) {
+func (s *WordServiceImpl) SaveMemo(ctx context.Context, SaveMemoRequest *models.SaveMemoRequest) (*models.SaveMemoResponse, error) {
+	wordID := SaveMemoRequest.WordID
+	userID := SaveMemoRequest.UserID
+	Memo := SaveMemoRequest.Memo
 	word, err := s.client.Word.
 		Query().
 		Where(

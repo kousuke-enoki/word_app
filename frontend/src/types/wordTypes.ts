@@ -10,7 +10,8 @@ export interface JapaneseMean {
 
 export interface WordInfo {
   id: number
-  partOfSpeech: PartOfSpeech
+  // partOfSpeech: PartOfSpeech
+  partOfSpeechId: number
   japaneseMeans: JapaneseMean[]
 }
 

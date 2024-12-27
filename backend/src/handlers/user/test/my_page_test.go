@@ -22,7 +22,7 @@ func TestMyPageHandler(t *testing.T) {
 	// テスト用のGinコンテキストとHTTPリクエストを準備
 	gin.SetMode(gin.TestMode)
 	mockClient := new(mocks.UserClient)
-	mockJWTGen := &mocks.JwtGenerator{}
+	mockJWTGen := &mocks.MockJwtGenerator{}
 
 	userHandler := user.NewUserHandler(mockClient, mockJWTGen)
 

@@ -18,62 +18,26 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestSignUpHandler_ValidRequest(t *testing.T) {
-	gin.SetMode(gin.TestMode)
+func TestSignUpHandler(t *testing.T) {
+	t.Run("TestSignUpHandler_ValidRequest", func(t *testing.T) {
+		gin.SetMode(gin.TestMode)
 
-	mockClient := new(mocks.UserClient)
-	mockJWTGen := &mocks.JwtGenerator{}
+		mockClient := new(mocks.UserClient)
+		mockJWTGen := &mocks.MockJwtGenerator{}
 
-	handler := user.NewUserHandler(mockClient, mockJWTGen)
+		handler := user.NewUserHandler(mockClient, mockJWTGen)
 
-	// 正常なリクエストデータ
-	reqData := models.SignUpRequest{
-		Email:    "test@example.com",
-		Name:     "TestUser",
-		Password: "Secure123!",
-	}
-	reqBody, _ := json.Marshal(reqData)
-
-	mockClient.On("CreateUser", mock.Anything, reqData.Email, reqData.Name, mock.Anything).
-		Return(&ent.User{ID: 1, Name: reqData.Name, Email: reqData.Email}, nil)
-	mockJWTGen.On("GenerateJWT", "1").Return("mocked_jwt_token", nil)
-
-	req, _ := http.NewRequest(http.MethodPost, "/signup", bytes.NewBuffer(reqBody))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	c, _ := gin.CreateTestContext(w)
-	c.Request = req
-
-	handler.SignUpHandler()(c)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-	responseData := map[string]string{}
-	err := json.Unmarshal(w.Body.Bytes(), &responseData)
-	assert.NoError(t, err)
-	assert.Equal(t, "mocked_jwt_token", responseData["token"])
-
-	mockClient.AssertExpectations(t)
-	mockJWTGen.AssertExpectations(t)
-}
-
-func TestSignUpHandler_InvalidRequest(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
-	mockClient := new(mocks.UserClient)
-	mockJWTGen := &mocks.JwtGenerator{}
-
-	handler := user.NewUserHandler(mockClient, mockJWTGen)
-
-	// バリデーションエラーケース（短すぎる名前、無効なメール、簡単すぎるパスワード）
-	testCases := []models.SignUpRequest{
-		{Email: "invalid-email", Name: "T", Password: "simple"},
-		{Email: "test@example.com", Name: "TestUser", Password: "short1"},
-		{Email: "test@example.com", Name: "TestUser", Password: "NoSpecialChar1"},
-	}
-
-	for _, reqData := range testCases {
+		// 正常なリクエストデータ
+		reqData := models.SignUpRequest{
+			Email:    "test@example.com",
+			Name:     "TestUser",
+			Password: "Secure123!",
+		}
 		reqBody, _ := json.Marshal(reqData)
+
+		mockClient.On("CreateUser", mock.Anything, reqData.Email, reqData.Name, mock.Anything).
+			Return(&ent.User{ID: 1, Name: reqData.Name, Email: reqData.Email}, nil)
+		mockJWTGen.On("GenerateJWT", "1").Return("mocked_jwt_token", nil)
 
 		req, _ := http.NewRequest(http.MethodPost, "/signup", bytes.NewBuffer(reqBody))
 		req.Header.Set("Content-Type", "application/json")
@@ -84,14 +48,52 @@ func TestSignUpHandler_InvalidRequest(t *testing.T) {
 
 		handler.SignUpHandler()(c)
 
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		responseData := map[string][]map[string]string{}
+		assert.Equal(t, http.StatusOK, w.Code)
+		responseData := map[string]string{}
 		err := json.Unmarshal(w.Body.Bytes(), &responseData)
 		assert.NoError(t, err)
+		assert.Equal(t, "mocked_jwt_token", responseData["token"])
 
-		// バリデーションエラーメッセージが返されていることを確認
-		assert.Greater(t, len(responseData["errors"]), 0)
-	}
+		mockClient.AssertExpectations(t)
+		mockJWTGen.AssertExpectations(t)
+	})
 
-	mockClient.AssertExpectations(t)
+	t.Run("TestSignUpHandler_InvalidRequest", func(t *testing.T) {
+		gin.SetMode(gin.TestMode)
+
+		mockClient := new(mocks.UserClient)
+		mockJWTGen := &mocks.MockJwtGenerator{}
+
+		handler := user.NewUserHandler(mockClient, mockJWTGen)
+
+		// バリデーションエラーケース（短すぎる名前、無効なメール、簡単すぎるパスワード）
+		testCases := []models.SignUpRequest{
+			{Email: "invalid-email", Name: "T", Password: "simple"},
+			{Email: "test@example.com", Name: "TestUser", Password: "short1"},
+			{Email: "test@example.com", Name: "TestUser", Password: "NoSpecialChar1"},
+		}
+
+		for _, reqData := range testCases {
+			reqBody, _ := json.Marshal(reqData)
+
+			req, _ := http.NewRequest(http.MethodPost, "/signup", bytes.NewBuffer(reqBody))
+			req.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+
+			c, _ := gin.CreateTestContext(w)
+			c.Request = req
+
+			handler.SignUpHandler()(c)
+
+			assert.Equal(t, http.StatusBadRequest, w.Code)
+			responseData := map[string][]map[string]string{}
+			err := json.Unmarshal(w.Body.Bytes(), &responseData)
+			assert.NoError(t, err)
+
+			// バリデーションエラーメッセージが返されていることを確認
+			assert.Greater(t, len(responseData["errors"]), 0)
+		}
+
+		mockClient.AssertExpectations(t)
+	})
 }

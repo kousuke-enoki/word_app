@@ -38,7 +38,6 @@ type Word struct {
 
 type WordInfo struct {
 	ID             int            `json:"id"`
-	PartOfSpeech   PartOfSpeech   `json:"partOfSpeech"`
 	PartOfSpeechID int            `json:"partOfSpeechId"`
 	JapaneseMeans  []JapaneseMean `json:"japaneseMeans"`
 }

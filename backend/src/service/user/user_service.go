@@ -1,10 +1,9 @@
 package user_service
 
 import (
-	"context"
+	"errors"
 
 	"word_app/backend/ent"
-	"word_app/backend/ent/user"
 )
 
 // ent.Client をラップして UserClient インターフェースを実装
@@ -16,25 +15,7 @@ func NewEntUserClient(client *ent.Client) *EntUserClient {
 	return &EntUserClient{client: client}
 }
 
-func (e *EntUserClient) CreateUser(ctx context.Context, email, name, password string) (*ent.User, error) {
-	return e.client.User.
-		Create().
-		SetEmail(email).
-		SetName(name).
-		SetPassword(password).
-		Save(ctx)
-}
-
-func (e *EntUserClient) FindUserByEmail(ctx context.Context, email string) (*ent.User, error) {
-	return e.client.User.
-		Query().
-		Where(user.EmailEQ(email)).
-		First(ctx)
-}
-
-func (e *EntUserClient) FindUserByID(ctx context.Context, userID int) (*ent.User, error) {
-	return e.client.User.
-		Query().
-		Where(user.ID(userID)).
-		First(ctx)
-}
+var (
+	ErrDuplicateEmail  = errors.New("duplicate email")
+	ErrDatabaseFailure = errors.New("database failure")
+)

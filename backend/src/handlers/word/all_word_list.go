@@ -8,13 +8,11 @@ import (
 	"word_app/backend/src/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 func (h *WordHandler) AllWordListHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
-		logrus.Info("ajklsdhfakjhdfak")
 
 		req, err := h.parseAllWordListRequest(c)
 		if err != nil {
@@ -25,9 +23,6 @@ func (h *WordHandler) AllWordListHandler() gin.HandlerFunc {
 		// サービスの呼び出し
 		if req.SortBy == "register" {
 			response, err := h.wordService.GetRegisteredWords(ctx, req)
-			logrus.Info("response")
-			logrus.Info(response)
-			logrus.Info(err)
 			if err == nil {
 				c.JSON(http.StatusOK, response)
 				return
@@ -37,9 +32,6 @@ func (h *WordHandler) AllWordListHandler() gin.HandlerFunc {
 			}
 		} else {
 			response, err := h.wordService.GetWords(ctx, req)
-			logrus.Info("response")
-			logrus.Info(response)
-			logrus.Info(err)
 			if err == nil {
 				c.JSON(http.StatusOK, response)
 				return

@@ -23,7 +23,7 @@ func (h *WordHandler) RegisterWordHandler() gin.HandlerFunc {
 		}
 
 		// サービス層からデータを取得
-		response, err := h.wordService.RegisterWords(ctx, req.WordID, req.UserID, req.IsRegistered)
+		response, err := h.wordService.RegisterWords(ctx, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

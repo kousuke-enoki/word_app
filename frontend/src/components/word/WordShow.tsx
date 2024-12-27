@@ -5,6 +5,7 @@ import { Word, WordInfo, JapaneseMean } from '../../types/wordTypes'
 import { registerWord } from '../../service/word/RegisterWord'
 import { saveMemo } from '../../service/word/SaveMemo'
 import { deleteWord } from '../../service/word/DeleteWord'
+import { getPartOfSpeech } from '../../service/word/GetPartOfSpeech'
 import '../../styles/components/word/WordShow.css'
 
 const WordShow: React.FC = () => {
@@ -23,7 +24,7 @@ const WordShow: React.FC = () => {
         setWord(response.data)
         setMemo(response.data.memo || '')
       } catch (error) {
-        console.error('Error fetching word details:', error)
+        alert('単語情報の取得中にエラーが発生しました。')
       } finally {
         setLoading(false)
       }
@@ -37,6 +38,12 @@ const WordShow: React.FC = () => {
 
   if (!word) {
     return <p>No word details found.</p>
+  }
+
+  // IDから品詞名を取得するヘルパー関数
+  const getPartOfSpeechName = (id: number): string => {
+    const partOfSpeech = getPartOfSpeech.find((pos) => pos.id === id)
+    return partOfSpeech ? partOfSpeech.name : '未定義'
   }
 
   const handleRegister = async () => {
@@ -58,12 +65,11 @@ const WordShow: React.FC = () => {
       }
       setTimeout(() => setSuccessMessage(''), 3000)
     } catch (error) {
-      console.error('Error registering word:', error)
+      alert('単語の登録中にエラーが発生しました。')
     }
   }
 
   const handleEdit = async () => {
-    console.log(word.id)
     window.location.href = '/words/edit/' + word.id
   }
 
@@ -99,7 +105,7 @@ const WordShow: React.FC = () => {
       setSuccessMessage('メモを保存しました！')
       setTimeout(() => setSuccessMessage(''), 3000)
     } catch (error) {
-      console.error('Error saving memo:', error)
+      alert('メモの保存中にエラーが発生しました。')
     }
   }
 
@@ -118,7 +124,7 @@ const WordShow: React.FC = () => {
               .map((japaneseMean: JapaneseMean) => japaneseMean.name)
               .join(', ')}
           </p>
-          <p>品詞: {info.partOfSpeech.name}</p>
+          <p>品詞: {getPartOfSpeechName(info.partOfSpeechId)}</p>
         </div>
       ))}
       <p>{word.isRegistered ? '登録済み' : '未登録'}</p>

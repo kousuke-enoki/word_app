@@ -96,8 +96,7 @@ func convertEntRegisteredWordsToResponse(entWords []*ent.Word) []models.Word {
 		wordInfos := make([]models.WordInfo, len(entWord.Edges.WordInfos))
 		for j, wordInfo := range entWord.Edges.WordInfos {
 			partOfSpeech := models.PartOfSpeech{
-				ID:   wordInfo.Edges.PartOfSpeech.ID,
-				Name: wordInfo.Edges.PartOfSpeech.Name,
+				ID: wordInfo.Edges.PartOfSpeech.ID,
 			}
 			japaneseMeans := make([]models.JapaneseMean, len(wordInfo.Edges.JapaneseMeans))
 			for k, mean := range wordInfo.Edges.JapaneseMeans {
@@ -107,9 +106,9 @@ func convertEntRegisteredWordsToResponse(entWords []*ent.Word) []models.Word {
 				}
 			}
 			wordInfos[j] = models.WordInfo{
-				ID:            wordInfo.ID,
-				PartOfSpeech:  partOfSpeech,
-				JapaneseMeans: japaneseMeans,
+				ID:             wordInfo.ID,
+				PartOfSpeechID: partOfSpeech.ID,
+				JapaneseMeans:  japaneseMeans,
 			}
 		}
 

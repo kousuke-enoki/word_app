@@ -15,7 +15,7 @@ type appClient struct {
 }
 
 // DeleteWord implements interfaces.ClientInterface.
-func (c *appClient) DeleteWord(ctx context.Context, userID int, wordID int) (*models.DeleteWordResponse, error) {
+func (c *appClient) DeleteWord(ctx context.Context, DeleteWordRequest *models.DeleteWordRequest) (*models.DeleteWordResponse, error) {
 	panic("unimplemented")
 }
 
@@ -25,7 +25,7 @@ func (c *appClient) GetRegisteredWords(ctx context.Context, AllWordListRequest *
 }
 
 // GetWordDetails implements interfaces.ClientInterface.
-func (c *appClient) GetWordDetails(ctx context.Context, wordID int, userID int) (*models.WordShowResponse, error) {
+func (c *appClient) GetWordDetails(ctx context.Context, WordShowRequest *models.WordShowRequest) (*models.WordShowResponse, error) {
 	panic("unimplemented")
 }
 
@@ -35,12 +35,12 @@ func (c *appClient) GetWords(ctx context.Context, AllWordListRequest *models.All
 }
 
 // RegisterWords implements interfaces.ClientInterface.
-func (c *appClient) RegisterWords(ctx context.Context, wordID int, userID int, IsRegistered bool) (*models.RegisterWordResponse, error) {
+func (c *appClient) RegisterWords(ctx context.Context, RegisterWordRequest *models.RegisterWordRequest) (*models.RegisterWordResponse, error) {
 	panic("unimplemented")
 }
 
 // SaveMemo implements interfaces.ClientInterface.
-func (c *appClient) SaveMemo(ctx context.Context, wordID int, userID int, memo string) (*models.SaveMemoResponse, error) {
+func (c *appClient) SaveMemo(ctx context.Context, SaveMemoRequest *models.SaveMemoRequest) (*models.SaveMemoResponse, error) {
 	panic("unimplemented")
 }
 

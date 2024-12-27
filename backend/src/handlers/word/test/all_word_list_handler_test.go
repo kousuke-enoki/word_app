@@ -13,7 +13,6 @@ import (
 	"word_app/backend/src/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -56,8 +55,6 @@ func TestAllWordListHandler(t *testing.T) {
 
 		// テスト実行
 		router.ServeHTTP(w, req)
-		logrus.Info(w)
-		logrus.Info(t, http.StatusOK, w.Code)
 		// レスポンス検証
 		assert.Equal(t, http.StatusOK, w.Code)
 
@@ -92,8 +89,6 @@ func TestAllWordListHandler(t *testing.T) {
 
 		// テスト実行
 		router.ServeHTTP(w, req)
-		logrus.Info(w)
-		logrus.Info(t, http.StatusOK, w.Code)
 		// レスポンス検証
 		assert.Equal(t, http.StatusOK, w.Code)
 
@@ -123,8 +118,6 @@ func TestAllWordListHandler(t *testing.T) {
 
 		// テスト実行
 		router.ServeHTTP(w, req)
-		logrus.Info(w)
-		logrus.Info(t, http.StatusOK, w.Code)
 		// レスポンス検証
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 

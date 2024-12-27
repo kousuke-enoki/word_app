@@ -3,6 +3,7 @@ import axiosInstance from '../../axiosConfig'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Word, WordInfo, JapaneseMean } from '../../types/wordTypes'
 import { registerWord } from '../../service/word/RegisterWord'
+import { getPartOfSpeech } from '../../service/word/GetPartOfSpeech'
 import '../../styles/components/word/AllWordList.css'
 
 const AllWordList: React.FC = () => {
@@ -17,6 +18,12 @@ const AllWordList: React.FC = () => {
   const navigate = useNavigate()
   const [isInitialized, setIsInitialized] = useState<boolean>(false)
   const [successMessage, setSuccessMessage] = useState<string>('')
+
+  // IDから品詞名を取得するヘルパー関数
+  const getPartOfSpeechName = (id: number): string => {
+    const partOfSpeech = getPartOfSpeech.find((pos) => pos.id === id)
+    return partOfSpeech ? partOfSpeech.name : '未定義'
+  }
 
   // APIからデータを取得する関数
   useEffect(() => {
@@ -87,8 +94,10 @@ const AllWordList: React.FC = () => {
       const registeredWordName = updatedWord.name
       if (updatedWord.isRegistered) {
         setSuccessMessage(registeredWordName + ' を登録しました。')
+        setTimeout(() => setSuccessMessage(''), 3000)
       } else {
         setSuccessMessage(registeredWordName + ' を登録解除しました。')
+        setTimeout(() => setSuccessMessage(''), 3000)
       }
     } catch (error) {
       console.error('Error registering word:', error)
@@ -153,7 +162,9 @@ const AllWordList: React.FC = () => {
               </td>
               <td>
                 {word.wordInfos
-                  .map((info: WordInfo) => info.partOfSpeech.name)
+                  .map((info: WordInfo) =>
+                    getPartOfSpeechName(info.partOfSpeechId),
+                  )
                   .join(', ')}
               </td>
               <td> {word.registrationCount} </td>

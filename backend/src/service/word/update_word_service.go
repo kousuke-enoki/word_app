@@ -15,13 +15,7 @@ import (
 )
 
 func (s *WordServiceImpl) UpdateWord(ctx context.Context, req *models.UpdateWordRequest) (*models.UpdateWordResponse, error) {
-	// // リクエストバリデーション
-	// if req.ID == 0 || req.Name == "" || len(req.WordInfos) == 0 {
-	// 	return nil, errors.New("invalid request: ID, Name, or WordInfos is missing")
-	// }
-	logrus.Info("asdf")
-	logrus.Info("req", req)
-	logrus.Info("qwer")
+
 	// トランザクション開始
 	tx, err := s.client.Tx(ctx)
 	if err != nil {

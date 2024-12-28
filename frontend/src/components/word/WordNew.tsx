@@ -129,12 +129,14 @@ const WordNew: React.FC = () => {
     e.preventDefault()
     try {
       const response = await axiosInstance.post('/words/new', word)
+      console.log(response)
       setSuccessMessage(response.data.name + 'が正常に登録されました！')
       setTimeout(() => setSuccessMessage(''), 3000)
       setTimeout(() => {
         window.location.href = '/words/' + response.data.id
       }, 1500)
     } catch (error) {
+      console.log(error)
       alert('単語の登録中にエラーが発生しました。')
     }
   }

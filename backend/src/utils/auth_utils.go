@@ -14,11 +14,6 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// JWTGenerator インターフェースを定義
-type JWTGenerator interface {
-	GenerateJWT(userID string) (string, error)
-}
-
 // DefaultJWTGenerator はデフォルトの JWTGenerator 実装
 type DefaultJWTGenerator struct{}
 

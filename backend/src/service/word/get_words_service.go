@@ -8,8 +8,6 @@ import (
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/word"
 	"word_app/backend/src/models"
-
-	"github.com/sirupsen/logrus"
 )
 
 // all_word_list
@@ -87,27 +85,6 @@ func addSearchFilter(query *ent.WordQuery, search string) *ent.WordQuery {
 	return query
 }
 
-// ソート条件の追加
-func addSortOrder(query *ent.WordQuery, sortBy string, order string, userID int) (*ent.WordQuery, int, error) {
-	var totalCount int
-
-	switch sortBy {
-	case "name":
-		if order == "asc" {
-			query = query.Order(ent.Asc(word.FieldName))
-		} else {
-			query = query.Order(ent.Desc(word.FieldName))
-		}
-	case "registrationCount":
-		if order == "asc" {
-			query = query.Order(ent.Asc(word.FieldRegistrationCount))
-		} else {
-			query = query.Order(ent.Desc(word.FieldRegistrationCount))
-		}
-	}
-	return query, totalCount, nil
-}
-
 // エンティティからレスポンス形式に変換
 func convertEntWordsToResponse(entWords []*ent.Word) []models.Word {
 	words := make([]models.Word, len(entWords))
@@ -116,8 +93,7 @@ func convertEntWordsToResponse(entWords []*ent.Word) []models.Word {
 		wordInfos := make([]models.WordInfo, len(entWord.Edges.WordInfos))
 		for j, wordInfo := range entWord.Edges.WordInfos {
 			partOfSpeech := models.PartOfSpeech{
-				ID:   wordInfo.Edges.PartOfSpeech.ID,
-				Name: wordInfo.Edges.PartOfSpeech.Name,
+				ID: wordInfo.Edges.PartOfSpeech.ID,
 			}
 			japaneseMeans := make([]models.JapaneseMean, len(wordInfo.Edges.JapaneseMeans))
 			for k, mean := range wordInfo.Edges.JapaneseMeans {
@@ -127,9 +103,9 @@ func convertEntWordsToResponse(entWords []*ent.Word) []models.Word {
 				}
 			}
 			wordInfos[j] = models.WordInfo{
-				ID:            wordInfo.ID,
-				PartOfSpeech:  partOfSpeech,
-				JapaneseMeans: japaneseMeans,
+				ID:             wordInfo.ID,
+				PartOfSpeechID: partOfSpeech.ID,
+				JapaneseMeans:  japaneseMeans,
 			}
 		}
 
@@ -155,8 +131,6 @@ func convertEntWordsToResponse(entWords []*ent.Word) []models.Word {
 			CheckCount:        checkCount,
 		}
 	}
-	logrus.Info("qwer")
-	logrus.Info(words)
-	logrus.Info("qwer")
+
 	return words
 }

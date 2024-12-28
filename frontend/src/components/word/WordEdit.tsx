@@ -5,7 +5,6 @@ import {
   getPartOfSpeech,
   PartOfSpeechOption,
 } from '../../service/word/GetPartOfSpeech'
-// import '../../styles/components/word/WordEdit.css'
 
 export type WordForUpdate = {
   id: number
@@ -24,17 +23,13 @@ export type JapaneseMeansForUpdate = {
   name: string
 }
 
-// type Props = {
-//   wordId: number
-// }
-
 const WordEdit: React.FC = () => {
   const { id } = useParams()
   const [word, setWord] = useState<WordForUpdate | null>(null)
   const [successMessage, setSuccessMessage] = useState<string>('')
 
-  const MAX_PART_OF_SPEECH = 10
-  const MAX_JAPANESE_MEANS = 10
+  // const MAX_PART_OF_SPEECH = 10
+  // const MAX_JAPANESE_MEANS = 10
 
   const wordNameRegex = /^[A-Za-z]+$/
   // eslint-disable-next-line no-control-regex
@@ -44,11 +39,8 @@ const WordEdit: React.FC = () => {
   useEffect(() => {
     const fetchWord = async () => {
       try {
-        console.log(id)
         const response = await axiosInstance.get(`/words/${id}`)
-        console.log('response', response)
         setWord(response.data)
-        console.log('word', word)
       } catch (error) {
         alert('単語情報の取得中にエラーが発生しました。')
       }
@@ -96,14 +88,12 @@ const WordEdit: React.FC = () => {
     e.preventDefault()
     try {
       const response = await axiosInstance.put(`/words/${id}`, word)
-      console.log(response)
-      setSuccessMessage('単語情報が正常に更新されました！')
+      setSuccessMessage(response.data.name + 'が正常に更新されました！')
       setTimeout(() => setSuccessMessage(''), 3000)
       setTimeout(() => {
         window.location.href = '/words/' + id
       }, 1500)
     } catch (error) {
-      console.log(error)
       alert('単語情報の更新中にエラーが発生しました。')
     }
   }

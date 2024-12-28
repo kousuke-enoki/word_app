@@ -7,12 +7,13 @@ import (
 	"word_app/backend/ent"
 	"word_app/backend/ent/word"
 	"word_app/backend/src/models"
-
-	"github.com/sirupsen/logrus"
 )
 
 // word_show
-func (s *WordServiceImpl) GetWordDetails(ctx context.Context, wordID int, userID int) (*models.WordShowResponse, error) {
+func (s *WordServiceImpl) GetWordDetails(ctx context.Context, WordShowRequest *models.WordShowRequest) (*models.WordShowResponse, error) {
+	wordID := WordShowRequest.WordID
+	userID := WordShowRequest.UserID
+
 	wordEntity, err := s.client.Word.
 		Query().
 		Where(word.ID(wordID)).
@@ -60,8 +61,7 @@ func (s *WordServiceImpl) GetWordDetails(ctx context.Context, wordID int, userID
 	wordInfos := make([]models.WordInfo, len(wordEntity.Edges.WordInfos))
 	for i, wordInfo := range wordEntity.Edges.WordInfos {
 		partOfSpeech := models.PartOfSpeech{
-			ID:   wordInfo.Edges.PartOfSpeech.ID,
-			Name: wordInfo.Edges.PartOfSpeech.Name,
+			ID: wordInfo.Edges.PartOfSpeech.ID,
 		}
 		japaneseMeans := make([]models.JapaneseMean, len(wordInfo.Edges.JapaneseMeans))
 		for j, mean := range wordInfo.Edges.JapaneseMeans {
@@ -70,17 +70,14 @@ func (s *WordServiceImpl) GetWordDetails(ctx context.Context, wordID int, userID
 				Name: mean.Name,
 			}
 		}
-		logrus.Info("partOfSpeech")
-		logrus.Info(partOfSpeech)
+
 		wordInfos[i] = models.WordInfo{
 			ID:             wordInfo.ID,
-			PartOfSpeech:   partOfSpeech,
 			PartOfSpeechID: partOfSpeech.ID,
 			JapaneseMeans:  japaneseMeans,
 		}
 	}
-	logrus.Info("wordInfos")
-	logrus.Info(wordInfos)
+
 	response := &models.WordShowResponse{
 		ID:                wordEntity.ID,
 		Name:              wordEntity.Name,

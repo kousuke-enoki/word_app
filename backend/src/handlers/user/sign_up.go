@@ -13,7 +13,6 @@ import (
 	"word_app/backend/src/validators/user"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -31,29 +30,21 @@ func (h *UserHandler) SignUpHandler() gin.HandlerFunc {
 			return
 		}
 
-		logrus.Info("j")
 		validationErrors := user.ValidateSignUp(req)
 		if len(validationErrors) > 0 {
-			logrus.Info("validationErrors")
-			logrus.Info(validationErrors)
 			c.JSON(http.StatusBadRequest, gin.H{"errors": validationErrors})
 			return
 		}
-		logrus.Info("adsf")
 
 		hashedPassword, err := h.hashPassword(req.Password)
 		if err != nil {
-			logrus.Info("err")
-			logrus.Info(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 			return
 		}
-		logrus.Info("qwer")
 
 		// ユーザー作成
 		user, err := h.userClient.CreateUser(context.Background(), req.Email, req.Name, hashedPassword)
 		if err != nil {
-			logrus.Error(err)
 
 			// エラーの種類ごとにレスポンスを変更
 			switch err {
@@ -66,7 +57,6 @@ func (h *UserHandler) SignUpHandler() gin.HandlerFunc {
 			}
 			return
 		}
-		logrus.Info("ert")
 
 		token, err := h.jwtGenerator.GenerateJWT(fmt.Sprintf("%d", user.ID))
 		if err != nil {

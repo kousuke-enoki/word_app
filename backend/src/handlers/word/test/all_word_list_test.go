@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestAllWordListHandler(t *testing.T) {
+func TestAllWordList(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	// Mockサービスの初期化

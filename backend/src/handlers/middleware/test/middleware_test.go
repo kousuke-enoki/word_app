@@ -13,78 +13,80 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAuthMiddleware_ValidToken(t *testing.T) {
-	// テスト用の JWT_SECRET を設定
-	testSecret := "test_secret_key"
-	err := os.Setenv("JWT_SECRET", testSecret)
-	assert.NoError(t, err, "Setting JWT_SECRET should not produce an error")
+func TestAuthMiddleware(t *testing.T) {
+	t.Run("TestAuthMiddleware_ValidToken", func(t *testing.T) {
+		// テスト用の JWT_SECRET を設定
+		testSecret := "test_secret_key"
+		err := os.Setenv("JWT_SECRET", testSecret)
+		assert.NoError(t, err, "Setting JWT_SECRET should not produce an error")
 
-	gin.SetMode(gin.TestMode)
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.GET("/protected", func(c *gin.Context) {
-		userID, exists := c.Get("userID")
-		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "userID not found"})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{"userID": userID})
+		gin.SetMode(gin.TestMode)
+		r := gin.New()
+		r.Use(middleware.AuthMiddleware())
+		r.GET("/protected", func(c *gin.Context) {
+			userID, exists := c.Get("userID")
+			if !exists {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "userID not found"})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{"userID": userID})
+		})
+
+		// 有効なJWTトークンを生成
+		jwtGen := &utils.DefaultJWTGenerator{}
+		token, _ := jwtGen.GenerateJWT("12345")
+
+		req, _ := http.NewRequest(http.MethodGet, "/protected", nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), `"userID":12345`)
 	})
 
-	// 有効なJWTトークンを生成
-	jwtGen := &utils.DefaultJWTGenerator{}
-	token, _ := jwtGen.GenerateJWT("12345")
+	t.Run("TestAuthMiddleware_InvalidToken", func(t *testing.T) {
+		// テスト用の JWT_SECRET を設定
+		testSecret := "test_secret_key"
+		err := os.Setenv("JWT_SECRET", testSecret)
+		assert.NoError(t, err, "Setting JWT_SECRET should not produce an error")
 
-	req, _ := http.NewRequest(http.MethodGet, "/protected", nil)
-	req.Header.Set("Authorization", "Bearer "+token)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
+		gin.SetMode(gin.TestMode)
+		r := gin.New()
+		r.Use(middleware.AuthMiddleware())
+		r.GET("/protected", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{"message": "You are authorized"})
+		})
 
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Contains(t, w.Body.String(), `"userID":12345`)
-}
+		// 無効なJWTトークンを使用
+		req, _ := http.NewRequest(http.MethodGet, "/protected", nil)
+		req.Header.Set("Authorization", "Bearer invalid_token")
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
 
-func TestAuthMiddleware_InvalidToken(t *testing.T) {
-	// テスト用の JWT_SECRET を設定
-	testSecret := "test_secret_key"
-	err := os.Setenv("JWT_SECRET", testSecret)
-	assert.NoError(t, err, "Setting JWT_SECRET should not produce an error")
-
-	gin.SetMode(gin.TestMode)
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.GET("/protected", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "You are authorized"})
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Contains(t, w.Body.String(), `"error":"Invalid token"`)
 	})
 
-	// 無効なJWTトークンを使用
-	req, _ := http.NewRequest(http.MethodGet, "/protected", nil)
-	req.Header.Set("Authorization", "Bearer invalid_token")
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
+	t.Run("TestAuthMiddleware_NoToken", func(t *testing.T) {
+		// テスト用の JWT_SECRET を設定
+		testSecret := "test_secret_key"
+		err := os.Setenv("JWT_SECRET", testSecret)
+		assert.NoError(t, err, "Setting JWT_SECRET should not produce an error")
 
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
-	assert.Contains(t, w.Body.String(), `"error":"Invalid token"`)
-}
+		gin.SetMode(gin.TestMode)
+		r := gin.New()
+		r.Use(middleware.AuthMiddleware())
+		r.GET("/protected", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{"message": "You are authorized"})
+		})
 
-func TestAuthMiddleware_NoToken(t *testing.T) {
-	// テスト用の JWT_SECRET を設定
-	testSecret := "test_secret_key"
-	err := os.Setenv("JWT_SECRET", testSecret)
-	assert.NoError(t, err, "Setting JWT_SECRET should not produce an error")
+		// トークンがないリクエスト
+		req, _ := http.NewRequest(http.MethodGet, "/protected", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
 
-	gin.SetMode(gin.TestMode)
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.GET("/protected", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "You are authorized"})
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Contains(t, w.Body.String(), `"error":"Authorization header required"`)
 	})
-
-	// トークンがないリクエスト
-	req, _ := http.NewRequest(http.MethodGet, "/protected", nil)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
-	assert.Contains(t, w.Body.String(), `"error":"Authorization header required"`)
 }

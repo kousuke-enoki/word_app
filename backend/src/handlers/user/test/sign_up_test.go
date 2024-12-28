@@ -25,7 +25,7 @@ func TestSignUpHandler(t *testing.T) {
 
 	// モックの初期化
 	mockClient := new(mocks.UserClient)
-	mockJWTGen := &mocks.JwtGenerator{}
+	mockJWTGen := &mocks.MockJwtGenerator{}
 	handler := user.NewUserHandler(mockClient, mockJWTGen)
 
 	t.Run("error: request body is nil", func(t *testing.T) {
@@ -158,7 +158,7 @@ func TestSignUpHandler(t *testing.T) {
 
 	t.Run("error: JWT generation fails", func(t *testing.T) {
 		mockClient := new(mocks.UserClient)
-		mockJWTGen := &mocks.JwtGenerator{}
+		mockJWTGen := &mocks.MockJwtGenerator{}
 		userHandler := user.NewUserHandler(mockClient, mockJWTGen)
 		mockUser := &ent.User{ID: 1, Name: "test", Email: "test@example.com"}
 
@@ -187,7 +187,7 @@ func TestSignUpHandler(t *testing.T) {
 
 	t.Run("success: user created and token generated", func(t *testing.T) {
 		mockClient := new(mocks.UserClient)
-		mockJWTGen := &mocks.JwtGenerator{}
+		mockJWTGen := &mocks.MockJwtGenerator{}
 		userHandler := user.NewUserHandler(mockClient, mockJWTGen)
 		// 正常なリクエストデータ
 		reqData := models.SignUpRequest{

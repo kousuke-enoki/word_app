@@ -17,5 +17,6 @@ func NewEntUserClient(client *ent.Client) *EntUserClient {
 
 var (
 	ErrDuplicateEmail  = errors.New("duplicate email")
+	ErrDuplicateID     = errors.New("duplicate ID")
 	ErrDatabaseFailure = errors.New("database failure")
 )

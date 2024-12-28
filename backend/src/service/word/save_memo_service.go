@@ -70,7 +70,7 @@ func (s *WordServiceImpl) SaveMemo(ctx context.Context, SaveMemoRequest *models.
 	response := &models.SaveMemoResponse{
 		Name:    word.Name,
 		Memo:    *registeredWord.Memo,
-		Message: "RegisteredWord updated",
+		Message: "RegisteredWord memo updated",
 	}
 
 	return response, nil

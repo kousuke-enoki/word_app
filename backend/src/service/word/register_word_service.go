@@ -10,7 +10,10 @@ import (
 	"word_app/backend/src/models"
 )
 
-func (s *WordServiceImpl) RegisterWords(ctx context.Context, wordID int, userID int, IsRegistered bool) (*models.RegisterWordResponse, error) {
+func (s *WordServiceImpl) RegisterWords(ctx context.Context, RegisterWordRequest *models.RegisterWordRequest) (*models.RegisterWordResponse, error) {
+	wordID := RegisterWordRequest.WordID
+	userID := RegisterWordRequest.UserID
+	IsRegistered := RegisterWordRequest.IsRegistered
 	// wordが存在するかどうか確認
 	word, err := s.client.Word.
 		Query().

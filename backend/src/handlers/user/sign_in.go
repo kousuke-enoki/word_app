@@ -22,7 +22,7 @@ func (h *UserHandler) SignInHandler() gin.HandlerFunc {
 
 		validationErrors := user.ValidateSignIn(&req)
 		if len(validationErrors) > 0 {
-			c.JSON(400, gin.H{"errors": "Invalid request"})
+			c.JSON(400, gin.H{"error": "Invalid request"})
 			return
 		}
 

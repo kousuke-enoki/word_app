@@ -25,7 +25,7 @@ bash docker.sh exec frontend prod
 ## dockerキャッシュ削除
 docker compose --env-file backend/.env.development down --volumes --rmi all
 docker compose build --no-cache
-bash start.sh development
+bash docker.sh up dev
 
 # 実行中のコンテナを確認
 docker ps
@@ -33,6 +33,7 @@ docker ps
 # PostgreSQLコンテナに接続
 docker compose exec -it db psql -U postgres -d db
 docker compose --env-file backend/.env.development exec -it db psql -U postgres -d db
+bash docker.sh db dev
 
 # テーブルの一覧を表示
 \dt

@@ -23,7 +23,7 @@ func (h *WordHandler) DeleteWordHandler() gin.HandlerFunc {
 		}
 
 		// 削除処理を呼び出し
-		response, err := h.wordService.DeleteWord(ctx, req.UserID, req.WordID)
+		response, err := h.wordService.DeleteWord(ctx, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

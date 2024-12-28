@@ -30,7 +30,7 @@ func (h *WordHandler) SaveMemoHandler() gin.HandlerFunc {
 		}
 
 		// サービス層からデータを取得
-		response, err := h.wordService.SaveMemo(ctx, req.WordID, req.UserID, req.Memo)
+		response, err := h.wordService.SaveMemo(ctx, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

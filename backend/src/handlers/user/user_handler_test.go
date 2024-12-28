@@ -10,7 +10,7 @@ import (
 func TestNewUserHandler(t *testing.T) {
 	// Arrange: Create mocks for dependencies.
 	mockUserClient := new(mocks.UserClient)
-	mockJWTGenerator := new(mocks.JwtGenerator)
+	mockJWTGenerator := new(mocks.MockJwtGenerator)
 
 	// Act: Create a new UserHandler instance.
 	handler := NewUserHandler(mockUserClient, mockJWTGenerator)

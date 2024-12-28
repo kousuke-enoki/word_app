@@ -12,7 +12,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (s *WordServiceImpl) DeleteWord(ctx context.Context, userID int, wordID int) (*models.DeleteWordResponse, error) {
+func (s *WordServiceImpl) DeleteWord(ctx context.Context, DeleteWordRequest *models.DeleteWordRequest) (*models.DeleteWordResponse, error) {
+	userID := DeleteWordRequest.UserID
+	wordID := DeleteWordRequest.WordID
 	// トランザクション開始
 	tx, err := s.client.Tx(ctx)
 	if err != nil {

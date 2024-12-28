@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"word_app/backend/src/models"
+	user_service "word_app/backend/src/service/user"
 	"word_app/backend/src/validators/user"
 
 	"github.com/gin-gonic/gin"
@@ -41,9 +42,19 @@ func (h *UserHandler) SignUpHandler() gin.HandlerFunc {
 			return
 		}
 
+		// ユーザー作成
 		user, err := h.userClient.CreateUser(context.Background(), req.Email, req.Name, hashedPassword)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Sign up failed", "details": err.Error()})
+
+			// エラーの種類ごとにレスポンスを変更
+			switch err {
+			case user_service.ErrDuplicateEmail:
+				c.JSON(http.StatusConflict, gin.H{"error": "Email already exists"})
+			case user_service.ErrDatabaseFailure:
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+			default:
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "An unknown error occurred"})
+			}
 			return
 		}
 

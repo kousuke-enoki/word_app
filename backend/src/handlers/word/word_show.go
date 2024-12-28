@@ -22,7 +22,7 @@ func (h *WordHandler) WordShowHandler() gin.HandlerFunc {
 		}
 
 		// サービス層からデータを取得
-		response, err := h.wordService.GetWordDetails(ctx, req.WordID, req.UserID)
+		response, err := h.wordService.GetWordDetails(ctx, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

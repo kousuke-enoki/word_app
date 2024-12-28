@@ -21,10 +21,15 @@ type WordHandler interface {
 type WordService interface {
 	CreateWord(ctx context.Context, CreateWordRequest *models.CreateWordRequest) (*models.CreateWordResponse, error)
 	UpdateWord(ctx context.Context, UpdateWordRequest *models.UpdateWordRequest) (*models.UpdateWordResponse, error)
-	GetWordDetails(ctx context.Context, wordID int, userID int) (*models.WordShowResponse, error)
+	GetWordDetails(ctx context.Context, WordShowRequest *models.WordShowRequest) (*models.WordShowResponse, error)
 	GetWords(ctx context.Context, AllWordListRequest *models.AllWordListRequest) (*models.AllWordListResponse, error)
-	DeleteWord(ctx context.Context, userID int, wordID int) (*models.DeleteWordResponse, error)
+	DeleteWord(ctx context.Context, DeleteWordRequest *models.DeleteWordRequest) (*models.DeleteWordResponse, error)
 	GetRegisteredWords(ctx context.Context, AllWordListRequest *models.AllWordListRequest) (*models.AllWordListResponse, error)
-	RegisterWords(ctx context.Context, wordID int, userID int, IsRegistered bool) (*models.RegisterWordResponse, error)
-	SaveMemo(ctx context.Context, wordID int, userID int, memo string) (*models.SaveMemoResponse, error)
+	RegisterWords(ctx context.Context, RegisterWordRequest *models.RegisterWordRequest) (*models.RegisterWordResponse, error)
+	SaveMemo(ctx context.Context, SaveMemoRequest *models.SaveMemoRequest) (*models.SaveMemoResponse, error)
+}
+type WordValidator interface {
+	ValidateCreateWordRequest(CreateWordRequest *models.CreateWordRequest) []*models.FieldError
+	ValidateSaveMemo(SaveMemoRequest *models.SaveMemoRequest) []*models.FieldError
+	ValidateUpdateWordRequest(UpdateWordRequest *models.UpdateWordRequest) []*models.FieldError
 }

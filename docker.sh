@@ -4,10 +4,12 @@
 # bash docker.sh down dev
 # bash docker.sh exec backend dev
 # bash docker.sh exec frontend dev
+# bash docker.sh db dev
 # bash docker.sh up prod
 # bash docker.sh down prod
 # bash docker.sh exec backend prod
 # bash docker.sh exec frontend prod
+# bash docker.sh db prod
 
 if [ "$3" = "production" ]; then
   ENV_FILE="backend/.env.production"
@@ -36,8 +38,11 @@ case "$1" in
         ;;
     esac
     ;;
+  db)
+    docker compose --env-file $ENV_FILE exec -it db psql -U postgres -d db
+    ;;
   *)
-    echo "Usage: $0 {up|down|exec} {backend|frontend} {development|production}"
+    echo "Usage: $0 {up|down|exec|db} {backend|frontend} {development|production}"
     exit 1
     ;;
 esac

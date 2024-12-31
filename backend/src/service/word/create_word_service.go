@@ -18,7 +18,7 @@ func (s *WordServiceImpl) CreateWord(ctx context.Context, CreateWordRequest *mod
 	tx, err := s.client.Tx(ctx)
 	if err != nil {
 		logrus.Error(err)
-		return nil, ErrDeleteWord
+		return nil, ErrDatabaseFailure
 	}
 
 	defer func() {
@@ -33,7 +33,7 @@ func (s *WordServiceImpl) CreateWord(ctx context.Context, CreateWordRequest *mod
 	if err != nil {
 		logrus.Error(err)
 		tx.Rollback()
-		return nil, ErrDeleteWord
+		return nil, ErrDatabaseFailure
 	}
 	if !userEntity.Admin {
 		logrus.Error(err)
@@ -70,7 +70,7 @@ func (s *WordServiceImpl) CreateWord(ctx context.Context, CreateWordRequest *mod
 			SetPartOfSpeechID(partOfSpeechId).
 			Save(ctx)
 		if err != nil {
-			return nil, errors.New(`failed to create word info: , "err"`)
+			return nil, errors.New(`failed to create word info: , err`)
 		}
 
 		for _, JapaneseMean := range wordInfo.JapaneseMeans {

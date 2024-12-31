@@ -19,4 +19,5 @@ var (
 	ErrDuplicateEmail  = errors.New("duplicate email")
 	ErrDuplicateID     = errors.New("duplicate ID")
 	ErrDatabaseFailure = errors.New("database failure")
+	ErrUserNotFound    = errors.New("user not found")
 )

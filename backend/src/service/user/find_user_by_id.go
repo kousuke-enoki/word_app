@@ -13,10 +13,7 @@ func (e *EntUserClient) FindUserByID(ctx context.Context, id int) (*ent.User, er
 		First(ctx)
 
 	if err != nil {
-		if ent.IsConstraintError(err) {
-			return nil, ErrDuplicateID
-		}
-		return nil, ErrDatabaseFailure
+		return nil, ErrUserNotFound
 	}
 	return user, nil
 }

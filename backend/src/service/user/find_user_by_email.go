@@ -13,10 +13,7 @@ func (e *EntUserClient) FindUserByEmail(ctx context.Context, email string) (*ent
 		First(ctx)
 
 	if err != nil {
-		if ent.IsConstraintError(err) {
-			return nil, ErrDuplicateEmail
-		}
-		return nil, ErrDatabaseFailure
+		return nil, ErrUserNotFound
 	}
 	return user, nil
 }

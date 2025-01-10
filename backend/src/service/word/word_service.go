@@ -15,6 +15,7 @@ func NewWordService(client *ent.Client) *WordServiceImpl {
 
 var (
 	ErrWordNotFound    = errors.New("word not found")
+	ErrUserNotFound    = errors.New("user not found")
 	ErrUnauthorized    = errors.New("unauthorized")
 	ErrDeleteWord      = errors.New("failed to delete word")
 	ErrDatabaseFailure = errors.New("database failure")

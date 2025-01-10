@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"word_app/backend/src/models"
+	"word_app/backend/src/validators/word"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,6 +18,13 @@ func (h *WordHandler) AllWordListHandler() gin.HandlerFunc {
 		req, err := h.parseAllWordListRequest(c)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// バリデーション
+		validationErrors := word.ValidateWordListRequest(req)
+		if len(validationErrors) > 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"errors": validationErrors})
 			return
 		}
 

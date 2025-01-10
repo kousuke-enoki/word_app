@@ -8,6 +8,8 @@ import (
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/word"
 	"word_app/backend/src/models"
+
+	"github.com/sirupsen/logrus"
 )
 
 // all_word_list
@@ -20,13 +22,20 @@ func (s *WordServiceImpl) GetWords(ctx context.Context, AllWordListRequest *mode
 	page := AllWordListRequest.Page
 	limit := AllWordListRequest.Limit
 
+	// user存在チェック
+	_, err := s.client.User.Get(ctx, userID)
+	if err != nil {
+		logrus.Error(err)
+		return nil, ErrUserNotFound
+	}
+
 	// 検索条件の追加
 	query = addSearchFilter(query, search)
 
 	var totalCount int = 0
 
 	// 総レコード数を取得
-	totalCount, err := query.Count(ctx)
+	totalCount, err = query.Count(ctx)
 	if err != nil {
 		return nil, errors.New("failed to count words")
 	}

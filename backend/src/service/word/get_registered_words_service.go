@@ -8,6 +8,8 @@ import (
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/word"
 	"word_app/backend/src/models"
+
+	"github.com/sirupsen/logrus"
 )
 
 // word_list
@@ -18,6 +20,13 @@ func (s *WordServiceImpl) GetRegisteredWords(ctx context.Context, AllWordListReq
 	order := AllWordListRequest.Order
 	page := AllWordListRequest.Page
 	limit := AllWordListRequest.Limit
+
+	// userチェック
+	_, err := s.client.User.Get(ctx, userID)
+	if err != nil {
+		logrus.Error(err)
+		return nil, ErrUserNotFound
+	}
 
 	// 検索条件の追加
 	query = addSearchRegisteredWordsFilter(query, search)

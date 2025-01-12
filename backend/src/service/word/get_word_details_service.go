@@ -17,13 +17,13 @@ func (s *WordServiceImpl) GetWordDetails(ctx context.Context, WordShowRequest *m
 	userID := WordShowRequest.UserID
 
 	// user存在チェック
-	_, err := s.client.User.Get(ctx, userID)
+	_, err := s.client.User().Get(ctx, userID)
 	if err != nil {
 		logrus.Error(err)
 		return nil, ErrUserNotFound
 	}
 
-	wordEntity, err := s.client.Word.
+	wordEntity, err := s.client.Word().
 		Query().
 		Where(word.ID(wordID)).
 		WithWordInfos(func(wq *ent.WordInfoQuery) {

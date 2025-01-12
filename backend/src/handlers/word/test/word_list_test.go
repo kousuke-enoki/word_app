@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestAllWordList(t *testing.T) {
+func TestWordList(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	// Mockサービスの初期化
@@ -35,7 +35,7 @@ func TestAllWordList(t *testing.T) {
 	t.Run("GetRegisteredWords_success", func(t *testing.T) {
 		// モックの戻り値設定
 		mockWordService := new(mocks.WordService)
-		mockWordService.On("GetRegisteredWords", mock.Anything, mock.Anything).Return(&models.AllWordListResponse{
+		mockWordService.On("GetRegisteredWords", mock.Anything, mock.Anything).Return(&models.WordListResponse{
 			Words: []models.Word{
 				{ID: 1, Name: "example"},
 			},
@@ -51,14 +51,14 @@ func TestAllWordList(t *testing.T) {
 		w := httptest.NewRecorder()
 		router := gin.Default()
 		router.Use(mocks.MockAuthMiddleware()) // テスト用ミドルウェア
-		router.GET("/words", wordHandler.AllWordListHandler())
+		router.GET("/words", wordHandler.WordListHandler())
 
 		// テスト実行
 		router.ServeHTTP(w, req)
 		// レスポンス検証
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var resp models.AllWordListResponse
+		var resp models.WordListResponse
 		err = json.Unmarshal(w.Body.Bytes(), &resp)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, resp.TotalPages)
@@ -69,7 +69,7 @@ func TestAllWordList(t *testing.T) {
 	t.Run("GetWords_success", func(t *testing.T) {
 		// モックの戻り値設定
 		mockWordService := new(mocks.WordService)
-		mockWordService.On("GetWords", mock.Anything, mock.Anything).Return(&models.AllWordListResponse{
+		mockWordService.On("GetWords", mock.Anything, mock.Anything).Return(&models.WordListResponse{
 			Words: []models.Word{
 				{ID: 1, Name: "example"},
 			},
@@ -78,21 +78,21 @@ func TestAllWordList(t *testing.T) {
 		wordHandler := word.NewWordHandler(mockWordService)
 
 		// リクエスト準備
-		req, _ := http.NewRequest("GET", "/words?order=asc&page=1&limit=10", nil)
+		req, _ := http.NewRequest("GET", "/words?sortBy=name&order=asc&page=1&limit=10", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 
 		// レスポンス記録
 		w := httptest.NewRecorder()
 		router := gin.Default()
 		router.Use(mocks.MockAuthMiddleware()) // テスト用ミドルウェア
-		router.GET("/words", wordHandler.AllWordListHandler())
+		router.GET("/words", wordHandler.WordListHandler())
 
 		// テスト実行
 		router.ServeHTTP(w, req)
 		// レスポンス検証
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var resp models.AllWordListResponse
+		var resp models.WordListResponse
 		err = json.Unmarshal(w.Body.Bytes(), &resp)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, resp.TotalPages)
@@ -107,14 +107,14 @@ func TestAllWordList(t *testing.T) {
 		wordHandler := word.NewWordHandler(mockWordService)
 
 		// リクエスト準備
-		req, _ := http.NewRequest("GET", "/words?page=invalid", nil)
+		req, _ := http.NewRequest("GET", "/words?sortBy=name&page=invalid", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 
 		// レスポンス記録
 		w := httptest.NewRecorder()
 		router := gin.Default()
 		router.Use(mocks.MockAuthMiddleware()) // テスト用ミドルウェア
-		router.GET("/words", wordHandler.AllWordListHandler())
+		router.GET("/words", wordHandler.WordListHandler())
 
 		// テスト実行
 		router.ServeHTTP(w, req)
@@ -132,7 +132,7 @@ func TestAllWordList(t *testing.T) {
 	t.Run("error: userID not found in context", func(t *testing.T) {
 		wordHandler := word.NewWordHandler(mockWordService)
 		// リクエスト準備（Authorization ヘッダーなし）
-		req, _ := http.NewRequest("GET", "/words?order=asc&page=1&limit=10", nil)
+		req, _ := http.NewRequest("GET", "/words?sortBy=name&order=asc&page=1&limit=10", nil)
 
 		// レスポンス記録
 		w := httptest.NewRecorder()
@@ -141,7 +141,7 @@ func TestAllWordList(t *testing.T) {
 			// ユーザーIDをセットしないミドルウェア
 			c.Next()
 		})
-		router.GET("/words", wordHandler.AllWordListHandler())
+		router.GET("/words", wordHandler.WordListHandler())
 
 		// テスト実行
 		router.ServeHTTP(w, req)
@@ -158,7 +158,7 @@ func TestAllWordList(t *testing.T) {
 	t.Run("error: invalid userID type", func(t *testing.T) {
 		wordHandler := word.NewWordHandler(mockWordService)
 		// リクエスト準備
-		req, _ := http.NewRequest("GET", "/words?order=asc&page=1&limit=10", nil)
+		req, _ := http.NewRequest("GET", "/words?sortBy=name&order=asc&page=1&limit=10", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 
 		// レスポンス記録
@@ -168,7 +168,7 @@ func TestAllWordList(t *testing.T) {
 			c.Set("userID", "invalid") // 不正な型の userID をセット
 			c.Next()
 		})
-		router.GET("/words", wordHandler.AllWordListHandler())
+		router.GET("/words", wordHandler.WordListHandler())
 
 		// テスト実行
 		router.ServeHTTP(w, req)
@@ -197,7 +197,7 @@ func TestAllWordList(t *testing.T) {
 		w := httptest.NewRecorder()
 		router := gin.Default()
 		router.Use(mocks.MockAuthMiddleware())
-		router.GET("/words", wordHandler.AllWordListHandler())
+		router.GET("/words", wordHandler.WordListHandler())
 
 		// テスト実行
 		router.ServeHTTP(w, req)
@@ -219,14 +219,14 @@ func TestAllWordList(t *testing.T) {
 		wordHandler := word.NewWordHandler(mockWordService)
 
 		// リクエスト準備
-		req, _ := http.NewRequest("GET", "/words?order=asc&page=1&limit=10", nil)
+		req, _ := http.NewRequest("GET", "/words?sortBy=name&order=asc&page=1&limit=10", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 
 		// レスポンス記録
 		w := httptest.NewRecorder()
 		router := gin.Default()
 		router.Use(mocks.MockAuthMiddleware())
-		router.GET("/words", wordHandler.AllWordListHandler())
+		router.GET("/words", wordHandler.WordListHandler())
 
 		// テスト実行
 		router.ServeHTTP(w, req)

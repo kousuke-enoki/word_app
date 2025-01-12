@@ -9,7 +9,7 @@ func (s *WordServiceImpl) RegisteredWordCount(ctx context.Context, wordID int, i
 	var registrationCount int
 	if isRegistered {
 		// Word の registration_count を +1 更新
-		word, err := s.client.Word.
+		word, err := s.client.Word().
 			UpdateOneID(wordID).
 			AddRegistrationCount(1).
 			Save(ctx)
@@ -19,7 +19,7 @@ func (s *WordServiceImpl) RegisteredWordCount(ctx context.Context, wordID int, i
 		}
 	} else {
 		// Word の registration_count を -1 更新
-		word, err := s.client.Word.
+		word, err := s.client.Word().
 			UpdateOneID(wordID).
 			AddRegistrationCount(-1).
 			Save(ctx)

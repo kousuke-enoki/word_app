@@ -2,14 +2,14 @@ package word_service
 
 import (
 	"errors"
-	"word_app/backend/ent"
+	"word_app/backend/src/interfaces/service_interfaces"
 )
 
 type WordServiceImpl struct {
-	client *ent.Client
+	client service_interfaces.EntClientInterface
 }
 
-func NewWordService(client *ent.Client) *WordServiceImpl {
+func NewWordService(client service_interfaces.EntClientInterface) *WordServiceImpl {
 	return &WordServiceImpl{client: client}
 }
 

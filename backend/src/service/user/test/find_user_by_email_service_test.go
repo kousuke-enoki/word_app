@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"word_app/backend/ent/enttest"
+	"word_app/backend/src/infrastructure"
 	user_service "word_app/backend/src/service/user"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -15,7 +16,9 @@ func TestEntUserClient_FindUserByEmail(t *testing.T) {
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 	defer client.Close()
 
-	usrClient := user_service.NewEntUserClient(client)
+	clientWrapper := infrastructure.NewAppClient(client)
+
+	usrClient := user_service.NewEntUserClient(clientWrapper)
 	ctx := context.Background()
 
 	// 初期データ

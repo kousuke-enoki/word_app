@@ -75,29 +75,29 @@ func (_m *WordService) DeleteWord(ctx context.Context, DeleteWordRequest *models
 	return r0, r1
 }
 
-// GetRegisteredWords provides a mock function with given fields: ctx, AllWordListRequest
-func (_m *WordService) GetRegisteredWords(ctx context.Context, AllWordListRequest *models.AllWordListRequest) (*models.AllWordListResponse, error) {
-	ret := _m.Called(ctx, AllWordListRequest)
+// GetRegisteredWords provides a mock function with given fields: ctx, WordListRequest
+func (_m *WordService) GetRegisteredWords(ctx context.Context, WordListRequest *models.WordListRequest) (*models.WordListResponse, error) {
+	ret := _m.Called(ctx, WordListRequest)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetRegisteredWords")
 	}
 
-	var r0 *models.AllWordListResponse
+	var r0 *models.WordListResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *models.AllWordListRequest) (*models.AllWordListResponse, error)); ok {
-		return rf(ctx, AllWordListRequest)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.WordListRequest) (*models.WordListResponse, error)); ok {
+		return rf(ctx, WordListRequest)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *models.AllWordListRequest) *models.AllWordListResponse); ok {
-		r0 = rf(ctx, AllWordListRequest)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.WordListRequest) *models.WordListResponse); ok {
+		r0 = rf(ctx, WordListRequest)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.AllWordListResponse)
+			r0 = ret.Get(0).(*models.WordListResponse)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *models.AllWordListRequest) error); ok {
-		r1 = rf(ctx, AllWordListRequest)
+	if rf, ok := ret.Get(1).(func(context.Context, *models.WordListRequest) error); ok {
+		r1 = rf(ctx, WordListRequest)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -135,29 +135,29 @@ func (_m *WordService) GetWordDetails(ctx context.Context, WordShowRequest *mode
 	return r0, r1
 }
 
-// GetWords provides a mock function with given fields: ctx, AllWordListRequest
-func (_m *WordService) GetWords(ctx context.Context, AllWordListRequest *models.AllWordListRequest) (*models.AllWordListResponse, error) {
-	ret := _m.Called(ctx, AllWordListRequest)
+// GetWords provides a mock function with given fields: ctx, WordListRequest
+func (_m *WordService) GetWords(ctx context.Context, WordListRequest *models.WordListRequest) (*models.WordListResponse, error) {
+	ret := _m.Called(ctx, WordListRequest)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetWords")
 	}
 
-	var r0 *models.AllWordListResponse
+	var r0 *models.WordListResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *models.AllWordListRequest) (*models.AllWordListResponse, error)); ok {
-		return rf(ctx, AllWordListRequest)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.WordListRequest) (*models.WordListResponse, error)); ok {
+		return rf(ctx, WordListRequest)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *models.AllWordListRequest) *models.AllWordListResponse); ok {
-		r0 = rf(ctx, AllWordListRequest)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.WordListRequest) *models.WordListResponse); ok {
+		r0 = rf(ctx, WordListRequest)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.AllWordListResponse)
+			r0 = ret.Get(0).(*models.WordListResponse)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *models.AllWordListRequest) error); ok {
-		r1 = rf(ctx, AllWordListRequest)
+	if rf, ok := ret.Get(1).(func(context.Context, *models.WordListRequest) error); ok {
+		r1 = rf(ctx, WordListRequest)
 	} else {
 		r1 = ret.Error(1)
 	}

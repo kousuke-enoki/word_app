@@ -12,18 +12,18 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// all_word_list
-func (s *WordServiceImpl) GetWords(ctx context.Context, AllWordListRequest *models.AllWordListRequest) (*models.AllWordListResponse, error) {
-	query := s.client.Word.Query()
-	userID := AllWordListRequest.UserID
-	search := AllWordListRequest.Search
-	sortBy := AllWordListRequest.SortBy
-	order := AllWordListRequest.Order
-	page := AllWordListRequest.Page
-	limit := AllWordListRequest.Limit
+// word_list
+func (s *WordServiceImpl) GetWords(ctx context.Context, WordListRequest *models.WordListRequest) (*models.WordListResponse, error) {
+	query := s.client.Word().Query()
+	userID := WordListRequest.UserID
+	search := WordListRequest.Search
+	sortBy := WordListRequest.SortBy
+	order := WordListRequest.Order
+	page := WordListRequest.Page
+	limit := WordListRequest.Limit
 
 	// user存在チェック
-	_, err := s.client.User.Get(ctx, userID)
+	_, err := s.client.User().Get(ctx, userID)
 	if err != nil {
 		logrus.Error(err)
 		return nil, ErrUserNotFound
@@ -79,7 +79,7 @@ func (s *WordServiceImpl) GetWords(ctx context.Context, AllWordListRequest *mode
 	// 総ページ数を計算
 	totalPages := (totalCount + limit - 1) / limit
 
-	response := &models.AllWordListResponse{
+	response := &models.WordListResponse{
 		Words:      words,
 		TotalPages: totalPages,
 	}

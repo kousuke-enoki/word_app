@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"word_app/backend/ent/enttest"
+	"word_app/backend/src/infrastructure"
 	user_service "word_app/backend/src/service/user"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -15,7 +16,10 @@ func TestEntUserClient_CreateUser(t *testing.T) {
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 	defer client.Close()
 
-	usrClient := user_service.NewEntUserClient(client)
+	clientWrapper := infrastructure.NewAppClient(client)
+
+	usrClient := user_service.NewEntUserClient(clientWrapper)
+
 	ctx := context.Background()
 
 	// 共通の入力データ
@@ -32,7 +36,7 @@ func TestEntUserClient_CreateUser(t *testing.T) {
 	})
 
 	t.Run("DuplicateEmail", func(t *testing.T) {
-		usrClient := user_service.NewEntUserClient(client)
+		usrClient := user_service.NewEntUserClient(clientWrapper)
 		ctx := context.Background()
 
 		// Successで登録したuserと同じメールアドレスで再度作成

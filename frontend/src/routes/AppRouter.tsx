@@ -10,7 +10,7 @@ import SignIn from '../components/user/SignIn'
 import SignUp from '../components/user/SignUp'
 import WordNew from '../components/word/WordNew'
 import WordEdit from '../components/word/WordEdit'
-import AllWordList from '../components/word/AllWordList'
+import WordList from '../components/word/WordList'
 import WordShow from '../components/word/WordShow'
 import Header from '../components/Header'
 import PrivateRoute from '../components/PrivateRoute' // 後述するPrivateRouteをインポート
@@ -54,7 +54,7 @@ const AppRouter: React.FC = () => {
           path="/words"
           element={
             <PrivateRoute>
-              <AllWordList />
+              <WordList />
             </PrivateRoute>
           }
         />

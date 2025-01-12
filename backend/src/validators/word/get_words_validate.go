@@ -4,7 +4,7 @@ import (
 	"word_app/backend/src/models"
 )
 
-func ValidateWordListRequest(req *models.AllWordListRequest) []*models.FieldError {
+func ValidateWordListRequest(req *models.WordListRequest) []*models.FieldError {
 	var fieldErrors []*models.FieldError
 
 	// Validate each field

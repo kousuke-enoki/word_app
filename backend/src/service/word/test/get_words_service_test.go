@@ -6,16 +6,19 @@ import (
 
 	"word_app/backend/ent/enttest"
 	"word_app/backend/ent/partofspeech"
+	"word_app/backend/src/infrastructure"
 	"word_app/backend/src/models"
 	word_service "word_app/backend/src/service/word"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetWords_Success(t *testing.T) {
+func TestGetWords(t *testing.T) {
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 	defer client.Close()
-	wordService := word_service.NewWordService(client)
+	clientWrapper := infrastructure.NewAppClient(client)
+
+	wordService := word_service.NewWordService(clientWrapper)
 	ctx := context.Background()
 
 	// 品詞データのシードを実行
@@ -79,7 +82,7 @@ func TestGetWords_Success(t *testing.T) {
 		SaveX(ctx)
 
 	// Create request
-	req := &models.AllWordListRequest{
+	req := &models.WordListRequest{
 		UserID: userID,
 		Search: "",
 		SortBy: "name",
@@ -111,7 +114,7 @@ func TestGetWords_Success(t *testing.T) {
 		assert.Equal(t, 1, resp.Words[1].CheckCount)
 	})
 	t.Run("NoResults", func(t *testing.T) {
-		req := &models.AllWordListRequest{
+		req := &models.WordListRequest{
 			UserID: userID,
 			Search: "nonexistent",
 			SortBy: "name",
@@ -129,7 +132,7 @@ func TestGetWords_Success(t *testing.T) {
 		assert.Equal(t, 0, resp.TotalPages)
 	})
 	t.Run("InvalidUserID", func(t *testing.T) {
-		req := &models.AllWordListRequest{
+		req := &models.WordListRequest{
 			UserID: 9999, // 存在しないUserID
 			Search: "",
 			SortBy: "name",
@@ -144,7 +147,7 @@ func TestGetWords_Success(t *testing.T) {
 		assert.Equal(t, word_service.ErrUserNotFound, err)
 	})
 	t.Run("OutOfRangePage", func(t *testing.T) {
-		req := &models.AllWordListRequest{
+		req := &models.WordListRequest{
 			UserID: userID,
 			Search: "",
 			SortBy: "name",
@@ -162,7 +165,7 @@ func TestGetWords_Success(t *testing.T) {
 		assert.Equal(t, 1, resp.TotalPages)
 	})
 	t.Run("SortByNameAsc", func(t *testing.T) {
-		req := &models.AllWordListRequest{
+		req := &models.WordListRequest{
 			UserID: userID,
 			Search: "",
 			SortBy: "name",
@@ -181,7 +184,7 @@ func TestGetWords_Success(t *testing.T) {
 	})
 
 	t.Run("SortByNameDesc", func(t *testing.T) {
-		req := &models.AllWordListRequest{
+		req := &models.WordListRequest{
 			UserID: userID,
 			Search: "",
 			SortBy: "name",
@@ -209,7 +212,7 @@ func TestGetWords_Success(t *testing.T) {
 			SetCheckCount(4).
 			SaveX(ctx)
 
-		req := &models.AllWordListRequest{
+		req := &models.WordListRequest{
 			UserID: userID,
 			Search: "",
 			SortBy: "name",

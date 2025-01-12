@@ -36,7 +36,7 @@ func (w *TestClientWrapper) FindUserByID(ctx context.Context, id int) (*ent.User
 }
 
 // GetRegisteredWords implements ClientInterface.
-func (w *TestClientWrapper) GetRegisteredWords(ctx context.Context, AllWordListRequest *models.AllWordListRequest) (*models.AllWordListResponse, error) {
+func (w *TestClientWrapper) GetRegisteredWords(ctx context.Context, WordListRequest *models.WordListRequest) (*models.WordListResponse, error) {
 	panic("unimplemented")
 }
 
@@ -46,7 +46,7 @@ func (w *TestClientWrapper) GetWordDetails(ctx context.Context, WordShowRequest 
 }
 
 // GetWords implements ClientInterface.
-func (w *TestClientWrapper) GetWords(ctx context.Context, AllWordListRequest *models.AllWordListRequest) (*models.AllWordListResponse, error) {
+func (w *TestClientWrapper) GetWords(ctx context.Context, WordListRequest *models.WordListRequest) (*models.WordListResponse, error) {
 	panic("unimplemented")
 }
 
@@ -71,4 +71,34 @@ func NewTestClientWrapper(client *ent.Client) ClientInterface {
 
 func (w *TestClientWrapper) EntClient() *ent.Client {
 	return w.entClient
+}
+
+// Tx はトランザクションを開始します。
+func (w *TestClientWrapper) Tx(ctx context.Context) (*ent.Tx, error) {
+	panic("unimplemented")
+}
+
+// Word は WordClient を返します。
+func (w *TestClientWrapper) Word() *ent.WordClient {
+	panic("unimplemented")
+}
+
+// User は UserClient を返します。
+func (w *TestClientWrapper) User() *ent.UserClient {
+	panic("unimplemented")
+}
+
+// RegisteredWord は RegisteredWordClient を返します。
+func (w *TestClientWrapper) RegisteredWord() *ent.RegisteredWordClient {
+	panic("unimplemented")
+}
+
+// WordInfo は WordInfoClient を返します。
+func (w *TestClientWrapper) WordInfo() *ent.WordInfoClient {
+	panic("unimplemented")
+}
+
+// JapaneseMean は JapaneseMeanClient を返します。
+func (w *TestClientWrapper) JapaneseMean() *ent.JapaneseMeanClient {
+	panic("unimplemented")
 }

@@ -14,7 +14,7 @@ func (s *WordServiceImpl) SaveMemo(ctx context.Context, SaveMemoRequest *models.
 	wordID := SaveMemoRequest.WordID
 	userID := SaveMemoRequest.UserID
 	Memo := SaveMemoRequest.Memo
-	word, err := s.client.Word.
+	word, err := s.client.Word().
 		Query().
 		Where(
 			word.ID(wordID),
@@ -24,7 +24,7 @@ func (s *WordServiceImpl) SaveMemo(ctx context.Context, SaveMemoRequest *models.
 		return nil, errors.New("failed to fetch word")
 	}
 
-	registeredWord, err := s.client.RegisteredWord.
+	registeredWord, err := s.client.RegisteredWord().
 		Query().
 		Where(
 			registeredword.UserID(userID),
@@ -34,7 +34,7 @@ func (s *WordServiceImpl) SaveMemo(ctx context.Context, SaveMemoRequest *models.
 
 	// 登録した単語が存在しない場合、新規作成
 	if ent.IsNotFound(err) {
-		registeredWord, err = s.client.RegisteredWord.
+		registeredWord, err = s.client.RegisteredWord().
 			Create().
 			SetUserID(userID).
 			SetWordID(wordID).

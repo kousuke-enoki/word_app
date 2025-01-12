@@ -13,12 +13,12 @@ type WordHandler struct {
 	mock.Mock
 }
 
-// AllWordListHandler provides a mock function with given fields:
-func (_m *WordHandler) AllWordListHandler() gin.HandlerFunc {
+// WordListHandler provides a mock function with given fields:
+func (_m *WordHandler) WordListHandler() gin.HandlerFunc {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for AllWordListHandler")
+		panic("no return value specified for WordListHandler")
 	}
 
 	var r0 gin.HandlerFunc

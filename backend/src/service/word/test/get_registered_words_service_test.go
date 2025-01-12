@@ -17,7 +17,9 @@ import (
 func TestGetRegisteredWords_Success(t *testing.T) {
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 	defer client.Close()
-	wordService := word_service.NewWordService(client)
+	clientWrapper := infrastructure.NewAppClient(client)
+
+	wordService := word_service.NewWordService(clientWrapper)
 	ctx := context.Background()
 	// seeder.RunSeeder(ctx, client)
 	wrappedClient := infrastructure.NewAppClient(client)
@@ -89,7 +91,7 @@ func TestGetRegisteredWords_Success(t *testing.T) {
 		SaveX(ctx)
 
 	// Create request
-	req := &models.AllWordListRequest{
+	req := &models.WordListRequest{
 		UserID: userID,
 		Search: "",
 		SortBy: "register",
@@ -121,7 +123,7 @@ func TestGetRegisteredWords_Success(t *testing.T) {
 		assert.Equal(t, 1, resp.Words[1].CheckCount)
 	})
 	t.Run("NoResults", func(t *testing.T) {
-		req := &models.AllWordListRequest{
+		req := &models.WordListRequest{
 			UserID: userID,
 			Search: "nonexistent",
 			SortBy: "register",
@@ -139,7 +141,7 @@ func TestGetRegisteredWords_Success(t *testing.T) {
 		assert.Equal(t, 1, resp.TotalPages)
 	})
 	t.Run("InvalidUserID", func(t *testing.T) {
-		req := &models.AllWordListRequest{
+		req := &models.WordListRequest{
 			UserID: 9999, // 存在しないUserID
 			Search: "",
 			SortBy: "register",
@@ -154,7 +156,7 @@ func TestGetRegisteredWords_Success(t *testing.T) {
 		assert.Equal(t, word_service.ErrUserNotFound, err)
 	})
 	t.Run("OutOfRangePage", func(t *testing.T) {
-		req := &models.AllWordListRequest{
+		req := &models.WordListRequest{
 			UserID: userID,
 			Search: "",
 			SortBy: "register",
@@ -172,7 +174,7 @@ func TestGetRegisteredWords_Success(t *testing.T) {
 		assert.Equal(t, 1, resp.TotalPages)
 	})
 	t.Run("SortByNameAsc", func(t *testing.T) {
-		req := &models.AllWordListRequest{
+		req := &models.WordListRequest{
 			UserID: userID,
 			Search: "",
 			SortBy: "register",
@@ -191,7 +193,7 @@ func TestGetRegisteredWords_Success(t *testing.T) {
 	})
 
 	t.Run("SortByNameDesc", func(t *testing.T) {
-		req := &models.AllWordListRequest{
+		req := &models.WordListRequest{
 			UserID: userID,
 			Search: "",
 			SortBy: "register",
@@ -219,7 +221,7 @@ func TestGetRegisteredWords_Success(t *testing.T) {
 			SetCheckCount(4).
 			SaveX(ctx)
 
-		req := &models.AllWordListRequest{
+		req := &models.WordListRequest{
 			UserID: userID,
 			Search: "",
 			SortBy: "register",

@@ -11,11 +11,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *WordHandler) AllWordListHandler() gin.HandlerFunc {
+func (h *WordHandler) WordListHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 
-		req, err := h.parseAllWordListRequest(c)
+		req, err := h.parseWordListRequest(c)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -51,7 +51,7 @@ func (h *WordHandler) AllWordListHandler() gin.HandlerFunc {
 	}
 }
 
-func (h *WordHandler) parseAllWordListRequest(c *gin.Context) (*models.AllWordListRequest, error) {
+func (h *WordHandler) parseWordListRequest(c *gin.Context) (*models.WordListRequest, error) {
 	// クエリパラメータの取得
 	search := c.Query("search")
 	sortBy := c.DefaultQuery("sortBy", "id")
@@ -80,7 +80,7 @@ func (h *WordHandler) parseAllWordListRequest(c *gin.Context) (*models.AllWordLi
 	}
 
 	// リクエストオブジェクトを構築
-	req := &models.AllWordListRequest{
+	req := &models.WordListRequest{
 		UserID: userIDInt,
 		Search: search,
 		SortBy: sortBy,

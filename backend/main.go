@@ -45,7 +45,7 @@ func initializeServer() {
 	client := infrastructure.NewAppClient(entClient)
 	setupDatabase(client)
 
-	router := setupRouter(client.EntClient(), corsOrigin)
+	router := setupRouter(client, corsOrigin)
 
 	startServer(router, appPort, appEnv)
 }
@@ -102,7 +102,7 @@ func setupDatabase(client interfaces.ClientInterface) {
 }
 
 // ルータのセットアップ
-func setupRouter(client *ent.Client, corsOrigin string) *gin.Engine {
+func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engine {
 	router := gin.New()
 
 	router.Use(gin.Recovery())

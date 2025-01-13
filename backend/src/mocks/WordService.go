@@ -15,6 +15,11 @@ type WordService struct {
 	mock.Mock
 }
 
+// RegisteredWordCount implements interfaces.WordService.
+func (_m *WordService) RegisteredWordCount(ctx context.Context, RegisteredWordCountRequest *models.RegisteredWordCountRequest) (*models.RegisteredWordCountResponse, error) {
+	panic("unimplemented")
+}
+
 // CreateWord provides a mock function with given fields: ctx, CreateWordRequest
 func (_m *WordService) CreateWord(ctx context.Context, CreateWordRequest *models.CreateWordRequest) (*models.CreateWordResponse, error) {
 	ret := _m.Called(ctx, CreateWordRequest)

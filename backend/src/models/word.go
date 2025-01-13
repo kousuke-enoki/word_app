@@ -108,7 +108,6 @@ type RegisterWordResponse struct {
 
 type RegisteredWordCountRequest struct {
 	WordID       int  `json:"wordId" binding:"required"`
-	UserID       int  `json:"userId"`
 	IsRegistered bool `json:"isRegistered"`
 }
 

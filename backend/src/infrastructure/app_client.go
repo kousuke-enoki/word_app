@@ -26,6 +26,11 @@ func (c *appClient) DeleteWord(ctx context.Context, DeleteWordRequest *models.De
 	panic("unimplemented")
 }
 
+// RegisteredWordCount implements interfaces.ClientInterface.
+func (c *appClient) RegisteredWordCount(ctx context.Context, RegisteredWordCountRequest *models.RegisteredWordCountRequest) (*models.RegisteredWordCountResponse, error) {
+	panic("unimplemented")
+}
+
 // GetRegisteredWords implements interfaces.ClientInterface.
 func (c *appClient) GetRegisteredWords(ctx context.Context, WordListRequest *models.WordListRequest) (*models.WordListResponse, error) {
 	panic("unimplemented")

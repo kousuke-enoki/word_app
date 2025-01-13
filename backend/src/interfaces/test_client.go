@@ -65,6 +65,11 @@ func (w *TestClientWrapper) UpdateWord(ctx context.Context, UpdateWordRequest *m
 	panic("unimplemented")
 }
 
+// RegisteredWordCount implements ClientInterface
+func (w *TestClientWrapper) RegisteredWordCount(ctx context.Context, RegisteredWordCountRequest *models.RegisteredWordCountRequest) (*models.RegisteredWordCountResponse, error) {
+	panic("unimplemented")
+}
+
 func NewTestClientWrapper(client *ent.Client) ClientInterface {
 	return &TestClientWrapper{entClient: client}
 }

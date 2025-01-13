@@ -135,7 +135,11 @@ func (s *WordServiceImpl) updateRegisteredWord(ctx context.Context, registeredWo
 
 // レスポンスの生成
 func (s *WordServiceImpl) generateResponse(ctx context.Context, wordID int, isRegistered bool, wordName, message string) (*models.RegisterWordResponse, error) {
-	registrationCountResponse, err := s.RegisteredWordCount(ctx, wordID, isRegistered)
+	registeredWordCountRequest := &models.RegisteredWordCountRequest{
+		WordID:       wordID,
+		IsRegistered: isRegistered,
+	}
+	registrationCountResponse, err := s.RegisteredWordCount(ctx, registeredWordCountRequest)
 	if err != nil {
 		return nil, err
 	}

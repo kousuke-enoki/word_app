@@ -8,12 +8,35 @@ import (
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/word"
 	"word_app/backend/src/models"
+
+	"github.com/sirupsen/logrus"
 )
 
 func (s *WordServiceImpl) SaveMemo(ctx context.Context, SaveMemoRequest *models.SaveMemoRequest) (*models.SaveMemoResponse, error) {
 	wordID := SaveMemoRequest.WordID
 	userID := SaveMemoRequest.UserID
 	Memo := SaveMemoRequest.Memo
+	// トランザクション開始
+	tx, err := s.client.Tx(ctx)
+	if err != nil {
+		logrus.Error(err)
+		return nil, ErrDatabaseFailure
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
+		}
+	}()
+
+	// userチェック
+	_, err = s.client.User().Get(ctx, userID)
+	if err != nil {
+		logrus.Error(err)
+		return nil, ErrUserNotFound
+	}
+
 	word, err := s.client.Word().
 		Query().
 		Where(
@@ -32,7 +55,7 @@ func (s *WordServiceImpl) SaveMemo(ctx context.Context, SaveMemoRequest *models.
 		).
 		Only(ctx)
 
-	// 登録した単語が存在しない場合、新規作成
+	// 登録単語が存在しない場合、新規作成
 	if ent.IsNotFound(err) {
 		registeredWord, err = s.client.RegisteredWord().
 			Create().

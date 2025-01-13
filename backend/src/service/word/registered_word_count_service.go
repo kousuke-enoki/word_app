@@ -2,15 +2,26 @@ package word_service
 
 import (
 	"context"
+	"errors"
+	"word_app/backend/ent/word"
 	"word_app/backend/src/models"
 )
 
-func (s *WordServiceImpl) RegisteredWordCount(ctx context.Context, wordID int, isRegistered bool) (*models.RegisteredWordCountResponse, error) {
+func (s *WordServiceImpl) RegisteredWordCount(ctx context.Context, req *models.RegisteredWordCountRequest) (*models.RegisteredWordCountResponse, error) {
+	_, err := s.client.Word().
+		Query().
+		Where(word.ID(req.WordID)).
+		Only(ctx)
+	if err != nil {
+		return nil, errors.New("failed to fetch word")
+	}
+
 	var registrationCount int
-	if isRegistered {
+
+	if req.IsRegistered {
 		// Word の registration_count を +1 更新
 		word, err := s.client.Word().
-			UpdateOneID(wordID).
+			UpdateOneID(req.WordID).
 			AddRegistrationCount(1).
 			Save(ctx)
 		registrationCount = word.RegistrationCount
@@ -20,7 +31,7 @@ func (s *WordServiceImpl) RegisteredWordCount(ctx context.Context, wordID int, i
 	} else {
 		// Word の registration_count を -1 更新
 		word, err := s.client.Word().
-			UpdateOneID(wordID).
+			UpdateOneID(req.WordID).
 			AddRegistrationCount(-1).
 			Save(ctx)
 		registrationCount = word.RegistrationCount

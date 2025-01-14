@@ -6,7 +6,7 @@ import (
 )
 
 func (e *EntUserClient) CreateUser(ctx context.Context, email, name, password string) (*ent.User, error) {
-	user, err := e.client.User.
+	user, err := e.client.User().
 		Create().
 		SetEmail(email).
 		SetName(name).

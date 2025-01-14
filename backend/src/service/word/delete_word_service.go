@@ -46,6 +46,7 @@ func (s *WordServiceImpl) DeleteWord(ctx context.Context, DeleteWordRequest *mod
 	wordEntity, err := tx.Word.Query().Where(word.IDEQ(wordID)).Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
+			logrus.Info("word not found")
 			return nil, ErrWordNotFound
 		}
 		logrus.Error(err)

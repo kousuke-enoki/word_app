@@ -7,7 +7,7 @@ import (
 )
 
 func (e *EntUserClient) FindUserByEmail(ctx context.Context, email string) (*ent.User, error) {
-	user, err := e.client.User.
+	user, err := e.client.User().
 		Query().
 		Where(user.EmailEQ(email)).
 		First(ctx)

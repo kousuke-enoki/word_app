@@ -7,7 +7,7 @@ import (
 )
 
 func (e *EntUserClient) FindUserByID(ctx context.Context, id int) (*ent.User, error) {
-	user, err := e.client.User.
+	user, err := e.client.User().
 		Query().
 		Where(user.ID(id)).
 		First(ctx)

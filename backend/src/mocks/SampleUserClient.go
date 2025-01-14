@@ -48,7 +48,7 @@ func (_m *SampleUserClient) FindUserByID(ctx context.Context, id int) (*ent.User
 }
 
 // GetRegisteredWords implements interfaces.ClientInterface.
-func (_m *SampleUserClient) GetRegisteredWords(ctx context.Context, userID int, search string, order string, page int, limit int) (*models.AllWordListResponse, error) {
+func (_m *SampleUserClient) GetRegisteredWords(ctx context.Context, userID int, search string, order string, page int, limit int) (*models.WordListResponse, error) {
 	panic("unimplemented")
 }
 
@@ -58,7 +58,7 @@ func (_m *SampleUserClient) GetWordDetails(ctx context.Context, wordID int, user
 }
 
 // GetWords implements interfaces.ClientInterface.
-func (_m *SampleUserClient) GetWords(ctx context.Context, userID int, search string, sortBy string, order string, page int, limit int) (*models.AllWordListResponse, error) {
+func (_m *SampleUserClient) GetWords(ctx context.Context, userID int, search string, sortBy string, order string, page int, limit int) (*models.WordListResponse, error) {
 	panic("unimplemented")
 }
 

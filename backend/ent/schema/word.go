@@ -20,14 +20,18 @@ func (Word) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
 			NotEmpty().
-			Validate(func(s string) error {
+			Validate(func(name string) error {
 				// 半角アルファベットのみ許可
-				match, _ := regexp.MatchString(`^[a-zA-Z]+$`, s)
+				match, _ := regexp.MatchString(`^[a-zA-Z]+$`, name)
 				if !match {
 					return errors.New("name must contain only alphabetic characters")
 				}
+				if len(name) < 0 || len(name) > 41 {
+					return errors.New("name must be between 0 and 41 characters")
+				}
 				return nil
-			}),
+			}).
+			NotEmpty(),
 		field.String("voice_id").
 			Optional().
 			Nillable(),

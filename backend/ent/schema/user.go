@@ -33,6 +33,8 @@ func (User) Fields() []ent.Field {
 			Sensitive().
 			NotEmpty(),
 		field.String("name").
+			Default("JohnDoe").
+			Comment("Name of the user.\n If not specified, defaults to \"John Doe\".").
 			NotEmpty().
 			Validate(func(name string) error {
 				if len(name) < 3 || len(name) > 20 {

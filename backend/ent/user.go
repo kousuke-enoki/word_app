@@ -21,7 +21,8 @@ type User struct {
 	Email string `json:"email,omitempty"`
 	// Password holds the value of the "password" field.
 	Password string `json:"-"`
-	// Name holds the value of the "name" field.
+	// Name of the user.
+	//  If not specified, defaults to "John Doe".
 	Name string `json:"name,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`

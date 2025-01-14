@@ -61,9 +61,9 @@ func RouterTest(t *testing.T) {
 				c.JSON(http.StatusOK, gin.H{"message": "this is DeleteWordHandler"})
 			}
 		})
-		mockWordHandler.On("AllWordListHandler").Return(func() gin.HandlerFunc {
+		mockWordHandler.On("WordListHandler").Return(func() gin.HandlerFunc {
 			return func(c *gin.Context) {
-				c.JSON(http.StatusOK, gin.H{"message": "AllWordListHandler"})
+				c.JSON(http.StatusOK, gin.H{"message": "WordListHandler"})
 			}
 		})
 		mockWordHandler.On("WordShowHandler").Return(func() gin.HandlerFunc {

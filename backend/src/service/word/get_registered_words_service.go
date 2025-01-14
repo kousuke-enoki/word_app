@@ -8,16 +8,25 @@ import (
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/word"
 	"word_app/backend/src/models"
+
+	"github.com/sirupsen/logrus"
 )
 
 // word_list
-func (s *WordServiceImpl) GetRegisteredWords(ctx context.Context, AllWordListRequest *models.AllWordListRequest) (*models.AllWordListResponse, error) {
-	query := s.client.Word.Query()
-	userID := AllWordListRequest.UserID
-	search := AllWordListRequest.Search
-	order := AllWordListRequest.Order
-	page := AllWordListRequest.Page
-	limit := AllWordListRequest.Limit
+func (s *WordServiceImpl) GetRegisteredWords(ctx context.Context, WordListRequest *models.WordListRequest) (*models.WordListResponse, error) {
+	query := s.client.Word().Query()
+	userID := WordListRequest.UserID
+	search := WordListRequest.Search
+	order := WordListRequest.Order
+	page := WordListRequest.Page
+	limit := WordListRequest.Limit
+
+	// userチェック
+	_, err := s.client.User().Get(ctx, userID)
+	if err != nil {
+		logrus.Error(err)
+		return nil, ErrUserNotFound
+	}
 
 	// 検索条件の追加
 	query = addSearchRegisteredWordsFilter(query, search)
@@ -34,7 +43,7 @@ func (s *WordServiceImpl) GetRegisteredWords(ctx context.Context, AllWordListReq
 	})
 
 	// ページネーション前のフィルタリング用クエリを作成
-	filteredQuery := s.client.Word.Query().Where(
+	filteredQuery := s.client.Word().Query().Where(
 		word.HasRegisteredWordsWith(
 			registeredword.UserID(userID),
 			registeredword.IsActive(true),
@@ -72,7 +81,7 @@ func (s *WordServiceImpl) GetRegisteredWords(ctx context.Context, AllWordListReq
 	// 総ページ数を計算
 	totalPages := (totalCount + limit - 1) / limit
 
-	response := &models.AllWordListResponse{
+	response := &models.WordListResponse{
 		Words:      words,
 		TotalPages: totalPages,
 	}

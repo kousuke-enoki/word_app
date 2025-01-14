@@ -6,6 +6,7 @@ import (
 
 	"word_app/backend/ent/enttest"
 	"word_app/backend/ent/partofspeech"
+	"word_app/backend/src/infrastructure"
 	"word_app/backend/src/models"
 	word_service "word_app/backend/src/service/word"
 
@@ -17,7 +18,9 @@ func TestCreateWord(t *testing.T) {
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 	defer client.Close()
 
-	wordService := word_service.NewWordService(client)
+	clientWrapper := infrastructure.NewAppClient(client)
+
+	wordService := word_service.NewWordService(clientWrapper)
 	ctx := context.Background()
 
 	// 品詞データのシードを実行

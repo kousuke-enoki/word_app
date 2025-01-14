@@ -7,6 +7,8 @@ import (
 	"word_app/backend/ent"
 	"word_app/backend/ent/word"
 	"word_app/backend/src/models"
+
+	"github.com/sirupsen/logrus"
 )
 
 // word_show
@@ -14,7 +16,14 @@ func (s *WordServiceImpl) GetWordDetails(ctx context.Context, WordShowRequest *m
 	wordID := WordShowRequest.WordID
 	userID := WordShowRequest.UserID
 
-	wordEntity, err := s.client.Word.
+	// user存在チェック
+	_, err := s.client.User().Get(ctx, userID)
+	if err != nil {
+		logrus.Error(err)
+		return nil, ErrUserNotFound
+	}
+
+	wordEntity, err := s.client.Word().
 		Query().
 		Where(word.ID(wordID)).
 		WithWordInfos(func(wq *ent.WordInfoQuery) {

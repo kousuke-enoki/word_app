@@ -24,6 +24,9 @@ func validateCreateWordName(name string) []*models.FieldError {
 	if !wordNameRegex.MatchString(name) {
 		fieldErrors = append(fieldErrors, &models.FieldError{Field: "name", Message: "word.name must contain only alphabetic characters"})
 	}
+	if len(name) < 0 || len(name) > 41 {
+		fieldErrors = append(fieldErrors, &models.FieldError{Field: "name", Message: "name must be between 0 and 41 characters"})
+	}
 	return fieldErrors
 }
 

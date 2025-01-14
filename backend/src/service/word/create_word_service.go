@@ -3,7 +3,6 @@ package word_service
 import (
 	"context"
 	"errors"
-	"log"
 
 	"word_app/backend/ent"
 	"word_app/backend/ent/word"
@@ -42,9 +41,11 @@ func (s *WordServiceImpl) CreateWord(ctx context.Context, CreateWordRequest *mod
 	}
 
 	// 既存の単語があるかどうか確認
-	existingWord, err := s.client.Word.Query().Where(word.Name(CreateWordRequest.Name)).Only(ctx)
+	existingWord, err := s.client.Word().Query().Where(word.Name(CreateWordRequest.Name)).Only(ctx)
 	if err != nil && !ent.IsNotFound(err) {
-		log.Fatalf("failed to query word: %v", err)
+		logrus.Errorf("failed to query word: %v", err)
+		tx.Rollback()
+		return nil, ErrDatabaseFailure
 	}
 
 	var createdWord *ent.Word
@@ -53,7 +54,7 @@ func (s *WordServiceImpl) CreateWord(ctx context.Context, CreateWordRequest *mod
 		return nil, errors.New("There is already a word with the same name.")
 	} else {
 		// ない場合は新しい単語を作成
-		createdWord, err = s.client.Word.Create().
+		createdWord, err = s.client.Word().Create().
 			SetName(CreateWordRequest.Name).
 			SetVoiceID("").
 			Save(ctx)
@@ -65,7 +66,7 @@ func (s *WordServiceImpl) CreateWord(ctx context.Context, CreateWordRequest *mod
 	for _, wordInfo := range CreateWordRequest.WordInfos {
 		var partOfSpeechId int
 		partOfSpeechId = wordInfo.PartOfSpeechID
-		createdWordInfo, err := s.client.WordInfo.Create().
+		createdWordInfo, err := s.client.WordInfo().Create().
 			SetWordID(createdWord.ID).
 			SetPartOfSpeechID(partOfSpeechId).
 			Save(ctx)
@@ -77,7 +78,7 @@ func (s *WordServiceImpl) CreateWord(ctx context.Context, CreateWordRequest *mod
 			var japaneseMeanName string
 			japaneseMeanName = JapaneseMean.Name
 			// japanese_mean テーブルに日本語の意味を追加
-			_, err = s.client.JapaneseMean.Create().
+			_, err = s.client.JapaneseMean().Create().
 				SetWordInfoID(createdWordInfo.ID).
 				SetName(japaneseMeanName).
 				Save(ctx)

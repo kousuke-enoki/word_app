@@ -4,9 +4,9 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { Word, WordInfo, JapaneseMean } from '../../types/wordTypes'
 import { registerWord } from '../../service/word/RegisterWord'
 import { getPartOfSpeech } from '../../service/word/GetPartOfSpeech'
-import '../../styles/components/word/AllWordList.css'
+import '../../styles/components/word/WordList.css'
 
-const AllWordList: React.FC = () => {
+const WordList: React.FC = () => {
   const [words, setWords] = useState<Word[]>([])
   const [search, setSearch] = useState<string>('')
   const [sortBy, setSortBy] = useState<string>('name')
@@ -234,4 +234,4 @@ const AllWordList: React.FC = () => {
   )
 }
 
-export default AllWordList
+export default WordList

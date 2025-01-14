@@ -2,16 +2,15 @@ package user_service
 
 import (
 	"errors"
-
-	"word_app/backend/ent"
+	"word_app/backend/src/interfaces/service_interfaces"
 )
 
 // ent.Client をラップして UserClient インターフェースを実装
 type EntUserClient struct {
-	client *ent.Client
+	client service_interfaces.EntClientInterface
 }
 
-func NewEntUserClient(client *ent.Client) *EntUserClient {
+func NewEntUserClient(client service_interfaces.EntClientInterface) *EntUserClient {
 	return &EntUserClient{client: client}
 }
 

@@ -2,19 +2,20 @@ package word_service
 
 import (
 	"errors"
-	"word_app/backend/ent"
+	"word_app/backend/src/interfaces/service_interfaces"
 )
 
 type WordServiceImpl struct {
-	client *ent.Client
+	client service_interfaces.EntClientInterface
 }
 
-func NewWordService(client *ent.Client) *WordServiceImpl {
+func NewWordService(client service_interfaces.EntClientInterface) *WordServiceImpl {
 	return &WordServiceImpl{client: client}
 }
 
 var (
 	ErrWordNotFound    = errors.New("word not found")
+	ErrUserNotFound    = errors.New("user not found")
 	ErrUnauthorized    = errors.New("unauthorized")
 	ErrDeleteWord      = errors.New("failed to delete word")
 	ErrDatabaseFailure = errors.New("database failure")

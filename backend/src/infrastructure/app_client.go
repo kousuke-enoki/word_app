@@ -14,13 +14,25 @@ type appClient struct {
 	entClient *ent.Client
 }
 
+// NewAppClient 初期化関数
+func NewAppClient(entClient *ent.Client) interfaces.ClientInterface {
+	return &appClient{
+		entClient: entClient,
+	}
+}
+
 // DeleteWord implements interfaces.ClientInterface.
 func (c *appClient) DeleteWord(ctx context.Context, DeleteWordRequest *models.DeleteWordRequest) (*models.DeleteWordResponse, error) {
 	panic("unimplemented")
 }
 
+// RegisteredWordCount implements interfaces.ClientInterface.
+func (c *appClient) RegisteredWordCount(ctx context.Context, RegisteredWordCountRequest *models.RegisteredWordCountRequest) (*models.RegisteredWordCountResponse, error) {
+	panic("unimplemented")
+}
+
 // GetRegisteredWords implements interfaces.ClientInterface.
-func (c *appClient) GetRegisteredWords(ctx context.Context, AllWordListRequest *models.AllWordListRequest) (*models.AllWordListResponse, error) {
+func (c *appClient) GetRegisteredWords(ctx context.Context, WordListRequest *models.WordListRequest) (*models.WordListResponse, error) {
 	panic("unimplemented")
 }
 
@@ -30,7 +42,7 @@ func (c *appClient) GetWordDetails(ctx context.Context, WordShowRequest *models.
 }
 
 // GetWords implements interfaces.ClientInterface.
-func (c *appClient) GetWords(ctx context.Context, AllWordListRequest *models.AllWordListRequest) (*models.AllWordListResponse, error) {
+func (c *appClient) GetWords(ctx context.Context, WordListRequest *models.WordListRequest) (*models.WordListResponse, error) {
 	panic("unimplemented")
 }
 
@@ -47,13 +59,6 @@ func (c *appClient) SaveMemo(ctx context.Context, SaveMemoRequest *models.SaveMe
 // UpdateWord implements interfaces.ClientInterface.
 func (c *appClient) UpdateWord(ctx context.Context, UpdateWordRequest *models.UpdateWordRequest) (*models.UpdateWordResponse, error) {
 	panic("unimplemented")
-}
-
-// NewAppClient 初期化関数
-func NewAppClient(entClient *ent.Client) interfaces.ClientInterface {
-	return &appClient{
-		entClient: entClient,
-	}
 }
 
 // UserClient の実装
@@ -82,4 +87,34 @@ func (c *appClient) CreateWord(ctx context.Context, req *models.CreateWordReques
 // EntClient を返す
 func (c *appClient) EntClient() *ent.Client {
 	return c.entClient
+}
+
+// Tx はトランザクションを開始します。
+func (c *appClient) Tx(ctx context.Context) (*ent.Tx, error) {
+	return c.entClient.Tx(ctx)
+}
+
+// Word は WordClient を返します。
+func (c *appClient) Word() *ent.WordClient {
+	return c.entClient.Word
+}
+
+// User は UserClient を返します。
+func (c *appClient) User() *ent.UserClient {
+	return c.entClient.User
+}
+
+// RegisteredWord は RegisteredWordClient を返します。
+func (c *appClient) RegisteredWord() *ent.RegisteredWordClient {
+	return c.entClient.RegisteredWord
+}
+
+// WordInfo は WordInfoClient を返します。
+func (c *appClient) WordInfo() *ent.WordInfoClient {
+	return c.entClient.WordInfo
+}
+
+// JapaneseMean は JapaneseMeanClient を返します。
+func (c *appClient) JapaneseMean() *ent.JapaneseMeanClient {
+	return c.entClient.JapaneseMean
 }

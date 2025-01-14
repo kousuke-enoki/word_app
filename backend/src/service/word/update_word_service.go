@@ -57,7 +57,7 @@ func (s *WordServiceImpl) UpdateWord(ctx context.Context, req *models.UpdateWord
 
 	// 単語の名前を変える場合、同じ名前の単語があるかどうか確認。ある場合は失敗
 	if req.Name != existingWord.Name {
-		_, err := s.client.Word.Query().Where(word.Name(req.Name)).Only(ctx)
+		_, err := s.client.Word().Query().Where(word.Name(req.Name)).Only(ctx)
 		if err != nil && !ent.IsNotFound(err) {
 			logrus.Fatalf("failed to query word: %v", err)
 		}

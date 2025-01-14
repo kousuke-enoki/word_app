@@ -52,7 +52,7 @@ type JapaneseMean struct {
 	Name string `json:"name"`
 }
 
-type AllWordListRequest struct {
+type WordListRequest struct {
 	UserID int    `json:"userId"`
 	Search string `json:"search"`
 	SortBy string `json:"sortBy"`
@@ -61,7 +61,7 @@ type AllWordListRequest struct {
 	Limit  int    `json:"limit"`
 }
 
-type AllWordListResponse struct {
+type WordListResponse struct {
 	Words      []Word `json:"words"`
 	TotalPages int    `json:"totalPages"`
 }
@@ -108,7 +108,6 @@ type RegisterWordResponse struct {
 
 type RegisteredWordCountRequest struct {
 	WordID       int  `json:"wordId" binding:"required"`
-	UserID       int  `json:"userId"`
 	IsRegistered bool `json:"isRegistered"`
 }
 

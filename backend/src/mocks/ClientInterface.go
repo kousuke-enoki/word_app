@@ -174,23 +174,23 @@ func (_m *ClientInterface) FindUserByID(ctx context.Context, id int) (*ent.User,
 }
 
 // GetRegisteredWords provides a mock function with given fields: ctx, userID, search, order, page, limit
-func (_m *ClientInterface) GetRegisteredWords(ctx context.Context, userID int, search string, order string, page int, limit int) (*models.AllWordListResponse, error) {
+func (_m *ClientInterface) GetRegisteredWords(ctx context.Context, userID int, search string, order string, page int, limit int) (*models.WordListResponse, error) {
 	ret := _m.Called(ctx, userID, search, order, page, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetRegisteredWords")
 	}
 
-	var r0 *models.AllWordListResponse
+	var r0 *models.WordListResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int, string, string, int, int) (*models.AllWordListResponse, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int, string, string, int, int) (*models.WordListResponse, error)); ok {
 		return rf(ctx, userID, search, order, page, limit)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int, string, string, int, int) *models.AllWordListResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int, string, string, int, int) *models.WordListResponse); ok {
 		r0 = rf(ctx, userID, search, order, page, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.AllWordListResponse)
+			r0 = ret.Get(0).(*models.WordListResponse)
 		}
 	}
 
@@ -234,23 +234,23 @@ func (_m *ClientInterface) GetWordDetails(ctx context.Context, wordID int, userI
 }
 
 // GetWords provides a mock function with given fields: ctx, userID, search, sortBy, order, page, limit
-func (_m *ClientInterface) GetWords(ctx context.Context, userID int, search string, sortBy string, order string, page int, limit int) (*models.AllWordListResponse, error) {
+func (_m *ClientInterface) GetWords(ctx context.Context, userID int, search string, sortBy string, order string, page int, limit int) (*models.WordListResponse, error) {
 	ret := _m.Called(ctx, userID, search, sortBy, order, page, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetWords")
 	}
 
-	var r0 *models.AllWordListResponse
+	var r0 *models.WordListResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int, string, string, string, int, int) (*models.AllWordListResponse, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int, string, string, string, int, int) (*models.WordListResponse, error)); ok {
 		return rf(ctx, userID, search, sortBy, order, page, limit)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int, string, string, string, int, int) *models.AllWordListResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int, string, string, string, int, int) *models.WordListResponse); ok {
 		r0 = rf(ctx, userID, search, sortBy, order, page, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.AllWordListResponse)
+			r0 = ret.Get(0).(*models.WordListResponse)
 		}
 	}
 

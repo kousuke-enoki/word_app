@@ -159,7 +159,7 @@ func TestUpdateWord(t *testing.T) {
 
 		reqData = &models.UpdateWordRequest{
 			ID:     word2.ID,
-			Name:   "banana", // 同じ名前の単語
+			Name:   "orange", // 同じ名前の単語
 			UserID: adminUser.ID,
 			WordInfos: []models.WordInfo{
 				{ID: 2, PartOfSpeechID: 3, JapaneseMeans: []models.JapaneseMean{{ID: 2, Name: "テスト"}}},
@@ -169,41 +169,40 @@ func TestUpdateWord(t *testing.T) {
 
 		_, err = wordService.UpdateWord(ctx, reqData)
 		assert.Error(t, err)
-		assert.Equal(t, "failed to query word", err.Error())
+		assert.Equal(t, word_service.ErrWordExists, err)
 
 	})
 	t.Run("UpdateWordInfo_Errors", func(t *testing.T) {
-		// 4. WordInfo作成エラー
+		// 4. WordInfo更新エラー
 		reqData = &models.UpdateWordRequest{
+			ID:     word2.ID,
 			Name:   "newword",
 			UserID: adminUser.ID,
 			WordInfos: []models.WordInfo{
-				{PartOfSpeechID: 999, JapaneseMeans: []models.JapaneseMean{{Name: "無効な品詞"}}}, // 存在しない品詞ID
+				{ID: 2, PartOfSpeechID: 3, JapaneseMeans: []models.JapaneseMean{{ID: 2, Name: "テスト"}}},
+				{ID: 3, PartOfSpeechID: 999, JapaneseMeans: []models.JapaneseMean{{ID: 3, Name: "無効な品詞"}}}, // 存在しない品詞ID
 			},
 		}
 
 		_, err = wordService.UpdateWord(ctx, reqData)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to create word info")
+		assert.Contains(t, err.Error(), "failed to update word info")
 
 	})
 	t.Run("CreateJapaneseMean_Errors", func(t *testing.T) {
-		// 5. JapaneseMean作成エラー
+		// 5. JapaneseMean更新エラー
 		reqData = &models.UpdateWordRequest{
+			ID:     word2.ID,
 			Name:   "validword",
 			UserID: adminUser.ID,
 			WordInfos: []models.WordInfo{
-				{
-					PartOfSpeechID: 1,
-					JapaneseMeans: []models.JapaneseMean{
-						{Name: ""}, // 空文字の日本語意味
-					},
-				},
+				{ID: 2, PartOfSpeechID: 3, JapaneseMeans: []models.JapaneseMean{{ID: 2, Name: "テスト"}}},
+				{ID: 3, PartOfSpeechID: 4, JapaneseMeans: []models.JapaneseMean{{ID: 3, Name: ""}}},
 			},
 		}
 
 		_, err = wordService.UpdateWord(ctx, reqData)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to create japanese mean")
+		assert.Contains(t, err.Error(), "failed to update japanese mean")
 	})
 }

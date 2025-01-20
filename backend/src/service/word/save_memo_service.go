@@ -16,17 +16,25 @@ func (s *WordServiceImpl) SaveMemo(ctx context.Context, SaveMemoRequest *models.
 	wordID := SaveMemoRequest.WordID
 	userID := SaveMemoRequest.UserID
 	Memo := SaveMemoRequest.Memo
+
 	// トランザクション開始
 	tx, err := s.client.Tx(ctx)
 	if err != nil {
-		logrus.Error(err)
-		return nil, ErrDatabaseFailure
+		logrus.Error("Failed to start transaction: ", err)
+		return nil, errors.New("failed to start transaction")
 	}
 
 	defer func() {
 		if r := recover(); r != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			panic(r)
+		} else if err != nil {
+			_ = tx.Rollback()
+		} else {
+			err = tx.Commit()
+			if err != nil {
+				logrus.Error(err)
+			}
 		}
 	}()
 

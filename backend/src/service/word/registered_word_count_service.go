@@ -5,10 +5,34 @@ import (
 	"errors"
 	"word_app/backend/ent/word"
 	"word_app/backend/src/models"
+
+	"github.com/sirupsen/logrus"
 )
 
 func (s *WordServiceImpl) RegisteredWordCount(ctx context.Context, req *models.RegisteredWordCountRequest) (*models.RegisteredWordCountResponse, error) {
-	_, err := s.client.Word().
+
+	// トランザクション開始
+	tx, err := s.client.Tx(ctx)
+	if err != nil {
+		logrus.Error("Failed to start transaction: ", err)
+		return nil, errors.New("failed to start transaction")
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			_ = tx.Rollback()
+			panic(r)
+		} else if err != nil {
+			_ = tx.Rollback()
+		} else {
+			err = tx.Commit()
+			if err != nil {
+				logrus.Error(err)
+			}
+		}
+	}()
+
+	_, err = s.client.Word().
 		Query().
 		Where(word.ID(req.WordID)).
 		Only(ctx)

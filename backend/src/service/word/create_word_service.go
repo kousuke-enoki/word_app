@@ -2,9 +2,7 @@ package word_service
 
 import (
 	"context"
-	"errors"
 
-	"word_app/backend/ent"
 	"word_app/backend/ent/word"
 	"word_app/backend/src/models"
 
@@ -22,68 +20,63 @@ func (s *WordServiceImpl) CreateWord(ctx context.Context, CreateWordRequest *mod
 
 	defer func() {
 		if r := recover(); r != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			panic(r)
+		} else if err != nil {
+			_ = tx.Rollback()
+		} else {
+			err = tx.Commit()
+			if err != nil {
+				logrus.Error(err)
+			}
 		}
 	}()
 
-	// 管理者チェック (将来の拡張を考慮)
+	// 管理者チェック
 	userEntity, err := tx.User.Get(ctx, CreateWordRequest.UserID)
 	if err != nil {
 		logrus.Error(err)
-		tx.Rollback()
 		return nil, ErrDatabaseFailure
 	}
 	if !userEntity.Admin {
-		logrus.Error(err)
-		tx.Rollback()
 		return nil, ErrUnauthorized
 	}
 
-	// 既存の単語があるかどうか確認
-	existingWord, err := s.client.Word().Query().Where(word.Name(CreateWordRequest.Name)).Only(ctx)
-	if err != nil && !ent.IsNotFound(err) {
-		logrus.Errorf("failed to query word: %v", err)
-		tx.Rollback()
+	// 単語の存在確認
+	exists, err := tx.Word.Query().Where(word.Name(CreateWordRequest.Name)).Exist(ctx)
+	if err != nil {
+		logrus.Errorf("failed to query word existence: %v", err)
 		return nil, ErrDatabaseFailure
 	}
-
-	var createdWord *ent.Word
-	if existingWord != nil {
-		// 既存の単語がある場合は、エラー
-		return nil, errors.New("There is already a word with the same name.")
-	} else {
-		// ない場合は新しい単語を作成
-		createdWord, err = s.client.Word().Create().
-			SetName(CreateWordRequest.Name).
-			SetVoiceID("").
-			Save(ctx)
-		if err != nil {
-			return nil, errors.New(`failed to create word: , "name"`)
-		}
+	if exists {
+		return nil, ErrWordExists
 	}
 
+	// 新しい単語を作成
+	createdWord, err := tx.Word.Create().
+		SetName(CreateWordRequest.Name).
+		Save(ctx)
+	if err != nil {
+		return nil, ErrCreateWord
+	}
+
+	// WordInfoとJapaneseMeanを作成
 	for _, wordInfo := range CreateWordRequest.WordInfos {
-		var partOfSpeechId int
-		partOfSpeechId = wordInfo.PartOfSpeechID
-		createdWordInfo, err := s.client.WordInfo().Create().
+		createdWordInfo, err := tx.WordInfo.Create().
 			SetWordID(createdWord.ID).
-			SetPartOfSpeechID(partOfSpeechId).
+			SetPartOfSpeechID(wordInfo.PartOfSpeechID).
 			Save(ctx)
 		if err != nil {
-			return nil, errors.New(`failed to create word info: , err`)
+			return nil, ErrCreateWordInfo
 		}
 
 		for _, JapaneseMean := range wordInfo.JapaneseMeans {
-			var japaneseMeanName string
-			japaneseMeanName = JapaneseMean.Name
-			// japanese_mean テーブルに日本語の意味を追加
-			_, err = s.client.JapaneseMean().Create().
+			_, err = tx.JapaneseMean.Create().
 				SetWordInfoID(createdWordInfo.ID).
-				SetName(japaneseMeanName).
+				SetName(JapaneseMean.Name).
 				Save(ctx)
 			if err != nil {
-				return nil, errors.New(`failed to create japanese mean: , "err"`)
+				return nil, ErrCreateJapaneseMean
 			}
 		}
 	}

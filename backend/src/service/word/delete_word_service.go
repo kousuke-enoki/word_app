@@ -24,8 +24,15 @@ func (s *WordServiceImpl) DeleteWord(ctx context.Context, DeleteWordRequest *mod
 
 	defer func() {
 		if r := recover(); r != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			panic(r)
+		} else if err != nil {
+			_ = tx.Rollback()
+		} else {
+			err = tx.Commit()
+			if err != nil {
+				logrus.Error(err)
+			}
 		}
 	}()
 

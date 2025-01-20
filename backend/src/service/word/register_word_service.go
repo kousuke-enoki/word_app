@@ -20,7 +20,6 @@ func (s *WordServiceImpl) RegisterWords(ctx context.Context, req *models.Registe
 		return nil, errors.New("failed to start transaction")
 	}
 
-	// トランザクション終了時のロールバック処理（deferを使う）
 	defer func() {
 		if r := recover(); r != nil {
 			_ = tx.Rollback()
@@ -29,6 +28,9 @@ func (s *WordServiceImpl) RegisterWords(ctx context.Context, req *models.Registe
 			_ = tx.Rollback()
 		} else {
 			err = tx.Commit()
+			if err != nil {
+				logrus.Error(err)
+			}
 		}
 	}()
 

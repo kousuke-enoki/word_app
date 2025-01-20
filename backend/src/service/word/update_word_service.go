@@ -17,20 +17,25 @@ import (
 func (s *WordServiceImpl) UpdateWord(ctx context.Context, req *models.UpdateWordRequest) (*models.UpdateWordResponse, error) {
 
 	// トランザクション開始
+
+	// トランザクション開始
 	tx, err := s.client.Tx(ctx)
 	if err != nil {
-		logrus.Error("failed to start transaction:", err)
+		logrus.Error("Failed to start transaction: ", err)
 		return nil, errors.New("failed to start transaction")
 	}
 
-	// トランザクションロールバック処理
 	defer func() {
 		if r := recover(); r != nil {
 			_ = tx.Rollback()
 			panic(r)
-		}
-		if err != nil {
+		} else if err != nil {
 			_ = tx.Rollback()
+		} else {
+			err = tx.Commit()
+			if err != nil {
+				logrus.Error(err)
+			}
 		}
 	}()
 
@@ -42,26 +47,30 @@ func (s *WordServiceImpl) UpdateWord(ctx context.Context, req *models.UpdateWord
 	}
 	if !userEntity.Admin {
 		logrus.Error("unauthorized user")
-		return nil, errors.New("unauthorized user")
+		return nil, ErrUnauthorized
 	}
-
+	logrus.Info("asdf")
+	logrus.Info(req)
 	// 既存の単語を取得
 	existingWord, err := tx.Word.Get(ctx, req.ID)
 	if err != nil {
+		logrus.Info(err)
 		if ent.IsNotFound(err) {
 			return nil, errors.New("word not found")
 		}
 		logrus.Error("failed to fetch word:", err)
 		return nil, errors.New("failed to fetch word")
 	}
+	logrus.Info("2")
 
 	// 単語の名前を変える場合、同じ名前の単語があるかどうか確認。ある場合は失敗
 	if req.Name != existingWord.Name {
-		_, err := s.client.Word().Query().Where(word.Name(req.Name)).Only(ctx)
+		_, err := s.client.Word().Query().Where(word.Name(req.Name)).Exist(ctx)
 		if err != nil && !ent.IsNotFound(err) {
 			logrus.Fatalf("failed to query word: %v", err)
 		}
 	}
+	logrus.Info("3")
 
 	// 単語を更新
 	updatedWord, err := tx.Word.UpdateOne(existingWord).

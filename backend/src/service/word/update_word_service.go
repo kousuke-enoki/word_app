@@ -49,8 +49,7 @@ func (s *WordServiceImpl) UpdateWord(ctx context.Context, req *models.UpdateWord
 		logrus.Error("unauthorized user")
 		return nil, ErrUnauthorized
 	}
-	logrus.Info("asdf")
-	logrus.Info(req)
+
 	// 既存の単語を取得
 	existingWord, err := tx.Word.Get(ctx, req.ID)
 	if err != nil {
@@ -61,16 +60,18 @@ func (s *WordServiceImpl) UpdateWord(ctx context.Context, req *models.UpdateWord
 		logrus.Error("failed to fetch word:", err)
 		return nil, errors.New("failed to fetch word")
 	}
-	logrus.Info("2")
 
 	// 単語の名前を変える場合、同じ名前の単語があるかどうか確認。ある場合は失敗
 	if req.Name != existingWord.Name {
-		_, err := s.client.Word().Query().Where(word.Name(req.Name)).Exist(ctx)
-		if err != nil && !ent.IsNotFound(err) {
-			logrus.Fatalf("failed to query word: %v", err)
+		exists, err := s.client.Word().Query().Where(word.Name(req.Name)).Exist(ctx)
+		if err != nil {
+			logrus.Errorf("failed to query word existence: %v", err)
+			return nil, ErrDatabaseFailure
+		}
+		if exists {
+			return nil, ErrWordExists
 		}
 	}
-	logrus.Info("3")
 
 	// 単語を更新
 	updatedWord, err := tx.Word.UpdateOne(existingWord).

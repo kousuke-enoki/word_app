@@ -11,6 +11,7 @@ import (
 	word_service "word_app/backend/src/service/word"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -204,5 +205,99 @@ func TestUpdateWord(t *testing.T) {
 		_, err = wordService.UpdateWord(ctx, reqData)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to update japanese mean")
+	})
+	t.Run("WordNotFound_error", func(t *testing.T) {
+		// 存在しない単語IDを指定
+		reqData := &models.UpdateWordRequest{
+			ID:        999, // 存在しないID
+			Name:      "nonexistent",
+			UserID:    adminUser.ID, // 管理者ユーザー
+			WordInfos: []models.WordInfo{},
+		}
+
+		_, err := wordService.UpdateWord(ctx, reqData)
+		assert.Error(t, err)
+		assert.Equal(t, "word not found", err.Error())
+	})
+
+	t.Run("DuplicateWordName_error", func(t *testing.T) {
+		// 既に存在する単語名を指定
+		reqData := &models.UpdateWordRequest{
+			ID:        word1.ID,
+			Name:      "banana",     // 重複する単語名
+			UserID:    adminUser.ID, // 管理者ユーザー
+			WordInfos: []models.WordInfo{},
+		}
+
+		_, err := wordService.UpdateWord(ctx, reqData)
+		assert.Error(t, err)
+		assert.Equal(t, word_service.ErrWordExists, err)
+	})
+
+	t.Run("InvalidPartOfSpeechID_error", func(t *testing.T) {
+		// 存在しない PartOfSpeechID を指定
+		reqData := &models.UpdateWordRequest{
+			ID:   word1.ID,
+			Name: "apple",
+			WordInfos: []models.WordInfo{
+				{ID: wordInfo1.ID, PartOfSpeechID: 999}, // 存在しないID
+			},
+			UserID: adminUser.ID, // 管理者ユーザー
+		}
+
+		_, err := wordService.UpdateWord(ctx, reqData)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to update word info")
+	})
+
+	t.Run("JapaneseMeanUpdate_error", func(t *testing.T) {
+		// 不正な JapaneseMean.ID を指定
+		reqData := &models.UpdateWordRequest{
+			ID:   word1.ID,
+			Name: "apple",
+			WordInfos: []models.WordInfo{
+				{
+					ID:             wordInfo1.ID,
+					PartOfSpeechID: 1,
+					JapaneseMeans: []models.JapaneseMean{
+						{ID: 999, Name: "不明な意味"}, // 存在しないID
+					},
+				},
+			},
+			UserID: adminUser.ID, // 管理者ユーザー
+		}
+
+		result, err := wordService.UpdateWord(ctx, reqData)
+		logrus.Info(result, "reslut")
+		logrus.Info(err, "reslut")
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to fetch japanese mean")
+	})
+
+	t.Run("TransactionRollback_error", func(t *testing.T) {
+		// 内部でエラーを発生させてトランザクションがロールバックされることを確認
+		reqData := &models.UpdateWordRequest{
+			ID:   word1.ID,
+			Name: "apple",
+			WordInfos: []models.WordInfo{
+				{
+					ID:             wordInfo1.ID,
+					PartOfSpeechID: 1,
+					JapaneseMeans: []models.JapaneseMean{
+						{ID: japaneseMean[0].ID, Name: ""}, // 無効な名前
+					},
+				},
+			},
+			UserID: adminUser.ID, // 管理者ユーザー
+		}
+
+		_, err := wordService.UpdateWord(ctx, reqData)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to update japanese mean")
+
+		// トランザクションがロールバックされていることを確認
+		updatedWord := client.Word.GetX(ctx, word1.ID)
+		assert.Equal(t, "apple", updatedWord.Name) // 名前が変更されていない
 	})
 }

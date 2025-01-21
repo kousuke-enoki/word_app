@@ -15,9 +15,6 @@ import (
 )
 
 func (s *WordServiceImpl) UpdateWord(ctx context.Context, req *models.UpdateWordRequest) (*models.UpdateWordResponse, error) {
-
-	// トランザクション開始
-
 	// トランザクション開始
 	tx, err := s.client.Tx(ctx)
 	if err != nil {
@@ -91,20 +88,20 @@ func (s *WordServiceImpl) UpdateWord(ctx context.Context, req *models.UpdateWord
 			Where(wordinfo.IDEQ(wordInfo.ID)).
 			Only(ctx)
 		if err != nil {
-			if ent.IsNotFound(err) {
-				// 存在しない場合、新規作成
-				wordInfoEntity, err = tx.WordInfo.Create().
-					SetWordID(updatedWord.ID).
-					SetPartOfSpeechID(wordInfo.PartOfSpeechID).
-					Save(ctx)
-				if err != nil {
-					logrus.Error("failed to create word info:", err)
-					return nil, errors.New("failed to create word info")
-				}
-			} else {
-				logrus.Error("failed to fetch word info:", err)
-				return nil, errors.New("failed to fetch word info")
-			}
+			// 	// 存在しない場合、新規作成する処理
+			// if ent.IsNotFound(err) {
+			// 	wordInfoEntity, err = tx.WordInfo.Create().
+			// 		SetWordID(updatedWord.ID).
+			// 		SetPartOfSpeechID(wordInfo.PartOfSpeechID).
+			// 		Save(ctx)
+			// 	if err != nil {
+			// 		logrus.Error("failed to create word info:", err)
+			// 		return nil, errors.New("failed to create word info")
+			// 	}
+			// } else {
+			logrus.Error("failed to fetch word info:", err)
+			return nil, errors.New("failed to fetch word info")
+			// }
 		} else {
 			// 存在する場合、更新
 			wordInfoEntity, err = tx.WordInfo.UpdateOne(wordInfoEntity).
@@ -125,20 +122,20 @@ func (s *WordServiceImpl) UpdateWord(ctx context.Context, req *models.UpdateWord
 				Where(japanesemean.IDEQ(japaneseMean.ID)).
 				Only(ctx)
 			if err != nil {
-				if ent.IsNotFound(err) {
-					// 存在しない場合、新規作成
-					_, err = tx.JapaneseMean.Create().
-						SetWordInfoID(wordInfoEntity.ID).
-						SetName(japaneseMean.Name).
-						Save(ctx)
-					if err != nil {
-						logrus.Error("failed to create japanese mean:", err)
-						return nil, errors.New("failed to create japanese mean")
-					}
-				} else {
-					logrus.Error("failed to fetch japanese mean:", err)
-					return nil, errors.New("failed to fetch japanese mean")
-				}
+				// 存在しない場合、新規作成する処理
+				// if ent.IsNotFound(err) {
+				// 	_, err = tx.JapaneseMean.Create().
+				// 		SetWordInfoID(wordInfoEntity.ID).
+				// 		SetName(japaneseMean.Name).
+				// 		Save(ctx)
+				// 	if err != nil {
+				// 		logrus.Error("failed to create japanese mean:", err)
+				// 		return nil, errors.New("failed to create japanese mean")
+				// 	}
+				// } else {
+				logrus.Error("failed to fetch japanese mean:", err)
+				return nil, errors.New("failed to fetch japanese mean")
+				// }
 			} else {
 				// 存在する場合、更新
 				_, err = tx.JapaneseMean.UpdateOne(meanEntity).

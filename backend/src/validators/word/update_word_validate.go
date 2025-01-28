@@ -9,8 +9,8 @@ func ValidateUpdateWordRequest(req *models.UpdateWordRequest) []*models.FieldErr
 	var fieldErrors []*models.FieldError
 
 	// 各フィールドの検証を個別の関数に分割
-	fieldErrors = append(fieldErrors, validateCreateWordName(req.Name)...)
-	fieldErrors = append(fieldErrors, validateCreateWordInfos(req.WordInfos)...)
+	fieldErrors = append(fieldErrors, validateWordName(req.Name)...)
+	fieldErrors = append(fieldErrors, validateWordInfos(req.WordInfos)...)
 
 	return fieldErrors
 }

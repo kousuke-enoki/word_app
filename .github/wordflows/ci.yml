@@ -1,0 +1,112 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.23.2
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: |
+          set -euxo pipefail
+          go mod tidy
+          go mod download
+
+      - name: Generate Ent code
+        working-directory: ./backend
+        run: |
+          set -euxo pipefail
+          go generate ./ent
+
+      - name: Install golangci-lint
+        working-directory: ./backend
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+            | sh -s -- -b $(go env GOPATH)/bin v1.54.2
+        env:
+          GO111MODULE: "on"
+
+      - name: Run Go Linter
+        working-directory: ./backend
+        run: |
+          set -euxo pipefail
+          golangci-lint run --verbose
+
+      - name: Run Backend Tests
+        working-directory: ./backend
+        run: |
+          set -euxo pipefail
+          go test ./... -cover
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Cache npm
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: |
+          set -euxo pipefail
+          npm install
+
+      - name: Run Frontend Linter
+        working-directory: ./frontend
+        run: |
+          set -euxo pipefail
+          npx eslint src/
+
+      - name: Run Frontend Tests
+        working-directory: ./frontend
+        run: |
+          set -euxo pipefail
+          npm test -- --coverage

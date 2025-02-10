@@ -1,10 +1,10 @@
-import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 // import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 import Home from './Home'
 import { handlers } from '../../mocks/handlers'
+import { rest } from 'msw'
 
 const server = setupServer(...handlers)
 
@@ -88,6 +88,36 @@ describe('Home Component', () => {
     })
 
     // ローカルストレージからトークンが削除されていることを確認
+    expect(localStorage.getItem('token')).toBeNull()
+  })
+  test('サーバーエラー(500)の場合、トークンが削除されて「ログインしてください」メッセージが表示される', async () => {
+    // 有効そうに見えるトークンをセットしておく
+    localStorage.setItem('token', 'some-valid-token')
+
+    // ここで一時的に /users/my_page のレスポンスを500に上書きする
+    server.use(
+      rest.get('/users/my_page', (req, res, ctx) => {
+        return res(
+          ctx.status(500),
+          ctx.json({ error: 'Failed to retrieve user' }),
+        )
+      }),
+    )
+
+    render(
+      <MemoryRouter>
+        <Home />
+      </MemoryRouter>,
+    )
+
+    // サーバーエラーにより catch 節が動くので、
+    // ローカルストレージ削除 & メッセージ設定(「ログインしてください」)
+    // が発火するはず
+    await waitFor(() => {
+      expect(screen.getByText('ログインしてください')).toBeInTheDocument()
+    })
+
+    // トークンが削除されていること
     expect(localStorage.getItem('token')).toBeNull()
   })
 })

@@ -22,12 +22,10 @@ const SignUp: React.FC = () => {
         password,
       })
       const token = response.data.token
-      console.log(response)
       localStorage.setItem('token', token)
       setMessage('Sign up successful!')
       setErrors([])
     } catch (error: any) {
-      console.log(error)
       const fieldErrors: FieldError[] = error.response.data.errors || []
       setErrors(fieldErrors)
       setMessage('')

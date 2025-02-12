@@ -53,13 +53,6 @@ ent/schema で作成
 #  generate (スキーマ作ったら)
 go generate ./ent
 
-#  eslint
-npm run eslint
-
-# フロントエンドライブラリインストール
-cd frontend
-npm install react-i18next i18next --save
-
 # モック作成(mockery)
 mockery(コンテナ内で)
 go install github.com/vektra/mockery/v2@v2.43.2
@@ -75,6 +68,22 @@ goimports -w -local word_app/backend src/
 cd backend
 golangci-lint run --verbose
 
+
+## フロント
+
+#  eslint
+npm run eslint
+
+# フロントエンドライブラリインストール
+cd frontend
+npm install react-i18next i18next --save
+
+# テスト実行
+cd frontend
+npm test
+
+
+# 品詞の詳細
 0 名詞（noun）
 1 代名詞（pronoun）
 2 動詞（verb）

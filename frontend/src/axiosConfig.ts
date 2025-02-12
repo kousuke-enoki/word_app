@@ -1,9 +1,11 @@
 // axiosConfig.ts
 import axios from 'axios'
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080'
+
 // axiosのインスタンスを作成
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8080', // APIのベースURL
+  baseURL: API_BASE_URL, // APIのベースURL
   timeout: 5000, // タイムアウト設定 (ミリ秒)
   headers: {
     'Content-Type': 'application/json', // リクエストのContent-TypeをJSONに設定

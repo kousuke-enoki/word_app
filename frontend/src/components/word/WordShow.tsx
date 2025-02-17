@@ -15,7 +15,9 @@ const WordShow: React.FC = () => {
   const [word, setWord] = useState<Word | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [memo, setMemo] = useState<string>('')
-  const [successMessage, setSuccessMessage] = useState<string>('')
+  const [successMessage, setSuccessMessage] = useState<string>(
+    () => location.state?.successMessage || '',
+  )
 
   useEffect(() => {
     const fetchWord = async () => {
@@ -32,6 +34,22 @@ const WordShow: React.FC = () => {
     fetchWord()
   }, [id])
 
+  // useEffect(() => {
+  //   if (successMessage) {
+  //     const timer = setTimeout(() => {
+  //       setSuccessMessage('')
+  //     }, 3000)
+  //     return () => clearTimeout(timer)
+  //   }
+  // }, [successMessage])
+
+  if (loading) {
+    return <p>Loading...</p>
+  }
+
+  if (!word) {
+    return <p>No word details found.</p>
+  }
   if (loading) {
     return <p>Loading...</p>
   }
@@ -115,6 +133,9 @@ const WordShow: React.FC = () => {
 
   return (
     <div className="container">
+      {successMessage && (
+        <div className="success-message">{successMessage}</div>
+      )}
       <h1>{word.name}</h1>
       {word.wordInfos.map((info: WordInfo) => (
         <div key={info.id}>
@@ -147,7 +168,7 @@ const WordShow: React.FC = () => {
           保存する
         </button>
       </div>
-      {successMessage && <div className="success-popup">{successMessage}</div>}
+      {/* {successMessage && <div className="success-popup">{successMessage}</div>} */}
       <div>
         <button
           className={`register-button ${word.isRegistered ? 'registered' : ''}`}

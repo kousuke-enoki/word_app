@@ -62,7 +62,6 @@ const WordEdit: React.FC = () => {
 
   // バリデーションエラー & 成功/失敗メッセージ
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
-  const [successMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
 
   // 取得後にローカルステートへコピー
@@ -232,8 +231,6 @@ const WordEdit: React.FC = () => {
   return (
     <div className="word-update-container">
       <h1>単語更新フォーム</h1>
-      {/* 成功メッセージ */}
-      {successMessage && <div className="success-popup">{successMessage}</div>}
       {/* エラーメッセージ */}
       {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
       <form className="word-update-form" onSubmit={handleSubmit}>

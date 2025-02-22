@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useMutation } from '@tanstack/react-query'
 import axiosInstance from '../../axiosConfig'
 import {
   getPartOfSpeech,
@@ -21,6 +22,15 @@ export type japaneseMeansForNew = {
   name: string
 }
 
+// バリデーションエラーをフィールドごとに管理するための型
+export type ValidationErrors = {
+  name?: string
+  wordInfos?: Array<{
+    partOfSpeech?: string
+    japaneseMeans?: string[]
+  }>
+}
+
 const WordNew: React.FC = () => {
   const [word, setWord] = useState<WordForNew>({
     name: '',
@@ -31,7 +41,8 @@ const WordNew: React.FC = () => {
       },
     ],
   })
-  const [successMessage, setSuccessMessage] = useState<string>('')
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
+  const [errorMessage, setErrorMessage] = useState('')
   const navigate = useNavigate()
 
   const MAX_PART_OF_SPEECH = 10
@@ -124,30 +135,98 @@ const WordNew: React.FC = () => {
     return getPartOfSpeech.filter((option) => !selectedIds.includes(option.id))
   }
 
-  // フォーム送信ハンドラー
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      const response = await axiosInstance.post('/words/new', word)
-      console.log(response)
-      setSuccessMessage(response.data.name + 'が正常に登録されました！')
-      setTimeout(() => setSuccessMessage(''), 3000)
-      setTimeout(() => {
-        window.location.href = '/words/' + response.data.id
-      }, 1500)
-    } catch (error) {
-      console.log(error)
-      alert('単語の登録中にエラーが発生しました。')
+  // ★ バリデーションロジック（フィールドごとにエラーメッセージをセット）
+  const validateWord = (targetWord: WordForNew) => {
+    const newErrors: ValidationErrors = {}
+
+    // 単語名
+    if (!wordNameRegex.test(targetWord.name)) {
+      newErrors.name = '単語名は半角アルファベットのみ入力できます。'
     }
+
+    // wordInfos
+    const wordInfoErrors = targetWord.wordInfos.map((info) => {
+      const infoError: {
+        partOfSpeech?: string
+        japaneseMeans?: string[]
+      } = {}
+      if (info.partOfSpeechId === 0) {
+        infoError.partOfSpeech = '品詞を選択してください。'
+      }
+      // 日本語訳
+      const meansErrors = info.japaneseMeans.map((mean) => {
+        if (!japaneseMeanRegex.test(mean.name)) {
+          return '日本語訳はひらがな、カタカナ、漢字、または記号「~」のみ入力できます。'
+        }
+        return '' // 問題なし
+      })
+      // 空文字列以外があればエラー
+      if (meansErrors.some((err) => err !== '')) {
+        infoError.japaneseMeans = meansErrors
+      }
+      return infoError
+    })
+
+    // wordInfoErrors のいずれかにエラーがある場合のみ格納
+    if (
+      wordInfoErrors.some(
+        (infoError) =>
+          infoError.partOfSpeech ||
+          (infoError.japaneseMeans && infoError.japaneseMeans.length > 0),
+      )
+    ) {
+      newErrors.wordInfos = wordInfoErrors
+    }
+
+    return newErrors
+  }
+
+  const NewWordMutation = useMutation<
+    { name: string; id: number },
+    unknown,
+    WordForNew
+  >({
+    // ミューテーション関数
+    mutationFn: async (newWord: WordForNew) => {
+      const response = await axiosInstance.post(`/words/new`, newWord)
+      return response.data
+    },
+    onSuccess: (data) => {
+      const newName = data.name
+      // メッセージを表示せず、遷移先へ渡す
+      navigate(`/words/${data.id}`, {
+        state: {
+          successMessage: `${newName}が正常に登録されました！`,
+        },
+      })
+    },
+    onError: () => {
+      setErrorMessage('単語の登録中にエラーが発生しました。')
+    },
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!word) return
+
+    // バリデーション
+    const errors = validateWord(word)
+    setValidationErrors(errors)
+
+    // errors オブジェクトに何かしらエラーがあれば送信中断
+    if (Object.keys(errors).length > 0) {
+      return
+    }
+
+    NewWordMutation.mutate(word)
   }
 
   return (
     <div className="word-create-container">
       <h1>単語登録フォーム</h1>
+      {/* エラーメッセージ */}
+      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
       <form className="word-create-form" onSubmit={handleSubmit}>
-        {successMessage && (
-          <div className="success-popup">{successMessage}</div>
-        )}
         <div>
           <label>
             単語名:
@@ -158,77 +237,93 @@ const WordNew: React.FC = () => {
               required
             />
           </label>
+          {validationErrors.name && (
+            <p style={{ color: 'red' }}>{validationErrors.name}</p>
+          )}
         </div>
 
-        {word.wordInfos.map((wordInfo, wordInfoIndex) => (
-          <div key={wordInfoIndex} className="word-info-section">
-            <div>
-              <label>
-                品詞:
-                <select
-                  value={wordInfo.partOfSpeechId}
-                  onChange={(e) =>
-                    handlePartOfSpeechChange(wordInfoIndex, e.target.value)
-                  }
-                  required
-                >
-                  <option value={0}>選択してください</option>
-                  {getAvailablePartOfSpeechOptions(wordInfoIndex).map(
-                    (option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.name}
-                      </option>
-                    ),
-                  )}
-                </select>
-              </label>
-              {word.wordInfos.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removePartOfSpeech(wordInfoIndex)}
-                >
-                  品詞を削除
-                </button>
-              )}
-            </div>
-
-            {wordInfo.japaneseMeans.map((mean, meanIndex) => (
-              <div key={meanIndex} className="japanese-mean-section">
+        {word.wordInfos.map((wordInfo, wordInfoIndex) => {
+          const infoError = validationErrors.wordInfos?.[wordInfoIndex]
+          return (
+            <div key={wordInfoIndex} className="word-info-section">
+              <div>
                 <label>
-                  日本語訳:
-                  <input
-                    type="text"
-                    value={mean.name}
+                  品詞:
+                  <select
+                    value={wordInfo.partOfSpeechId}
                     onChange={(e) =>
-                      handleJapaneseMeanChange(
-                        wordInfoIndex,
-                        meanIndex,
-                        e.target.value,
-                      )
+                      handlePartOfSpeechChange(wordInfoIndex, e.target.value)
                     }
                     required
-                  />
+                  >
+                    <option value={0}>選択してください</option>
+                    {getAvailablePartOfSpeechOptions(wordInfoIndex).map(
+                      (option) => (
+                        <option key={option.id} value={option.id}>
+                          {option.name}
+                        </option>
+                      ),
+                    )}
+                  </select>
                 </label>
-                {wordInfo.japaneseMeans.length > 1 && (
+                {infoError?.partOfSpeech && (
+                  <p style={{ color: 'red' }}>{infoError.partOfSpeech}</p>
+                )}
+                {word.wordInfos.length > 1 && (
                   <button
                     type="button"
-                    onClick={() => removeJapaneseMean(wordInfoIndex, meanIndex)}
+                    onClick={() => removePartOfSpeech(wordInfoIndex)}
                   >
-                    削除
+                    品詞を削除
                   </button>
                 )}
               </div>
-            ))}
-            {wordInfo.japaneseMeans.length < MAX_JAPANESE_MEANS && (
-              <button
-                type="button"
-                onClick={() => addJapaneseMean(wordInfoIndex)}
-              >
-                日本語訳を追加
-              </button>
-            )}
-          </div>
-        ))}
+
+              {wordInfo.japaneseMeans.map((mean, meanIndex) => (
+                <div key={meanIndex} className="japanese-mean-section">
+                  <label>
+                    日本語訳:
+                    <input
+                      type="text"
+                      value={mean.name}
+                      onChange={(e) =>
+                        handleJapaneseMeanChange(
+                          wordInfoIndex,
+                          meanIndex,
+                          e.target.value,
+                        )
+                      }
+                      required
+                    />
+                  </label>
+                  {infoError?.japaneseMeans?.[meanIndex] && (
+                    <p style={{ color: 'red' }}>
+                      {infoError.japaneseMeans[meanIndex]}
+                    </p>
+                  )}
+                  {wordInfo.japaneseMeans.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        removeJapaneseMean(wordInfoIndex, meanIndex)
+                      }
+                    >
+                      削除
+                    </button>
+                  )}
+                </div>
+              ))}
+              {wordInfo.japaneseMeans.length < MAX_JAPANESE_MEANS && (
+                <button
+                  type="button"
+                  onClick={() => addJapaneseMean(wordInfoIndex)}
+                >
+                  日本語訳を追加
+                </button>
+              )}
+            </div>
+          )
+        })}
         {word.wordInfos.length < MAX_PART_OF_SPEECH && (
           <button type="button" onClick={addPartOfSpeech}>
             品詞を追加

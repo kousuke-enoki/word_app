@@ -16,7 +16,7 @@ const SignIn: React.FC = () => {
       const token = response.data.token
       localStorage.setItem('token', token)
       setMessage('Sign in successful!')
-    } catch (error) {
+    } catch {
       setMessage('Sign in failed. Please try again.')
     }
   }

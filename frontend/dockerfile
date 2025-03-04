@@ -1,5 +1,5 @@
 # ベースイメージの指定
-FROM node:18
+FROM node:22
 
 # 作業ディレクトリの作成
 WORKDIR /app
@@ -15,4 +15,4 @@ COPY . .
 ENV CHOKIDAR_USEPOLLING=true
 
 # 開発サーバーの起動
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev"]

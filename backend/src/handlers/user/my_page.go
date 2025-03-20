@@ -37,6 +37,7 @@ func (h *UserHandler) MyPageHandler() gin.HandlerFunc {
 			User: models.User{
 				Name:  signInUser.Name,
 				Admin: signInUser.Admin,
+				Root:  signInUser.Root,
 			},
 		})
 	}

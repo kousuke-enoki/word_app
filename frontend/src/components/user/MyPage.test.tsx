@@ -9,14 +9,14 @@ import { User } from '../../types/userTypes'
 const mockUser: User = {
   name: 'Test User',
   admin: false,
+  root: false,
 }
 
 describe('MyPage Component', () => {
   test('ユーザー名が表示される', () => {
-    const onSignOutMock = jest.fn()
     render(
       <MemoryRouter>
-        <MyPage user={mockUser} onSignOut={onSignOutMock} />
+        <MyPage />
       </MemoryRouter>,
     )
 
@@ -25,12 +25,9 @@ describe('MyPage Component', () => {
   })
 
   test('管理ユーザーの場合にメッセージが表示される', () => {
-    const onSignOutMock = jest.fn()
-    const adminUser: User = { name: 'Admin User', admin: true }
-
     render(
       <MemoryRouter>
-        <MyPage user={adminUser} onSignOut={onSignOutMock} />
+        <MyPage />
       </MemoryRouter>,
     )
 
@@ -41,12 +38,9 @@ describe('MyPage Component', () => {
   })
 
   test('通常ユーザーの場合は管理ユーザー用メッセージが表示されない', () => {
-    const onSignOutMock = jest.fn()
-    const normalUser: User = { name: 'Normal User', admin: false }
-
     render(
       <MemoryRouter>
-        <MyPage user={normalUser} onSignOut={onSignOutMock} />
+        <MyPage />
       </MemoryRouter>,
     )
 
@@ -57,15 +51,13 @@ describe('MyPage Component', () => {
   })
 
   test('今日の日付が表示される', () => {
-    const onSignOutMock = jest.fn()
-
     // テスト日時を固定にしたい場合は jest.useFakeTimers などでDateをモック化できる
     // ここでは単純に「部分一致するか」だけをテスト
     const todayString = new Date().toLocaleDateString()
 
     render(
       <MemoryRouter>
-        <MyPage user={mockUser} onSignOut={onSignOutMock} />
+        <MyPage />
       </MemoryRouter>,
     )
 
@@ -79,7 +71,7 @@ describe('MyPage Component', () => {
 
     render(
       <MemoryRouter>
-        <MyPage user={mockUser} onSignOut={onSignOutMock} />
+        <MyPage />
       </MemoryRouter>,
     )
 

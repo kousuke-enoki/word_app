@@ -14,6 +14,7 @@ type SignUpRequest struct {
 type User struct {
 	Name  string `json:"name" binding:"required"`
 	Admin bool   `json:"admin" binding:"required"`
+	Root  bool   `json:"root" binding:"required"`
 }
 
 type MyPageResponse struct {

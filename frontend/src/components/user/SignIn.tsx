@@ -23,7 +23,7 @@ const SignIn: React.FC = () => {
         navigate('/mypage')
       })
     } catch (error) {
-      setMessage('サインインに失敗しました。もう一度お試しください。')
+      setMessage('Sign in failed. Please try again.')
     }
   }
 

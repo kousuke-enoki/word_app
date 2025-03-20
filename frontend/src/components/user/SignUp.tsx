@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import axiosInstance from '../../axiosConfig'
+import { useNavigate } from 'react-router-dom'
 
 interface FieldError {
   field: string
@@ -12,6 +13,7 @@ const SignUp: React.FC = () => {
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
   const [errors, setErrors] = useState<FieldError[]>([])
+  const navigate = useNavigate()
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -23,10 +25,14 @@ const SignUp: React.FC = () => {
       })
       const token = response.data.token
       localStorage.setItem('token', token)
+      localStorage.setItem('logoutMessage', 'サインアップしました。')
       setMessage('Sign up successful!')
       setErrors([])
+      setTimeout(() => {
+        navigate('/mypage')
+      })
     } catch (error: any) {
-      const fieldErrors: FieldError[] = error.response.data.errors || []
+      const fieldErrors: FieldError[] = error.response?.data?.errors || []
       setErrors(fieldErrors)
       setMessage('')
     }

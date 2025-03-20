@@ -14,18 +14,19 @@ func NewAuthHandler() *AuthHandler {
 
 func (h *AuthHandler) AuthCheckHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// ミドルウェアで設定された userID を取得
-		userID, exists := c.Get("userID")
-		if !exists {
-			// 通常ここには到達しないが念のためチェック
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		userRoles, err := GetUserRoles(c)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
 
 		// ログイン状態を返す
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Authenticated",
-			"userID":  userID, // 必要であればユーザーIDを含める
+			"userID":  userRoles.UserID,
+			"isLogin": true,
+			"isAdmin": userRoles.IsAdmin,
+			"isRoot":  userRoles.IsRoot,
 		})
 	}
 }

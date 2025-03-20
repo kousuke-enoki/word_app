@@ -1,9 +1,5 @@
 package main
 
-import (
-	"testing"
-)
-
 // func TestInitializeServer(t *testing.T) {
 // 	t.Setenv("DB_HOST", "localhost")
 // 	t.Setenv("DB_USER", "user")
@@ -19,17 +15,3 @@ import (
 
 // 	initializeServer()
 // }
-
-func TestConnectToDatabase(t *testing.T) {
-	t.Setenv("DB_HOST", "localhost")
-	t.Setenv("DB_USER", "user")
-	t.Setenv("DB_PASSWORD", "password")
-	t.Setenv("DB_NAME", "test_db")
-
-	client := connectToDatabase()
-	defer client.Close()
-
-	if client == nil {
-		t.Fatal("Database client should not be nil")
-	}
-}

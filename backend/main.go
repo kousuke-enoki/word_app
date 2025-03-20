@@ -2,11 +2,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 
 	"word_app/backend/config"
-	"word_app/backend/ent"
+	"word_app/backend/database"
 	"word_app/backend/ent/user"
 	"word_app/backend/logger"
 	routerConfig "word_app/backend/router"
@@ -39,7 +38,9 @@ func initializeServer() {
 	logger.InitLogger()
 
 	appEnv, appPort, corsOrigin := config.LoadAppConfig()
-	entClient := connectToDatabase()
+	database.InitEntClient()
+	entClient := database.GetEntClient()
+	// entClient := connectToDatabase()
 	defer entClient.Close()
 
 	client := infrastructure.NewAppClient(entClient)
@@ -48,29 +49,6 @@ func initializeServer() {
 	router := setupRouter(client, corsOrigin)
 
 	startServer(router, appPort, appEnv)
-}
-
-// データベースに接続
-func connectToDatabase() *ent.Client {
-	dbHost := os.Getenv("DB_HOST")
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
-	// entDebug := os.Getenv("ENT_DEBUG")
-
-	dsn := fmt.Sprintf("host=%s port=5432 user=%s dbname=%s password=%s sslmode=disable", dbHost, dbUser, dbName, dbPassword)
-	client, err := ent.Open("postgres", dsn)
-	if err != nil {
-		logrus.Fatalf("Failed to connect to database: %v", err)
-	}
-
-	// if entDebug == "1" {
-	// 	client = client.Debug()
-	// 	logrus.Info("Ent debug mode enabled")
-	// }
-
-	logrus.Info("Database connection established")
-	return client
 }
 
 // データベースのセットアップ

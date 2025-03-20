@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"word_app/backend/src/handlers/middleware"
 	"word_app/backend/src/models"
 	"word_app/backend/src/validators/word"
 
@@ -14,6 +15,12 @@ import (
 func (h *WordHandler) CreateWordHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
+
+		userRoles, err := middleware.GetUserRoles(c)
+		if (err != nil) || (userRoles.IsAdmin != true) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
 
 		// リクエストを解析
 		req, err := h.parseCreateWordRequest(c)

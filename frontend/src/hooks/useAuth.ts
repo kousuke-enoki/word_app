@@ -1,37 +1,55 @@
 import { useEffect, useState } from 'react'
+import axiosInstance from '../axiosConfig'
+
+type UserRole = 'guest' | 'general' | 'admin' | 'root'
 
 export const useAuth = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null) // nullは未確定状態
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
+  const [userRole, setUserRole] = useState<UserRole>('guest')
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const checkAuth = async () => {
+      setIsLoading(true)
       const token = localStorage.getItem('token')
       if (!token) {
+        // トークンがなければ未ログイン状態
+        setIsLoggedIn(false)
+        setUserRole('guest')
         setIsLoading(false)
         return
       }
-      try {
-        const response = await fetch('/auth/check', {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`, // トークンを送信
-          },
+      axiosInstance
+        .get('/auth/check')
+        .then((response) => {
+          const data = response.data
+          if (data.isLogin) {
+            setIsLoggedIn(true)
+            // setUserRole(data.userRole)
+            if (data.isAdmin) {
+              setUserRole('admin')
+            }
+            if (data.isRoot) {
+              setUserRole('root')
+            }
+          } else {
+            setIsLoggedIn(false)
+            setUserRole('guest')
+          }
         })
-        if (response.ok) {
-          setIsLoggedIn(true)
-        } else {
+        .catch(() => {
           setIsLoggedIn(false)
-        }
-      } catch (error) {
-        setIsLoggedIn(false)
-      } finally {
-        setIsLoading(false)
-      }
+          setUserRole('guest')
+        })
+        .finally(() => {
+          setIsLoading(false)
+        })
     }
 
     checkAuth()
+    // ↓無限ループしてしまうので入れない
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return { isLoggedIn, isLoading }
+  return { isLoggedIn, userRole, isLoading }
 }

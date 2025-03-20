@@ -5,7 +5,10 @@ import {
   Routes,
   Navigate,
 } from 'react-router-dom'
+import PrivateRoute from './PrivateRoute'
+import PublicRoute from './PublicRoute'
 import Home from '../components/user/Home'
+import MyPage from '../components/user/MyPage'
 import SignIn from '../components/user/SignIn'
 import SignUp from '../components/user/SignUp'
 import WordNew from '../components/word/WordNew'
@@ -13,7 +16,6 @@ import WordEdit from '../components/word/WordEdit'
 import WordList from '../components/word/WordList'
 import WordShow from '../components/word/WordShow'
 import Header from '../components/Header'
-import PrivateRoute from '../components/PrivateRoute' // 後述するPrivateRouteをインポート
 // import Dashboard from '../components/Dashboard';
 // import Footer from '../components/Footer';
 
@@ -22,14 +24,46 @@ const AppRouter: React.FC = () => {
     <Router>
       <Header />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/sign_in" element={<SignIn />} />
-        <Route path="/sign_up" element={<SignUp />} />
-        {/* ログイン必須ページはPrivateRouteで保護 */}
+        {/* 未ログインのみアクセス可 */}
+
+        <Route
+          path="/"
+          element={
+            <PublicRoute>
+              <Home />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/sign_in"
+          element={
+            <PublicRoute>
+              <SignIn />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/sign_up"
+          element={
+            <PublicRoute>
+              <SignUp />
+            </PublicRoute>
+          }
+        />
+
+        {/* ログイン済みのみアクセス可 */}
+        <Route
+          path="/mypage"
+          element={
+            <PrivateRoute>
+              <MyPage />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/words/new"
           element={
-            <PrivateRoute>
+            <PrivateRoute requiredRole={'admin'}>
               <WordNew />
             </PrivateRoute>
           }
@@ -37,16 +71,8 @@ const AppRouter: React.FC = () => {
         <Route
           path="/words/edit/:id"
           element={
-            <PrivateRoute>
+            <PrivateRoute requiredRole={'admin'}>
               <WordEdit />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/words/new"
-          element={
-            <PrivateRoute>
-              <WordNew />
             </PrivateRoute>
           }
         />

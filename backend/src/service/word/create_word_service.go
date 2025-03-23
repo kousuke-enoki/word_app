@@ -38,7 +38,7 @@ func (s *WordServiceImpl) CreateWord(ctx context.Context, CreateWordRequest *mod
 		logrus.Error(err)
 		return nil, ErrDatabaseFailure
 	}
-	if !userEntity.Admin {
+	if !userEntity.IsAdmin {
 		return nil, ErrUnauthorized
 	}
 

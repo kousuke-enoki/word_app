@@ -47,9 +47,9 @@ func (User) Fields() []ent.Field {
 		field.Time("updated_at").
 			Default(time.Now).
 			UpdateDefault(time.Now),
-		field.Bool("admin").
+		field.Bool("isAdmin").
 			Default(false),
-		field.Bool("root").
+		field.Bool("isRoot").
 			Default(false),
 	}
 }

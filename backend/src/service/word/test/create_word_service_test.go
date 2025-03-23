@@ -41,7 +41,7 @@ func TestCreateWord(t *testing.T) {
 		SetName("Admin User").
 		SetEmail("admin@example.com").
 		SetPassword("password").
-		SetAdmin(true).
+		SetIsAdmin(true).
 		Save(ctx)
 	assert.NoError(t, err)
 	assert.NotNil(t, adminUser)
@@ -50,7 +50,7 @@ func TestCreateWord(t *testing.T) {
 		SetName("Non-Admin User").
 		SetEmail("nonadmin@example.com").
 		SetPassword("password").
-		SetAdmin(false).
+		SetIsAdmin(false).
 		Save(ctx)
 	assert.NoError(t, err)
 	assert.NotNil(t, nonAdminUser)

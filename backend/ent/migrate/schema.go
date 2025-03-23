@@ -145,8 +145,8 @@ var (
 		{Name: "name", Type: field.TypeString, Default: "JohnDoe"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "admin", Type: field.TypeBool, Default: false},
-		{Name: "root", Type: field.TypeBool, Default: false},
+		{Name: "is_admin", Type: field.TypeBool, Default: false},
+		{Name: "is_root", Type: field.TypeBool, Default: false},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

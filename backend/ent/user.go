@@ -28,10 +28,10 @@ type User struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// Admin holds the value of the "admin" field.
-	Admin bool `json:"admin,omitempty"`
-	// Root holds the value of the "root" field.
-	Root bool `json:"root,omitempty"`
+	// IsAdmin holds the value of the "isAdmin" field.
+	IsAdmin bool `json:"isAdmin,omitempty"`
+	// IsRoot holds the value of the "isRoot" field.
+	IsRoot bool `json:"isRoot,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -72,7 +72,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldAdmin, user.FieldRoot:
+		case user.FieldIsAdmin, user.FieldIsRoot:
 			values[i] = new(sql.NullBool)
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
@@ -131,17 +131,17 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.UpdatedAt = value.Time
 			}
-		case user.FieldAdmin:
+		case user.FieldIsAdmin:
 			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field admin", values[i])
+				return fmt.Errorf("unexpected type %T for field isAdmin", values[i])
 			} else if value.Valid {
-				u.Admin = value.Bool
+				u.IsAdmin = value.Bool
 			}
-		case user.FieldRoot:
+		case user.FieldIsRoot:
 			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field root", values[i])
+				return fmt.Errorf("unexpected type %T for field isRoot", values[i])
 			} else if value.Valid {
-				u.Root = value.Bool
+				u.IsRoot = value.Bool
 			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
@@ -203,11 +203,11 @@ func (u *User) String() string {
 	builder.WriteString("updated_at=")
 	builder.WriteString(u.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("admin=")
-	builder.WriteString(fmt.Sprintf("%v", u.Admin))
+	builder.WriteString("isAdmin=")
+	builder.WriteString(fmt.Sprintf("%v", u.IsAdmin))
 	builder.WriteString(", ")
-	builder.WriteString("root=")
-	builder.WriteString(fmt.Sprintf("%v", u.Root))
+	builder.WriteString("isRoot=")
+	builder.WriteString(fmt.Sprintf("%v", u.IsRoot))
 	builder.WriteByte(')')
 	return builder.String()
 }

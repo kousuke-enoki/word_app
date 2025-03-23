@@ -31,8 +31,8 @@ func TestMyPageHandler(t *testing.T) {
 		// モックの設定
 		userID := 1
 		mockUser := &ent.User{
-			Name:  "Test User",
-			Admin: true,
+			Name:    "Test User",
+			IsAdmin: true,
 		}
 		mockClient.On("FindUserByID", mock.Anything, userID).Return(mockUser, nil)
 
@@ -60,8 +60,8 @@ func TestMyPageHandler(t *testing.T) {
 		// モックの設定
 		userID := 1
 		mockUser := &ent.User{
-			Name:  "Test User",
-			Admin: true,
+			Name:    "Test User",
+			IsAdmin: true,
 		}
 		mockClient.On("FindUserByID", mock.MatchedBy(func(c context.Context) bool {
 			// コンテキストの確認

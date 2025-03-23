@@ -92,30 +92,30 @@ func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
 	return uu
 }
 
-// SetAdmin sets the "admin" field.
-func (uu *UserUpdate) SetAdmin(b bool) *UserUpdate {
-	uu.mutation.SetAdmin(b)
+// SetIsAdmin sets the "isAdmin" field.
+func (uu *UserUpdate) SetIsAdmin(b bool) *UserUpdate {
+	uu.mutation.SetIsAdmin(b)
 	return uu
 }
 
-// SetNillableAdmin sets the "admin" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableAdmin(b *bool) *UserUpdate {
+// SetNillableIsAdmin sets the "isAdmin" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableIsAdmin(b *bool) *UserUpdate {
 	if b != nil {
-		uu.SetAdmin(*b)
+		uu.SetIsAdmin(*b)
 	}
 	return uu
 }
 
-// SetRoot sets the "root" field.
-func (uu *UserUpdate) SetRoot(b bool) *UserUpdate {
-	uu.mutation.SetRoot(b)
+// SetIsRoot sets the "isRoot" field.
+func (uu *UserUpdate) SetIsRoot(b bool) *UserUpdate {
+	uu.mutation.SetIsRoot(b)
 	return uu
 }
 
-// SetNillableRoot sets the "root" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableRoot(b *bool) *UserUpdate {
+// SetNillableIsRoot sets the "isRoot" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableIsRoot(b *bool) *UserUpdate {
 	if b != nil {
-		uu.SetRoot(*b)
+		uu.SetIsRoot(*b)
 	}
 	return uu
 }
@@ -280,11 +280,11 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if value, ok := uu.mutation.Admin(); ok {
-		_spec.SetField(user.FieldAdmin, field.TypeBool, value)
+	if value, ok := uu.mutation.IsAdmin(); ok {
+		_spec.SetField(user.FieldIsAdmin, field.TypeBool, value)
 	}
-	if value, ok := uu.mutation.Root(); ok {
-		_spec.SetField(user.FieldRoot, field.TypeBool, value)
+	if value, ok := uu.mutation.IsRoot(); ok {
+		_spec.SetField(user.FieldIsRoot, field.TypeBool, value)
 	}
 	if uu.mutation.RegisteredWordsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -458,30 +458,30 @@ func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 	return uuo
 }
 
-// SetAdmin sets the "admin" field.
-func (uuo *UserUpdateOne) SetAdmin(b bool) *UserUpdateOne {
-	uuo.mutation.SetAdmin(b)
+// SetIsAdmin sets the "isAdmin" field.
+func (uuo *UserUpdateOne) SetIsAdmin(b bool) *UserUpdateOne {
+	uuo.mutation.SetIsAdmin(b)
 	return uuo
 }
 
-// SetNillableAdmin sets the "admin" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableAdmin(b *bool) *UserUpdateOne {
+// SetNillableIsAdmin sets the "isAdmin" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableIsAdmin(b *bool) *UserUpdateOne {
 	if b != nil {
-		uuo.SetAdmin(*b)
+		uuo.SetIsAdmin(*b)
 	}
 	return uuo
 }
 
-// SetRoot sets the "root" field.
-func (uuo *UserUpdateOne) SetRoot(b bool) *UserUpdateOne {
-	uuo.mutation.SetRoot(b)
+// SetIsRoot sets the "isRoot" field.
+func (uuo *UserUpdateOne) SetIsRoot(b bool) *UserUpdateOne {
+	uuo.mutation.SetIsRoot(b)
 	return uuo
 }
 
-// SetNillableRoot sets the "root" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableRoot(b *bool) *UserUpdateOne {
+// SetNillableIsRoot sets the "isRoot" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableIsRoot(b *bool) *UserUpdateOne {
 	if b != nil {
-		uuo.SetRoot(*b)
+		uuo.SetIsRoot(*b)
 	}
 	return uuo
 }
@@ -676,11 +676,11 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if value, ok := uuo.mutation.Admin(); ok {
-		_spec.SetField(user.FieldAdmin, field.TypeBool, value)
+	if value, ok := uuo.mutation.IsAdmin(); ok {
+		_spec.SetField(user.FieldIsAdmin, field.TypeBool, value)
 	}
-	if value, ok := uuo.mutation.Root(); ok {
-		_spec.SetField(user.FieldRoot, field.TypeBool, value)
+	if value, ok := uuo.mutation.IsRoot(); ok {
+		_spec.SetField(user.FieldIsRoot, field.TypeBool, value)
 	}
 	if uuo.mutation.RegisteredWordsCleared() {
 		edge := &sqlgraph.EdgeSpec{

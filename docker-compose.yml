@@ -54,6 +54,7 @@ services:
       - CHOKIDAR_USEPOLLING=true
     volumes:
       - ./frontend:/app
+      - /app/node_modules
     command: npm run dev
 
 volumes:

@@ -17,7 +17,10 @@ func (h *WordHandler) DeleteWordHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 		userRoles, err := middleware.GetUserRoles(c)
-		if (err != nil) || (userRoles.IsAdmin != true) {
+		if err != nil || userRoles == nil || !userRoles.IsAdmin {
+			if err == nil {
+				err = errors.New("unauthorized: admin access required")
+			}
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}

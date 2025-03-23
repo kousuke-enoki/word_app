@@ -80,14 +80,14 @@ func UpdatedAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
-// Admin applies equality check predicate on the "admin" field. It's identical to AdminEQ.
-func Admin(v bool) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldAdmin, v))
+// IsAdmin applies equality check predicate on the "isAdmin" field. It's identical to IsAdminEQ.
+func IsAdmin(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldIsAdmin, v))
 }
 
-// Root applies equality check predicate on the "root" field. It's identical to RootEQ.
-func Root(v bool) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldRoot, v))
+// IsRoot applies equality check predicate on the "isRoot" field. It's identical to IsRootEQ.
+func IsRoot(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldIsRoot, v))
 }
 
 // EmailEQ applies the EQ predicate on the "email" field.
@@ -365,24 +365,24 @@ func UpdatedAtLTE(v time.Time) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
-// AdminEQ applies the EQ predicate on the "admin" field.
-func AdminEQ(v bool) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldAdmin, v))
+// IsAdminEQ applies the EQ predicate on the "isAdmin" field.
+func IsAdminEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldIsAdmin, v))
 }
 
-// AdminNEQ applies the NEQ predicate on the "admin" field.
-func AdminNEQ(v bool) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldAdmin, v))
+// IsAdminNEQ applies the NEQ predicate on the "isAdmin" field.
+func IsAdminNEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldIsAdmin, v))
 }
 
-// RootEQ applies the EQ predicate on the "root" field.
-func RootEQ(v bool) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldRoot, v))
+// IsRootEQ applies the EQ predicate on the "isRoot" field.
+func IsRootEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldIsRoot, v))
 }
 
-// RootNEQ applies the NEQ predicate on the "root" field.
-func RootNEQ(v bool) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldRoot, v))
+// IsRootNEQ applies the NEQ predicate on the "isRoot" field.
+func IsRootNEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldIsRoot, v))
 }
 
 // HasRegisteredWords applies the HasEdge predicate on the "registered_words" edge.

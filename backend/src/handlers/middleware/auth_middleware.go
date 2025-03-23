@@ -69,7 +69,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			u, err := entClient.User.
 				Query().
 				Where(entUser.ID(userIDInt)).
-				Select(user.FieldAdmin, user.FieldRoot).
+				Select(user.FieldIsAdmin, user.FieldIsRoot).
 				Only(c)
 			if err != nil {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found or DB error"})
@@ -77,8 +77,8 @@ func AuthMiddleware() gin.HandlerFunc {
 				return
 			}
 
-			isAdmin := u.Admin
-			isRoot := u.Root
+			isAdmin := u.IsAdmin
+			isRoot := u.IsRoot
 
 			// gin.Context に格納して後続ハンドラーで利用できるようにする
 			c.Set("userID", userIDInt)

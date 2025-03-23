@@ -38,8 +38,8 @@ func SeedAdminUsers(ctx context.Context, client interfaces.ClientInterface) {
 			SetEmail("root@example.com").
 			SetName("Root User").
 			SetPassword(string(hashedPassword)).
-			SetAdmin(true).
-			SetRoot(true).
+			SetIsAdmin(true).
+			SetIsRoot(true).
 			Save(ctx)
 		if err != nil {
 			log.Fatalf("failed to create root user: %v", err)

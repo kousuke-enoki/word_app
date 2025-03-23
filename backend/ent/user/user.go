@@ -24,10 +24,10 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// FieldAdmin holds the string denoting the admin field in the database.
-	FieldAdmin = "admin"
-	// FieldRoot holds the string denoting the root field in the database.
-	FieldRoot = "root"
+	// FieldIsAdmin holds the string denoting the isadmin field in the database.
+	FieldIsAdmin = "is_admin"
+	// FieldIsRoot holds the string denoting the isroot field in the database.
+	FieldIsRoot = "is_root"
 	// EdgeRegisteredWords holds the string denoting the registered_words edge name in mutations.
 	EdgeRegisteredWords = "registered_words"
 	// EdgeTests holds the string denoting the tests edge name in mutations.
@@ -58,8 +58,8 @@ var Columns = []string{
 	FieldName,
 	FieldCreatedAt,
 	FieldUpdatedAt,
-	FieldAdmin,
-	FieldRoot,
+	FieldIsAdmin,
+	FieldIsRoot,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -87,10 +87,10 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
-	// DefaultAdmin holds the default value on creation for the "admin" field.
-	DefaultAdmin bool
-	// DefaultRoot holds the default value on creation for the "root" field.
-	DefaultRoot bool
+	// DefaultIsAdmin holds the default value on creation for the "isAdmin" field.
+	DefaultIsAdmin bool
+	// DefaultIsRoot holds the default value on creation for the "isRoot" field.
+	DefaultIsRoot bool
 )
 
 // OrderOption defines the ordering options for the User queries.
@@ -126,14 +126,14 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
-// ByAdmin orders the results by the admin field.
-func ByAdmin(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldAdmin, opts...).ToFunc()
+// ByIsAdmin orders the results by the isAdmin field.
+func ByIsAdmin(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsAdmin, opts...).ToFunc()
 }
 
-// ByRoot orders the results by the root field.
-func ByRoot(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldRoot, opts...).ToFunc()
+// ByIsRoot orders the results by the isRoot field.
+func ByIsRoot(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsRoot, opts...).ToFunc()
 }
 
 // ByRegisteredWordsCount orders the results by registered_words count.

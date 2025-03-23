@@ -42,7 +42,7 @@ func (s *WordServiceImpl) UpdateWord(ctx context.Context, req *models.UpdateWord
 		logrus.Error("failed to get user:", err)
 		return nil, errors.New("failed to get user")
 	}
-	if !userEntity.Admin {
+	if !userEntity.IsAdmin {
 		logrus.Error("unauthorized user")
 		return nil, ErrUnauthorized
 	}

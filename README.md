@@ -26,6 +26,7 @@ bash docker.sh exec frontend prod
 docker compose --env-file backend/.env.development down --volumes --rmi all
 docker compose build --no-cache
 bash docker.sh up dev
+<!-- bash docker.sh up dev -->
 
 # 実行中のコンテナを確認
 docker ps

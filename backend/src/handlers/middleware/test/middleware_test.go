@@ -1,23 +1,46 @@
 package middleware_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strconv"
 	"testing"
 
+	"word_app/backend/database"
+	"word_app/backend/ent/enttest"
 	"word_app/backend/src/handlers/middleware"
 	"word_app/backend/src/utils"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAuthMiddleware(t *testing.T) {
+	// 1. テスト用のEntクライアント作成（SQLite in-memory）
+	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
+	defer client.Close()
+
+	// 2. DBクライアントを差し替え
+	database.SetEntClient(client)
 	t.Run("TestAuthMiddleware_ValidToken", func(t *testing.T) {
-		// テスト用の JWT_SECRET を設定
+		// 2. DBクライアントを差し替え
+		database.SetEntClient(client)
+
+		// 3. テスト用ユーザーを作成（userID = 12345）
+		ctx := context.Background()
+		user, err := client.User.Create().
+			SetEmail("test@example.com").
+			SetPassword("dummy").
+			SetIsAdmin(false).
+			SetIsRoot(false).
+			Save(ctx)
+		assert.NoError(t, err)
+
 		testSecret := "test_secret_key"
-		err := os.Setenv("JWT_SECRET", testSecret)
+		err = os.Setenv("JWT_SECRET", testSecret)
 		assert.NoError(t, err, "Setting JWT_SECRET should not produce an error")
 
 		gin.SetMode(gin.TestMode)
@@ -31,10 +54,10 @@ func TestAuthMiddleware(t *testing.T) {
 			}
 			c.JSON(http.StatusOK, gin.H{"userID": userID})
 		})
-
+		createdUserid := strconv.Itoa(user.ID)
 		// 有効なJWTトークンを生成
 		jwtGen := &utils.DefaultJWTGenerator{}
-		token, _ := jwtGen.GenerateJWT("12345")
+		token, _ := jwtGen.GenerateJWT(createdUserid)
 
 		req, _ := http.NewRequest(http.MethodGet, "/protected", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
@@ -42,7 +65,7 @@ func TestAuthMiddleware(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, w.Body.String(), `"userID":12345`)
+		assert.Contains(t, w.Body.String(), `"userID":`+createdUserid)
 	})
 
 	t.Run("TestAuthMiddleware_InvalidToken", func(t *testing.T) {

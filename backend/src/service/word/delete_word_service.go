@@ -36,14 +36,14 @@ func (s *WordServiceImpl) DeleteWord(ctx context.Context, DeleteWordRequest *mod
 		}
 	}()
 
-	// 管理者チェック (将来の拡張を考慮)
+	// 管理者チェック
 	userEntity, err := tx.User.Get(ctx, userID)
 	if err != nil {
 		logrus.Error(err)
 		tx.Rollback()
 		return nil, ErrDeleteWord
 	}
-	if !userEntity.Admin {
+	if !userEntity.IsAdmin {
 		logrus.Error(err)
 		tx.Rollback()
 		return nil, ErrUnauthorized

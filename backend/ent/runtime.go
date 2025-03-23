@@ -192,14 +192,14 @@ func init() {
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// userDescAdmin is the schema descriptor for admin field.
-	userDescAdmin := userFields[5].Descriptor()
-	// user.DefaultAdmin holds the default value on creation for the admin field.
-	user.DefaultAdmin = userDescAdmin.Default.(bool)
-	// userDescRoot is the schema descriptor for root field.
-	userDescRoot := userFields[6].Descriptor()
-	// user.DefaultRoot holds the default value on creation for the root field.
-	user.DefaultRoot = userDescRoot.Default.(bool)
+	// userDescIsAdmin is the schema descriptor for isAdmin field.
+	userDescIsAdmin := userFields[5].Descriptor()
+	// user.DefaultIsAdmin holds the default value on creation for the isAdmin field.
+	user.DefaultIsAdmin = userDescIsAdmin.Default.(bool)
+	// userDescIsRoot is the schema descriptor for isRoot field.
+	userDescIsRoot := userFields[6].Descriptor()
+	// user.DefaultIsRoot holds the default value on creation for the isRoot field.
+	user.DefaultIsRoot = userDescIsRoot.Default.(bool)
 	wordFields := schema.Word{}.Fields()
 	_ = wordFields
 	// wordDescName is the schema descriptor for name field.

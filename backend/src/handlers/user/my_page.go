@@ -36,8 +36,8 @@ func (h *UserHandler) MyPageHandler() gin.HandlerFunc {
 		c.JSON(http.StatusOK, models.MyPageResponse{
 			User: models.User{
 				Name:  signInUser.Name,
-				Admin: signInUser.Admin,
-				Root:  signInUser.Root,
+				Admin: signInUser.IsAdmin,
+				Root:  signInUser.IsRoot,
 			},
 		})
 	}

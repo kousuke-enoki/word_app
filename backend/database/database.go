@@ -7,6 +7,8 @@ import (
 	"word_app/backend/ent"
 
 	// _ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -38,4 +40,8 @@ func InitEntClient() {
 func GetEntClient() *ent.Client {
 	// InitEntClient() で作成したClientを返す
 	return entClient
+}
+
+func SetEntClient(c *ent.Client) {
+	entClient = c
 }

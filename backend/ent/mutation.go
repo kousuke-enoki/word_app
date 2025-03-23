@@ -3842,8 +3842,8 @@ type UserMutation struct {
 	name                    *string
 	created_at              *time.Time
 	updated_at              *time.Time
-	admin                   *bool
-	root                    *bool
+	isAdmin                 *bool
+	isRoot                  *bool
 	clearedFields           map[string]struct{}
 	registered_words        map[int]struct{}
 	removedregistered_words map[int]struct{}
@@ -4134,76 +4134,76 @@ func (m *UserMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// SetAdmin sets the "admin" field.
-func (m *UserMutation) SetAdmin(b bool) {
-	m.admin = &b
+// SetIsAdmin sets the "isAdmin" field.
+func (m *UserMutation) SetIsAdmin(b bool) {
+	m.isAdmin = &b
 }
 
-// Admin returns the value of the "admin" field in the mutation.
-func (m *UserMutation) Admin() (r bool, exists bool) {
-	v := m.admin
+// IsAdmin returns the value of the "isAdmin" field in the mutation.
+func (m *UserMutation) IsAdmin() (r bool, exists bool) {
+	v := m.isAdmin
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldAdmin returns the old "admin" field's value of the User entity.
+// OldIsAdmin returns the old "isAdmin" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldAdmin(ctx context.Context) (v bool, err error) {
+func (m *UserMutation) OldIsAdmin(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldAdmin is only allowed on UpdateOne operations")
+		return v, errors.New("OldIsAdmin is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldAdmin requires an ID field in the mutation")
+		return v, errors.New("OldIsAdmin requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldAdmin: %w", err)
+		return v, fmt.Errorf("querying old value for OldIsAdmin: %w", err)
 	}
-	return oldValue.Admin, nil
+	return oldValue.IsAdmin, nil
 }
 
-// ResetAdmin resets all changes to the "admin" field.
-func (m *UserMutation) ResetAdmin() {
-	m.admin = nil
+// ResetIsAdmin resets all changes to the "isAdmin" field.
+func (m *UserMutation) ResetIsAdmin() {
+	m.isAdmin = nil
 }
 
-// SetRoot sets the "root" field.
-func (m *UserMutation) SetRoot(b bool) {
-	m.root = &b
+// SetIsRoot sets the "isRoot" field.
+func (m *UserMutation) SetIsRoot(b bool) {
+	m.isRoot = &b
 }
 
-// Root returns the value of the "root" field in the mutation.
-func (m *UserMutation) Root() (r bool, exists bool) {
-	v := m.root
+// IsRoot returns the value of the "isRoot" field in the mutation.
+func (m *UserMutation) IsRoot() (r bool, exists bool) {
+	v := m.isRoot
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldRoot returns the old "root" field's value of the User entity.
+// OldIsRoot returns the old "isRoot" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldRoot(ctx context.Context) (v bool, err error) {
+func (m *UserMutation) OldIsRoot(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRoot is only allowed on UpdateOne operations")
+		return v, errors.New("OldIsRoot is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRoot requires an ID field in the mutation")
+		return v, errors.New("OldIsRoot requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRoot: %w", err)
+		return v, fmt.Errorf("querying old value for OldIsRoot: %w", err)
 	}
-	return oldValue.Root, nil
+	return oldValue.IsRoot, nil
 }
 
-// ResetRoot resets all changes to the "root" field.
-func (m *UserMutation) ResetRoot() {
-	m.root = nil
+// ResetIsRoot resets all changes to the "isRoot" field.
+func (m *UserMutation) ResetIsRoot() {
+	m.isRoot = nil
 }
 
 // AddRegisteredWordIDs adds the "registered_words" edge to the RegisteredWord entity by ids.
@@ -4364,11 +4364,11 @@ func (m *UserMutation) Fields() []string {
 	if m.updated_at != nil {
 		fields = append(fields, user.FieldUpdatedAt)
 	}
-	if m.admin != nil {
-		fields = append(fields, user.FieldAdmin)
+	if m.isAdmin != nil {
+		fields = append(fields, user.FieldIsAdmin)
 	}
-	if m.root != nil {
-		fields = append(fields, user.FieldRoot)
+	if m.isRoot != nil {
+		fields = append(fields, user.FieldIsRoot)
 	}
 	return fields
 }
@@ -4388,10 +4388,10 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case user.FieldUpdatedAt:
 		return m.UpdatedAt()
-	case user.FieldAdmin:
-		return m.Admin()
-	case user.FieldRoot:
-		return m.Root()
+	case user.FieldIsAdmin:
+		return m.IsAdmin()
+	case user.FieldIsRoot:
+		return m.IsRoot()
 	}
 	return nil, false
 }
@@ -4411,10 +4411,10 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldCreatedAt(ctx)
 	case user.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
-	case user.FieldAdmin:
-		return m.OldAdmin(ctx)
-	case user.FieldRoot:
-		return m.OldRoot(ctx)
+	case user.FieldIsAdmin:
+		return m.OldIsAdmin(ctx)
+	case user.FieldIsRoot:
+		return m.OldIsRoot(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -4459,19 +4459,19 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUpdatedAt(v)
 		return nil
-	case user.FieldAdmin:
+	case user.FieldIsAdmin:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetAdmin(v)
+		m.SetIsAdmin(v)
 		return nil
-	case user.FieldRoot:
+	case user.FieldIsRoot:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetRoot(v)
+		m.SetIsRoot(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -4537,11 +4537,11 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
-	case user.FieldAdmin:
-		m.ResetAdmin()
+	case user.FieldIsAdmin:
+		m.ResetIsAdmin()
 		return nil
-	case user.FieldRoot:
-		m.ResetRoot()
+	case user.FieldIsRoot:
+		m.ResetIsRoot()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

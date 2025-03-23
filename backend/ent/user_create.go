@@ -76,30 +76,30 @@ func (uc *UserCreate) SetNillableUpdatedAt(t *time.Time) *UserCreate {
 	return uc
 }
 
-// SetAdmin sets the "admin" field.
-func (uc *UserCreate) SetAdmin(b bool) *UserCreate {
-	uc.mutation.SetAdmin(b)
+// SetIsAdmin sets the "isAdmin" field.
+func (uc *UserCreate) SetIsAdmin(b bool) *UserCreate {
+	uc.mutation.SetIsAdmin(b)
 	return uc
 }
 
-// SetNillableAdmin sets the "admin" field if the given value is not nil.
-func (uc *UserCreate) SetNillableAdmin(b *bool) *UserCreate {
+// SetNillableIsAdmin sets the "isAdmin" field if the given value is not nil.
+func (uc *UserCreate) SetNillableIsAdmin(b *bool) *UserCreate {
 	if b != nil {
-		uc.SetAdmin(*b)
+		uc.SetIsAdmin(*b)
 	}
 	return uc
 }
 
-// SetRoot sets the "root" field.
-func (uc *UserCreate) SetRoot(b bool) *UserCreate {
-	uc.mutation.SetRoot(b)
+// SetIsRoot sets the "isRoot" field.
+func (uc *UserCreate) SetIsRoot(b bool) *UserCreate {
+	uc.mutation.SetIsRoot(b)
 	return uc
 }
 
-// SetNillableRoot sets the "root" field if the given value is not nil.
-func (uc *UserCreate) SetNillableRoot(b *bool) *UserCreate {
+// SetNillableIsRoot sets the "isRoot" field if the given value is not nil.
+func (uc *UserCreate) SetNillableIsRoot(b *bool) *UserCreate {
 	if b != nil {
-		uc.SetRoot(*b)
+		uc.SetIsRoot(*b)
 	}
 	return uc
 }
@@ -181,13 +181,13 @@ func (uc *UserCreate) defaults() {
 		v := user.DefaultUpdatedAt()
 		uc.mutation.SetUpdatedAt(v)
 	}
-	if _, ok := uc.mutation.Admin(); !ok {
-		v := user.DefaultAdmin
-		uc.mutation.SetAdmin(v)
+	if _, ok := uc.mutation.IsAdmin(); !ok {
+		v := user.DefaultIsAdmin
+		uc.mutation.SetIsAdmin(v)
 	}
-	if _, ok := uc.mutation.Root(); !ok {
-		v := user.DefaultRoot
-		uc.mutation.SetRoot(v)
+	if _, ok := uc.mutation.IsRoot(); !ok {
+		v := user.DefaultIsRoot
+		uc.mutation.SetIsRoot(v)
 	}
 }
 
@@ -223,11 +223,11 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "User.updated_at"`)}
 	}
-	if _, ok := uc.mutation.Admin(); !ok {
-		return &ValidationError{Name: "admin", err: errors.New(`ent: missing required field "User.admin"`)}
+	if _, ok := uc.mutation.IsAdmin(); !ok {
+		return &ValidationError{Name: "isAdmin", err: errors.New(`ent: missing required field "User.isAdmin"`)}
 	}
-	if _, ok := uc.mutation.Root(); !ok {
-		return &ValidationError{Name: "root", err: errors.New(`ent: missing required field "User.root"`)}
+	if _, ok := uc.mutation.IsRoot(); !ok {
+		return &ValidationError{Name: "isRoot", err: errors.New(`ent: missing required field "User.isRoot"`)}
 	}
 	return nil
 }
@@ -275,13 +275,13 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if value, ok := uc.mutation.Admin(); ok {
-		_spec.SetField(user.FieldAdmin, field.TypeBool, value)
-		_node.Admin = value
+	if value, ok := uc.mutation.IsAdmin(); ok {
+		_spec.SetField(user.FieldIsAdmin, field.TypeBool, value)
+		_node.IsAdmin = value
 	}
-	if value, ok := uc.mutation.Root(); ok {
-		_spec.SetField(user.FieldRoot, field.TypeBool, value)
-		_node.Root = value
+	if value, ok := uc.mutation.IsRoot(); ok {
+		_spec.SetField(user.FieldIsRoot, field.TypeBool, value)
+		_node.IsRoot = value
 	}
 	if nodes := uc.mutation.RegisteredWordsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

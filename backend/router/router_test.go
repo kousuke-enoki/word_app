@@ -22,6 +22,7 @@ func RouterTest(t *testing.T) {
 
 		// モックの作成
 		mockUserHandler := new(mocks.UserHandler)
+		mockSettingHandler := new(mocks.SettingHandler)
 		mockWordHandler := new(mocks.WordHandler)
 		mockAuthHandler := new(mocks.AuthHandler)
 
@@ -92,7 +93,12 @@ func RouterTest(t *testing.T) {
 		router.Use(func(c *gin.Context) {
 			c.Next()
 		}) // シンプルなミドルウェアを挿入
-		routerImpl := NewRouter(mockAuthHandler, mockUserHandler, mockWordHandler)
+		routerImpl := NewRouter(
+			mockAuthHandler,
+			mockUserHandler,
+			mockSettingHandler,
+			mockWordHandler,
+		)
 		routerImpl.SetupRouter(router)
 
 		// リクエスト送信

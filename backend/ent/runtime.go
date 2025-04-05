@@ -12,6 +12,7 @@ import (
 	"word_app/backend/ent/test"
 	"word_app/backend/ent/testquestion"
 	"word_app/backend/ent/user"
+	"word_app/backend/ent/userconfig"
 	"word_app/backend/ent/word"
 	"word_app/backend/ent/wordinfo"
 )
@@ -113,7 +114,17 @@ func init() {
 	// rootconfigDescEditingPermission is the schema descriptor for editing_permission field.
 	rootconfigDescEditingPermission := rootconfigFields[0].Descriptor()
 	// rootconfig.DefaultEditingPermission holds the default value on creation for the editing_permission field.
-	rootconfig.DefaultEditingPermission = rootconfigDescEditingPermission.Default.(int)
+	rootconfig.DefaultEditingPermission = rootconfigDescEditingPermission.Default.(string)
+	// rootconfig.EditingPermissionValidator is a validator for the "editing_permission" field. It is called by the builders before save.
+	rootconfig.EditingPermissionValidator = rootconfigDescEditingPermission.Validators[0].(func(string) error)
+	// rootconfigDescIsTestUserMode is the schema descriptor for is_test_user_mode field.
+	rootconfigDescIsTestUserMode := rootconfigFields[1].Descriptor()
+	// rootconfig.DefaultIsTestUserMode holds the default value on creation for the is_test_user_mode field.
+	rootconfig.DefaultIsTestUserMode = rootconfigDescIsTestUserMode.Default.(bool)
+	// rootconfigDescIsEmailAuthentication is the schema descriptor for is_email_authentication field.
+	rootconfigDescIsEmailAuthentication := rootconfigFields[2].Descriptor()
+	// rootconfig.DefaultIsEmailAuthentication holds the default value on creation for the is_email_authentication field.
+	rootconfig.DefaultIsEmailAuthentication = rootconfigDescIsEmailAuthentication.Default.(bool)
 	testFields := schema.Test{}.Fields()
 	_ = testFields
 	// testDescTotalQuestions is the schema descriptor for total_questions field.
@@ -200,6 +211,16 @@ func init() {
 	userDescIsRoot := userFields[6].Descriptor()
 	// user.DefaultIsRoot holds the default value on creation for the isRoot field.
 	user.DefaultIsRoot = userDescIsRoot.Default.(bool)
+	userconfigFields := schema.UserConfig{}.Fields()
+	_ = userconfigFields
+	// userconfigDescUserID is the schema descriptor for user_id field.
+	userconfigDescUserID := userconfigFields[0].Descriptor()
+	// userconfig.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	userconfig.UserIDValidator = userconfigDescUserID.Validators[0].(func(int) error)
+	// userconfigDescIsDarkMode is the schema descriptor for is_dark_mode field.
+	userconfigDescIsDarkMode := userconfigFields[1].Descriptor()
+	// userconfig.DefaultIsDarkMode holds the default value on creation for the is_dark_mode field.
+	userconfig.DefaultIsDarkMode = userconfigDescIsDarkMode.Default.(bool)
 	wordFields := schema.Word{}.Fields()
 	_ = wordFields
 	// wordDescName is the schema descriptor for name field.

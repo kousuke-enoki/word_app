@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 	"word_app/backend/ent/user"
+	"word_app/backend/ent/userconfig"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -44,9 +45,11 @@ type UserEdges struct {
 	RegisteredWords []*RegisteredWord `json:"registered_words,omitempty"`
 	// Tests holds the value of the tests edge.
 	Tests []*Test `json:"tests,omitempty"`
+	// UserConfig holds the value of the user_config edge.
+	UserConfig *UserConfig `json:"user_config,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // RegisteredWordsOrErr returns the RegisteredWords value or an error if the edge
@@ -65,6 +68,17 @@ func (e UserEdges) TestsOrErr() ([]*Test, error) {
 		return e.Tests, nil
 	}
 	return nil, &NotLoadedError{edge: "tests"}
+}
+
+// UserConfigOrErr returns the UserConfig value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) UserConfigOrErr() (*UserConfig, error) {
+	if e.UserConfig != nil {
+		return e.UserConfig, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: userconfig.Label}
+	}
+	return nil, &NotLoadedError{edge: "user_config"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -164,6 +178,11 @@ func (u *User) QueryRegisteredWords() *RegisteredWordQuery {
 // QueryTests queries the "tests" edge of the User entity.
 func (u *User) QueryTests() *TestQuery {
 	return NewUserClient(u.config).QueryTests(u)
+}
+
+// QueryUserConfig queries the "user_config" edge of the User entity.
+func (u *User) QueryUserConfig() *UserConfigQuery {
+	return NewUserClient(u.config).QueryUserConfig(u)
 }
 
 // Update returns a builder for updating this User.

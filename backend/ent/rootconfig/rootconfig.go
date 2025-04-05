@@ -13,6 +13,10 @@ const (
 	FieldID = "id"
 	// FieldEditingPermission holds the string denoting the editing_permission field in the database.
 	FieldEditingPermission = "editing_permission"
+	// FieldIsTestUserMode holds the string denoting the is_test_user_mode field in the database.
+	FieldIsTestUserMode = "is_test_user_mode"
+	// FieldIsEmailAuthentication holds the string denoting the is_email_authentication field in the database.
+	FieldIsEmailAuthentication = "is_email_authentication"
 	// Table holds the table name of the rootconfig in the database.
 	Table = "root_configs"
 )
@@ -21,6 +25,8 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldEditingPermission,
+	FieldIsTestUserMode,
+	FieldIsEmailAuthentication,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -35,7 +41,13 @@ func ValidColumn(column string) bool {
 
 var (
 	// DefaultEditingPermission holds the default value on creation for the "editing_permission" field.
-	DefaultEditingPermission int
+	DefaultEditingPermission string
+	// EditingPermissionValidator is a validator for the "editing_permission" field. It is called by the builders before save.
+	EditingPermissionValidator func(string) error
+	// DefaultIsTestUserMode holds the default value on creation for the "is_test_user_mode" field.
+	DefaultIsTestUserMode bool
+	// DefaultIsEmailAuthentication holds the default value on creation for the "is_email_authentication" field.
+	DefaultIsEmailAuthentication bool
 )
 
 // OrderOption defines the ordering options for the RootConfig queries.
@@ -49,4 +61,14 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByEditingPermission orders the results by the editing_permission field.
 func ByEditingPermission(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEditingPermission, opts...).ToFunc()
+}
+
+// ByIsTestUserMode orders the results by the is_test_user_mode field.
+func ByIsTestUserMode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsTestUserMode, opts...).ToFunc()
+}
+
+// ByIsEmailAuthentication orders the results by the is_email_authentication field.
+func ByIsEmailAuthentication(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsEmailAuthentication, opts...).ToFunc()
 }

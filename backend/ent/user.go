@@ -81,6 +81,17 @@ func (e UserEdges) UserConfigOrErr() (*UserConfig, error) {
 	return nil, &NotLoadedError{edge: "user_config"}
 }
 
+// UserConfigOrErr returns the UserConfig value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) UserConfigOrErr() (*UserConfig, error) {
+	if e.UserConfig != nil {
+		return e.UserConfig, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: userconfig.Label}
+	}
+	return nil, &NotLoadedError{edge: "user_config"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -178,6 +189,11 @@ func (u *User) QueryRegisteredWords() *RegisteredWordQuery {
 // QueryQuizs queries the "quizs" edge of the User entity.
 func (u *User) QueryQuizs() *QuizQuery {
 	return NewUserClient(u.config).QueryQuizs(u)
+}
+
+// QueryUserConfig queries the "user_config" edge of the User entity.
+func (u *User) QueryUserConfig() *UserConfigQuery {
+	return NewUserClient(u.config).QueryUserConfig(u)
 }
 
 // QueryUserConfig queries the "user_config" edge of the User entity.

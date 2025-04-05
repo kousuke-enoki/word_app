@@ -11,6 +11,7 @@ import (
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/test"
 	"word_app/backend/ent/user"
+	"word_app/backend/ent/userconfig"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -150,6 +151,25 @@ func (uu *UserUpdate) AddTests(t ...*Test) *UserUpdate {
 	return uu.AddTestIDs(ids...)
 }
 
+// SetUserConfigID sets the "user_config" edge to the UserConfig entity by ID.
+func (uu *UserUpdate) SetUserConfigID(id int) *UserUpdate {
+	uu.mutation.SetUserConfigID(id)
+	return uu
+}
+
+// SetNillableUserConfigID sets the "user_config" edge to the UserConfig entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableUserConfigID(id *int) *UserUpdate {
+	if id != nil {
+		uu = uu.SetUserConfigID(*id)
+	}
+	return uu
+}
+
+// SetUserConfig sets the "user_config" edge to the UserConfig entity.
+func (uu *UserUpdate) SetUserConfig(u *UserConfig) *UserUpdate {
+	return uu.SetUserConfigID(u.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -195,6 +215,12 @@ func (uu *UserUpdate) RemoveTests(t ...*Test) *UserUpdate {
 		ids[i] = t[i].ID
 	}
 	return uu.RemoveTestIDs(ids...)
+}
+
+// ClearUserConfig clears the "user_config" edge to the UserConfig entity.
+func (uu *UserUpdate) ClearUserConfig() *UserUpdate {
+	uu.mutation.ClearUserConfig()
+	return uu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -376,6 +402,35 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.UserConfigCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.UserConfigTable,
+			Columns: []string{user.UserConfigColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userconfig.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.UserConfigIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.UserConfigTable,
+			Columns: []string{user.UserConfigColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userconfig.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -516,6 +571,25 @@ func (uuo *UserUpdateOne) AddTests(t ...*Test) *UserUpdateOne {
 	return uuo.AddTestIDs(ids...)
 }
 
+// SetUserConfigID sets the "user_config" edge to the UserConfig entity by ID.
+func (uuo *UserUpdateOne) SetUserConfigID(id int) *UserUpdateOne {
+	uuo.mutation.SetUserConfigID(id)
+	return uuo
+}
+
+// SetNillableUserConfigID sets the "user_config" edge to the UserConfig entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableUserConfigID(id *int) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetUserConfigID(*id)
+	}
+	return uuo
+}
+
+// SetUserConfig sets the "user_config" edge to the UserConfig entity.
+func (uuo *UserUpdateOne) SetUserConfig(u *UserConfig) *UserUpdateOne {
+	return uuo.SetUserConfigID(u.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -561,6 +635,12 @@ func (uuo *UserUpdateOne) RemoveTests(t ...*Test) *UserUpdateOne {
 		ids[i] = t[i].ID
 	}
 	return uuo.RemoveTestIDs(ids...)
+}
+
+// ClearUserConfig clears the "user_config" edge to the UserConfig entity.
+func (uuo *UserUpdateOne) ClearUserConfig() *UserUpdateOne {
+	uuo.mutation.ClearUserConfig()
+	return uuo
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -765,6 +845,35 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(test.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.UserConfigCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.UserConfigTable,
+			Columns: []string{user.UserConfigColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userconfig.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.UserConfigIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.UserConfigTable,
+			Columns: []string{user.UserConfigColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userconfig.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

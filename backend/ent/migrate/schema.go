@@ -79,7 +79,9 @@ var (
 	// RootConfigsColumns holds the columns for the "root_configs" table.
 	RootConfigsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "editing_permission", Type: field.TypeInt, Default: 0},
+		{Name: "editing_permission", Type: field.TypeString, Default: "admin"},
+		{Name: "is_test_user_mode", Type: field.TypeBool, Default: false},
+		{Name: "is_email_authentication", Type: field.TypeBool, Default: false},
 	}
 	// RootConfigsTable holds the schema information for the "root_configs" table.
 	RootConfigsTable = &schema.Table{
@@ -154,6 +156,26 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// UserConfigsColumns holds the columns for the "user_configs" table.
+	UserConfigsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "is_dark_mode", Type: field.TypeBool, Default: false},
+		{Name: "user_id", Type: field.TypeInt, Unique: true},
+	}
+	// UserConfigsTable holds the schema information for the "user_configs" table.
+	UserConfigsTable = &schema.Table{
+		Name:       "user_configs",
+		Columns:    UserConfigsColumns,
+		PrimaryKey: []*schema.Column{UserConfigsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_configs_users_user_config",
+				Columns:    []*schema.Column{UserConfigsColumns[2]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// WordsColumns holds the columns for the "words" table.
 	WordsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -206,6 +228,7 @@ var (
 		TestsTable,
 		TestQuestionsTable,
 		UsersTable,
+		UserConfigsTable,
 		WordsTable,
 		WordInfosTable,
 	}
@@ -218,6 +241,7 @@ func init() {
 	TestsTable.ForeignKeys[0].RefTable = UsersTable
 	TestQuestionsTable.ForeignKeys[0].RefTable = RegisteredWordsTable
 	TestQuestionsTable.ForeignKeys[1].RefTable = TestsTable
+	UserConfigsTable.ForeignKeys[0].RefTable = UsersTable
 	WordInfosTable.ForeignKeys[0].RefTable = PartOfSpeechesTable
 	WordInfosTable.ForeignKeys[1].RefTable = WordsTable
 }

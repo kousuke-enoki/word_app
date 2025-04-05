@@ -20,15 +20,43 @@ type RootConfigCreate struct {
 }
 
 // SetEditingPermission sets the "editing_permission" field.
-func (rcc *RootConfigCreate) SetEditingPermission(i int) *RootConfigCreate {
-	rcc.mutation.SetEditingPermission(i)
+func (rcc *RootConfigCreate) SetEditingPermission(s string) *RootConfigCreate {
+	rcc.mutation.SetEditingPermission(s)
 	return rcc
 }
 
 // SetNillableEditingPermission sets the "editing_permission" field if the given value is not nil.
-func (rcc *RootConfigCreate) SetNillableEditingPermission(i *int) *RootConfigCreate {
-	if i != nil {
-		rcc.SetEditingPermission(*i)
+func (rcc *RootConfigCreate) SetNillableEditingPermission(s *string) *RootConfigCreate {
+	if s != nil {
+		rcc.SetEditingPermission(*s)
+	}
+	return rcc
+}
+
+// SetIsTestUserMode sets the "is_test_user_mode" field.
+func (rcc *RootConfigCreate) SetIsTestUserMode(b bool) *RootConfigCreate {
+	rcc.mutation.SetIsTestUserMode(b)
+	return rcc
+}
+
+// SetNillableIsTestUserMode sets the "is_test_user_mode" field if the given value is not nil.
+func (rcc *RootConfigCreate) SetNillableIsTestUserMode(b *bool) *RootConfigCreate {
+	if b != nil {
+		rcc.SetIsTestUserMode(*b)
+	}
+	return rcc
+}
+
+// SetIsEmailAuthentication sets the "is_email_authentication" field.
+func (rcc *RootConfigCreate) SetIsEmailAuthentication(b bool) *RootConfigCreate {
+	rcc.mutation.SetIsEmailAuthentication(b)
+	return rcc
+}
+
+// SetNillableIsEmailAuthentication sets the "is_email_authentication" field if the given value is not nil.
+func (rcc *RootConfigCreate) SetNillableIsEmailAuthentication(b *bool) *RootConfigCreate {
+	if b != nil {
+		rcc.SetIsEmailAuthentication(*b)
 	}
 	return rcc
 }
@@ -72,12 +100,31 @@ func (rcc *RootConfigCreate) defaults() {
 		v := rootconfig.DefaultEditingPermission
 		rcc.mutation.SetEditingPermission(v)
 	}
+	if _, ok := rcc.mutation.IsTestUserMode(); !ok {
+		v := rootconfig.DefaultIsTestUserMode
+		rcc.mutation.SetIsTestUserMode(v)
+	}
+	if _, ok := rcc.mutation.IsEmailAuthentication(); !ok {
+		v := rootconfig.DefaultIsEmailAuthentication
+		rcc.mutation.SetIsEmailAuthentication(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
 func (rcc *RootConfigCreate) check() error {
 	if _, ok := rcc.mutation.EditingPermission(); !ok {
 		return &ValidationError{Name: "editing_permission", err: errors.New(`ent: missing required field "RootConfig.editing_permission"`)}
+	}
+	if v, ok := rcc.mutation.EditingPermission(); ok {
+		if err := rootconfig.EditingPermissionValidator(v); err != nil {
+			return &ValidationError{Name: "editing_permission", err: fmt.Errorf(`ent: validator failed for field "RootConfig.editing_permission": %w`, err)}
+		}
+	}
+	if _, ok := rcc.mutation.IsTestUserMode(); !ok {
+		return &ValidationError{Name: "is_test_user_mode", err: errors.New(`ent: missing required field "RootConfig.is_test_user_mode"`)}
+	}
+	if _, ok := rcc.mutation.IsEmailAuthentication(); !ok {
+		return &ValidationError{Name: "is_email_authentication", err: errors.New(`ent: missing required field "RootConfig.is_email_authentication"`)}
 	}
 	return nil
 }
@@ -106,8 +153,16 @@ func (rcc *RootConfigCreate) createSpec() (*RootConfig, *sqlgraph.CreateSpec) {
 		_spec = sqlgraph.NewCreateSpec(rootconfig.Table, sqlgraph.NewFieldSpec(rootconfig.FieldID, field.TypeInt))
 	)
 	if value, ok := rcc.mutation.EditingPermission(); ok {
-		_spec.SetField(rootconfig.FieldEditingPermission, field.TypeInt, value)
+		_spec.SetField(rootconfig.FieldEditingPermission, field.TypeString, value)
 		_node.EditingPermission = value
+	}
+	if value, ok := rcc.mutation.IsTestUserMode(); ok {
+		_spec.SetField(rootconfig.FieldIsTestUserMode, field.TypeBool, value)
+		_node.IsTestUserMode = value
+	}
+	if value, ok := rcc.mutation.IsEmailAuthentication(); ok {
+		_spec.SetField(rootconfig.FieldIsEmailAuthentication, field.TypeBool, value)
+		_node.IsEmailAuthentication = value
 	}
 	return _node, _spec
 }

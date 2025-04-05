@@ -26,6 +26,8 @@ type Tx struct {
 	TestQuestion *TestQuestionClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserConfig is the client for interacting with the UserConfig builders.
+	UserConfig *UserConfigClient
 	// Word is the client for interacting with the Word builders.
 	Word *WordClient
 	// WordInfo is the client for interacting with the WordInfo builders.
@@ -168,6 +170,7 @@ func (tx *Tx) init() {
 	tx.Test = NewTestClient(tx.config)
 	tx.TestQuestion = NewTestQuestionClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.UserConfig = NewUserConfigClient(tx.config)
 	tx.Word = NewWordClient(tx.config)
 	tx.WordInfo = NewWordInfoClient(tx.config)
 }

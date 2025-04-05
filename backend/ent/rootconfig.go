@@ -17,8 +17,12 @@ type RootConfig struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// EditingPermission holds the value of the "editing_permission" field.
-	EditingPermission int `json:"editing_permission,omitempty"`
-	selectValues      sql.SelectValues
+	EditingPermission string `json:"editing_permission,omitempty"`
+	// IsTestUserMode holds the value of the "is_test_user_mode" field.
+	IsTestUserMode bool `json:"is_test_user_mode"`
+	// IsEmailAuthentication holds the value of the "is_email_authentication" field.
+	IsEmailAuthentication bool `json:"is_email_authentication"`
+	selectValues          sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -26,8 +30,12 @@ func (*RootConfig) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case rootconfig.FieldID, rootconfig.FieldEditingPermission:
+		case rootconfig.FieldIsTestUserMode, rootconfig.FieldIsEmailAuthentication:
+			values[i] = new(sql.NullBool)
+		case rootconfig.FieldID:
 			values[i] = new(sql.NullInt64)
+		case rootconfig.FieldEditingPermission:
+			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -50,10 +58,22 @@ func (rc *RootConfig) assignValues(columns []string, values []any) error {
 			}
 			rc.ID = int(value.Int64)
 		case rootconfig.FieldEditingPermission:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field editing_permission", values[i])
 			} else if value.Valid {
-				rc.EditingPermission = int(value.Int64)
+				rc.EditingPermission = value.String
+			}
+		case rootconfig.FieldIsTestUserMode:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_test_user_mode", values[i])
+			} else if value.Valid {
+				rc.IsTestUserMode = value.Bool
+			}
+		case rootconfig.FieldIsEmailAuthentication:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_email_authentication", values[i])
+			} else if value.Valid {
+				rc.IsEmailAuthentication = value.Bool
 			}
 		default:
 			rc.selectValues.Set(columns[i], values[i])
@@ -92,7 +112,13 @@ func (rc *RootConfig) String() string {
 	builder.WriteString("RootConfig(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", rc.ID))
 	builder.WriteString("editing_permission=")
-	builder.WriteString(fmt.Sprintf("%v", rc.EditingPermission))
+	builder.WriteString(rc.EditingPermission)
+	builder.WriteString(", ")
+	builder.WriteString("is_test_user_mode=")
+	builder.WriteString(fmt.Sprintf("%v", rc.IsTestUserMode))
+	builder.WriteString(", ")
+	builder.WriteString("is_email_authentication=")
+	builder.WriteString(fmt.Sprintf("%v", rc.IsEmailAuthentication))
 	builder.WriteByte(')')
 	return builder.String()
 }

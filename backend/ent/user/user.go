@@ -32,6 +32,8 @@ const (
 	EdgeRegisteredWords = "registered_words"
 	// EdgeTests holds the string denoting the tests edge name in mutations.
 	EdgeTests = "tests"
+	// EdgeUserConfig holds the string denoting the user_config edge name in mutations.
+	EdgeUserConfig = "user_config"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// RegisteredWordsTable is the table that holds the registered_words relation/edge.
@@ -48,6 +50,13 @@ const (
 	TestsInverseTable = "tests"
 	// TestsColumn is the table column denoting the tests relation/edge.
 	TestsColumn = "user_id"
+	// UserConfigTable is the table that holds the user_config relation/edge.
+	UserConfigTable = "user_configs"
+	// UserConfigInverseTable is the table name for the UserConfig entity.
+	// It exists in this package in order to avoid circular dependency with the "userconfig" package.
+	UserConfigInverseTable = "user_configs"
+	// UserConfigColumn is the table column denoting the user_config relation/edge.
+	UserConfigColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -163,6 +172,13 @@ func ByTests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newTestsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByUserConfigField orders the results by user_config field.
+func ByUserConfigField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserConfigStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newRegisteredWordsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -175,5 +191,12 @@ func newTestsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TestsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, TestsTable, TestsColumn),
+	)
+}
+func newUserConfigStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserConfigInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, UserConfigTable, UserConfigColumn),
 	)
 }

@@ -19,5 +19,16 @@ func (e *EntUserClient) CreateUser(ctx context.Context, email, name, password st
 		}
 		return nil, ErrDatabaseFailure
 	}
+
+	_, err = e.client.UserConfig().
+		Create().
+		SetUserID(user.ID).
+		SetIsDarkMode(false).
+		Save(ctx)
+
+	if err != nil {
+		return nil, ErrCreateUserConfig
+	}
+
 	return user, nil
 }

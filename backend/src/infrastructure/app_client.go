@@ -14,6 +14,46 @@ type appClient struct {
 	entClient *ent.Client
 }
 
+// GetRootConfig implements interfaces.ClientInterface.
+func (c *appClient) GetRootConfig(ctx context.Context, userID int) (*ent.RootConfig, error) {
+	panic("unimplemented")
+}
+
+// GetUserConfig implements interfaces.ClientInterface.
+func (c *appClient) GetUserConfig(ctx context.Context, userID int) (*ent.UserConfig, error) {
+	panic("unimplemented")
+}
+
+// GetRootConfigByUserID implements interfaces.ClientInterface.
+func (c *appClient) GetRootConfigByUserID(ctx context.Context, userID int) (*ent.RootConfig, error) {
+	panic("unimplemented")
+}
+
+// GetUserConfigByUserID implements interfaces.ClientInterface.
+func (c *appClient) GetUserConfigByUserID(ctx context.Context, userID int) (*ent.UserConfig, error) {
+	panic("unimplemented")
+}
+
+// RootConfig implements interfaces.ClientInterface.
+func (c *appClient) RootConfig() *ent.RootConfigClient {
+	return c.entClient.RootConfig
+}
+
+// UpdateRootConfig implements interfaces.ClientInterface.
+func (c *appClient) UpdateRootConfig(ctx context.Context, userID int, editingPermissions string, isTestUserMode bool, isEmailAuth bool) (*ent.RootConfig, error) {
+	panic("unimplemented")
+}
+
+// UpdateUserConfig implements interfaces.ClientInterface.
+func (c *appClient) UpdateUserConfig(ctx context.Context, userID int, isLightMode bool) (*ent.UserConfig, error) {
+	panic("unimplemented")
+}
+
+// UserConfig implements interfaces.ClientInterface.
+func (c *appClient) UserConfig() *ent.UserConfigClient {
+	return c.entClient.UserConfig
+}
+
 // NewAppClient 初期化関数
 func NewAppClient(entClient *ent.Client) interfaces.ClientInterface {
 	return &appClient{

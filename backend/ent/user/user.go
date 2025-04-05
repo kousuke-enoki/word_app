@@ -179,6 +179,13 @@ func ByUserConfigField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newUserConfigStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByUserConfigField orders the results by user_config field.
+func ByUserConfigField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserConfigStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newRegisteredWordsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -191,6 +198,13 @@ func newQuizsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(QuizsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, QuizsTable, QuizsColumn),
+	)
+}
+func newUserConfigStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserConfigInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, UserConfigTable, UserConfigColumn),
 	)
 }
 func newUserConfigStep() *sqlgraph.Step {

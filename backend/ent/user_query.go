@@ -131,6 +131,28 @@ func (uq *UserQuery) QueryUserConfig() *UserConfigQuery {
 	return query
 }
 
+// QueryUserConfig chains the current query on the "user_config" edge.
+func (uq *UserQuery) QueryUserConfig() *UserConfigQuery {
+	query := (&UserConfigClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(userconfig.Table, userconfig.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.UserConfigTable, user.UserConfigColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first User entity from the query.
 // Returns a *NotFoundError when no User was found.
 func (uq *UserQuery) First(ctx context.Context) (*User, error) {
@@ -365,6 +387,17 @@ func (uq *UserQuery) WithUserConfig(opts ...func(*UserConfigQuery)) *UserQuery {
 	return uq
 }
 
+// WithUserConfig tells the query-builder to eager-load the nodes that are connected to
+// the "user_config" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithUserConfig(opts ...func(*UserConfigQuery)) *UserQuery {
+	query := (&UserConfigClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withUserConfig = query
+	return uq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -487,6 +520,12 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
+	if query := uq.withUserConfig; query != nil {
+		if err := uq.loadUserConfig(ctx, query, nodes, nil,
+			func(n *User, e *UserConfig) { n.Edges.UserConfig = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -535,6 +574,33 @@ func (uq *UserQuery) loadQuizs(ctx context.Context, query *QuizQuery, nodes []*U
 	}
 	query.Where(predicate.Quiz(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.QuizsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadUserConfig(ctx context.Context, query *UserConfigQuery, nodes []*User, init func(*User), assign func(*User, *UserConfig)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(userconfig.FieldUserID)
+	}
+	query.Where(predicate.UserConfig(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.UserConfigColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

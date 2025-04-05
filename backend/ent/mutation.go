@@ -5842,6 +5842,45 @@ func (m *UserMutation) ResetUserConfig() {
 	m.cleareduser_config = false
 }
 
+// SetUserConfigID sets the "user_config" edge to the UserConfig entity by id.
+func (m *UserMutation) SetUserConfigID(id int) {
+	m.user_config = &id
+}
+
+// ClearUserConfig clears the "user_config" edge to the UserConfig entity.
+func (m *UserMutation) ClearUserConfig() {
+	m.cleareduser_config = true
+}
+
+// UserConfigCleared reports if the "user_config" edge to the UserConfig entity was cleared.
+func (m *UserMutation) UserConfigCleared() bool {
+	return m.cleareduser_config
+}
+
+// UserConfigID returns the "user_config" edge ID in the mutation.
+func (m *UserMutation) UserConfigID() (id int, exists bool) {
+	if m.user_config != nil {
+		return *m.user_config, true
+	}
+	return
+}
+
+// UserConfigIDs returns the "user_config" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserConfigID instead. It exists only for internal usage by the builders.
+func (m *UserMutation) UserConfigIDs() (ids []int) {
+	if id := m.user_config; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUserConfig resets all changes to the "user_config" edge.
+func (m *UserMutation) ResetUserConfig() {
+	m.user_config = nil
+	m.cleareduser_config = false
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -6087,6 +6126,9 @@ func (m *UserMutation) AddedEdges() []string {
 	if m.user_config != nil {
 		edges = append(edges, user.EdgeUserConfig)
 	}
+	if m.user_config != nil {
+		edges = append(edges, user.EdgeUserConfig)
+	}
 	return edges
 }
 
@@ -6158,6 +6200,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.cleareduser_config {
 		edges = append(edges, user.EdgeUserConfig)
 	}
+	if m.cleareduser_config {
+		edges = append(edges, user.EdgeUserConfig)
+	}
 	return edges
 }
 
@@ -6195,6 +6240,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeQuizs:
 		m.ResetQuizs()
+		return nil
+	case user.EdgeUserConfig:
+		m.ResetUserConfig()
 		return nil
 	case user.EdgeUserConfig:
 		m.ResetUserConfig()

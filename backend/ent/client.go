@@ -1410,6 +1410,22 @@ func (c *UserClient) QueryUserConfig(u *User) *UserConfigQuery {
 	return query
 }
 
+// QueryUserConfig queries the user_config edge of a User.
+func (c *UserClient) QueryUserConfig(u *User) *UserConfigQuery {
+	query := (&UserConfigClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(userconfig.Table, userconfig.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.UserConfigTable, user.UserConfigColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User

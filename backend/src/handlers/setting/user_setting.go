@@ -1,6 +1,7 @@
 package setting
 
 import (
+	"errors"
 	"net/http"
 	"word_app/backend/src/models"
 
@@ -11,7 +12,7 @@ func (h *SettingHandler) GetUserSettingHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, ok := c.Get("userID")
 		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "userID not found"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": ErrUserNotFound})
 			return
 		}
 		setting, err := h.settingService.GetUserConfig(c, userID.(int))
@@ -41,3 +42,7 @@ func (h *SettingHandler) SaveUserSettingHandler() gin.HandlerFunc {
 		c.JSON(http.StatusOK, setting)
 	}
 }
+
+var (
+	ErrUserNotFound = errors.New("user not found")
+)

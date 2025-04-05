@@ -1,0 +1,26 @@
+.settings-wrapper {
+  padding: 2rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+.title {
+  margin-bottom: 1.5rem;
+}
+.row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.row > label {
+  flex: 0 0 180px; /* ラベル幅固定 */
+}
+.row > select,
+.row > input[type='checkbox'] {
+  flex: 1;
+}
+button {
+  margin-top: 0.5rem;
+}
+.msg {
+  margin-top: 1rem;
+}

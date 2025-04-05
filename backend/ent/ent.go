@@ -15,6 +15,7 @@ import (
 	"word_app/backend/ent/test"
 	"word_app/backend/ent/testquestion"
 	"word_app/backend/ent/user"
+	"word_app/backend/ent/userconfig"
 	"word_app/backend/ent/word"
 	"word_app/backend/ent/wordinfo"
 
@@ -88,6 +89,7 @@ func checkColumn(table, column string) error {
 			test.Table:           test.ValidColumn,
 			testquestion.Table:   testquestion.ValidColumn,
 			user.Table:           user.ValidColumn,
+			userconfig.Table:     userconfig.ValidColumn,
 			word.Table:           word.ValidColumn,
 			wordinfo.Table:       wordinfo.ValidColumn,
 		})

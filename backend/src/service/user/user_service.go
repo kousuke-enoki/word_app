@@ -15,8 +15,9 @@ func NewEntUserClient(client service_interfaces.EntClientInterface) *EntUserClie
 }
 
 var (
-	ErrDuplicateEmail  = errors.New("duplicate email")
-	ErrDuplicateID     = errors.New("duplicate ID")
-	ErrDatabaseFailure = errors.New("database failure")
-	ErrUserNotFound    = errors.New("user not found")
+	ErrDuplicateEmail   = errors.New("duplicate email")
+	ErrDuplicateID      = errors.New("duplicate ID")
+	ErrDatabaseFailure  = errors.New("database failure")
+	ErrUserNotFound     = errors.New("user not found")
+	ErrCreateUserConfig = errors.New("create user config failure")
 )

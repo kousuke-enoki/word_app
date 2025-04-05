@@ -54,48 +54,103 @@ func IDLTE(id int) predicate.RootConfig {
 }
 
 // EditingPermission applies equality check predicate on the "editing_permission" field. It's identical to EditingPermissionEQ.
-func EditingPermission(v int) predicate.RootConfig {
+func EditingPermission(v string) predicate.RootConfig {
 	return predicate.RootConfig(sql.FieldEQ(FieldEditingPermission, v))
 }
 
+// IsTestUserMode applies equality check predicate on the "is_test_user_mode" field. It's identical to IsTestUserModeEQ.
+func IsTestUserMode(v bool) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldEQ(FieldIsTestUserMode, v))
+}
+
+// IsEmailAuthentication applies equality check predicate on the "is_email_authentication" field. It's identical to IsEmailAuthenticationEQ.
+func IsEmailAuthentication(v bool) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldEQ(FieldIsEmailAuthentication, v))
+}
+
 // EditingPermissionEQ applies the EQ predicate on the "editing_permission" field.
-func EditingPermissionEQ(v int) predicate.RootConfig {
+func EditingPermissionEQ(v string) predicate.RootConfig {
 	return predicate.RootConfig(sql.FieldEQ(FieldEditingPermission, v))
 }
 
 // EditingPermissionNEQ applies the NEQ predicate on the "editing_permission" field.
-func EditingPermissionNEQ(v int) predicate.RootConfig {
+func EditingPermissionNEQ(v string) predicate.RootConfig {
 	return predicate.RootConfig(sql.FieldNEQ(FieldEditingPermission, v))
 }
 
 // EditingPermissionIn applies the In predicate on the "editing_permission" field.
-func EditingPermissionIn(vs ...int) predicate.RootConfig {
+func EditingPermissionIn(vs ...string) predicate.RootConfig {
 	return predicate.RootConfig(sql.FieldIn(FieldEditingPermission, vs...))
 }
 
 // EditingPermissionNotIn applies the NotIn predicate on the "editing_permission" field.
-func EditingPermissionNotIn(vs ...int) predicate.RootConfig {
+func EditingPermissionNotIn(vs ...string) predicate.RootConfig {
 	return predicate.RootConfig(sql.FieldNotIn(FieldEditingPermission, vs...))
 }
 
 // EditingPermissionGT applies the GT predicate on the "editing_permission" field.
-func EditingPermissionGT(v int) predicate.RootConfig {
+func EditingPermissionGT(v string) predicate.RootConfig {
 	return predicate.RootConfig(sql.FieldGT(FieldEditingPermission, v))
 }
 
 // EditingPermissionGTE applies the GTE predicate on the "editing_permission" field.
-func EditingPermissionGTE(v int) predicate.RootConfig {
+func EditingPermissionGTE(v string) predicate.RootConfig {
 	return predicate.RootConfig(sql.FieldGTE(FieldEditingPermission, v))
 }
 
 // EditingPermissionLT applies the LT predicate on the "editing_permission" field.
-func EditingPermissionLT(v int) predicate.RootConfig {
+func EditingPermissionLT(v string) predicate.RootConfig {
 	return predicate.RootConfig(sql.FieldLT(FieldEditingPermission, v))
 }
 
 // EditingPermissionLTE applies the LTE predicate on the "editing_permission" field.
-func EditingPermissionLTE(v int) predicate.RootConfig {
+func EditingPermissionLTE(v string) predicate.RootConfig {
 	return predicate.RootConfig(sql.FieldLTE(FieldEditingPermission, v))
+}
+
+// EditingPermissionContains applies the Contains predicate on the "editing_permission" field.
+func EditingPermissionContains(v string) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldContains(FieldEditingPermission, v))
+}
+
+// EditingPermissionHasPrefix applies the HasPrefix predicate on the "editing_permission" field.
+func EditingPermissionHasPrefix(v string) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldHasPrefix(FieldEditingPermission, v))
+}
+
+// EditingPermissionHasSuffix applies the HasSuffix predicate on the "editing_permission" field.
+func EditingPermissionHasSuffix(v string) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldHasSuffix(FieldEditingPermission, v))
+}
+
+// EditingPermissionEqualFold applies the EqualFold predicate on the "editing_permission" field.
+func EditingPermissionEqualFold(v string) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldEqualFold(FieldEditingPermission, v))
+}
+
+// EditingPermissionContainsFold applies the ContainsFold predicate on the "editing_permission" field.
+func EditingPermissionContainsFold(v string) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldContainsFold(FieldEditingPermission, v))
+}
+
+// IsTestUserModeEQ applies the EQ predicate on the "is_test_user_mode" field.
+func IsTestUserModeEQ(v bool) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldEQ(FieldIsTestUserMode, v))
+}
+
+// IsTestUserModeNEQ applies the NEQ predicate on the "is_test_user_mode" field.
+func IsTestUserModeNEQ(v bool) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldNEQ(FieldIsTestUserMode, v))
+}
+
+// IsEmailAuthenticationEQ applies the EQ predicate on the "is_email_authentication" field.
+func IsEmailAuthenticationEQ(v bool) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldEQ(FieldIsEmailAuthentication, v))
+}
+
+// IsEmailAuthenticationNEQ applies the NEQ predicate on the "is_email_authentication" field.
+func IsEmailAuthenticationNEQ(v bool) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldNEQ(FieldIsEmailAuthentication, v))
 }
 
 // And groups predicates with the AND operator between them.

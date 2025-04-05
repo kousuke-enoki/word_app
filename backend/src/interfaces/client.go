@@ -9,7 +9,8 @@ import (
 // ClientInterface 全体を統一するクライアントインターフェース
 type ClientInterface interface {
 	UserClient
+	SettingClient
 	WordService
-	EntClient() *ent.Client // 必要なら直接Entクライアントも提供
+	EntClient() *ent.Client
 	service_interfaces.EntClientInterface
 }

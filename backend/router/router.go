@@ -13,23 +13,30 @@ import (
 )
 
 type RouterImplementation struct {
-	AuthHandler interfaces.AuthHandler
-	UserHandler interfaces.UserHandler
-	WordHandler interfaces.WordHandler
-	JWTSecret   string
+	AuthHandler    interfaces.AuthHandler
+	UserHandler    interfaces.UserHandler
+	SettingHandler interfaces.SettingHandler
+	WordHandler    interfaces.WordHandler
+	JWTSecret      string
 }
 
-func NewRouter(authHandler interfaces.AuthHandler, userHandler interfaces.UserHandler, wordHandler interfaces.WordHandler) *RouterImplementation {
+func NewRouter(
+	authHandler interfaces.AuthHandler,
+	userHandler interfaces.UserHandler,
+	settingHandler interfaces.SettingHandler,
+	wordHandler interfaces.WordHandler,
+) *RouterImplementation {
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		logrus.Fatal("JWT_SECRET environment variable is required")
 	}
 
 	return &RouterImplementation{
-		AuthHandler: authHandler,
-		UserHandler: userHandler,
-		WordHandler: wordHandler,
-		JWTSecret:   jwtSecret,
+		AuthHandler:    authHandler,
+		UserHandler:    userHandler,
+		SettingHandler: settingHandler,
+		WordHandler:    wordHandler,
+		JWTSecret:      jwtSecret,
 	}
 }
 
@@ -53,6 +60,10 @@ func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
 		protectedRoutes.GET("/auth/check", r.AuthHandler.AuthCheckHandler())
 
 		protectedRoutes.GET("/users/my_page", r.UserHandler.MyPageHandler())
+		protectedRoutes.GET("/setting/user_config", r.SettingHandler.GetUserSettingHandler())
+		protectedRoutes.POST("/setting/user_config", r.SettingHandler.SaveUserSettingHandler())
+		protectedRoutes.GET("/setting/root_config", r.SettingHandler.GetRootSettingHandler())
+		protectedRoutes.POST("/setting/root_config", r.SettingHandler.SaveRootSettingHandler())
 		protectedRoutes.GET("/words", r.WordHandler.WordListHandler())
 		protectedRoutes.GET("/words/:id", r.WordHandler.WordShowHandler())
 		protectedRoutes.POST("/words/register", r.WordHandler.RegisterWordHandler())

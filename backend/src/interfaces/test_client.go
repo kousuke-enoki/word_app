@@ -10,6 +10,26 @@ type TestClientWrapper struct {
 	entClient *ent.Client
 }
 
+// GetRootConfig implements ClientInterface.
+func (w *TestClientWrapper) GetRootConfig(ctx context.Context, userID int) (*ent.RootConfig, error) {
+	panic("unimplemented")
+}
+
+// GetUserConfig implements ClientInterface.
+func (w *TestClientWrapper) GetUserConfig(ctx context.Context, userID int) (*ent.UserConfig, error) {
+	panic("unimplemented")
+}
+
+// UpdateRootConfig implements ClientInterface.
+func (w *TestClientWrapper) UpdateRootConfig(ctx context.Context, userID int, editingPermissions string, isTestUserMode bool, isEmailAuth bool) (*ent.RootConfig, error) {
+	panic("unimplemented")
+}
+
+// UpdateUserConfig implements ClientInterface.
+func (w *TestClientWrapper) UpdateUserConfig(ctx context.Context, userID int, isLightMode bool) (*ent.UserConfig, error) {
+	panic("unimplemented")
+}
+
 // CreateUser implements ClientInterface.
 func (w *TestClientWrapper) CreateUser(ctx context.Context, email string, name string, password string) (*ent.User, error) {
 	panic("unimplemented")
@@ -90,6 +110,16 @@ func (w *TestClientWrapper) Word() *ent.WordClient {
 
 // User は UserClient を返します。
 func (w *TestClientWrapper) User() *ent.UserClient {
+	panic("unimplemented")
+}
+
+// User は UserClient を返します。
+func (w *TestClientWrapper) UserConfig() *ent.UserConfigClient {
+	panic("unimplemented")
+}
+
+// User は UserClient を返します。
+func (w *TestClientWrapper) RootConfig() *ent.RootConfigClient {
 	panic("unimplemented")
 }
 

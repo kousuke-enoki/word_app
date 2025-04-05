@@ -28,23 +28,44 @@ func (rcu *RootConfigUpdate) Where(ps ...predicate.RootConfig) *RootConfigUpdate
 }
 
 // SetEditingPermission sets the "editing_permission" field.
-func (rcu *RootConfigUpdate) SetEditingPermission(i int) *RootConfigUpdate {
-	rcu.mutation.ResetEditingPermission()
-	rcu.mutation.SetEditingPermission(i)
+func (rcu *RootConfigUpdate) SetEditingPermission(s string) *RootConfigUpdate {
+	rcu.mutation.SetEditingPermission(s)
 	return rcu
 }
 
 // SetNillableEditingPermission sets the "editing_permission" field if the given value is not nil.
-func (rcu *RootConfigUpdate) SetNillableEditingPermission(i *int) *RootConfigUpdate {
-	if i != nil {
-		rcu.SetEditingPermission(*i)
+func (rcu *RootConfigUpdate) SetNillableEditingPermission(s *string) *RootConfigUpdate {
+	if s != nil {
+		rcu.SetEditingPermission(*s)
 	}
 	return rcu
 }
 
-// AddEditingPermission adds i to the "editing_permission" field.
-func (rcu *RootConfigUpdate) AddEditingPermission(i int) *RootConfigUpdate {
-	rcu.mutation.AddEditingPermission(i)
+// SetIsTestUserMode sets the "is_test_user_mode" field.
+func (rcu *RootConfigUpdate) SetIsTestUserMode(b bool) *RootConfigUpdate {
+	rcu.mutation.SetIsTestUserMode(b)
+	return rcu
+}
+
+// SetNillableIsTestUserMode sets the "is_test_user_mode" field if the given value is not nil.
+func (rcu *RootConfigUpdate) SetNillableIsTestUserMode(b *bool) *RootConfigUpdate {
+	if b != nil {
+		rcu.SetIsTestUserMode(*b)
+	}
+	return rcu
+}
+
+// SetIsEmailAuthentication sets the "is_email_authentication" field.
+func (rcu *RootConfigUpdate) SetIsEmailAuthentication(b bool) *RootConfigUpdate {
+	rcu.mutation.SetIsEmailAuthentication(b)
+	return rcu
+}
+
+// SetNillableIsEmailAuthentication sets the "is_email_authentication" field if the given value is not nil.
+func (rcu *RootConfigUpdate) SetNillableIsEmailAuthentication(b *bool) *RootConfigUpdate {
+	if b != nil {
+		rcu.SetIsEmailAuthentication(*b)
+	}
 	return rcu
 }
 
@@ -80,7 +101,20 @@ func (rcu *RootConfigUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (rcu *RootConfigUpdate) check() error {
+	if v, ok := rcu.mutation.EditingPermission(); ok {
+		if err := rootconfig.EditingPermissionValidator(v); err != nil {
+			return &ValidationError{Name: "editing_permission", err: fmt.Errorf(`ent: validator failed for field "RootConfig.editing_permission": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (rcu *RootConfigUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := rcu.check(); err != nil {
+		return n, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(rootconfig.Table, rootconfig.Columns, sqlgraph.NewFieldSpec(rootconfig.FieldID, field.TypeInt))
 	if ps := rcu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -90,10 +124,13 @@ func (rcu *RootConfigUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := rcu.mutation.EditingPermission(); ok {
-		_spec.SetField(rootconfig.FieldEditingPermission, field.TypeInt, value)
+		_spec.SetField(rootconfig.FieldEditingPermission, field.TypeString, value)
 	}
-	if value, ok := rcu.mutation.AddedEditingPermission(); ok {
-		_spec.AddField(rootconfig.FieldEditingPermission, field.TypeInt, value)
+	if value, ok := rcu.mutation.IsTestUserMode(); ok {
+		_spec.SetField(rootconfig.FieldIsTestUserMode, field.TypeBool, value)
+	}
+	if value, ok := rcu.mutation.IsEmailAuthentication(); ok {
+		_spec.SetField(rootconfig.FieldIsEmailAuthentication, field.TypeBool, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, rcu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -116,23 +153,44 @@ type RootConfigUpdateOne struct {
 }
 
 // SetEditingPermission sets the "editing_permission" field.
-func (rcuo *RootConfigUpdateOne) SetEditingPermission(i int) *RootConfigUpdateOne {
-	rcuo.mutation.ResetEditingPermission()
-	rcuo.mutation.SetEditingPermission(i)
+func (rcuo *RootConfigUpdateOne) SetEditingPermission(s string) *RootConfigUpdateOne {
+	rcuo.mutation.SetEditingPermission(s)
 	return rcuo
 }
 
 // SetNillableEditingPermission sets the "editing_permission" field if the given value is not nil.
-func (rcuo *RootConfigUpdateOne) SetNillableEditingPermission(i *int) *RootConfigUpdateOne {
-	if i != nil {
-		rcuo.SetEditingPermission(*i)
+func (rcuo *RootConfigUpdateOne) SetNillableEditingPermission(s *string) *RootConfigUpdateOne {
+	if s != nil {
+		rcuo.SetEditingPermission(*s)
 	}
 	return rcuo
 }
 
-// AddEditingPermission adds i to the "editing_permission" field.
-func (rcuo *RootConfigUpdateOne) AddEditingPermission(i int) *RootConfigUpdateOne {
-	rcuo.mutation.AddEditingPermission(i)
+// SetIsTestUserMode sets the "is_test_user_mode" field.
+func (rcuo *RootConfigUpdateOne) SetIsTestUserMode(b bool) *RootConfigUpdateOne {
+	rcuo.mutation.SetIsTestUserMode(b)
+	return rcuo
+}
+
+// SetNillableIsTestUserMode sets the "is_test_user_mode" field if the given value is not nil.
+func (rcuo *RootConfigUpdateOne) SetNillableIsTestUserMode(b *bool) *RootConfigUpdateOne {
+	if b != nil {
+		rcuo.SetIsTestUserMode(*b)
+	}
+	return rcuo
+}
+
+// SetIsEmailAuthentication sets the "is_email_authentication" field.
+func (rcuo *RootConfigUpdateOne) SetIsEmailAuthentication(b bool) *RootConfigUpdateOne {
+	rcuo.mutation.SetIsEmailAuthentication(b)
+	return rcuo
+}
+
+// SetNillableIsEmailAuthentication sets the "is_email_authentication" field if the given value is not nil.
+func (rcuo *RootConfigUpdateOne) SetNillableIsEmailAuthentication(b *bool) *RootConfigUpdateOne {
+	if b != nil {
+		rcuo.SetIsEmailAuthentication(*b)
+	}
 	return rcuo
 }
 
@@ -181,7 +239,20 @@ func (rcuo *RootConfigUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (rcuo *RootConfigUpdateOne) check() error {
+	if v, ok := rcuo.mutation.EditingPermission(); ok {
+		if err := rootconfig.EditingPermissionValidator(v); err != nil {
+			return &ValidationError{Name: "editing_permission", err: fmt.Errorf(`ent: validator failed for field "RootConfig.editing_permission": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (rcuo *RootConfigUpdateOne) sqlSave(ctx context.Context) (_node *RootConfig, err error) {
+	if err := rcuo.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(rootconfig.Table, rootconfig.Columns, sqlgraph.NewFieldSpec(rootconfig.FieldID, field.TypeInt))
 	id, ok := rcuo.mutation.ID()
 	if !ok {
@@ -208,10 +279,13 @@ func (rcuo *RootConfigUpdateOne) sqlSave(ctx context.Context) (_node *RootConfig
 		}
 	}
 	if value, ok := rcuo.mutation.EditingPermission(); ok {
-		_spec.SetField(rootconfig.FieldEditingPermission, field.TypeInt, value)
+		_spec.SetField(rootconfig.FieldEditingPermission, field.TypeString, value)
 	}
-	if value, ok := rcuo.mutation.AddedEditingPermission(); ok {
-		_spec.AddField(rootconfig.FieldEditingPermission, field.TypeInt, value)
+	if value, ok := rcuo.mutation.IsTestUserMode(); ok {
+		_spec.SetField(rootconfig.FieldIsTestUserMode, field.TypeBool, value)
+	}
+	if value, ok := rcuo.mutation.IsEmailAuthentication(); ok {
+		_spec.SetField(rootconfig.FieldIsEmailAuthentication, field.TypeBool, value)
 	}
 	_node = &RootConfig{config: rcuo.config}
 	_spec.Assign = _node.assignValues

@@ -9,6 +9,8 @@ import PrivateRoute from './PrivateRoute'
 import PublicRoute from './PublicRoute'
 import Home from '../components/user/Home'
 import MyPage from '../components/user/MyPage'
+import UserSetting from '../components/user/setting/UserSetting'
+import RootSetting from '../components/user/setting/RootSetting'
 import SignIn from '../components/user/SignIn'
 import SignUp from '../components/user/SignUp'
 import WordNew from '../components/word/WordNew'
@@ -57,6 +59,22 @@ const AppRouter: React.FC = () => {
           element={
             <PrivateRoute>
               <MyPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/user/userSetting"
+          element={
+            <PrivateRoute requiredRole={'root'}>
+              <UserSetting />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/user/rootSetting"
+          element={
+            <PrivateRoute requiredRole={'root'}>
+              <RootSetting />
             </PrivateRoute>
           }
         />

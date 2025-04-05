@@ -6,6 +6,7 @@ import (
 
 	"word_app/backend/ent"
 	"word_app/backend/ent/partofspeech"
+	"word_app/backend/ent/rootconfig"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/word"
 	"word_app/backend/src/interfaces"
@@ -16,6 +17,7 @@ import (
 // RunSeeder 初回のみシード実行
 func RunSeeder(ctx context.Context, client interfaces.ClientInterface) {
 	SeedAdminUsers(ctx, client)
+	SeedRootConfig(ctx, client)
 	SeedPartOfSpeech(ctx, client)
 	SeedWords(ctx, client)
 }
@@ -34,7 +36,7 @@ func SeedAdminUsers(ctx context.Context, client interfaces.ClientInterface) {
 			return
 		}
 
-		_, err = entClient.User.Create().
+		rootUser, err := entClient.User.Create().
 			SetEmail("root@example.com").
 			SetName("Root User").
 			SetPassword(string(hashedPassword)).
@@ -44,7 +46,31 @@ func SeedAdminUsers(ctx context.Context, client interfaces.ClientInterface) {
 		if err != nil {
 			log.Fatalf("failed to create root user: %v", err)
 		}
+
+		_, err = entClient.UserConfig.Create().
+			SetUserID(rootUser.ID).
+			SetIsDarkMode(false).
+			Save(ctx)
+		if err != nil {
+			log.Fatalf("failed to create user config: %v", err)
+		}
 		log.Println("Root user seeded")
+	}
+}
+
+func SeedRootConfig(ctx context.Context, client interfaces.ClientInterface) {
+	entClient := client.EntClient()
+	exists, err := entClient.RootConfig.Query().Where(rootconfig.ID(1)).Exist(ctx)
+	if err != nil {
+		log.Fatalf("failed to query rootConfig: %v", err)
+	}
+	if !exists {
+		_, err = entClient.RootConfig.Create().
+			Save(ctx)
+		if err != nil {
+			log.Fatalf("failed to create root config: %v", err)
+		}
+		log.Println("Root config seeded")
 	}
 }
 

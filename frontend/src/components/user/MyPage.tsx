@@ -69,6 +69,14 @@ const MyPage: React.FC = () => {
           <Link to="/words/new">単語登録画面</Link>
         </p>
       ) : null}
+      <p>
+        <Link to="/user/userSetting">ユーザー設定画面</Link>
+      </p>
+      {user?.root ? (
+        <p>
+          <Link to="/user/rootSetting">管理設定画面</Link>
+        </p>
+      ) : null}
       <button onClick={handleSignOut}>サインアウト</button>
     </div>
   )

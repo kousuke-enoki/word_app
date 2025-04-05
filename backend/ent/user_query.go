@@ -11,6 +11,7 @@ import (
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/test"
 	"word_app/backend/ent/user"
+	"word_app/backend/ent/userconfig"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -27,6 +28,7 @@ type UserQuery struct {
 	predicates          []predicate.User
 	withRegisteredWords *RegisteredWordQuery
 	withTests           *TestQuery
+	withUserConfig      *UserConfigQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -100,6 +102,28 @@ func (uq *UserQuery) QueryTests() *TestQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(test.Table, test.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.TestsTable, user.TestsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUserConfig chains the current query on the "user_config" edge.
+func (uq *UserQuery) QueryUserConfig() *UserConfigQuery {
+	query := (&UserConfigClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(userconfig.Table, userconfig.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.UserConfigTable, user.UserConfigColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -301,6 +325,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		predicates:          append([]predicate.User{}, uq.predicates...),
 		withRegisteredWords: uq.withRegisteredWords.Clone(),
 		withTests:           uq.withTests.Clone(),
+		withUserConfig:      uq.withUserConfig.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -326,6 +351,17 @@ func (uq *UserQuery) WithTests(opts ...func(*TestQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withTests = query
+	return uq
+}
+
+// WithUserConfig tells the query-builder to eager-load the nodes that are connected to
+// the "user_config" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithUserConfig(opts ...func(*UserConfigQuery)) *UserQuery {
+	query := (&UserConfigClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withUserConfig = query
 	return uq
 }
 
@@ -407,9 +443,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			uq.withRegisteredWords != nil,
 			uq.withTests != nil,
+			uq.withUserConfig != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -441,6 +478,12 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadTests(ctx, query, nodes,
 			func(n *User) { n.Edges.Tests = []*Test{} },
 			func(n *User, e *Test) { n.Edges.Tests = append(n.Edges.Tests, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withUserConfig; query != nil {
+		if err := uq.loadUserConfig(ctx, query, nodes, nil,
+			func(n *User, e *UserConfig) { n.Edges.UserConfig = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -492,6 +535,33 @@ func (uq *UserQuery) loadTests(ctx context.Context, query *TestQuery, nodes []*U
 	}
 	query.Where(predicate.Test(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.TestsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadUserConfig(ctx context.Context, query *UserConfigQuery, nodes []*User, init func(*User), assign func(*User, *UserConfig)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(userconfig.FieldUserID)
+	}
+	query.Where(predicate.UserConfig(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.UserConfigColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

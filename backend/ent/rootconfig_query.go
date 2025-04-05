@@ -262,7 +262,7 @@ func (rcq *RootConfigQuery) Clone() *RootConfigQuery {
 // Example:
 //
 //	var v []struct {
-//		EditingPermission int `json:"editing_permission,omitempty"`
+//		EditingPermission string `json:"editing_permission,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -285,7 +285,7 @@ func (rcq *RootConfigQuery) GroupBy(field string, fields ...string) *RootConfigG
 // Example:
 //
 //	var v []struct {
-//		EditingPermission int `json:"editing_permission,omitempty"`
+//		EditingPermission string `json:"editing_permission,omitempty"`
 //	}
 //
 //	client.RootConfig.Query().

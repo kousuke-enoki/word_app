@@ -27,6 +27,9 @@ type TestQuestion func(*sql.Selector)
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 
+// UserConfig is the predicate function for userconfig builders.
+type UserConfig func(*sql.Selector)
+
 // Word is the predicate function for word builders.
 type Word func(*sql.Selector)
 

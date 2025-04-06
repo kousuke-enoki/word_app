@@ -5,40 +5,61 @@
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
-  background-color: #f8f9fa;
-  border: 1px solid #ddd;
+  background-color: var(--container_bg);
+  border: var(--container_bd);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--shadow);
 }
 
 .word-create-container h1 {
   text-align: center;
   margin-bottom: 20px;
   font-size: 24px;
-  color: #333;
+  color: var(--h1_fg);
 }
 
 .word-create-form label {
   display: block;
   margin-bottom: 8px;
   font-weight: bold;
-  color: #555;
+  color: var(--container_c);
 }
 
-.word-create-form input,
-.word-create-form select {
+.word-create-form input {
   width: 100%;
   padding: 8px 12px;
   margin-bottom: 12px;
-  border: 1px solid #ccc;
+  background-color: var(--input);
+  border: 1px solid var(--input_bd);
+  color: var(--input_c);
   border-radius: 4px;
   font-size: 14px;
   box-sizing: border-box;
 }
-
+.word-create-form select {
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  background-color: var(--select);
+  border: 1px solid var(--select_bd);
+  color: var(--select_c);
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+input[type='text'] {
+  width: 100%;
+  padding: 5px;
+  margin-bottom: 20px;
+  background-color: var(--input);
+  color: var(--input_c);
+  border: var(--input_bd);
+  border-radius: 4px;
+  font-size: 14px;
+}
 .word-create-form button {
   background-color: #007bff;
-  color: #fff;
+  color: var(--button);
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
@@ -55,9 +76,9 @@
 .word-info-section {
   margin-bottom: 20px;
   padding: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   border-radius: 4px;
-  background-color: #f1f1f1;
+  background-color: var(--word_i_sec);
 }
 
 .japanese-mean-section {
@@ -68,13 +89,27 @@
 }
 
 .japanese-mean-section button {
-  background-color: #dc3545;
+  background-color: var(--jpm_delete_button);
   color: #fff;
   font-size: 12px;
 }
 
 .japanese-mean-section button:hover {
-  background-color: #b02a37;
+  background-color: var(--jpm_delete_button_hover);
+}
+
+button.part-of-speech-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  background-color: var(--pos_delete_button);
+  color: var(--button);
+  font-size: 12px;
+}
+
+.part-of-speech-section button:hover {
+  background-color: var(--pos_delete_button_hover);
 }
 
 .word-create-container .submit-button {

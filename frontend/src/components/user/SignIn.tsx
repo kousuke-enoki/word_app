@@ -1,12 +1,15 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axiosInstance from '../../axiosConfig'
+import { useTheme } from '../../context/ThemeContext'
+
 
 const SignIn: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
   const navigate = useNavigate()
+  const { setTheme } = useTheme()
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -18,6 +21,8 @@ const SignIn: React.FC = () => {
       const token = response.data.token
       localStorage.setItem('token', token)
       localStorage.setItem('logoutMessage', 'サインイン成功！')
+      const res = await axiosInstance.get('/setting/user_config')
+      setTheme(res.data.is_dark_mode ? 'dark' : 'light')
 
       setTimeout(() => {
         navigate('/mypage')

@@ -270,7 +270,8 @@ const WordNew: React.FC = () => {
                   <p style={{ color: 'red' }}>{infoError.partOfSpeech}</p>
                 )}
                 {word.wordInfos.length > 1 && (
-                  <button
+                  <button 
+                    className="part-of-speech-section"
                     type="button"
                     onClick={() => removePartOfSpeech(wordInfoIndex)}
                   >

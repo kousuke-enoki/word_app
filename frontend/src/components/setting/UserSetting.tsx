@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import axiosInstance from '../../../axiosConfig'
-import '../../../styles/components/setting/UserSetting.css'
+import axiosInstance from '../../axiosConfig'
+import '../../styles/components/setting/UserSetting.css'
+import { useTheme } from '../../context/ThemeContext'
 
 const UserSetting: React.FC = () => {
   const [initial, setInitial] = useState<{
@@ -12,6 +13,7 @@ const UserSetting: React.FC = () => {
   const [isDarkMode, SetIsDarkMode] = useState(false)
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
+  const { setTheme } = useTheme()
 
   useEffect(() => {
     const fetchUserSettingData = async () => {
@@ -40,6 +42,7 @@ const UserSetting: React.FC = () => {
         is_dark_mode: isDarkMode,
       })
       if (response.status === 200) {
+        setTheme(isDarkMode ? 'dark' : 'light') 
         setMessage('設定を保存しました。')
         setInitial({
           isDarkMode: isDarkMode,

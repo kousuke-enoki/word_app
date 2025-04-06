@@ -3,24 +3,18 @@
   max-width: 600px;
   margin: 20px auto;
   padding: 20px;
-  border: 1px solid #ccc;
+  border: var(--container_bd);
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: #f9f9f9;
+  background-color: var(--container_bg);
+  color: var(--container_c);
 }
 
 h1 {
   text-align: center;
-  color: #333;
+  color: var(--h1_fg);
   font-size: 1.8rem;
   margin-bottom: 20px;
-}
-
-label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 5px;
-  color: #555;
 }
 
 textarea {
@@ -28,7 +22,9 @@ textarea {
   font-size: 1rem;
   text-align: center;
   padding: 5px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--textarea_bd);
+  background-color: var(--textarea_bg);
+  color: var(--textarea_c);
   border-radius: 4px;
   resize: none;
 }
@@ -56,11 +52,11 @@ button:hover {
 
 .save-button {
   margin-top: 10px;
-  background-color: #2196f3;
+  background-color: var(--save_button);
 }
 
 .save-button:hover {
-  background-color: #1976d2;
+  background-color:var(--save_button_hover);
 }
 
 .success-popup {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import axiosInstance from '../../axiosConfig'
 import { useNavigate } from 'react-router-dom'
+import { useTheme } from '../../context/ThemeContext'
 
 interface FieldError {
   field: string
@@ -14,6 +15,7 @@ const SignUp: React.FC = () => {
   const [message, setMessage] = useState('')
   const [errors, setErrors] = useState<FieldError[]>([])
   const navigate = useNavigate()
+  const { setTheme } = useTheme()
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -26,6 +28,7 @@ const SignUp: React.FC = () => {
       const token = response.data.token
       localStorage.setItem('token', token)
       localStorage.setItem('logoutMessage', 'サインアップしました。')
+      handleGetDarkMode
       setMessage('Sign up successful!')
       setErrors([])
       setTimeout(() => {
@@ -37,7 +40,17 @@ const SignUp: React.FC = () => {
       setMessage('')
     }
   }
-
+  const handleGetDarkMode = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    try {
+      const res = await axiosInstance.get('/setting/user_config')
+      setTheme(res.data.is_dark_mode ? 'dark' : 'light')
+    } catch (error: any) {
+      const fieldErrors: FieldError[] = error.response?.data?.errors || []
+      setErrors(fieldErrors)
+      setMessage('')
+    }
+  }
   // フィールドごとにエラーメッセージを取得する関数
   const getErrorMessages = (field: string) => {
     return errors

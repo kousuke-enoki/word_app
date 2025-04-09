@@ -1,18 +1,29 @@
 # ビルド用のステージ
 FROM golang:1.23.3 AS builder
 
-# 作業ディレクトリを設定
-WORKDIR /app
+# # 作業ディレクトリを設定
+# WORKDIR /app
 
-# Goのモジュールをコピー
-COPY go.mod go.sum ./
-RUN go mod download
+# # Goのモジュールをコピー
+# COPY go.mod go.sum ./
+# RUN go mod download
 
-# アプリケーションのソースコードをコピー
+# # アプリケーションのソースコードをコピー
+# COPY . .
+
+# # airをインストール (修正)
+# RUN go install github.com/air-verse/air@latest
+
+# # アプリケーションをビルドしないので、CMDを変更
+# CMD ["air"]
+
+WORKDIR /src
 COPY . .
+RUN go mod download
+RUN CGO_ENABLED=0 go build -o /go/bin/server      ./cmd/server
+RUN CGO_ENABLED=0 go build -o /go/bin/import_dict ./cmd/import_dict
 
-# airをインストール (修正)
-RUN go install github.com/air-verse/air@latest
-
-# アプリケーションをビルドしないので、CMDを変更
-CMD ["air"]
+FROM gcr.io/distroless/base-debian12
+COPY --from=builder /go/bin/server       /server
+COPY --from=builder /go/bin/import_dict  /import_dict
+ENTRYPOINT ["/server"]

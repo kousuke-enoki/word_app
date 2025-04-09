@@ -95,3 +95,13 @@ npm test
 7 冠詞（article）
 8 間投詞（interjection）
 9 接続詞（conjunction）
+
+
+# 辞書import
+jmdict-simplified
+Update checksum files @ 2025-04-07 12:33:48 UTC
+
+https://github.com/scriptin/jmdict-simplified/tree/master?search=1
+
+# ライセンス
+CC‑BY‑SA 4.0 / WordNet License

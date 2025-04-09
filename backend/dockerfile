@@ -8,6 +8,9 @@ RUN go mod download
 
 # 残りのソース
 COPY . .
+RUN go mod download
+RUN CGO_ENABLED=0 go build -o /go/bin/server      ./cmd/server
+RUN CGO_ENABLED=0 go build -o /go/bin/import_dict ./cmd/import_dict
 
 # ① API サーバー
 RUN CGO_ENABLED=0 go build -o /out/server      ./cmd/server

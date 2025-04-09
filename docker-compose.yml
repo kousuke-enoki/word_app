@@ -1,8 +1,9 @@
+version: "3.9"
+
 services:
   db:
-    image: postgres:latest
-    ports:
-      - "5432:5432"
+    image: postgres:16
+    ports: ["5432:5432"]
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -10,7 +11,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -18,44 +19,54 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
+    image: wordapp-backend:latest
     depends_on:
       db:
         condition: service_healthy
+    command: ./server                    # ← cmd/server/main.go が生成するバイナリ名
     environment:
+      DB_DSN: postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable
       APP_ENV: ${APP_ENV}
-      DB_HOST: ${DB_HOST}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-      ENT_DEBUG: ${ENT_DEBUG}
-    env_file:
-      - backend/.env.${APP_ENV}
+    volumes:
+      - ./backend:/app                   # 開発時ホットリロード用
     ports:
       - "${APP_PORT}:8080"
-    volumes:
-      - ./backend:/app
-    command: air
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  dict-import:
+    image: wordapp-backend:latest        # backend と同じイメージを再利用
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ./import_dict -file=/data/jmdict.json
+    volumes:
+      - ./assets:/data                   # JMdict などの辞書ファイル置き場
+    profiles: ["manual"]                 # ← 手動 or CI でのみ起動
+    environment:
+      DB_DSN: postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable
+
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-    environment:
-      - CHOKIDAR_USEPOLLING=true
+      dockerfile: dockerfile
+    ports: ["3000:3000"]
+    depends_on: [backend]
     volumes:
       - ./frontend:/app
       - /app/node_modules
     command: npm run dev
+    environment:
+      - CHOKIDAR_USEPOLLING=true
 
 volumes:
   db_data:
+
+dict-import:
+  volumes:
+    - ./backend/assets:/data
+  command: ./import_dict -file=/data/jmdict_sample.json

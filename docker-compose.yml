@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   db:
     image: postgres:17
@@ -23,6 +25,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    command: ./server                    # ← cmd/server/main.go が生成するバイナリ名
     environment:
       DB_DSN: postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable
       APP_ENV: ${APP_ENV}
@@ -65,3 +68,8 @@ services:
 
 volumes:
   db_data:
+
+dict-import:
+  volumes:
+    - ./backend/assets:/data
+  command: ./import_dict -file=/data/jmdict_sample.json

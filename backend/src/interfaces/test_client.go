@@ -10,6 +10,16 @@ type TestClientWrapper struct {
 	entClient *ent.Client
 }
 
+// BulkRegister implements ClientInterface.
+func (w *TestClientWrapper) BulkRegister(ctx context.Context, userID int, words []string) (*models.BulkRegisterResponse, error) {
+	panic("unimplemented")
+}
+
+// BulkTokenize implements ClientInterface.
+func (w *TestClientWrapper) BulkTokenize(ctx context.Context, userID int, text string) ([]string, []string, []string, error) {
+	panic("unimplemented")
+}
+
 // GetRootConfig implements ClientInterface.
 func (w *TestClientWrapper) GetRootConfig(ctx context.Context, userID int) (*ent.RootConfig, error) {
 	panic("unimplemented")

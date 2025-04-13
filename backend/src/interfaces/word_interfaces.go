@@ -16,6 +16,8 @@ type WordHandler interface {
 	WordShowHandler() gin.HandlerFunc
 	RegisterWordHandler() gin.HandlerFunc
 	SaveMemoHandler() gin.HandlerFunc
+	BulkTokenizeHandler() gin.HandlerFunc
+	BulkRegisterHandler() gin.HandlerFunc
 }
 
 type WordService interface {
@@ -28,6 +30,8 @@ type WordService interface {
 	RegisterWords(ctx context.Context, RegisterWordRequest *models.RegisterWordRequest) (*models.RegisterWordResponse, error)
 	RegisteredWordCount(ctx context.Context, RegisteredWordCountRequest *models.RegisteredWordCountRequest) (*models.RegisteredWordCountResponse, error)
 	SaveMemo(ctx context.Context, SaveMemoRequest *models.SaveMemoRequest) (*models.SaveMemoResponse, error)
+	BulkTokenize(ctx context.Context, userID int, text string) ([]string, []string, []string, error)
+	BulkRegister(ctx context.Context, userID int, words []string) (*models.BulkRegisterResponse, error)
 }
 type WordValidator interface {
 	ValidateCreateWordRequest(CreateWordRequest *models.CreateWordRequest) []*models.FieldError

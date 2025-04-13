@@ -2,6 +2,7 @@ package word_service
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -12,10 +13,16 @@ import (
 // 正規表現で単語抽出 → 小文字化 → 重複排除
 var reWord = regexp.MustCompile(`[A-Za-z]+(?:'[A-Za-z]+)?`)
 
+const maxTokens = 200 // 1 リクエストで許可する最大単語数
+
 func unique(words []string) []string {
-	set := map[string]struct{}{}
-	out := make([]string, 0, len(words))
+	set := make(map[string]struct{}, len(words))
+	out := make([]string, 0, maxTokens) // 上限ぶんだけ確保
+
 	for _, w := range words {
+		if len(out) >= maxTokens { // 上限超えたらここで打ち切り
+			break
+		}
 		lw := strings.ToLower(w)
 		if _, ok := set[lw]; !ok {
 			set[lw] = struct{}{}
@@ -26,14 +33,22 @@ func unique(words []string) []string {
 }
 
 func (s *WordServiceImpl) BulkTokenize(ctx context.Context, userID int, text string) ([]string, []string, []string, error) {
-	words := unique(reWord.FindAllString(text, -1))
+	wordsRaw := reWord.FindAllString(text, -1)
+	if len(wordsRaw) == 0 {
+		return nil, nil, nil, nil
+	}
+	if len(wordsRaw) > maxTokens*5 { // ★ さらに荒いフィルタ
+		return nil, nil, nil, fmt.Errorf("too many tokens: %d > %d", len(wordsRaw), maxTokens*5)
+	}
+
+	words := unique(wordsRaw) // ここで重複排除＆maxTokens適用
+
 	if len(words) == 0 {
 		return nil, nil, nil, nil
 	}
 
 	/* ---------- DB 検索 ---------- */
 	// ① master word テーブルに存在する単語
-	// foundWords, err := s.db.Word.
 	foundWords, err := s.client.Word().
 		Query().
 		Where(word.NameIn(words...)).

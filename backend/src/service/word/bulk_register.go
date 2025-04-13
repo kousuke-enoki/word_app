@@ -119,7 +119,6 @@ func (s *WordServiceImpl) BulkRegister(ctx context.Context, userID int, words []
 				SetIsActive(true).
 				Save(ctx)
 		}
-
 		if err != nil {
 			failed = append(failed, models.FailedWord{Word: w, Reason: "db_error"})
 			continue

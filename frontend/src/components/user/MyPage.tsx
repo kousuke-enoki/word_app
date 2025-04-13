@@ -64,6 +64,9 @@ const MyPage: React.FC = () => {
       <p>
         全単語リスト: <Link to="/words">word list</Link>
       </p>
+      <p>
+        まとめて登録: <Link to="/Words/BulkRegister">単語まとめて登録</Link>
+      </p>
       {user?.admin ? (
         <p>
           <Link to="/words/new">単語登録画面</Link>

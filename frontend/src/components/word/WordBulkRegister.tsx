@@ -5,7 +5,7 @@ import axiosInstance from '../../axiosConfig'
 
 type Token = { word: string; checked: boolean }
 
-const MAX_LEN = 5000
+const MAX_LEN = 3000
 
 const WordBulkRegister: React.FC = () => {
   /* ① textarea 入力値 */

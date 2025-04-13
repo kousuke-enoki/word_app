@@ -14,6 +14,16 @@ type appClient struct {
 	entClient *ent.Client
 }
 
+// BulkRegister implements interfaces.ClientInterface.
+func (c *appClient) BulkRegister(ctx context.Context, userID int, words []string) (*models.BulkRegisterResponse, error) {
+	panic("unimplemented")
+}
+
+// BulkTokenize implements interfaces.ClientInterface.
+func (c *appClient) BulkTokenize(ctx context.Context, userID int, text string) ([]string, []string, []string, error) {
+	panic("unimplemented")
+}
+
 // GetRootConfig implements interfaces.ClientInterface.
 func (c *appClient) GetRootConfig(ctx context.Context, userID int) (*ent.RootConfig, error) {
 	panic("unimplemented")

@@ -3,6 +3,7 @@ package word
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"word_app/backend/src/models"
 
@@ -37,7 +38,10 @@ func (h *WordHandler) BulkTokenizeHandler() gin.HandlerFunc {
 
 		cands, regs, notExist, err := h.wordService.BulkTokenize(ctx, userIDInt, req.Text)
 		if err != nil {
-			logrus.Errorf("Failed to bulk tokenize: %v", err)
+			if strings.HasPrefix(err.Error(), "too many tokens") {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

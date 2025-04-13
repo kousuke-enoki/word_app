@@ -20,9 +20,11 @@ import (
 	userService "word_app/backend/src/service/user"
 	wordService "word_app/backend/src/service/word"
 	"word_app/backend/src/utils"
+	"word_app/backend/src/validators"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 )
@@ -115,6 +117,9 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 		logrus.Fatalf("Failed to set trusted proxies: %v", err)
 	}
 	logrus.Info("Router setup completed")
+
+	validators.Init()
+	binding.Validator = &validators.GinValidator{validators.V}
 
 	return router
 }

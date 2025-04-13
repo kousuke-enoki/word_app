@@ -13,12 +13,32 @@ type WordHandler struct {
 	mock.Mock
 }
 
-// WordListHandler provides a mock function with given fields:
-func (_m *WordHandler) WordListHandler() gin.HandlerFunc {
+// BulkRegisterHandler provides a mock function with given fields:
+func (_m *WordHandler) BulkRegisterHandler() gin.HandlerFunc {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for WordListHandler")
+		panic("no return value specified for BulkRegisterHandler")
+	}
+
+	var r0 gin.HandlerFunc
+	if rf, ok := ret.Get(0).(func() gin.HandlerFunc); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(gin.HandlerFunc)
+		}
+	}
+
+	return r0
+}
+
+// BulkTokenizeHandler provides a mock function with given fields:
+func (_m *WordHandler) BulkTokenizeHandler() gin.HandlerFunc {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for BulkTokenizeHandler")
 	}
 
 	var r0 gin.HandlerFunc
@@ -119,6 +139,26 @@ func (_m *WordHandler) UpdateWordHandler() gin.HandlerFunc {
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateWordHandler")
+	}
+
+	var r0 gin.HandlerFunc
+	if rf, ok := ret.Get(0).(func() gin.HandlerFunc); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(gin.HandlerFunc)
+		}
+	}
+
+	return r0
+}
+
+// WordListHandler provides a mock function with given fields:
+func (_m *WordHandler) WordListHandler() gin.HandlerFunc {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for WordListHandler")
 	}
 
 	var r0 gin.HandlerFunc

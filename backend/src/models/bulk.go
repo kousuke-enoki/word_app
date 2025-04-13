@@ -1,7 +1,7 @@
 package models
 
 type BulkTokenizeRequest struct {
-	Text string `json:"text" binding:"required,max=5000"`
+	Text string `json:"text" binding:"required,max=3000"`
 }
 
 type BulkTokenizeResponse struct {

@@ -2,6 +2,8 @@ package word_service
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"strings"
 
 	"word_app/backend/ent/registeredword"
@@ -11,11 +13,23 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const maxBulkRegister = 200 // 1 リクエストで許可する単語数
+
 func (s *WordServiceImpl) BulkRegister(ctx context.Context, userID int, words []string) (*models.BulkRegisterResponse, error) {
+	if len(words) == 0 {
+		return nil, errors.New("empty payload")
+	}
+	if len(words) > maxBulkRegister {
+		return nil, fmt.Errorf("too many words: %d > %d", len(words), maxBulkRegister)
+	}
+
 	/* ---------- 正規化＋重複排除 ---------- */
 	set := map[string]struct{}{}
 	norm := make([]string, 0, len(words))
 	for _, w := range words {
+		if len(norm) >= maxBulkRegister { // max超えていたらここで打ち切り
+			break
+		}
 		lw := strings.ToLower(w)
 		if _, ok := set[lw]; !ok {
 			set[lw] = struct{}{}
@@ -105,16 +119,21 @@ func (s *WordServiceImpl) BulkRegister(ctx context.Context, userID int, words []
 				SetIsActive(true).
 				Save(ctx)
 		}
-		/* 4‑B. registration_count を +1 */
-		_, err = s.RegisteredWordCount(ctx, &models.RegisteredWordCountRequest{
-			WordID:       wordID,
-			IsRegistered: true,
-		})
+
 		if err != nil {
 			failed = append(failed, models.FailedWord{Word: w, Reason: "db_error"})
 			continue
 		}
 		okWords = append(okWords, w)
+	}
+
+	/* 4‑B. registration_count を +1 */
+	_, err = s.RegisteredWordsCount(ctx,
+		true,
+		okWords,
+	)
+	if err != nil {
+		return nil, err
 	}
 
 	response := &models.BulkRegisterResponse{

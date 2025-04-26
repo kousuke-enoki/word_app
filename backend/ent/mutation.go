@@ -5235,6 +5235,8 @@ type WordMutation struct {
 	id                      *int
 	name                    *string
 	voice_id                *string
+	is_idioms               *bool
+	is_special_characters   *bool
 	registration_count      *int
 	addregistration_count   *int
 	created_at              *time.Time
@@ -5432,6 +5434,78 @@ func (m *WordMutation) VoiceIDCleared() bool {
 func (m *WordMutation) ResetVoiceID() {
 	m.voice_id = nil
 	delete(m.clearedFields, word.FieldVoiceID)
+}
+
+// SetIsIdioms sets the "is_idioms" field.
+func (m *WordMutation) SetIsIdioms(b bool) {
+	m.is_idioms = &b
+}
+
+// IsIdioms returns the value of the "is_idioms" field in the mutation.
+func (m *WordMutation) IsIdioms() (r bool, exists bool) {
+	v := m.is_idioms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsIdioms returns the old "is_idioms" field's value of the Word entity.
+// If the Word object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WordMutation) OldIsIdioms(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsIdioms is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsIdioms requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsIdioms: %w", err)
+	}
+	return oldValue.IsIdioms, nil
+}
+
+// ResetIsIdioms resets all changes to the "is_idioms" field.
+func (m *WordMutation) ResetIsIdioms() {
+	m.is_idioms = nil
+}
+
+// SetIsSpecialCharacters sets the "is_special_characters" field.
+func (m *WordMutation) SetIsSpecialCharacters(b bool) {
+	m.is_special_characters = &b
+}
+
+// IsSpecialCharacters returns the value of the "is_special_characters" field in the mutation.
+func (m *WordMutation) IsSpecialCharacters() (r bool, exists bool) {
+	v := m.is_special_characters
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsSpecialCharacters returns the old "is_special_characters" field's value of the Word entity.
+// If the Word object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WordMutation) OldIsSpecialCharacters(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsSpecialCharacters is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsSpecialCharacters requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsSpecialCharacters: %w", err)
+	}
+	return oldValue.IsSpecialCharacters, nil
+}
+
+// ResetIsSpecialCharacters resets all changes to the "is_special_characters" field.
+func (m *WordMutation) ResetIsSpecialCharacters() {
+	m.is_special_characters = nil
 }
 
 // SetRegistrationCount sets the "registration_count" field.
@@ -5704,12 +5778,18 @@ func (m *WordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *WordMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 7)
 	if m.name != nil {
 		fields = append(fields, word.FieldName)
 	}
 	if m.voice_id != nil {
 		fields = append(fields, word.FieldVoiceID)
+	}
+	if m.is_idioms != nil {
+		fields = append(fields, word.FieldIsIdioms)
+	}
+	if m.is_special_characters != nil {
+		fields = append(fields, word.FieldIsSpecialCharacters)
 	}
 	if m.registration_count != nil {
 		fields = append(fields, word.FieldRegistrationCount)
@@ -5732,6 +5812,10 @@ func (m *WordMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case word.FieldVoiceID:
 		return m.VoiceID()
+	case word.FieldIsIdioms:
+		return m.IsIdioms()
+	case word.FieldIsSpecialCharacters:
+		return m.IsSpecialCharacters()
 	case word.FieldRegistrationCount:
 		return m.RegistrationCount()
 	case word.FieldCreatedAt:
@@ -5751,6 +5835,10 @@ func (m *WordMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldName(ctx)
 	case word.FieldVoiceID:
 		return m.OldVoiceID(ctx)
+	case word.FieldIsIdioms:
+		return m.OldIsIdioms(ctx)
+	case word.FieldIsSpecialCharacters:
+		return m.OldIsSpecialCharacters(ctx)
 	case word.FieldRegistrationCount:
 		return m.OldRegistrationCount(ctx)
 	case word.FieldCreatedAt:
@@ -5779,6 +5867,20 @@ func (m *WordMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetVoiceID(v)
+		return nil
+	case word.FieldIsIdioms:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsIdioms(v)
+		return nil
+	case word.FieldIsSpecialCharacters:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsSpecialCharacters(v)
 		return nil
 	case word.FieldRegistrationCount:
 		v, ok := value.(int)
@@ -5879,6 +5981,12 @@ func (m *WordMutation) ResetField(name string) error {
 		return nil
 	case word.FieldVoiceID:
 		m.ResetVoiceID()
+		return nil
+	case word.FieldIsIdioms:
+		m.ResetIsIdioms()
+		return nil
+	case word.FieldIsSpecialCharacters:
+		m.ResetIsSpecialCharacters()
 		return nil
 	case word.FieldRegistrationCount:
 		m.ResetRegistrationCount()

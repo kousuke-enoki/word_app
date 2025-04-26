@@ -11,6 +11,7 @@ import (
 	"word_app/backend/ent/test"
 	"word_app/backend/ent/testquestion"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )
@@ -20,6 +21,7 @@ type TestQuestionCreate struct {
 	config
 	mutation *TestQuestionMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetTestID sets the "test_id" field.
@@ -163,6 +165,7 @@ func (tqc *TestQuestionCreate) createSpec() (*TestQuestion, *sqlgraph.CreateSpec
 		_node = &TestQuestion{config: tqc.config}
 		_spec = sqlgraph.NewCreateSpec(testquestion.Table, sqlgraph.NewFieldSpec(testquestion.FieldID, field.TypeInt))
 	)
+	_spec.OnConflict = tqc.conflict
 	if value, ok := tqc.mutation.IsCorrect(); ok {
 		_spec.SetField(testquestion.FieldIsCorrect, field.TypeBool, value)
 		_node.IsCorrect = value
@@ -208,11 +211,238 @@ func (tqc *TestQuestionCreate) createSpec() (*TestQuestion, *sqlgraph.CreateSpec
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.TestQuestion.Create().
+//		SetTestID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.TestQuestionUpsert) {
+//			SetTestID(v+v).
+//		}).
+//		Exec(ctx)
+func (tqc *TestQuestionCreate) OnConflict(opts ...sql.ConflictOption) *TestQuestionUpsertOne {
+	tqc.conflict = opts
+	return &TestQuestionUpsertOne{
+		create: tqc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.TestQuestion.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (tqc *TestQuestionCreate) OnConflictColumns(columns ...string) *TestQuestionUpsertOne {
+	tqc.conflict = append(tqc.conflict, sql.ConflictColumns(columns...))
+	return &TestQuestionUpsertOne{
+		create: tqc,
+	}
+}
+
+type (
+	// TestQuestionUpsertOne is the builder for "upsert"-ing
+	//  one TestQuestion node.
+	TestQuestionUpsertOne struct {
+		create *TestQuestionCreate
+	}
+
+	// TestQuestionUpsert is the "OnConflict" setter.
+	TestQuestionUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetTestID sets the "test_id" field.
+func (u *TestQuestionUpsert) SetTestID(v int) *TestQuestionUpsert {
+	u.Set(testquestion.FieldTestID, v)
+	return u
+}
+
+// UpdateTestID sets the "test_id" field to the value that was provided on create.
+func (u *TestQuestionUpsert) UpdateTestID() *TestQuestionUpsert {
+	u.SetExcluded(testquestion.FieldTestID)
+	return u
+}
+
+// SetRegisteredWordID sets the "registered_word_id" field.
+func (u *TestQuestionUpsert) SetRegisteredWordID(v int) *TestQuestionUpsert {
+	u.Set(testquestion.FieldRegisteredWordID, v)
+	return u
+}
+
+// UpdateRegisteredWordID sets the "registered_word_id" field to the value that was provided on create.
+func (u *TestQuestionUpsert) UpdateRegisteredWordID() *TestQuestionUpsert {
+	u.SetExcluded(testquestion.FieldRegisteredWordID)
+	return u
+}
+
+// SetIsCorrect sets the "is_correct" field.
+func (u *TestQuestionUpsert) SetIsCorrect(v bool) *TestQuestionUpsert {
+	u.Set(testquestion.FieldIsCorrect, v)
+	return u
+}
+
+// UpdateIsCorrect sets the "is_correct" field to the value that was provided on create.
+func (u *TestQuestionUpsert) UpdateIsCorrect() *TestQuestionUpsert {
+	u.SetExcluded(testquestion.FieldIsCorrect)
+	return u
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *TestQuestionUpsert) SetCreatedAt(v time.Time) *TestQuestionUpsert {
+	u.Set(testquestion.FieldCreatedAt, v)
+	return u
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *TestQuestionUpsert) UpdateCreatedAt() *TestQuestionUpsert {
+	u.SetExcluded(testquestion.FieldCreatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// Using this option is equivalent to using:
+//
+//	client.TestQuestion.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *TestQuestionUpsertOne) UpdateNewValues() *TestQuestionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.TestQuestion.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *TestQuestionUpsertOne) Ignore() *TestQuestionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *TestQuestionUpsertOne) DoNothing() *TestQuestionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the TestQuestionCreate.OnConflict
+// documentation for more info.
+func (u *TestQuestionUpsertOne) Update(set func(*TestQuestionUpsert)) *TestQuestionUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&TestQuestionUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTestID sets the "test_id" field.
+func (u *TestQuestionUpsertOne) SetTestID(v int) *TestQuestionUpsertOne {
+	return u.Update(func(s *TestQuestionUpsert) {
+		s.SetTestID(v)
+	})
+}
+
+// UpdateTestID sets the "test_id" field to the value that was provided on create.
+func (u *TestQuestionUpsertOne) UpdateTestID() *TestQuestionUpsertOne {
+	return u.Update(func(s *TestQuestionUpsert) {
+		s.UpdateTestID()
+	})
+}
+
+// SetRegisteredWordID sets the "registered_word_id" field.
+func (u *TestQuestionUpsertOne) SetRegisteredWordID(v int) *TestQuestionUpsertOne {
+	return u.Update(func(s *TestQuestionUpsert) {
+		s.SetRegisteredWordID(v)
+	})
+}
+
+// UpdateRegisteredWordID sets the "registered_word_id" field to the value that was provided on create.
+func (u *TestQuestionUpsertOne) UpdateRegisteredWordID() *TestQuestionUpsertOne {
+	return u.Update(func(s *TestQuestionUpsert) {
+		s.UpdateRegisteredWordID()
+	})
+}
+
+// SetIsCorrect sets the "is_correct" field.
+func (u *TestQuestionUpsertOne) SetIsCorrect(v bool) *TestQuestionUpsertOne {
+	return u.Update(func(s *TestQuestionUpsert) {
+		s.SetIsCorrect(v)
+	})
+}
+
+// UpdateIsCorrect sets the "is_correct" field to the value that was provided on create.
+func (u *TestQuestionUpsertOne) UpdateIsCorrect() *TestQuestionUpsertOne {
+	return u.Update(func(s *TestQuestionUpsert) {
+		s.UpdateIsCorrect()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *TestQuestionUpsertOne) SetCreatedAt(v time.Time) *TestQuestionUpsertOne {
+	return u.Update(func(s *TestQuestionUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *TestQuestionUpsertOne) UpdateCreatedAt() *TestQuestionUpsertOne {
+	return u.Update(func(s *TestQuestionUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *TestQuestionUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for TestQuestionCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *TestQuestionUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *TestQuestionUpsertOne) ID(ctx context.Context) (id int, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *TestQuestionUpsertOne) IDX(ctx context.Context) int {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // TestQuestionCreateBulk is the builder for creating many TestQuestion entities in bulk.
 type TestQuestionCreateBulk struct {
 	config
 	err      error
 	builders []*TestQuestionCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the TestQuestion entities in the database.
@@ -242,6 +472,7 @@ func (tqcb *TestQuestionCreateBulk) Save(ctx context.Context) ([]*TestQuestion, 
 					_, err = mutators[i+1].Mutate(root, tqcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = tqcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, tqcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -292,6 +523,166 @@ func (tqcb *TestQuestionCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (tqcb *TestQuestionCreateBulk) ExecX(ctx context.Context) {
 	if err := tqcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.TestQuestion.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.TestQuestionUpsert) {
+//			SetTestID(v+v).
+//		}).
+//		Exec(ctx)
+func (tqcb *TestQuestionCreateBulk) OnConflict(opts ...sql.ConflictOption) *TestQuestionUpsertBulk {
+	tqcb.conflict = opts
+	return &TestQuestionUpsertBulk{
+		create: tqcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.TestQuestion.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (tqcb *TestQuestionCreateBulk) OnConflictColumns(columns ...string) *TestQuestionUpsertBulk {
+	tqcb.conflict = append(tqcb.conflict, sql.ConflictColumns(columns...))
+	return &TestQuestionUpsertBulk{
+		create: tqcb,
+	}
+}
+
+// TestQuestionUpsertBulk is the builder for "upsert"-ing
+// a bulk of TestQuestion nodes.
+type TestQuestionUpsertBulk struct {
+	create *TestQuestionCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.TestQuestion.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *TestQuestionUpsertBulk) UpdateNewValues() *TestQuestionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.TestQuestion.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *TestQuestionUpsertBulk) Ignore() *TestQuestionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *TestQuestionUpsertBulk) DoNothing() *TestQuestionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the TestQuestionCreateBulk.OnConflict
+// documentation for more info.
+func (u *TestQuestionUpsertBulk) Update(set func(*TestQuestionUpsert)) *TestQuestionUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&TestQuestionUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTestID sets the "test_id" field.
+func (u *TestQuestionUpsertBulk) SetTestID(v int) *TestQuestionUpsertBulk {
+	return u.Update(func(s *TestQuestionUpsert) {
+		s.SetTestID(v)
+	})
+}
+
+// UpdateTestID sets the "test_id" field to the value that was provided on create.
+func (u *TestQuestionUpsertBulk) UpdateTestID() *TestQuestionUpsertBulk {
+	return u.Update(func(s *TestQuestionUpsert) {
+		s.UpdateTestID()
+	})
+}
+
+// SetRegisteredWordID sets the "registered_word_id" field.
+func (u *TestQuestionUpsertBulk) SetRegisteredWordID(v int) *TestQuestionUpsertBulk {
+	return u.Update(func(s *TestQuestionUpsert) {
+		s.SetRegisteredWordID(v)
+	})
+}
+
+// UpdateRegisteredWordID sets the "registered_word_id" field to the value that was provided on create.
+func (u *TestQuestionUpsertBulk) UpdateRegisteredWordID() *TestQuestionUpsertBulk {
+	return u.Update(func(s *TestQuestionUpsert) {
+		s.UpdateRegisteredWordID()
+	})
+}
+
+// SetIsCorrect sets the "is_correct" field.
+func (u *TestQuestionUpsertBulk) SetIsCorrect(v bool) *TestQuestionUpsertBulk {
+	return u.Update(func(s *TestQuestionUpsert) {
+		s.SetIsCorrect(v)
+	})
+}
+
+// UpdateIsCorrect sets the "is_correct" field to the value that was provided on create.
+func (u *TestQuestionUpsertBulk) UpdateIsCorrect() *TestQuestionUpsertBulk {
+	return u.Update(func(s *TestQuestionUpsert) {
+		s.UpdateIsCorrect()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *TestQuestionUpsertBulk) SetCreatedAt(v time.Time) *TestQuestionUpsertBulk {
+	return u.Update(func(s *TestQuestionUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *TestQuestionUpsertBulk) UpdateCreatedAt() *TestQuestionUpsertBulk {
+	return u.Update(func(s *TestQuestionUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *TestQuestionUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the TestQuestionCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for TestQuestionCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *TestQuestionUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

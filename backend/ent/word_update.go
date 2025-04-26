@@ -64,6 +64,34 @@ func (wu *WordUpdate) ClearVoiceID() *WordUpdate {
 	return wu
 }
 
+// SetIsIdioms sets the "is_idioms" field.
+func (wu *WordUpdate) SetIsIdioms(b bool) *WordUpdate {
+	wu.mutation.SetIsIdioms(b)
+	return wu
+}
+
+// SetNillableIsIdioms sets the "is_idioms" field if the given value is not nil.
+func (wu *WordUpdate) SetNillableIsIdioms(b *bool) *WordUpdate {
+	if b != nil {
+		wu.SetIsIdioms(*b)
+	}
+	return wu
+}
+
+// SetIsSpecialCharacters sets the "is_special_characters" field.
+func (wu *WordUpdate) SetIsSpecialCharacters(b bool) *WordUpdate {
+	wu.mutation.SetIsSpecialCharacters(b)
+	return wu
+}
+
+// SetNillableIsSpecialCharacters sets the "is_special_characters" field if the given value is not nil.
+func (wu *WordUpdate) SetNillableIsSpecialCharacters(b *bool) *WordUpdate {
+	if b != nil {
+		wu.SetIsSpecialCharacters(*b)
+	}
+	return wu
+}
+
 // SetRegistrationCount sets the "registration_count" field.
 func (wu *WordUpdate) SetRegistrationCount(i int) *WordUpdate {
 	wu.mutation.ResetRegistrationCount()
@@ -249,6 +277,12 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if wu.mutation.VoiceIDCleared() {
 		_spec.ClearField(word.FieldVoiceID, field.TypeString)
 	}
+	if value, ok := wu.mutation.IsIdioms(); ok {
+		_spec.SetField(word.FieldIsIdioms, field.TypeBool, value)
+	}
+	if value, ok := wu.mutation.IsSpecialCharacters(); ok {
+		_spec.SetField(word.FieldIsSpecialCharacters, field.TypeBool, value)
+	}
 	if value, ok := wu.mutation.RegistrationCount(); ok {
 		_spec.SetField(word.FieldRegistrationCount, field.TypeInt, value)
 	}
@@ -402,6 +436,34 @@ func (wuo *WordUpdateOne) SetNillableVoiceID(s *string) *WordUpdateOne {
 // ClearVoiceID clears the value of the "voice_id" field.
 func (wuo *WordUpdateOne) ClearVoiceID() *WordUpdateOne {
 	wuo.mutation.ClearVoiceID()
+	return wuo
+}
+
+// SetIsIdioms sets the "is_idioms" field.
+func (wuo *WordUpdateOne) SetIsIdioms(b bool) *WordUpdateOne {
+	wuo.mutation.SetIsIdioms(b)
+	return wuo
+}
+
+// SetNillableIsIdioms sets the "is_idioms" field if the given value is not nil.
+func (wuo *WordUpdateOne) SetNillableIsIdioms(b *bool) *WordUpdateOne {
+	if b != nil {
+		wuo.SetIsIdioms(*b)
+	}
+	return wuo
+}
+
+// SetIsSpecialCharacters sets the "is_special_characters" field.
+func (wuo *WordUpdateOne) SetIsSpecialCharacters(b bool) *WordUpdateOne {
+	wuo.mutation.SetIsSpecialCharacters(b)
+	return wuo
+}
+
+// SetNillableIsSpecialCharacters sets the "is_special_characters" field if the given value is not nil.
+func (wuo *WordUpdateOne) SetNillableIsSpecialCharacters(b *bool) *WordUpdateOne {
+	if b != nil {
+		wuo.SetIsSpecialCharacters(*b)
+	}
 	return wuo
 }
 
@@ -619,6 +681,12 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (_node *Word, err error) 
 	}
 	if wuo.mutation.VoiceIDCleared() {
 		_spec.ClearField(word.FieldVoiceID, field.TypeString)
+	}
+	if value, ok := wuo.mutation.IsIdioms(); ok {
+		_spec.SetField(word.FieldIsIdioms, field.TypeBool, value)
+	}
+	if value, ok := wuo.mutation.IsSpecialCharacters(); ok {
+		_spec.SetField(word.FieldIsSpecialCharacters, field.TypeBool, value)
 	}
 	if value, ok := wuo.mutation.RegistrationCount(); ok {
 		_spec.SetField(word.FieldRegistrationCount, field.TypeInt, value)

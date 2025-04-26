@@ -17,13 +17,27 @@ FROM golang:1.23.3 AS builder
 # # アプリケーションをビルドしないので、CMDを変更
 # CMD ["air"]
 
-WORKDIR /src
-COPY . .
-RUN go mod download
-RUN CGO_ENABLED=0 go build -o /go/bin/server      ./cmd/server
-RUN CGO_ENABLED=0 go build -o /go/bin/import_dict ./cmd/import_dict
 
-FROM gcr.io/distroless/base-debian12
-COPY --from=builder /go/bin/server       /server
-COPY --from=builder /go/bin/import_dict  /import_dict
-ENTRYPOINT ["/server"]
+  WORKDIR /src
+  
+  # モジュールキャッシュを活用
+  COPY go.mod go.sum ./
+  RUN go mod download
+  
+  # 残りのソース
+  COPY . .
+  
+  # ① API サーバー
+  RUN CGO_ENABLED=0 go build -o /out/server      ./cmd/server
+  # ② JMdict 取込 CLI
+  RUN CGO_ENABLED=0 go build -o /out/import_dict ./cmd/import_dict
+  
+  # ---------- runtime stage ----------
+  # distroless でも alpine でも OK。例では軽量 busybox
+  FROM busybox:uclibc
+  WORKDIR /app
+  COPY --from=builder /out/* /usr/local/bin/
+  
+  # デフォルトは API サーバー
+  ENTRYPOINT ["/usr/local/bin/server"]
+  

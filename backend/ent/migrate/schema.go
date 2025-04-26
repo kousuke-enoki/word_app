@@ -29,6 +29,13 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "japanesemean_word_info_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{JapaneseMeansColumns[4], JapaneseMeansColumns[1]},
+			},
+		},
 	}
 	// PartOfSpeechesColumns holds the columns for the "part_of_speeches" table.
 	PartOfSpeechesColumns = []*schema.Column{
@@ -179,8 +186,10 @@ var (
 	// WordsColumns holds the columns for the "words" table.
 	WordsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "name", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "voice_id", Type: field.TypeString, Nullable: true},
+		{Name: "is_idioms", Type: field.TypeBool, Default: false},
+		{Name: "is_special_characters", Type: field.TypeBool, Default: false},
 		{Name: "registration_count", Type: field.TypeInt, Default: 0},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},

@@ -21,20 +21,23 @@ func (Word) Fields() []ent.Field {
 		field.String("name").
 			NotEmpty().
 			Validate(func(name string) error {
-				// 半角アルファベットのみ許可
-				match, _ := regexp.MatchString(`^[a-zA-Z]+$`, name)
-				if !match {
-					return errors.New("name must contain only alphabetic characters")
+				valid := regexp.MustCompile(`^[A-Za-z0-9'’“”"!?(),.:;#@*\-/\s]+$`).MatchString
+				if !valid(name) {
+					return errors.New("invalid word name")
 				}
-				if len(name) < 0 || len(name) > 41 {
-					return errors.New("name must be between 0 and 41 characters")
+				if len(name) < 0 || len(name) > 100 {
+					return errors.New("name must be between 0 and 100 characters")
 				}
 				return nil
 			}).
-			NotEmpty(),
+			Unique(),
 		field.String("voice_id").
 			Optional().
 			Nillable(),
+		field.Bool("is_idioms").
+			Default(false),
+		field.Bool("is_special_characters").
+			Default(false),
 		field.Int("registration_count").
 			Default(0),
 		field.Time("created_at").

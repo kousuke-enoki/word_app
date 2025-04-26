@@ -20,7 +20,7 @@ type UserConfig struct {
 	// UserID holds the value of the "user_id" field.
 	UserID int `json:"user_id,omitempty"`
 	// IsDarkMode holds the value of the "is_dark_mode" field.
-	IsDarkMode bool `json:"is_dark_mode"`
+	IsDarkMode bool `json:"is_dark_mode,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserConfigQuery when eager-loading is set.
 	Edges        UserConfigEdges `json:"edges"`

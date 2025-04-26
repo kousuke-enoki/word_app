@@ -19,9 +19,9 @@ type RootConfig struct {
 	// EditingPermission holds the value of the "editing_permission" field.
 	EditingPermission string `json:"editing_permission,omitempty"`
 	// IsTestUserMode holds the value of the "is_test_user_mode" field.
-	IsTestUserMode bool `json:"is_test_user_mode"`
+	IsTestUserMode bool `json:"is_test_user_mode,omitempty"`
 	// IsEmailAuthentication holds the value of the "is_email_authentication" field.
-	IsEmailAuthentication bool `json:"is_email_authentication"`
+	IsEmailAuthentication bool `json:"is_email_authentication,omitempty"`
 	selectValues          sql.SelectValues
 }
 

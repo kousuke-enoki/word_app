@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"flag"
+	"log"
 	"os"
 	"time"
 
@@ -16,6 +17,8 @@ import (
 )
 
 func main() {
+	logrus.Info("JMdict import start")
+	log.Println("JMdict import start")
 	// -------- CLI フラグ --------
 	var (
 		file      string
@@ -34,21 +37,32 @@ func main() {
 	cli := database.GetEntClient()
 	defer cli.Close()
 
+	// ★ 追加: スキーマを作成（存在すれば no‑op）
+	if err := cli.Schema.Create(context.Background()); err != nil {
+		log.Fatalln("schema create failed: %v", err)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	start := time.Now()
-	logrus.Infof("JMdict import start (file=%s)", file)
+	log.Println("JMdict import start (file=%s)", file)
 
 	// -------- インポート実行 --------
 	opts := dictimport.Options{
 		Workers:   workers,
 		BatchSize: batchSize,
 	}
-	if err := dictimport.ImportJMdict(ctx, file, cli, opts); err != nil {
-		logrus.Fatalf("import failed: %v", err)
+
+	errs, fatal := dictimport.ImportJMdict(ctx, file, cli, opts)
+	if fatal != nil {
+		log.Fatalln("import failed: %v", fatal)
+	}
+	log.Printf("import finished. failures=%d\n", len(errs))
+	for _, e := range errs {
+		log.Println(e.ID, e.Message)
 	}
 
-	logrus.Infof("JMdict import completed in %s", time.Since(start))
+	log.Println("JMdict import completed in %s", time.Since(start))
 	os.Exit(0)
 }

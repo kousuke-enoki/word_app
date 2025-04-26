@@ -14,12 +14,15 @@ bash docker.sh up dev
 bash docker.sh down dev
 bash docker.sh exec backend dev
 bash docker.sh exec frontend dev
+bash docker.sh import dev
+
 
 # 本番環境
 bash docker.sh up prod
 bash docker.sh down prod
 bash docker.sh exec backend prod
 bash docker.sh exec frontend prod
+bash docker.sh import prod
 
 
 ## dockerキャッシュ削除
@@ -85,23 +88,40 @@ npm test
 
 
 # 品詞の詳細
-0 名詞（noun）
-1 代名詞（pronoun）
-2 動詞（verb）
-3 形容詞（adjective）
-4 副詞（adverb）
-5 助動詞（auxiliary verb）
-6 前置詞（preposition）
-7 冠詞（article）
-8 間投詞（interjection）
-9 接続詞（conjunction）
+0  名詞（noun）
+1  代名詞（pronoun）
+2  動詞（verb）
+3  形容詞（adjective）
+4  副詞（adverb）
+5  助動詞（auxiliary verb）
+6  前置詞（preposition）
+7  冠詞（article）
+8  間投詞（interjection）
+9  接続詞（conjunction）
+10 慣用句
+11 その他
 
 
 # 辞書import
+# Makefile用ダウンロードコマンド
+make download-dict
+
+# もしくはこちらのURLからダウンロード
+https://github.com/scriptin/jmdict-simplified/releases/download/3.6.1%2B20250421122348/jmdict-eng-3.6.1+20250421122348.json.zip
+
+# backend/assets/ にjmdict.jsonをおく
+
+# import用コマンド （ダウンロード後にこのコマンドでdbにインポート）
+bash docker.sh import dev
+bash docker.sh import prod
+
+
 jmdict-simplified
 Update checksum files @ 2025-04-07 12:33:48 UTC
 
 https://github.com/scriptin/jmdict-simplified/tree/master?search=1
 
-# ライセンス
+
+
+# jmdict ライセンス
 CC‑BY‑SA 4.0 / WordNet License

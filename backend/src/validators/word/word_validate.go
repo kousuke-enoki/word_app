@@ -8,12 +8,12 @@ import (
 func validateWordName(name string) []*models.FieldError {
 	var fieldErrors []*models.FieldError
 	// 半角アルファベットのみの正規表現
-	wordNameRegex := regexp.MustCompile(`^[a-zA-Z]+$`)
+	wordNameRegex := regexp.MustCompile(`^[A-Za-z0-9'’“”"!?(),.:;#@*\-/\s]+$`)
 	// word.nameの検証
 	if !wordNameRegex.MatchString(name) {
 		fieldErrors = append(fieldErrors, &models.FieldError{Field: "name", Message: "word.name must contain only alphabetic characters"})
 	}
-	if len(name) < 0 || len(name) > 41 {
+	if len(name) < 0 || len(name) > 100 {
 		fieldErrors = append(fieldErrors, &models.FieldError{Field: "name", Message: "name must be between 0 and 41 characters"})
 	}
 	return fieldErrors

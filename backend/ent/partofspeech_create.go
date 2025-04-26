@@ -10,6 +10,7 @@ import (
 	"word_app/backend/ent/partofspeech"
 	"word_app/backend/ent/wordinfo"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )
@@ -19,6 +20,7 @@ type PartOfSpeechCreate struct {
 	config
 	mutation *PartOfSpeechMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetName sets the "name" field.
@@ -157,6 +159,7 @@ func (posc *PartOfSpeechCreate) createSpec() (*PartOfSpeech, *sqlgraph.CreateSpe
 		_node = &PartOfSpeech{config: posc.config}
 		_spec = sqlgraph.NewCreateSpec(partofspeech.Table, sqlgraph.NewFieldSpec(partofspeech.FieldID, field.TypeInt))
 	)
+	_spec.OnConflict = posc.conflict
 	if value, ok := posc.mutation.Name(); ok {
 		_spec.SetField(partofspeech.FieldName, field.TypeString, value)
 		_node.Name = value
@@ -188,11 +191,212 @@ func (posc *PartOfSpeechCreate) createSpec() (*PartOfSpeech, *sqlgraph.CreateSpe
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PartOfSpeech.Create().
+//		SetName(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartOfSpeechUpsert) {
+//			SetName(v+v).
+//		}).
+//		Exec(ctx)
+func (posc *PartOfSpeechCreate) OnConflict(opts ...sql.ConflictOption) *PartOfSpeechUpsertOne {
+	posc.conflict = opts
+	return &PartOfSpeechUpsertOne{
+		create: posc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PartOfSpeech.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (posc *PartOfSpeechCreate) OnConflictColumns(columns ...string) *PartOfSpeechUpsertOne {
+	posc.conflict = append(posc.conflict, sql.ConflictColumns(columns...))
+	return &PartOfSpeechUpsertOne{
+		create: posc,
+	}
+}
+
+type (
+	// PartOfSpeechUpsertOne is the builder for "upsert"-ing
+	//  one PartOfSpeech node.
+	PartOfSpeechUpsertOne struct {
+		create *PartOfSpeechCreate
+	}
+
+	// PartOfSpeechUpsert is the "OnConflict" setter.
+	PartOfSpeechUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetName sets the "name" field.
+func (u *PartOfSpeechUpsert) SetName(v string) *PartOfSpeechUpsert {
+	u.Set(partofspeech.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *PartOfSpeechUpsert) UpdateName() *PartOfSpeechUpsert {
+	u.SetExcluded(partofspeech.FieldName)
+	return u
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *PartOfSpeechUpsert) SetCreatedAt(v time.Time) *PartOfSpeechUpsert {
+	u.Set(partofspeech.FieldCreatedAt, v)
+	return u
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *PartOfSpeechUpsert) UpdateCreatedAt() *PartOfSpeechUpsert {
+	u.SetExcluded(partofspeech.FieldCreatedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartOfSpeechUpsert) SetUpdatedAt(v time.Time) *PartOfSpeechUpsert {
+	u.Set(partofspeech.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartOfSpeechUpsert) UpdateUpdatedAt() *PartOfSpeechUpsert {
+	u.SetExcluded(partofspeech.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// Using this option is equivalent to using:
+//
+//	client.PartOfSpeech.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *PartOfSpeechUpsertOne) UpdateNewValues() *PartOfSpeechUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PartOfSpeech.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *PartOfSpeechUpsertOne) Ignore() *PartOfSpeechUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartOfSpeechUpsertOne) DoNothing() *PartOfSpeechUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartOfSpeechCreate.OnConflict
+// documentation for more info.
+func (u *PartOfSpeechUpsertOne) Update(set func(*PartOfSpeechUpsert)) *PartOfSpeechUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartOfSpeechUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *PartOfSpeechUpsertOne) SetName(v string) *PartOfSpeechUpsertOne {
+	return u.Update(func(s *PartOfSpeechUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *PartOfSpeechUpsertOne) UpdateName() *PartOfSpeechUpsertOne {
+	return u.Update(func(s *PartOfSpeechUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *PartOfSpeechUpsertOne) SetCreatedAt(v time.Time) *PartOfSpeechUpsertOne {
+	return u.Update(func(s *PartOfSpeechUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *PartOfSpeechUpsertOne) UpdateCreatedAt() *PartOfSpeechUpsertOne {
+	return u.Update(func(s *PartOfSpeechUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartOfSpeechUpsertOne) SetUpdatedAt(v time.Time) *PartOfSpeechUpsertOne {
+	return u.Update(func(s *PartOfSpeechUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartOfSpeechUpsertOne) UpdateUpdatedAt() *PartOfSpeechUpsertOne {
+	return u.Update(func(s *PartOfSpeechUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PartOfSpeechUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartOfSpeechCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartOfSpeechUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *PartOfSpeechUpsertOne) ID(ctx context.Context) (id int, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *PartOfSpeechUpsertOne) IDX(ctx context.Context) int {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // PartOfSpeechCreateBulk is the builder for creating many PartOfSpeech entities in bulk.
 type PartOfSpeechCreateBulk struct {
 	config
 	err      error
 	builders []*PartOfSpeechCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the PartOfSpeech entities in the database.
@@ -222,6 +426,7 @@ func (poscb *PartOfSpeechCreateBulk) Save(ctx context.Context) ([]*PartOfSpeech,
 					_, err = mutators[i+1].Mutate(root, poscb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = poscb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, poscb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -272,6 +477,152 @@ func (poscb *PartOfSpeechCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (poscb *PartOfSpeechCreateBulk) ExecX(ctx context.Context) {
 	if err := poscb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PartOfSpeech.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartOfSpeechUpsert) {
+//			SetName(v+v).
+//		}).
+//		Exec(ctx)
+func (poscb *PartOfSpeechCreateBulk) OnConflict(opts ...sql.ConflictOption) *PartOfSpeechUpsertBulk {
+	poscb.conflict = opts
+	return &PartOfSpeechUpsertBulk{
+		create: poscb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PartOfSpeech.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (poscb *PartOfSpeechCreateBulk) OnConflictColumns(columns ...string) *PartOfSpeechUpsertBulk {
+	poscb.conflict = append(poscb.conflict, sql.ConflictColumns(columns...))
+	return &PartOfSpeechUpsertBulk{
+		create: poscb,
+	}
+}
+
+// PartOfSpeechUpsertBulk is the builder for "upsert"-ing
+// a bulk of PartOfSpeech nodes.
+type PartOfSpeechUpsertBulk struct {
+	create *PartOfSpeechCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.PartOfSpeech.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *PartOfSpeechUpsertBulk) UpdateNewValues() *PartOfSpeechUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PartOfSpeech.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *PartOfSpeechUpsertBulk) Ignore() *PartOfSpeechUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartOfSpeechUpsertBulk) DoNothing() *PartOfSpeechUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartOfSpeechCreateBulk.OnConflict
+// documentation for more info.
+func (u *PartOfSpeechUpsertBulk) Update(set func(*PartOfSpeechUpsert)) *PartOfSpeechUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartOfSpeechUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *PartOfSpeechUpsertBulk) SetName(v string) *PartOfSpeechUpsertBulk {
+	return u.Update(func(s *PartOfSpeechUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *PartOfSpeechUpsertBulk) UpdateName() *PartOfSpeechUpsertBulk {
+	return u.Update(func(s *PartOfSpeechUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *PartOfSpeechUpsertBulk) SetCreatedAt(v time.Time) *PartOfSpeechUpsertBulk {
+	return u.Update(func(s *PartOfSpeechUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *PartOfSpeechUpsertBulk) UpdateCreatedAt() *PartOfSpeechUpsertBulk {
+	return u.Update(func(s *PartOfSpeechUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartOfSpeechUpsertBulk) SetUpdatedAt(v time.Time) *PartOfSpeechUpsertBulk {
+	return u.Update(func(s *PartOfSpeechUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartOfSpeechUpsertBulk) UpdateUpdatedAt() *PartOfSpeechUpsertBulk {
+	return u.Update(func(s *PartOfSpeechUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PartOfSpeechUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the PartOfSpeechCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartOfSpeechCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartOfSpeechUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

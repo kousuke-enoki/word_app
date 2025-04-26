@@ -78,7 +78,7 @@ func SeedRootConfig(ctx context.Context, client interfaces.ClientInterface) {
 func SeedPartOfSpeech(ctx context.Context, client interfaces.ClientInterface) {
 	entClient := client.EntClient()
 	partsOfSpeech := []string{"名詞", "代名詞", "動詞", "形容詞", "副詞",
-		"助動詞", "前置詞", "冠詞", "間投詞", "接続詞"}
+		"助動詞", "前置詞", "冠詞", "間投詞", "接続詞", "慣用句", "その他"}
 
 	for _, name := range partsOfSpeech {
 		exists, err := entClient.PartOfSpeech.Query().Where(partofspeech.Name(name)).Exist(ctx)

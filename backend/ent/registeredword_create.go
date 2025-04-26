@@ -12,6 +12,7 @@ import (
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/word"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )
@@ -21,6 +22,7 @@ type RegisteredWordCreate struct {
 	config
 	mutation *RegisteredWordMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetUserID sets the "user_id" field.
@@ -292,6 +294,7 @@ func (rwc *RegisteredWordCreate) createSpec() (*RegisteredWord, *sqlgraph.Create
 		_node = &RegisteredWord{config: rwc.config}
 		_spec = sqlgraph.NewCreateSpec(registeredword.Table, sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt))
 	)
+	_spec.OnConflict = rwc.conflict
 	if value, ok := rwc.mutation.IsActive(); ok {
 		_spec.SetField(registeredword.FieldIsActive, field.TypeBool, value)
 		_node.IsActive = value
@@ -373,11 +376,420 @@ func (rwc *RegisteredWordCreate) createSpec() (*RegisteredWord, *sqlgraph.Create
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.RegisteredWord.Create().
+//		SetUserID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.RegisteredWordUpsert) {
+//			SetUserID(v+v).
+//		}).
+//		Exec(ctx)
+func (rwc *RegisteredWordCreate) OnConflict(opts ...sql.ConflictOption) *RegisteredWordUpsertOne {
+	rwc.conflict = opts
+	return &RegisteredWordUpsertOne{
+		create: rwc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.RegisteredWord.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (rwc *RegisteredWordCreate) OnConflictColumns(columns ...string) *RegisteredWordUpsertOne {
+	rwc.conflict = append(rwc.conflict, sql.ConflictColumns(columns...))
+	return &RegisteredWordUpsertOne{
+		create: rwc,
+	}
+}
+
+type (
+	// RegisteredWordUpsertOne is the builder for "upsert"-ing
+	//  one RegisteredWord node.
+	RegisteredWordUpsertOne struct {
+		create *RegisteredWordCreate
+	}
+
+	// RegisteredWordUpsert is the "OnConflict" setter.
+	RegisteredWordUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUserID sets the "user_id" field.
+func (u *RegisteredWordUpsert) SetUserID(v int) *RegisteredWordUpsert {
+	u.Set(registeredword.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *RegisteredWordUpsert) UpdateUserID() *RegisteredWordUpsert {
+	u.SetExcluded(registeredword.FieldUserID)
+	return u
+}
+
+// SetWordID sets the "word_id" field.
+func (u *RegisteredWordUpsert) SetWordID(v int) *RegisteredWordUpsert {
+	u.Set(registeredword.FieldWordID, v)
+	return u
+}
+
+// UpdateWordID sets the "word_id" field to the value that was provided on create.
+func (u *RegisteredWordUpsert) UpdateWordID() *RegisteredWordUpsert {
+	u.SetExcluded(registeredword.FieldWordID)
+	return u
+}
+
+// SetIsActive sets the "is_active" field.
+func (u *RegisteredWordUpsert) SetIsActive(v bool) *RegisteredWordUpsert {
+	u.Set(registeredword.FieldIsActive, v)
+	return u
+}
+
+// UpdateIsActive sets the "is_active" field to the value that was provided on create.
+func (u *RegisteredWordUpsert) UpdateIsActive() *RegisteredWordUpsert {
+	u.SetExcluded(registeredword.FieldIsActive)
+	return u
+}
+
+// SetAttentionLevel sets the "attention_level" field.
+func (u *RegisteredWordUpsert) SetAttentionLevel(v int) *RegisteredWordUpsert {
+	u.Set(registeredword.FieldAttentionLevel, v)
+	return u
+}
+
+// UpdateAttentionLevel sets the "attention_level" field to the value that was provided on create.
+func (u *RegisteredWordUpsert) UpdateAttentionLevel() *RegisteredWordUpsert {
+	u.SetExcluded(registeredword.FieldAttentionLevel)
+	return u
+}
+
+// AddAttentionLevel adds v to the "attention_level" field.
+func (u *RegisteredWordUpsert) AddAttentionLevel(v int) *RegisteredWordUpsert {
+	u.Add(registeredword.FieldAttentionLevel, v)
+	return u
+}
+
+// SetTestCount sets the "test_count" field.
+func (u *RegisteredWordUpsert) SetTestCount(v int) *RegisteredWordUpsert {
+	u.Set(registeredword.FieldTestCount, v)
+	return u
+}
+
+// UpdateTestCount sets the "test_count" field to the value that was provided on create.
+func (u *RegisteredWordUpsert) UpdateTestCount() *RegisteredWordUpsert {
+	u.SetExcluded(registeredword.FieldTestCount)
+	return u
+}
+
+// AddTestCount adds v to the "test_count" field.
+func (u *RegisteredWordUpsert) AddTestCount(v int) *RegisteredWordUpsert {
+	u.Add(registeredword.FieldTestCount, v)
+	return u
+}
+
+// SetCheckCount sets the "check_count" field.
+func (u *RegisteredWordUpsert) SetCheckCount(v int) *RegisteredWordUpsert {
+	u.Set(registeredword.FieldCheckCount, v)
+	return u
+}
+
+// UpdateCheckCount sets the "check_count" field to the value that was provided on create.
+func (u *RegisteredWordUpsert) UpdateCheckCount() *RegisteredWordUpsert {
+	u.SetExcluded(registeredword.FieldCheckCount)
+	return u
+}
+
+// AddCheckCount adds v to the "check_count" field.
+func (u *RegisteredWordUpsert) AddCheckCount(v int) *RegisteredWordUpsert {
+	u.Add(registeredword.FieldCheckCount, v)
+	return u
+}
+
+// SetMemo sets the "memo" field.
+func (u *RegisteredWordUpsert) SetMemo(v string) *RegisteredWordUpsert {
+	u.Set(registeredword.FieldMemo, v)
+	return u
+}
+
+// UpdateMemo sets the "memo" field to the value that was provided on create.
+func (u *RegisteredWordUpsert) UpdateMemo() *RegisteredWordUpsert {
+	u.SetExcluded(registeredword.FieldMemo)
+	return u
+}
+
+// ClearMemo clears the value of the "memo" field.
+func (u *RegisteredWordUpsert) ClearMemo() *RegisteredWordUpsert {
+	u.SetNull(registeredword.FieldMemo)
+	return u
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *RegisteredWordUpsert) SetCreatedAt(v time.Time) *RegisteredWordUpsert {
+	u.Set(registeredword.FieldCreatedAt, v)
+	return u
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *RegisteredWordUpsert) UpdateCreatedAt() *RegisteredWordUpsert {
+	u.SetExcluded(registeredword.FieldCreatedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *RegisteredWordUpsert) SetUpdatedAt(v time.Time) *RegisteredWordUpsert {
+	u.Set(registeredword.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *RegisteredWordUpsert) UpdateUpdatedAt() *RegisteredWordUpsert {
+	u.SetExcluded(registeredword.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// Using this option is equivalent to using:
+//
+//	client.RegisteredWord.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *RegisteredWordUpsertOne) UpdateNewValues() *RegisteredWordUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.RegisteredWord.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *RegisteredWordUpsertOne) Ignore() *RegisteredWordUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *RegisteredWordUpsertOne) DoNothing() *RegisteredWordUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the RegisteredWordCreate.OnConflict
+// documentation for more info.
+func (u *RegisteredWordUpsertOne) Update(set func(*RegisteredWordUpsert)) *RegisteredWordUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&RegisteredWordUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *RegisteredWordUpsertOne) SetUserID(v int) *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *RegisteredWordUpsertOne) UpdateUserID() *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetWordID sets the "word_id" field.
+func (u *RegisteredWordUpsertOne) SetWordID(v int) *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetWordID(v)
+	})
+}
+
+// UpdateWordID sets the "word_id" field to the value that was provided on create.
+func (u *RegisteredWordUpsertOne) UpdateWordID() *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateWordID()
+	})
+}
+
+// SetIsActive sets the "is_active" field.
+func (u *RegisteredWordUpsertOne) SetIsActive(v bool) *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetIsActive(v)
+	})
+}
+
+// UpdateIsActive sets the "is_active" field to the value that was provided on create.
+func (u *RegisteredWordUpsertOne) UpdateIsActive() *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateIsActive()
+	})
+}
+
+// SetAttentionLevel sets the "attention_level" field.
+func (u *RegisteredWordUpsertOne) SetAttentionLevel(v int) *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetAttentionLevel(v)
+	})
+}
+
+// AddAttentionLevel adds v to the "attention_level" field.
+func (u *RegisteredWordUpsertOne) AddAttentionLevel(v int) *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.AddAttentionLevel(v)
+	})
+}
+
+// UpdateAttentionLevel sets the "attention_level" field to the value that was provided on create.
+func (u *RegisteredWordUpsertOne) UpdateAttentionLevel() *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateAttentionLevel()
+	})
+}
+
+// SetTestCount sets the "test_count" field.
+func (u *RegisteredWordUpsertOne) SetTestCount(v int) *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetTestCount(v)
+	})
+}
+
+// AddTestCount adds v to the "test_count" field.
+func (u *RegisteredWordUpsertOne) AddTestCount(v int) *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.AddTestCount(v)
+	})
+}
+
+// UpdateTestCount sets the "test_count" field to the value that was provided on create.
+func (u *RegisteredWordUpsertOne) UpdateTestCount() *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateTestCount()
+	})
+}
+
+// SetCheckCount sets the "check_count" field.
+func (u *RegisteredWordUpsertOne) SetCheckCount(v int) *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetCheckCount(v)
+	})
+}
+
+// AddCheckCount adds v to the "check_count" field.
+func (u *RegisteredWordUpsertOne) AddCheckCount(v int) *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.AddCheckCount(v)
+	})
+}
+
+// UpdateCheckCount sets the "check_count" field to the value that was provided on create.
+func (u *RegisteredWordUpsertOne) UpdateCheckCount() *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateCheckCount()
+	})
+}
+
+// SetMemo sets the "memo" field.
+func (u *RegisteredWordUpsertOne) SetMemo(v string) *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetMemo(v)
+	})
+}
+
+// UpdateMemo sets the "memo" field to the value that was provided on create.
+func (u *RegisteredWordUpsertOne) UpdateMemo() *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateMemo()
+	})
+}
+
+// ClearMemo clears the value of the "memo" field.
+func (u *RegisteredWordUpsertOne) ClearMemo() *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.ClearMemo()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *RegisteredWordUpsertOne) SetCreatedAt(v time.Time) *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *RegisteredWordUpsertOne) UpdateCreatedAt() *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *RegisteredWordUpsertOne) SetUpdatedAt(v time.Time) *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *RegisteredWordUpsertOne) UpdateUpdatedAt() *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *RegisteredWordUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for RegisteredWordCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *RegisteredWordUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *RegisteredWordUpsertOne) ID(ctx context.Context) (id int, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *RegisteredWordUpsertOne) IDX(ctx context.Context) int {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // RegisteredWordCreateBulk is the builder for creating many RegisteredWord entities in bulk.
 type RegisteredWordCreateBulk struct {
 	config
 	err      error
 	builders []*RegisteredWordCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the RegisteredWord entities in the database.
@@ -407,6 +819,7 @@ func (rwcb *RegisteredWordCreateBulk) Save(ctx context.Context) ([]*RegisteredWo
 					_, err = mutators[i+1].Mutate(root, rwcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = rwcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, rwcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -457,6 +870,264 @@ func (rwcb *RegisteredWordCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (rwcb *RegisteredWordCreateBulk) ExecX(ctx context.Context) {
 	if err := rwcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.RegisteredWord.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.RegisteredWordUpsert) {
+//			SetUserID(v+v).
+//		}).
+//		Exec(ctx)
+func (rwcb *RegisteredWordCreateBulk) OnConflict(opts ...sql.ConflictOption) *RegisteredWordUpsertBulk {
+	rwcb.conflict = opts
+	return &RegisteredWordUpsertBulk{
+		create: rwcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.RegisteredWord.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (rwcb *RegisteredWordCreateBulk) OnConflictColumns(columns ...string) *RegisteredWordUpsertBulk {
+	rwcb.conflict = append(rwcb.conflict, sql.ConflictColumns(columns...))
+	return &RegisteredWordUpsertBulk{
+		create: rwcb,
+	}
+}
+
+// RegisteredWordUpsertBulk is the builder for "upsert"-ing
+// a bulk of RegisteredWord nodes.
+type RegisteredWordUpsertBulk struct {
+	create *RegisteredWordCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.RegisteredWord.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *RegisteredWordUpsertBulk) UpdateNewValues() *RegisteredWordUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.RegisteredWord.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *RegisteredWordUpsertBulk) Ignore() *RegisteredWordUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *RegisteredWordUpsertBulk) DoNothing() *RegisteredWordUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the RegisteredWordCreateBulk.OnConflict
+// documentation for more info.
+func (u *RegisteredWordUpsertBulk) Update(set func(*RegisteredWordUpsert)) *RegisteredWordUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&RegisteredWordUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *RegisteredWordUpsertBulk) SetUserID(v int) *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *RegisteredWordUpsertBulk) UpdateUserID() *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetWordID sets the "word_id" field.
+func (u *RegisteredWordUpsertBulk) SetWordID(v int) *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetWordID(v)
+	})
+}
+
+// UpdateWordID sets the "word_id" field to the value that was provided on create.
+func (u *RegisteredWordUpsertBulk) UpdateWordID() *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateWordID()
+	})
+}
+
+// SetIsActive sets the "is_active" field.
+func (u *RegisteredWordUpsertBulk) SetIsActive(v bool) *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetIsActive(v)
+	})
+}
+
+// UpdateIsActive sets the "is_active" field to the value that was provided on create.
+func (u *RegisteredWordUpsertBulk) UpdateIsActive() *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateIsActive()
+	})
+}
+
+// SetAttentionLevel sets the "attention_level" field.
+func (u *RegisteredWordUpsertBulk) SetAttentionLevel(v int) *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetAttentionLevel(v)
+	})
+}
+
+// AddAttentionLevel adds v to the "attention_level" field.
+func (u *RegisteredWordUpsertBulk) AddAttentionLevel(v int) *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.AddAttentionLevel(v)
+	})
+}
+
+// UpdateAttentionLevel sets the "attention_level" field to the value that was provided on create.
+func (u *RegisteredWordUpsertBulk) UpdateAttentionLevel() *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateAttentionLevel()
+	})
+}
+
+// SetTestCount sets the "test_count" field.
+func (u *RegisteredWordUpsertBulk) SetTestCount(v int) *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetTestCount(v)
+	})
+}
+
+// AddTestCount adds v to the "test_count" field.
+func (u *RegisteredWordUpsertBulk) AddTestCount(v int) *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.AddTestCount(v)
+	})
+}
+
+// UpdateTestCount sets the "test_count" field to the value that was provided on create.
+func (u *RegisteredWordUpsertBulk) UpdateTestCount() *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateTestCount()
+	})
+}
+
+// SetCheckCount sets the "check_count" field.
+func (u *RegisteredWordUpsertBulk) SetCheckCount(v int) *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetCheckCount(v)
+	})
+}
+
+// AddCheckCount adds v to the "check_count" field.
+func (u *RegisteredWordUpsertBulk) AddCheckCount(v int) *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.AddCheckCount(v)
+	})
+}
+
+// UpdateCheckCount sets the "check_count" field to the value that was provided on create.
+func (u *RegisteredWordUpsertBulk) UpdateCheckCount() *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateCheckCount()
+	})
+}
+
+// SetMemo sets the "memo" field.
+func (u *RegisteredWordUpsertBulk) SetMemo(v string) *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetMemo(v)
+	})
+}
+
+// UpdateMemo sets the "memo" field to the value that was provided on create.
+func (u *RegisteredWordUpsertBulk) UpdateMemo() *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateMemo()
+	})
+}
+
+// ClearMemo clears the value of the "memo" field.
+func (u *RegisteredWordUpsertBulk) ClearMemo() *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.ClearMemo()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *RegisteredWordUpsertBulk) SetCreatedAt(v time.Time) *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *RegisteredWordUpsertBulk) UpdateCreatedAt() *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *RegisteredWordUpsertBulk) SetUpdatedAt(v time.Time) *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *RegisteredWordUpsertBulk) UpdateUpdatedAt() *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *RegisteredWordUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the RegisteredWordCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for RegisteredWordCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *RegisteredWordUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

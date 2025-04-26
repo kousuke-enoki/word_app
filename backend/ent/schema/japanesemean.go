@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // JapaneseMean holds the schema definition for the JapaneseMean entity.
@@ -46,5 +47,12 @@ func (JapaneseMean) Edges() []ent.Edge {
 			Field("word_info_id").
 			Unique().
 			Required(),
+	}
+}
+
+func (JapaneseMean) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("word_info_id", "name").
+			Unique(),
 	}
 }

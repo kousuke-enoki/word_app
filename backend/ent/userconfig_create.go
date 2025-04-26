@@ -9,6 +9,7 @@ import (
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )
@@ -18,6 +19,7 @@ type UserConfigCreate struct {
 	config
 	mutation *UserConfigMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetUserID sets the "user_id" field.
@@ -128,6 +130,7 @@ func (ucc *UserConfigCreate) createSpec() (*UserConfig, *sqlgraph.CreateSpec) {
 		_node = &UserConfig{config: ucc.config}
 		_spec = sqlgraph.NewCreateSpec(userconfig.Table, sqlgraph.NewFieldSpec(userconfig.FieldID, field.TypeInt))
 	)
+	_spec.OnConflict = ucc.conflict
 	if value, ok := ucc.mutation.IsDarkMode(); ok {
 		_spec.SetField(userconfig.FieldIsDarkMode, field.TypeBool, value)
 		_node.IsDarkMode = value
@@ -152,11 +155,186 @@ func (ucc *UserConfigCreate) createSpec() (*UserConfig, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.UserConfig.Create().
+//		SetUserID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.UserConfigUpsert) {
+//			SetUserID(v+v).
+//		}).
+//		Exec(ctx)
+func (ucc *UserConfigCreate) OnConflict(opts ...sql.ConflictOption) *UserConfigUpsertOne {
+	ucc.conflict = opts
+	return &UserConfigUpsertOne{
+		create: ucc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.UserConfig.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (ucc *UserConfigCreate) OnConflictColumns(columns ...string) *UserConfigUpsertOne {
+	ucc.conflict = append(ucc.conflict, sql.ConflictColumns(columns...))
+	return &UserConfigUpsertOne{
+		create: ucc,
+	}
+}
+
+type (
+	// UserConfigUpsertOne is the builder for "upsert"-ing
+	//  one UserConfig node.
+	UserConfigUpsertOne struct {
+		create *UserConfigCreate
+	}
+
+	// UserConfigUpsert is the "OnConflict" setter.
+	UserConfigUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetUserID sets the "user_id" field.
+func (u *UserConfigUpsert) SetUserID(v int) *UserConfigUpsert {
+	u.Set(userconfig.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *UserConfigUpsert) UpdateUserID() *UserConfigUpsert {
+	u.SetExcluded(userconfig.FieldUserID)
+	return u
+}
+
+// SetIsDarkMode sets the "is_dark_mode" field.
+func (u *UserConfigUpsert) SetIsDarkMode(v bool) *UserConfigUpsert {
+	u.Set(userconfig.FieldIsDarkMode, v)
+	return u
+}
+
+// UpdateIsDarkMode sets the "is_dark_mode" field to the value that was provided on create.
+func (u *UserConfigUpsert) UpdateIsDarkMode() *UserConfigUpsert {
+	u.SetExcluded(userconfig.FieldIsDarkMode)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// Using this option is equivalent to using:
+//
+//	client.UserConfig.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *UserConfigUpsertOne) UpdateNewValues() *UserConfigUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.UserConfig.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *UserConfigUpsertOne) Ignore() *UserConfigUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *UserConfigUpsertOne) DoNothing() *UserConfigUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the UserConfigCreate.OnConflict
+// documentation for more info.
+func (u *UserConfigUpsertOne) Update(set func(*UserConfigUpsert)) *UserConfigUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&UserConfigUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *UserConfigUpsertOne) SetUserID(v int) *UserConfigUpsertOne {
+	return u.Update(func(s *UserConfigUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *UserConfigUpsertOne) UpdateUserID() *UserConfigUpsertOne {
+	return u.Update(func(s *UserConfigUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetIsDarkMode sets the "is_dark_mode" field.
+func (u *UserConfigUpsertOne) SetIsDarkMode(v bool) *UserConfigUpsertOne {
+	return u.Update(func(s *UserConfigUpsert) {
+		s.SetIsDarkMode(v)
+	})
+}
+
+// UpdateIsDarkMode sets the "is_dark_mode" field to the value that was provided on create.
+func (u *UserConfigUpsertOne) UpdateIsDarkMode() *UserConfigUpsertOne {
+	return u.Update(func(s *UserConfigUpsert) {
+		s.UpdateIsDarkMode()
+	})
+}
+
+// Exec executes the query.
+func (u *UserConfigUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for UserConfigCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *UserConfigUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *UserConfigUpsertOne) ID(ctx context.Context) (id int, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *UserConfigUpsertOne) IDX(ctx context.Context) int {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // UserConfigCreateBulk is the builder for creating many UserConfig entities in bulk.
 type UserConfigCreateBulk struct {
 	config
 	err      error
 	builders []*UserConfigCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the UserConfig entities in the database.
@@ -186,6 +364,7 @@ func (uccb *UserConfigCreateBulk) Save(ctx context.Context) ([]*UserConfig, erro
 					_, err = mutators[i+1].Mutate(root, uccb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = uccb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, uccb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -236,6 +415,138 @@ func (uccb *UserConfigCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (uccb *UserConfigCreateBulk) ExecX(ctx context.Context) {
 	if err := uccb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.UserConfig.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.UserConfigUpsert) {
+//			SetUserID(v+v).
+//		}).
+//		Exec(ctx)
+func (uccb *UserConfigCreateBulk) OnConflict(opts ...sql.ConflictOption) *UserConfigUpsertBulk {
+	uccb.conflict = opts
+	return &UserConfigUpsertBulk{
+		create: uccb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.UserConfig.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (uccb *UserConfigCreateBulk) OnConflictColumns(columns ...string) *UserConfigUpsertBulk {
+	uccb.conflict = append(uccb.conflict, sql.ConflictColumns(columns...))
+	return &UserConfigUpsertBulk{
+		create: uccb,
+	}
+}
+
+// UserConfigUpsertBulk is the builder for "upsert"-ing
+// a bulk of UserConfig nodes.
+type UserConfigUpsertBulk struct {
+	create *UserConfigCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.UserConfig.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *UserConfigUpsertBulk) UpdateNewValues() *UserConfigUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.UserConfig.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *UserConfigUpsertBulk) Ignore() *UserConfigUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *UserConfigUpsertBulk) DoNothing() *UserConfigUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the UserConfigCreateBulk.OnConflict
+// documentation for more info.
+func (u *UserConfigUpsertBulk) Update(set func(*UserConfigUpsert)) *UserConfigUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&UserConfigUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *UserConfigUpsertBulk) SetUserID(v int) *UserConfigUpsertBulk {
+	return u.Update(func(s *UserConfigUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *UserConfigUpsertBulk) UpdateUserID() *UserConfigUpsertBulk {
+	return u.Update(func(s *UserConfigUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// SetIsDarkMode sets the "is_dark_mode" field.
+func (u *UserConfigUpsertBulk) SetIsDarkMode(v bool) *UserConfigUpsertBulk {
+	return u.Update(func(s *UserConfigUpsert) {
+		s.SetIsDarkMode(v)
+	})
+}
+
+// UpdateIsDarkMode sets the "is_dark_mode" field to the value that was provided on create.
+func (u *UserConfigUpsertBulk) UpdateIsDarkMode() *UserConfigUpsertBulk {
+	return u.Update(func(s *UserConfigUpsert) {
+		s.UpdateIsDarkMode()
+	})
+}
+
+// Exec executes the query.
+func (u *UserConfigUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the UserConfigCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for UserConfigCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *UserConfigUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

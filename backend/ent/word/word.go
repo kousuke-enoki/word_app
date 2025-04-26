@@ -18,6 +18,10 @@ const (
 	FieldName = "name"
 	// FieldVoiceID holds the string denoting the voice_id field in the database.
 	FieldVoiceID = "voice_id"
+	// FieldIsIdioms holds the string denoting the is_idioms field in the database.
+	FieldIsIdioms = "is_idioms"
+	// FieldIsSpecialCharacters holds the string denoting the is_special_characters field in the database.
+	FieldIsSpecialCharacters = "is_special_characters"
 	// FieldRegistrationCount holds the string denoting the registration_count field in the database.
 	FieldRegistrationCount = "registration_count"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -51,6 +55,8 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldVoiceID,
+	FieldIsIdioms,
+	FieldIsSpecialCharacters,
 	FieldRegistrationCount,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -69,6 +75,10 @@ func ValidColumn(column string) bool {
 var (
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
+	// DefaultIsIdioms holds the default value on creation for the "is_idioms" field.
+	DefaultIsIdioms bool
+	// DefaultIsSpecialCharacters holds the default value on creation for the "is_special_characters" field.
+	DefaultIsSpecialCharacters bool
 	// DefaultRegistrationCount holds the default value on creation for the "registration_count" field.
 	DefaultRegistrationCount int
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
@@ -95,6 +105,16 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByVoiceID orders the results by the voice_id field.
 func ByVoiceID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVoiceID, opts...).ToFunc()
+}
+
+// ByIsIdioms orders the results by the is_idioms field.
+func ByIsIdioms(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsIdioms, opts...).ToFunc()
+}
+
+// ByIsSpecialCharacters orders the results by the is_special_characters field.
+func ByIsSpecialCharacters(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsSpecialCharacters, opts...).ToFunc()
 }
 
 // ByRegistrationCount orders the results by the registration_count field.

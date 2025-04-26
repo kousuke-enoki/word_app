@@ -1,8 +1,7 @@
 services:
   db:
-    image: postgres:latest
-    ports:
-      - "5432:5432"
+    image: postgres:17
+    ports: ["5432:5432"]
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -10,52 +9,58 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   backend:
+    image: wordapp-backend:latest
+    command: /usr/local/bin/server      # 既定。省略可
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     depends_on:
       db:
         condition: service_healthy
     environment:
+      DB_DSN: postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable
       APP_ENV: ${APP_ENV}
-      DB_HOST: ${DB_HOST}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-      ENT_DEBUG: ${ENT_DEBUG}
-    env_file:
-      - backend/.env.${APP_ENV}
+    volumes:
+      - ./backend:/app                   # 開発時ホットリロード用
     ports:
       - "${APP_PORT}:8080"
-    volumes:
-      - ./backend:/app
-    command: air
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  dict-import:
+    image: wordapp-backend:latest
+    entrypoint: ["/usr/local/bin/import_dict"]   # ★ ここで置き換える
+    command: ["-file=/data/jmdict_sample.json", "-workers=4"]
+    volumes:
+      - ./backend/assets:/data
+    environment:
+      DB_HOST: db
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+
+
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-    environment:
-      - CHOKIDAR_USEPOLLING=true
+      dockerfile: dockerfile
+    ports: ["3000:3000"]
+    depends_on: [backend]
     volumes:
       - ./frontend:/app
       - /app/node_modules
     command: npm run dev
+    environment:
+      - CHOKIDAR_USEPOLLING=true
 
 volumes:
   db_data:

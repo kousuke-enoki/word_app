@@ -231,7 +231,6 @@ func init() {
 		fns := [...]func(string) error{
 			validators[0].(func(string) error),
 			validators[1].(func(string) error),
-			validators[2].(func(string) error),
 		}
 		return func(name string) error {
 			for _, fn := range fns {
@@ -242,16 +241,24 @@ func init() {
 			return nil
 		}
 	}()
+	// wordDescIsIdioms is the schema descriptor for is_idioms field.
+	wordDescIsIdioms := wordFields[2].Descriptor()
+	// word.DefaultIsIdioms holds the default value on creation for the is_idioms field.
+	word.DefaultIsIdioms = wordDescIsIdioms.Default.(bool)
+	// wordDescIsSpecialCharacters is the schema descriptor for is_special_characters field.
+	wordDescIsSpecialCharacters := wordFields[3].Descriptor()
+	// word.DefaultIsSpecialCharacters holds the default value on creation for the is_special_characters field.
+	word.DefaultIsSpecialCharacters = wordDescIsSpecialCharacters.Default.(bool)
 	// wordDescRegistrationCount is the schema descriptor for registration_count field.
-	wordDescRegistrationCount := wordFields[2].Descriptor()
+	wordDescRegistrationCount := wordFields[4].Descriptor()
 	// word.DefaultRegistrationCount holds the default value on creation for the registration_count field.
 	word.DefaultRegistrationCount = wordDescRegistrationCount.Default.(int)
 	// wordDescCreatedAt is the schema descriptor for created_at field.
-	wordDescCreatedAt := wordFields[3].Descriptor()
+	wordDescCreatedAt := wordFields[5].Descriptor()
 	// word.DefaultCreatedAt holds the default value on creation for the created_at field.
 	word.DefaultCreatedAt = wordDescCreatedAt.Default.(func() time.Time)
 	// wordDescUpdatedAt is the schema descriptor for updated_at field.
-	wordDescUpdatedAt := wordFields[4].Descriptor()
+	wordDescUpdatedAt := wordFields[6].Descriptor()
 	// word.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	word.DefaultUpdatedAt = wordDescUpdatedAt.Default.(func() time.Time)
 	// word.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

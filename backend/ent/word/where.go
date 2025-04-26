@@ -65,6 +65,16 @@ func VoiceID(v string) predicate.Word {
 	return predicate.Word(sql.FieldEQ(FieldVoiceID, v))
 }
 
+// IsIdioms applies equality check predicate on the "is_idioms" field. It's identical to IsIdiomsEQ.
+func IsIdioms(v bool) predicate.Word {
+	return predicate.Word(sql.FieldEQ(FieldIsIdioms, v))
+}
+
+// IsSpecialCharacters applies equality check predicate on the "is_special_characters" field. It's identical to IsSpecialCharactersEQ.
+func IsSpecialCharacters(v bool) predicate.Word {
+	return predicate.Word(sql.FieldEQ(FieldIsSpecialCharacters, v))
+}
+
 // RegistrationCount applies equality check predicate on the "registration_count" field. It's identical to RegistrationCountEQ.
 func RegistrationCount(v int) predicate.Word {
 	return predicate.Word(sql.FieldEQ(FieldRegistrationCount, v))
@@ -218,6 +228,26 @@ func VoiceIDEqualFold(v string) predicate.Word {
 // VoiceIDContainsFold applies the ContainsFold predicate on the "voice_id" field.
 func VoiceIDContainsFold(v string) predicate.Word {
 	return predicate.Word(sql.FieldContainsFold(FieldVoiceID, v))
+}
+
+// IsIdiomsEQ applies the EQ predicate on the "is_idioms" field.
+func IsIdiomsEQ(v bool) predicate.Word {
+	return predicate.Word(sql.FieldEQ(FieldIsIdioms, v))
+}
+
+// IsIdiomsNEQ applies the NEQ predicate on the "is_idioms" field.
+func IsIdiomsNEQ(v bool) predicate.Word {
+	return predicate.Word(sql.FieldNEQ(FieldIsIdioms, v))
+}
+
+// IsSpecialCharactersEQ applies the EQ predicate on the "is_special_characters" field.
+func IsSpecialCharactersEQ(v bool) predicate.Word {
+	return predicate.Word(sql.FieldEQ(FieldIsSpecialCharacters, v))
+}
+
+// IsSpecialCharactersNEQ applies the NEQ predicate on the "is_special_characters" field.
+func IsSpecialCharactersNEQ(v bool) predicate.Word {
+	return predicate.Word(sql.FieldNEQ(FieldIsSpecialCharacters, v))
 }
 
 // RegistrationCountEQ applies the EQ predicate on the "registration_count" field.

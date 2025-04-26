@@ -21,6 +21,10 @@ type Word struct {
 	Name string `json:"name,omitempty"`
 	// VoiceID holds the value of the "voice_id" field.
 	VoiceID *string `json:"voice_id,omitempty"`
+	// IsIdioms holds the value of the "is_idioms" field.
+	IsIdioms bool `json:"is_idioms,omitempty"`
+	// IsSpecialCharacters holds the value of the "is_special_characters" field.
+	IsSpecialCharacters bool `json:"is_special_characters,omitempty"`
 	// RegistrationCount holds the value of the "registration_count" field.
 	RegistrationCount int `json:"registration_count,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -67,6 +71,8 @@ func (*Word) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case word.FieldIsIdioms, word.FieldIsSpecialCharacters:
+			values[i] = new(sql.NullBool)
 		case word.FieldID, word.FieldRegistrationCount:
 			values[i] = new(sql.NullInt64)
 		case word.FieldName, word.FieldVoiceID:
@@ -106,6 +112,18 @@ func (w *Word) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				w.VoiceID = new(string)
 				*w.VoiceID = value.String
+			}
+		case word.FieldIsIdioms:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_idioms", values[i])
+			} else if value.Valid {
+				w.IsIdioms = value.Bool
+			}
+		case word.FieldIsSpecialCharacters:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_special_characters", values[i])
+			} else if value.Valid {
+				w.IsSpecialCharacters = value.Bool
 			}
 		case word.FieldRegistrationCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -178,6 +196,12 @@ func (w *Word) String() string {
 		builder.WriteString("voice_id=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("is_idioms=")
+	builder.WriteString(fmt.Sprintf("%v", w.IsIdioms))
+	builder.WriteString(", ")
+	builder.WriteString("is_special_characters=")
+	builder.WriteString(fmt.Sprintf("%v", w.IsSpecialCharacters))
 	builder.WriteString(", ")
 	builder.WriteString("registration_count=")
 	builder.WriteString(fmt.Sprintf("%v", w.RegistrationCount))

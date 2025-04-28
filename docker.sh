@@ -28,7 +28,11 @@ fi
 
 case "$CMD" in
   up)
-    docker compose --env-file "$ENV_FILE" up
+    docker compose --env-file "$ENV_FILE" up db backend frontend
+    ;;
+
+  up_d)
+    docker compose --env-file "$ENV_FILE" up -d db backend frontend
     ;;
 
   down)
@@ -53,9 +57,9 @@ case "$CMD" in
 
   import)
     docker compose --env-file "$ENV_FILE" up -d db
-
-    docker compose --env-file "$ENV_FILE" run --rm \
-      dict-import -file=/data/jmdict.json -workers=4
+    docker compose --env-file "$ENV_FILE" \
+      --profile import run --rm dict-import \
+      -file=/data/jmdict.json -workers=4
     ;;
 
   *)

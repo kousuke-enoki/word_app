@@ -1,43 +1,24 @@
-# ビルド用のステージ
 FROM golang:1.23.3 AS builder
 
-# # 作業ディレクトリを設定
-# WORKDIR /app
+WORKDIR /src
 
-# # Goのモジュールをコピー
-# COPY go.mod go.sum ./
-# RUN go mod download
+# モジュールキャッシュを活用
+COPY go.mod go.sum ./
+RUN go mod download
 
-# # アプリケーションのソースコードをコピー
-# COPY . .
+# 残りのソース
+COPY . .
 
-# # airをインストール (修正)
-# RUN go install github.com/air-verse/air@latest
+# ① API サーバー
+RUN CGO_ENABLED=0 go build -o /out/server      ./cmd/server
+# ② JMdict 取込 CLI
+RUN CGO_ENABLED=0 go build -o /out/import_dict ./cmd/import_dict
 
-# # アプリケーションをビルドしないので、CMDを変更
-# CMD ["air"]
+# ---------- runtime stage ----------
+# distroless でも alpine でも OK。例では軽量 busybox
+FROM busybox:uclibc
+WORKDIR /app
+COPY --from=builder /out/* /usr/local/bin/
 
-
-  WORKDIR /src
-  
-  # モジュールキャッシュを活用
-  COPY go.mod go.sum ./
-  RUN go mod download
-  
-  # 残りのソース
-  COPY . .
-  
-  # ① API サーバー
-  RUN CGO_ENABLED=0 go build -o /out/server      ./cmd/server
-  # ② JMdict 取込 CLI
-  RUN CGO_ENABLED=0 go build -o /out/import_dict ./cmd/import_dict
-  
-  # ---------- runtime stage ----------
-  # distroless でも alpine でも OK。例では軽量 busybox
-  FROM busybox:uclibc
-  WORKDIR /app
-  COPY --from=builder /out/* /usr/local/bin/
-  
-  # デフォルトは API サーバー
-  ENTRYPOINT ["/usr/local/bin/server"]
-  
+# デフォルトは API サーバー
+ENTRYPOINT ["/usr/local/bin/server"]

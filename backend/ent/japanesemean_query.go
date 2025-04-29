@@ -4,10 +4,12 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/predicate"
+	"word_app/backend/ent/quizquestion"
 	"word_app/backend/ent/wordinfo"
 
 	"entgo.io/ent"
@@ -19,11 +21,12 @@ import (
 // JapaneseMeanQuery is the builder for querying JapaneseMean entities.
 type JapaneseMeanQuery struct {
 	config
-	ctx          *QueryContext
-	order        []japanesemean.OrderOption
-	inters       []Interceptor
-	predicates   []predicate.JapaneseMean
-	withWordInfo *WordInfoQuery
+	ctx               *QueryContext
+	order             []japanesemean.OrderOption
+	inters            []Interceptor
+	predicates        []predicate.JapaneseMean
+	withWordInfo      *WordInfoQuery
+	withQuizQuestions *QuizQuestionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -75,6 +78,28 @@ func (jmq *JapaneseMeanQuery) QueryWordInfo() *WordInfoQuery {
 			sqlgraph.From(japanesemean.Table, japanesemean.FieldID, selector),
 			sqlgraph.To(wordinfo.Table, wordinfo.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, japanesemean.WordInfoTable, japanesemean.WordInfoColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(jmq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryQuizQuestions chains the current query on the "quiz_questions" edge.
+func (jmq *JapaneseMeanQuery) QueryQuizQuestions() *QuizQuestionQuery {
+	query := (&QuizQuestionClient{config: jmq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := jmq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := jmq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(japanesemean.Table, japanesemean.FieldID, selector),
+			sqlgraph.To(quizquestion.Table, quizquestion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, japanesemean.QuizQuestionsTable, japanesemean.QuizQuestionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(jmq.driver.Dialect(), step)
 		return fromU, nil
@@ -269,12 +294,13 @@ func (jmq *JapaneseMeanQuery) Clone() *JapaneseMeanQuery {
 		return nil
 	}
 	return &JapaneseMeanQuery{
-		config:       jmq.config,
-		ctx:          jmq.ctx.Clone(),
-		order:        append([]japanesemean.OrderOption{}, jmq.order...),
-		inters:       append([]Interceptor{}, jmq.inters...),
-		predicates:   append([]predicate.JapaneseMean{}, jmq.predicates...),
-		withWordInfo: jmq.withWordInfo.Clone(),
+		config:            jmq.config,
+		ctx:               jmq.ctx.Clone(),
+		order:             append([]japanesemean.OrderOption{}, jmq.order...),
+		inters:            append([]Interceptor{}, jmq.inters...),
+		predicates:        append([]predicate.JapaneseMean{}, jmq.predicates...),
+		withWordInfo:      jmq.withWordInfo.Clone(),
+		withQuizQuestions: jmq.withQuizQuestions.Clone(),
 		// clone intermediate query.
 		sql:  jmq.sql.Clone(),
 		path: jmq.path,
@@ -289,6 +315,17 @@ func (jmq *JapaneseMeanQuery) WithWordInfo(opts ...func(*WordInfoQuery)) *Japane
 		opt(query)
 	}
 	jmq.withWordInfo = query
+	return jmq
+}
+
+// WithQuizQuestions tells the query-builder to eager-load the nodes that are connected to
+// the "quiz_questions" edge. The optional arguments are used to configure the query builder of the edge.
+func (jmq *JapaneseMeanQuery) WithQuizQuestions(opts ...func(*QuizQuestionQuery)) *JapaneseMeanQuery {
+	query := (&QuizQuestionClient{config: jmq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	jmq.withQuizQuestions = query
 	return jmq
 }
 
@@ -370,8 +407,9 @@ func (jmq *JapaneseMeanQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	var (
 		nodes       = []*JapaneseMean{}
 		_spec       = jmq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			jmq.withWordInfo != nil,
+			jmq.withQuizQuestions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -395,6 +433,13 @@ func (jmq *JapaneseMeanQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	if query := jmq.withWordInfo; query != nil {
 		if err := jmq.loadWordInfo(ctx, query, nodes, nil,
 			func(n *JapaneseMean, e *WordInfo) { n.Edges.WordInfo = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := jmq.withQuizQuestions; query != nil {
+		if err := jmq.loadQuizQuestions(ctx, query, nodes,
+			func(n *JapaneseMean) { n.Edges.QuizQuestions = []*QuizQuestion{} },
+			func(n *JapaneseMean, e *QuizQuestion) { n.Edges.QuizQuestions = append(n.Edges.QuizQuestions, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -427,6 +472,37 @@ func (jmq *JapaneseMeanQuery) loadWordInfo(ctx context.Context, query *WordInfoQ
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (jmq *JapaneseMeanQuery) loadQuizQuestions(ctx context.Context, query *QuizQuestionQuery, nodes []*JapaneseMean, init func(*JapaneseMean), assign func(*JapaneseMean, *QuizQuestion)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*JapaneseMean)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(quizquestion.FieldCorrectJpmID)
+	}
+	query.Where(predicate.QuizQuestion(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(japanesemean.QuizQuestionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CorrectJpmID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "correct_jpm_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

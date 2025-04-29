@@ -157,3 +157,8 @@ button:disabled {
   border: var(--button_border_disabled);
   background-color: var(--button_bg_disabled);
 } */
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

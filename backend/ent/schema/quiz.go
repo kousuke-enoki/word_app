@@ -1,0 +1,78 @@
+package schema
+
+import (
+	"errors"
+	"time"
+
+	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
+	"entgo.io/ent/schema/field"
+)
+
+// Quiz holds the schema definition for the Quiz entity.
+type Quiz struct {
+	ent.Schema
+}
+
+// Fields of the Quiz.
+func (Quiz) Fields() []ent.Field {
+	return []ent.Field{
+		field.Int("user_id"),
+		field.Int("quiz_number"),
+		field.Int("total_questions_count").
+			Default(10),
+		field.Int("correct_count").
+			Default(0),
+		field.Int("correct_rate").
+			Default(0),
+		field.Bool("is_running").
+			Default(false),
+		field.Int("is_registered_words").
+			Default(0).
+			Comment("0: all, 1: registered only, 2: unregistered only").
+			Validate(func(i int) error {
+				if i < 0 || i > 2 {
+					return errors.New("is_registered_words must be 0, 1, or 2")
+				}
+				return nil
+			}),
+		field.Int("is_idioms").
+			Default(0).
+			Comment("0: all, 1: idioms only, 2: not idioms only").
+			Validate(func(i int) error {
+				if i < 0 || i > 2 {
+					return errors.New("is_idioms must be 0, 1, or 2")
+				}
+				return nil
+			}),
+		field.Int("is_special_characters").
+			Default(0).
+			Comment("0: all, 1: special characters only, 2: not special characters only").
+			Validate(func(i int) error {
+				if i < 0 || i > 2 {
+					return errors.New("is_special_characters must be 0, 1, or 2")
+				}
+				return nil
+			}),
+		field.String("target_word_types").
+			NotEmpty(),
+		field.JSON("choices_pos_ids", []int{}),
+		field.Time("created_at").
+			Default(time.Now),
+		field.Time("deleted_at").
+			Optional().
+			Nillable(),
+	}
+}
+
+// Edges of the Quiz.
+func (Quiz) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.From("user", User.Type).
+			Unique().
+			Ref("quizs").
+			Field("user_id").
+			Required(),
+		edge.To("quiz_questions", QuizQuestion.Type),
+	}
+}

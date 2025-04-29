@@ -53,5 +53,6 @@ func (Word) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("word_infos", WordInfo.Type),
 		edge.To("registered_words", RegisteredWord.Type),
+		edge.To("quiz_questions", QuizQuestion.Type),
 	}
 }

@@ -17,6 +17,7 @@ type RouterImplementation struct {
 	UserHandler    interfaces.UserHandler
 	SettingHandler interfaces.SettingHandler
 	WordHandler    interfaces.WordHandler
+	QuizHandler    interfaces.QuizHandler
 	JWTSecret      string
 }
 
@@ -25,6 +26,7 @@ func NewRouter(
 	userHandler interfaces.UserHandler,
 	settingHandler interfaces.SettingHandler,
 	wordHandler interfaces.WordHandler,
+	quizHandler interfaces.QuizHandler,
 ) *RouterImplementation {
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
@@ -36,6 +38,7 @@ func NewRouter(
 		UserHandler:    userHandler,
 		SettingHandler: settingHandler,
 		WordHandler:    wordHandler,
+		QuizHandler:    quizHandler,
 		JWTSecret:      jwtSecret,
 	}
 }
@@ -74,6 +77,8 @@ func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
 		protectedRoutes.DELETE("/words/:id", r.WordHandler.DeleteWordHandler())
 		protectedRoutes.POST("/words/bulk_tokenize", r.WordHandler.BulkTokenizeHandler())
 		protectedRoutes.POST("/words/bulk_register", r.WordHandler.BulkRegisterHandler())
+
+		protectedRoutes.POST("/quiz/new", r.QuizHandler.CreateQuizHandler())
 	}
 }
 

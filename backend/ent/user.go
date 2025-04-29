@@ -43,8 +43,8 @@ type User struct {
 type UserEdges struct {
 	// RegisteredWords holds the value of the registered_words edge.
 	RegisteredWords []*RegisteredWord `json:"registered_words,omitempty"`
-	// Tests holds the value of the tests edge.
-	Tests []*Test `json:"tests,omitempty"`
+	// Quizs holds the value of the quizs edge.
+	Quizs []*Quiz `json:"quizs,omitempty"`
 	// UserConfig holds the value of the user_config edge.
 	UserConfig *UserConfig `json:"user_config,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -61,13 +61,13 @@ func (e UserEdges) RegisteredWordsOrErr() ([]*RegisteredWord, error) {
 	return nil, &NotLoadedError{edge: "registered_words"}
 }
 
-// TestsOrErr returns the Tests value or an error if the edge
+// QuizsOrErr returns the Quizs value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) TestsOrErr() ([]*Test, error) {
+func (e UserEdges) QuizsOrErr() ([]*Quiz, error) {
 	if e.loadedTypes[1] {
-		return e.Tests, nil
+		return e.Quizs, nil
 	}
-	return nil, &NotLoadedError{edge: "tests"}
+	return nil, &NotLoadedError{edge: "quizs"}
 }
 
 // UserConfigOrErr returns the UserConfig value or an error if the edge
@@ -175,9 +175,9 @@ func (u *User) QueryRegisteredWords() *RegisteredWordQuery {
 	return NewUserClient(u.config).QueryRegisteredWords(u)
 }
 
-// QueryTests queries the "tests" edge of the User entity.
-func (u *User) QueryTests() *TestQuery {
-	return NewUserClient(u.config).QueryTests(u)
+// QueryQuizs queries the "quizs" edge of the User entity.
+func (u *User) QueryQuizs() *QuizQuery {
+	return NewUserClient(u.config).QueryQuizs(u)
 }
 
 // QueryUserConfig queries the "user_config" edge of the User entity.

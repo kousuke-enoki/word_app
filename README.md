@@ -88,18 +88,18 @@ npm test
 
 
 # 品詞の詳細
-0  名詞（noun）
-1  代名詞（pronoun）
-2  動詞（verb）
-3  形容詞（adjective）
-4  副詞（adverb）
-5  助動詞（auxiliary verb）
-6  前置詞（preposition）
-7  冠詞（article）
-8  間投詞（interjection）
-9  接続詞（conjunction）
-10 慣用句
-11 その他
+1  名詞（noun）
+2  代名詞（pronoun）
+3  動詞（verb）
+4  形容詞（adjective）
+5  副詞（adverb）
+6  助動詞（auxiliary verb）
+7  前置詞（preposition）
+8  冠詞（article）
+9  間投詞（interjection）
+10 接続詞（conjunction）
+11 慣用句
+12 その他
 
 
 # 辞書import

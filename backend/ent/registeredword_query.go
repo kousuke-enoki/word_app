@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"math"
 	"word_app/backend/ent/predicate"
+	"word_app/backend/ent/quizquestion"
 	"word_app/backend/ent/registeredword"
-	"word_app/backend/ent/testquestion"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/word"
 
@@ -28,7 +28,7 @@ type RegisteredWordQuery struct {
 	predicates        []predicate.RegisteredWord
 	withUser          *UserQuery
 	withWord          *WordQuery
-	withTestQuestions *TestQuestionQuery
+	withQuizQuestions *QuizQuestionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -109,9 +109,9 @@ func (rwq *RegisteredWordQuery) QueryWord() *WordQuery {
 	return query
 }
 
-// QueryTestQuestions chains the current query on the "test_questions" edge.
-func (rwq *RegisteredWordQuery) QueryTestQuestions() *TestQuestionQuery {
-	query := (&TestQuestionClient{config: rwq.config}).Query()
+// QueryQuizQuestions chains the current query on the "quiz_questions" edge.
+func (rwq *RegisteredWordQuery) QueryQuizQuestions() *QuizQuestionQuery {
+	query := (&QuizQuestionClient{config: rwq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := rwq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -122,8 +122,8 @@ func (rwq *RegisteredWordQuery) QueryTestQuestions() *TestQuestionQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(registeredword.Table, registeredword.FieldID, selector),
-			sqlgraph.To(testquestion.Table, testquestion.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, registeredword.TestQuestionsTable, registeredword.TestQuestionsColumn),
+			sqlgraph.To(quizquestion.Table, quizquestion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, registeredword.QuizQuestionsTable, registeredword.QuizQuestionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rwq.driver.Dialect(), step)
 		return fromU, nil
@@ -325,7 +325,7 @@ func (rwq *RegisteredWordQuery) Clone() *RegisteredWordQuery {
 		predicates:        append([]predicate.RegisteredWord{}, rwq.predicates...),
 		withUser:          rwq.withUser.Clone(),
 		withWord:          rwq.withWord.Clone(),
-		withTestQuestions: rwq.withTestQuestions.Clone(),
+		withQuizQuestions: rwq.withQuizQuestions.Clone(),
 		// clone intermediate query.
 		sql:  rwq.sql.Clone(),
 		path: rwq.path,
@@ -354,14 +354,14 @@ func (rwq *RegisteredWordQuery) WithWord(opts ...func(*WordQuery)) *RegisteredWo
 	return rwq
 }
 
-// WithTestQuestions tells the query-builder to eager-load the nodes that are connected to
-// the "test_questions" edge. The optional arguments are used to configure the query builder of the edge.
-func (rwq *RegisteredWordQuery) WithTestQuestions(opts ...func(*TestQuestionQuery)) *RegisteredWordQuery {
-	query := (&TestQuestionClient{config: rwq.config}).Query()
+// WithQuizQuestions tells the query-builder to eager-load the nodes that are connected to
+// the "quiz_questions" edge. The optional arguments are used to configure the query builder of the edge.
+func (rwq *RegisteredWordQuery) WithQuizQuestions(opts ...func(*QuizQuestionQuery)) *RegisteredWordQuery {
+	query := (&QuizQuestionClient{config: rwq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	rwq.withTestQuestions = query
+	rwq.withQuizQuestions = query
 	return rwq
 }
 
@@ -446,7 +446,7 @@ func (rwq *RegisteredWordQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 		loadedTypes = [3]bool{
 			rwq.withUser != nil,
 			rwq.withWord != nil,
-			rwq.withTestQuestions != nil,
+			rwq.withQuizQuestions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -479,10 +479,10 @@ func (rwq *RegisteredWordQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 			return nil, err
 		}
 	}
-	if query := rwq.withTestQuestions; query != nil {
-		if err := rwq.loadTestQuestions(ctx, query, nodes,
-			func(n *RegisteredWord) { n.Edges.TestQuestions = []*TestQuestion{} },
-			func(n *RegisteredWord, e *TestQuestion) { n.Edges.TestQuestions = append(n.Edges.TestQuestions, e) }); err != nil {
+	if query := rwq.withQuizQuestions; query != nil {
+		if err := rwq.loadQuizQuestions(ctx, query, nodes,
+			func(n *RegisteredWord) { n.Edges.QuizQuestions = []*QuizQuestion{} },
+			func(n *RegisteredWord, e *QuizQuestion) { n.Edges.QuizQuestions = append(n.Edges.QuizQuestions, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -547,7 +547,7 @@ func (rwq *RegisteredWordQuery) loadWord(ctx context.Context, query *WordQuery, 
 	}
 	return nil
 }
-func (rwq *RegisteredWordQuery) loadTestQuestions(ctx context.Context, query *TestQuestionQuery, nodes []*RegisteredWord, init func(*RegisteredWord), assign func(*RegisteredWord, *TestQuestion)) error {
+func (rwq *RegisteredWordQuery) loadQuizQuestions(ctx context.Context, query *QuizQuestionQuery, nodes []*RegisteredWord, init func(*RegisteredWord), assign func(*RegisteredWord, *QuizQuestion)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*RegisteredWord)
 	for i := range nodes {
@@ -557,21 +557,22 @@ func (rwq *RegisteredWordQuery) loadTestQuestions(ctx context.Context, query *Te
 			init(nodes[i])
 		}
 	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(testquestion.FieldRegisteredWordID)
-	}
-	query.Where(predicate.TestQuestion(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(registeredword.TestQuestionsColumn), fks...))
+	query.withFKs = true
+	query.Where(predicate.QuizQuestion(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(registeredword.QuizQuestionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.RegisteredWordID
-		node, ok := nodeids[fk]
+		fk := n.registered_word_quiz_questions
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "registered_word_quiz_questions" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "registered_word_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "registered_word_quiz_questions" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

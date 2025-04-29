@@ -11,6 +11,7 @@ type ClientInterface interface {
 	UserClient
 	SettingClient
 	WordService
+	QuizService
 	EntClient() *ent.Client
 	service_interfaces.EntClientInterface
 }

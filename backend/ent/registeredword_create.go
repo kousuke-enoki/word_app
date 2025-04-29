@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"word_app/backend/ent/quizquestion"
 	"word_app/backend/ent/registeredword"
-	"word_app/backend/ent/testquestion"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/word"
 
@@ -65,30 +65,44 @@ func (rwc *RegisteredWordCreate) SetNillableAttentionLevel(i *int) *RegisteredWo
 	return rwc
 }
 
-// SetTestCount sets the "test_count" field.
-func (rwc *RegisteredWordCreate) SetTestCount(i int) *RegisteredWordCreate {
-	rwc.mutation.SetTestCount(i)
+// SetQuizCount sets the "quiz_count" field.
+func (rwc *RegisteredWordCreate) SetQuizCount(i int) *RegisteredWordCreate {
+	rwc.mutation.SetQuizCount(i)
 	return rwc
 }
 
-// SetNillableTestCount sets the "test_count" field if the given value is not nil.
-func (rwc *RegisteredWordCreate) SetNillableTestCount(i *int) *RegisteredWordCreate {
+// SetNillableQuizCount sets the "quiz_count" field if the given value is not nil.
+func (rwc *RegisteredWordCreate) SetNillableQuizCount(i *int) *RegisteredWordCreate {
 	if i != nil {
-		rwc.SetTestCount(*i)
+		rwc.SetQuizCount(*i)
 	}
 	return rwc
 }
 
-// SetCheckCount sets the "check_count" field.
-func (rwc *RegisteredWordCreate) SetCheckCount(i int) *RegisteredWordCreate {
-	rwc.mutation.SetCheckCount(i)
+// SetCorrectCount sets the "correct_count" field.
+func (rwc *RegisteredWordCreate) SetCorrectCount(i int) *RegisteredWordCreate {
+	rwc.mutation.SetCorrectCount(i)
 	return rwc
 }
 
-// SetNillableCheckCount sets the "check_count" field if the given value is not nil.
-func (rwc *RegisteredWordCreate) SetNillableCheckCount(i *int) *RegisteredWordCreate {
+// SetNillableCorrectCount sets the "correct_count" field if the given value is not nil.
+func (rwc *RegisteredWordCreate) SetNillableCorrectCount(i *int) *RegisteredWordCreate {
 	if i != nil {
-		rwc.SetCheckCount(*i)
+		rwc.SetCorrectCount(*i)
+	}
+	return rwc
+}
+
+// SetCorrectRate sets the "correct_rate" field.
+func (rwc *RegisteredWordCreate) SetCorrectRate(i int) *RegisteredWordCreate {
+	rwc.mutation.SetCorrectRate(i)
+	return rwc
+}
+
+// SetNillableCorrectRate sets the "correct_rate" field if the given value is not nil.
+func (rwc *RegisteredWordCreate) SetNillableCorrectRate(i *int) *RegisteredWordCreate {
+	if i != nil {
+		rwc.SetCorrectRate(*i)
 	}
 	return rwc
 }
@@ -145,19 +159,19 @@ func (rwc *RegisteredWordCreate) SetWord(w *Word) *RegisteredWordCreate {
 	return rwc.SetWordID(w.ID)
 }
 
-// AddTestQuestionIDs adds the "test_questions" edge to the TestQuestion entity by IDs.
-func (rwc *RegisteredWordCreate) AddTestQuestionIDs(ids ...int) *RegisteredWordCreate {
-	rwc.mutation.AddTestQuestionIDs(ids...)
+// AddQuizQuestionIDs adds the "quiz_questions" edge to the QuizQuestion entity by IDs.
+func (rwc *RegisteredWordCreate) AddQuizQuestionIDs(ids ...int) *RegisteredWordCreate {
+	rwc.mutation.AddQuizQuestionIDs(ids...)
 	return rwc
 }
 
-// AddTestQuestions adds the "test_questions" edges to the TestQuestion entity.
-func (rwc *RegisteredWordCreate) AddTestQuestions(t ...*TestQuestion) *RegisteredWordCreate {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// AddQuizQuestions adds the "quiz_questions" edges to the QuizQuestion entity.
+func (rwc *RegisteredWordCreate) AddQuizQuestions(q ...*QuizQuestion) *RegisteredWordCreate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return rwc.AddTestQuestionIDs(ids...)
+	return rwc.AddQuizQuestionIDs(ids...)
 }
 
 // Mutation returns the RegisteredWordMutation object of the builder.
@@ -203,13 +217,17 @@ func (rwc *RegisteredWordCreate) defaults() {
 		v := registeredword.DefaultAttentionLevel
 		rwc.mutation.SetAttentionLevel(v)
 	}
-	if _, ok := rwc.mutation.TestCount(); !ok {
-		v := registeredword.DefaultTestCount
-		rwc.mutation.SetTestCount(v)
+	if _, ok := rwc.mutation.QuizCount(); !ok {
+		v := registeredword.DefaultQuizCount
+		rwc.mutation.SetQuizCount(v)
 	}
-	if _, ok := rwc.mutation.CheckCount(); !ok {
-		v := registeredword.DefaultCheckCount
-		rwc.mutation.SetCheckCount(v)
+	if _, ok := rwc.mutation.CorrectCount(); !ok {
+		v := registeredword.DefaultCorrectCount
+		rwc.mutation.SetCorrectCount(v)
+	}
+	if _, ok := rwc.mutation.CorrectRate(); !ok {
+		v := registeredword.DefaultCorrectRate
+		rwc.mutation.SetCorrectRate(v)
 	}
 	if _, ok := rwc.mutation.CreatedAt(); !ok {
 		v := registeredword.DefaultCreatedAt()
@@ -245,11 +263,14 @@ func (rwc *RegisteredWordCreate) check() error {
 			return &ValidationError{Name: "attention_level", err: fmt.Errorf(`ent: validator failed for field "RegisteredWord.attention_level": %w`, err)}
 		}
 	}
-	if _, ok := rwc.mutation.TestCount(); !ok {
-		return &ValidationError{Name: "test_count", err: errors.New(`ent: missing required field "RegisteredWord.test_count"`)}
+	if _, ok := rwc.mutation.QuizCount(); !ok {
+		return &ValidationError{Name: "quiz_count", err: errors.New(`ent: missing required field "RegisteredWord.quiz_count"`)}
 	}
-	if _, ok := rwc.mutation.CheckCount(); !ok {
-		return &ValidationError{Name: "check_count", err: errors.New(`ent: missing required field "RegisteredWord.check_count"`)}
+	if _, ok := rwc.mutation.CorrectCount(); !ok {
+		return &ValidationError{Name: "correct_count", err: errors.New(`ent: missing required field "RegisteredWord.correct_count"`)}
+	}
+	if _, ok := rwc.mutation.CorrectRate(); !ok {
+		return &ValidationError{Name: "correct_rate", err: errors.New(`ent: missing required field "RegisteredWord.correct_rate"`)}
 	}
 	if v, ok := rwc.mutation.Memo(); ok {
 		if err := registeredword.MemoValidator(v); err != nil {
@@ -303,13 +324,17 @@ func (rwc *RegisteredWordCreate) createSpec() (*RegisteredWord, *sqlgraph.Create
 		_spec.SetField(registeredword.FieldAttentionLevel, field.TypeInt, value)
 		_node.AttentionLevel = value
 	}
-	if value, ok := rwc.mutation.TestCount(); ok {
-		_spec.SetField(registeredword.FieldTestCount, field.TypeInt, value)
-		_node.TestCount = value
+	if value, ok := rwc.mutation.QuizCount(); ok {
+		_spec.SetField(registeredword.FieldQuizCount, field.TypeInt, value)
+		_node.QuizCount = value
 	}
-	if value, ok := rwc.mutation.CheckCount(); ok {
-		_spec.SetField(registeredword.FieldCheckCount, field.TypeInt, value)
-		_node.CheckCount = value
+	if value, ok := rwc.mutation.CorrectCount(); ok {
+		_spec.SetField(registeredword.FieldCorrectCount, field.TypeInt, value)
+		_node.CorrectCount = value
+	}
+	if value, ok := rwc.mutation.CorrectRate(); ok {
+		_spec.SetField(registeredword.FieldCorrectRate, field.TypeInt, value)
+		_node.CorrectRate = value
 	}
 	if value, ok := rwc.mutation.Memo(); ok {
 		_spec.SetField(registeredword.FieldMemo, field.TypeString, value)
@@ -357,15 +382,15 @@ func (rwc *RegisteredWordCreate) createSpec() (*RegisteredWord, *sqlgraph.Create
 		_node.WordID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := rwc.mutation.TestQuestionsIDs(); len(nodes) > 0 {
+	if nodes := rwc.mutation.QuizQuestionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   registeredword.TestQuestionsTable,
-			Columns: []string{registeredword.TestQuestionsColumn},
+			Table:   registeredword.QuizQuestionsTable,
+			Columns: []string{registeredword.QuizQuestionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(testquestion.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -479,39 +504,57 @@ func (u *RegisteredWordUpsert) AddAttentionLevel(v int) *RegisteredWordUpsert {
 	return u
 }
 
-// SetTestCount sets the "test_count" field.
-func (u *RegisteredWordUpsert) SetTestCount(v int) *RegisteredWordUpsert {
-	u.Set(registeredword.FieldTestCount, v)
+// SetQuizCount sets the "quiz_count" field.
+func (u *RegisteredWordUpsert) SetQuizCount(v int) *RegisteredWordUpsert {
+	u.Set(registeredword.FieldQuizCount, v)
 	return u
 }
 
-// UpdateTestCount sets the "test_count" field to the value that was provided on create.
-func (u *RegisteredWordUpsert) UpdateTestCount() *RegisteredWordUpsert {
-	u.SetExcluded(registeredword.FieldTestCount)
+// UpdateQuizCount sets the "quiz_count" field to the value that was provided on create.
+func (u *RegisteredWordUpsert) UpdateQuizCount() *RegisteredWordUpsert {
+	u.SetExcluded(registeredword.FieldQuizCount)
 	return u
 }
 
-// AddTestCount adds v to the "test_count" field.
-func (u *RegisteredWordUpsert) AddTestCount(v int) *RegisteredWordUpsert {
-	u.Add(registeredword.FieldTestCount, v)
+// AddQuizCount adds v to the "quiz_count" field.
+func (u *RegisteredWordUpsert) AddQuizCount(v int) *RegisteredWordUpsert {
+	u.Add(registeredword.FieldQuizCount, v)
 	return u
 }
 
-// SetCheckCount sets the "check_count" field.
-func (u *RegisteredWordUpsert) SetCheckCount(v int) *RegisteredWordUpsert {
-	u.Set(registeredword.FieldCheckCount, v)
+// SetCorrectCount sets the "correct_count" field.
+func (u *RegisteredWordUpsert) SetCorrectCount(v int) *RegisteredWordUpsert {
+	u.Set(registeredword.FieldCorrectCount, v)
 	return u
 }
 
-// UpdateCheckCount sets the "check_count" field to the value that was provided on create.
-func (u *RegisteredWordUpsert) UpdateCheckCount() *RegisteredWordUpsert {
-	u.SetExcluded(registeredword.FieldCheckCount)
+// UpdateCorrectCount sets the "correct_count" field to the value that was provided on create.
+func (u *RegisteredWordUpsert) UpdateCorrectCount() *RegisteredWordUpsert {
+	u.SetExcluded(registeredword.FieldCorrectCount)
 	return u
 }
 
-// AddCheckCount adds v to the "check_count" field.
-func (u *RegisteredWordUpsert) AddCheckCount(v int) *RegisteredWordUpsert {
-	u.Add(registeredword.FieldCheckCount, v)
+// AddCorrectCount adds v to the "correct_count" field.
+func (u *RegisteredWordUpsert) AddCorrectCount(v int) *RegisteredWordUpsert {
+	u.Add(registeredword.FieldCorrectCount, v)
+	return u
+}
+
+// SetCorrectRate sets the "correct_rate" field.
+func (u *RegisteredWordUpsert) SetCorrectRate(v int) *RegisteredWordUpsert {
+	u.Set(registeredword.FieldCorrectRate, v)
+	return u
+}
+
+// UpdateCorrectRate sets the "correct_rate" field to the value that was provided on create.
+func (u *RegisteredWordUpsert) UpdateCorrectRate() *RegisteredWordUpsert {
+	u.SetExcluded(registeredword.FieldCorrectRate)
+	return u
+}
+
+// AddCorrectRate adds v to the "correct_rate" field.
+func (u *RegisteredWordUpsert) AddCorrectRate(v int) *RegisteredWordUpsert {
+	u.Add(registeredword.FieldCorrectRate, v)
 	return u
 }
 
@@ -660,45 +703,66 @@ func (u *RegisteredWordUpsertOne) UpdateAttentionLevel() *RegisteredWordUpsertOn
 	})
 }
 
-// SetTestCount sets the "test_count" field.
-func (u *RegisteredWordUpsertOne) SetTestCount(v int) *RegisteredWordUpsertOne {
+// SetQuizCount sets the "quiz_count" field.
+func (u *RegisteredWordUpsertOne) SetQuizCount(v int) *RegisteredWordUpsertOne {
 	return u.Update(func(s *RegisteredWordUpsert) {
-		s.SetTestCount(v)
+		s.SetQuizCount(v)
 	})
 }
 
-// AddTestCount adds v to the "test_count" field.
-func (u *RegisteredWordUpsertOne) AddTestCount(v int) *RegisteredWordUpsertOne {
+// AddQuizCount adds v to the "quiz_count" field.
+func (u *RegisteredWordUpsertOne) AddQuizCount(v int) *RegisteredWordUpsertOne {
 	return u.Update(func(s *RegisteredWordUpsert) {
-		s.AddTestCount(v)
+		s.AddQuizCount(v)
 	})
 }
 
-// UpdateTestCount sets the "test_count" field to the value that was provided on create.
-func (u *RegisteredWordUpsertOne) UpdateTestCount() *RegisteredWordUpsertOne {
+// UpdateQuizCount sets the "quiz_count" field to the value that was provided on create.
+func (u *RegisteredWordUpsertOne) UpdateQuizCount() *RegisteredWordUpsertOne {
 	return u.Update(func(s *RegisteredWordUpsert) {
-		s.UpdateTestCount()
+		s.UpdateQuizCount()
 	})
 }
 
-// SetCheckCount sets the "check_count" field.
-func (u *RegisteredWordUpsertOne) SetCheckCount(v int) *RegisteredWordUpsertOne {
+// SetCorrectCount sets the "correct_count" field.
+func (u *RegisteredWordUpsertOne) SetCorrectCount(v int) *RegisteredWordUpsertOne {
 	return u.Update(func(s *RegisteredWordUpsert) {
-		s.SetCheckCount(v)
+		s.SetCorrectCount(v)
 	})
 }
 
-// AddCheckCount adds v to the "check_count" field.
-func (u *RegisteredWordUpsertOne) AddCheckCount(v int) *RegisteredWordUpsertOne {
+// AddCorrectCount adds v to the "correct_count" field.
+func (u *RegisteredWordUpsertOne) AddCorrectCount(v int) *RegisteredWordUpsertOne {
 	return u.Update(func(s *RegisteredWordUpsert) {
-		s.AddCheckCount(v)
+		s.AddCorrectCount(v)
 	})
 }
 
-// UpdateCheckCount sets the "check_count" field to the value that was provided on create.
-func (u *RegisteredWordUpsertOne) UpdateCheckCount() *RegisteredWordUpsertOne {
+// UpdateCorrectCount sets the "correct_count" field to the value that was provided on create.
+func (u *RegisteredWordUpsertOne) UpdateCorrectCount() *RegisteredWordUpsertOne {
 	return u.Update(func(s *RegisteredWordUpsert) {
-		s.UpdateCheckCount()
+		s.UpdateCorrectCount()
+	})
+}
+
+// SetCorrectRate sets the "correct_rate" field.
+func (u *RegisteredWordUpsertOne) SetCorrectRate(v int) *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetCorrectRate(v)
+	})
+}
+
+// AddCorrectRate adds v to the "correct_rate" field.
+func (u *RegisteredWordUpsertOne) AddCorrectRate(v int) *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.AddCorrectRate(v)
+	})
+}
+
+// UpdateCorrectRate sets the "correct_rate" field to the value that was provided on create.
+func (u *RegisteredWordUpsertOne) UpdateCorrectRate() *RegisteredWordUpsertOne {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateCorrectRate()
 	})
 }
 
@@ -1018,45 +1082,66 @@ func (u *RegisteredWordUpsertBulk) UpdateAttentionLevel() *RegisteredWordUpsertB
 	})
 }
 
-// SetTestCount sets the "test_count" field.
-func (u *RegisteredWordUpsertBulk) SetTestCount(v int) *RegisteredWordUpsertBulk {
+// SetQuizCount sets the "quiz_count" field.
+func (u *RegisteredWordUpsertBulk) SetQuizCount(v int) *RegisteredWordUpsertBulk {
 	return u.Update(func(s *RegisteredWordUpsert) {
-		s.SetTestCount(v)
+		s.SetQuizCount(v)
 	})
 }
 
-// AddTestCount adds v to the "test_count" field.
-func (u *RegisteredWordUpsertBulk) AddTestCount(v int) *RegisteredWordUpsertBulk {
+// AddQuizCount adds v to the "quiz_count" field.
+func (u *RegisteredWordUpsertBulk) AddQuizCount(v int) *RegisteredWordUpsertBulk {
 	return u.Update(func(s *RegisteredWordUpsert) {
-		s.AddTestCount(v)
+		s.AddQuizCount(v)
 	})
 }
 
-// UpdateTestCount sets the "test_count" field to the value that was provided on create.
-func (u *RegisteredWordUpsertBulk) UpdateTestCount() *RegisteredWordUpsertBulk {
+// UpdateQuizCount sets the "quiz_count" field to the value that was provided on create.
+func (u *RegisteredWordUpsertBulk) UpdateQuizCount() *RegisteredWordUpsertBulk {
 	return u.Update(func(s *RegisteredWordUpsert) {
-		s.UpdateTestCount()
+		s.UpdateQuizCount()
 	})
 }
 
-// SetCheckCount sets the "check_count" field.
-func (u *RegisteredWordUpsertBulk) SetCheckCount(v int) *RegisteredWordUpsertBulk {
+// SetCorrectCount sets the "correct_count" field.
+func (u *RegisteredWordUpsertBulk) SetCorrectCount(v int) *RegisteredWordUpsertBulk {
 	return u.Update(func(s *RegisteredWordUpsert) {
-		s.SetCheckCount(v)
+		s.SetCorrectCount(v)
 	})
 }
 
-// AddCheckCount adds v to the "check_count" field.
-func (u *RegisteredWordUpsertBulk) AddCheckCount(v int) *RegisteredWordUpsertBulk {
+// AddCorrectCount adds v to the "correct_count" field.
+func (u *RegisteredWordUpsertBulk) AddCorrectCount(v int) *RegisteredWordUpsertBulk {
 	return u.Update(func(s *RegisteredWordUpsert) {
-		s.AddCheckCount(v)
+		s.AddCorrectCount(v)
 	})
 }
 
-// UpdateCheckCount sets the "check_count" field to the value that was provided on create.
-func (u *RegisteredWordUpsertBulk) UpdateCheckCount() *RegisteredWordUpsertBulk {
+// UpdateCorrectCount sets the "correct_count" field to the value that was provided on create.
+func (u *RegisteredWordUpsertBulk) UpdateCorrectCount() *RegisteredWordUpsertBulk {
 	return u.Update(func(s *RegisteredWordUpsert) {
-		s.UpdateCheckCount()
+		s.UpdateCorrectCount()
+	})
+}
+
+// SetCorrectRate sets the "correct_rate" field.
+func (u *RegisteredWordUpsertBulk) SetCorrectRate(v int) *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.SetCorrectRate(v)
+	})
+}
+
+// AddCorrectRate adds v to the "correct_rate" field.
+func (u *RegisteredWordUpsertBulk) AddCorrectRate(v int) *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.AddCorrectRate(v)
+	})
+}
+
+// UpdateCorrectRate sets the "correct_rate" field to the value that was provided on create.
+func (u *RegisteredWordUpsertBulk) UpdateCorrectRate() *RegisteredWordUpsertBulk {
+	return u.Update(func(s *RegisteredWordUpsert) {
+		s.UpdateCorrectRate()
 	})
 }
 

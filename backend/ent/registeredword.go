@@ -27,10 +27,12 @@ type RegisteredWord struct {
 	IsActive bool `json:"is_active,omitempty"`
 	// AttentionLevel holds the value of the "attention_level" field.
 	AttentionLevel int `json:"attention_level,omitempty"`
-	// TestCount holds the value of the "test_count" field.
-	TestCount int `json:"test_count,omitempty"`
-	// CheckCount holds the value of the "check_count" field.
-	CheckCount int `json:"check_count,omitempty"`
+	// QuizCount holds the value of the "quiz_count" field.
+	QuizCount int `json:"quiz_count,omitempty"`
+	// CorrectCount holds the value of the "correct_count" field.
+	CorrectCount int `json:"correct_count,omitempty"`
+	// CorrectRate holds the value of the "correct_rate" field.
+	CorrectRate int `json:"correct_rate,omitempty"`
 	// Memo holds the value of the "memo" field.
 	Memo *string `json:"memo,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -49,8 +51,8 @@ type RegisteredWordEdges struct {
 	User *User `json:"user,omitempty"`
 	// Word holds the value of the word edge.
 	Word *Word `json:"word,omitempty"`
-	// TestQuestions holds the value of the test_questions edge.
-	TestQuestions []*TestQuestion `json:"test_questions,omitempty"`
+	// QuizQuestions holds the value of the quiz_questions edge.
+	QuizQuestions []*QuizQuestion `json:"quiz_questions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [3]bool
@@ -78,13 +80,13 @@ func (e RegisteredWordEdges) WordOrErr() (*Word, error) {
 	return nil, &NotLoadedError{edge: "word"}
 }
 
-// TestQuestionsOrErr returns the TestQuestions value or an error if the edge
+// QuizQuestionsOrErr returns the QuizQuestions value or an error if the edge
 // was not loaded in eager-loading.
-func (e RegisteredWordEdges) TestQuestionsOrErr() ([]*TestQuestion, error) {
+func (e RegisteredWordEdges) QuizQuestionsOrErr() ([]*QuizQuestion, error) {
 	if e.loadedTypes[2] {
-		return e.TestQuestions, nil
+		return e.QuizQuestions, nil
 	}
-	return nil, &NotLoadedError{edge: "test_questions"}
+	return nil, &NotLoadedError{edge: "quiz_questions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -94,7 +96,7 @@ func (*RegisteredWord) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case registeredword.FieldIsActive:
 			values[i] = new(sql.NullBool)
-		case registeredword.FieldID, registeredword.FieldUserID, registeredword.FieldWordID, registeredword.FieldAttentionLevel, registeredword.FieldTestCount, registeredword.FieldCheckCount:
+		case registeredword.FieldID, registeredword.FieldUserID, registeredword.FieldWordID, registeredword.FieldAttentionLevel, registeredword.FieldQuizCount, registeredword.FieldCorrectCount, registeredword.FieldCorrectRate:
 			values[i] = new(sql.NullInt64)
 		case registeredword.FieldMemo:
 			values[i] = new(sql.NullString)
@@ -145,17 +147,23 @@ func (rw *RegisteredWord) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				rw.AttentionLevel = int(value.Int64)
 			}
-		case registeredword.FieldTestCount:
+		case registeredword.FieldQuizCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field test_count", values[i])
+				return fmt.Errorf("unexpected type %T for field quiz_count", values[i])
 			} else if value.Valid {
-				rw.TestCount = int(value.Int64)
+				rw.QuizCount = int(value.Int64)
 			}
-		case registeredword.FieldCheckCount:
+		case registeredword.FieldCorrectCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field check_count", values[i])
+				return fmt.Errorf("unexpected type %T for field correct_count", values[i])
 			} else if value.Valid {
-				rw.CheckCount = int(value.Int64)
+				rw.CorrectCount = int(value.Int64)
+			}
+		case registeredword.FieldCorrectRate:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field correct_rate", values[i])
+			} else if value.Valid {
+				rw.CorrectRate = int(value.Int64)
 			}
 		case registeredword.FieldMemo:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -199,9 +207,9 @@ func (rw *RegisteredWord) QueryWord() *WordQuery {
 	return NewRegisteredWordClient(rw.config).QueryWord(rw)
 }
 
-// QueryTestQuestions queries the "test_questions" edge of the RegisteredWord entity.
-func (rw *RegisteredWord) QueryTestQuestions() *TestQuestionQuery {
-	return NewRegisteredWordClient(rw.config).QueryTestQuestions(rw)
+// QueryQuizQuestions queries the "quiz_questions" edge of the RegisteredWord entity.
+func (rw *RegisteredWord) QueryQuizQuestions() *QuizQuestionQuery {
+	return NewRegisteredWordClient(rw.config).QueryQuizQuestions(rw)
 }
 
 // Update returns a builder for updating this RegisteredWord.
@@ -239,11 +247,14 @@ func (rw *RegisteredWord) String() string {
 	builder.WriteString("attention_level=")
 	builder.WriteString(fmt.Sprintf("%v", rw.AttentionLevel))
 	builder.WriteString(", ")
-	builder.WriteString("test_count=")
-	builder.WriteString(fmt.Sprintf("%v", rw.TestCount))
+	builder.WriteString("quiz_count=")
+	builder.WriteString(fmt.Sprintf("%v", rw.QuizCount))
 	builder.WriteString(", ")
-	builder.WriteString("check_count=")
-	builder.WriteString(fmt.Sprintf("%v", rw.CheckCount))
+	builder.WriteString("correct_count=")
+	builder.WriteString(fmt.Sprintf("%v", rw.CorrectCount))
+	builder.WriteString(", ")
+	builder.WriteString("correct_rate=")
+	builder.WriteString(fmt.Sprintf("%v", rw.CorrectRate))
 	builder.WriteString(", ")
 	if v := rw.Memo; v != nil {
 		builder.WriteString("memo=")

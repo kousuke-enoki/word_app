@@ -37,7 +37,7 @@ func (s *WordServiceImpl) GetWordDetails(ctx context.Context, WordShowRequest *m
 
 	// 登録済み情報を取得
 	var isRegistered bool
-	var testCount, checkCount, attentionLevel int
+	var QuizCount, CorrectCount, attentionLevel int
 	var memo string
 
 	// userID に関連付けられた RegisteredWord を検索
@@ -53,16 +53,16 @@ func (s *WordServiceImpl) GetWordDetails(ctx context.Context, WordShowRequest *m
 	if registeredWord != nil {
 		isRegistered = registeredWord.IsActive
 		attentionLevel = registeredWord.AttentionLevel
-		testCount = registeredWord.TestCount
-		checkCount = registeredWord.CheckCount
+		QuizCount = registeredWord.QuizCount
+		CorrectCount = registeredWord.CorrectCount
 		if registeredWord.Memo != nil {
 			memo = *registeredWord.Memo
 		}
 	} else {
 		isRegistered = false
 		attentionLevel = 0
-		testCount = 0
-		checkCount = 0
+		QuizCount = 0
+		CorrectCount = 0
 		memo = ""
 	}
 
@@ -94,8 +94,8 @@ func (s *WordServiceImpl) GetWordDetails(ctx context.Context, WordShowRequest *m
 		WordInfos:         wordInfos,
 		IsRegistered:      isRegistered,
 		AttentionLevel:    attentionLevel,
-		TestCount:         testCount,
-		CheckCount:        checkCount,
+		QuizCount:         QuizCount,
+		CorrectCount:      CorrectCount,
 		Memo:              memo,
 	}
 

@@ -14,4 +14,11 @@ export const getPartOfSpeech: PartOfSpeechOption[] = [
   { id: 8, name: '冠詞' },
   { id: 9, name: '間投詞' },
   { id: 10, name: '接続詞' },
+  { id: 11, name: '慣用句' },
+  { id: 12, name: 'その他' },
 ]
+
+ // フィルタリングされた品詞を取得する関数
+ export const getPartsOfSpeechForQuiz = (): PartOfSpeechOption[] => {
+  return getPartOfSpeech.filter((pos) => [1, 3, 4, 5].includes(pos.id))
+}

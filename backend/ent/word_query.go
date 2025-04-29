@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 	"word_app/backend/ent/predicate"
+	"word_app/backend/ent/quizquestion"
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/word"
 	"word_app/backend/ent/wordinfo"
@@ -27,6 +28,7 @@ type WordQuery struct {
 	predicates          []predicate.Word
 	withWordInfos       *WordInfoQuery
 	withRegisteredWords *RegisteredWordQuery
+	withQuizQuestions   *QuizQuestionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -100,6 +102,28 @@ func (wq *WordQuery) QueryRegisteredWords() *RegisteredWordQuery {
 			sqlgraph.From(word.Table, word.FieldID, selector),
 			sqlgraph.To(registeredword.Table, registeredword.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, word.RegisteredWordsTable, word.RegisteredWordsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(wq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryQuizQuestions chains the current query on the "quiz_questions" edge.
+func (wq *WordQuery) QueryQuizQuestions() *QuizQuestionQuery {
+	query := (&QuizQuestionClient{config: wq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := wq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := wq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(word.Table, word.FieldID, selector),
+			sqlgraph.To(quizquestion.Table, quizquestion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, word.QuizQuestionsTable, word.QuizQuestionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(wq.driver.Dialect(), step)
 		return fromU, nil
@@ -301,6 +325,7 @@ func (wq *WordQuery) Clone() *WordQuery {
 		predicates:          append([]predicate.Word{}, wq.predicates...),
 		withWordInfos:       wq.withWordInfos.Clone(),
 		withRegisteredWords: wq.withRegisteredWords.Clone(),
+		withQuizQuestions:   wq.withQuizQuestions.Clone(),
 		// clone intermediate query.
 		sql:  wq.sql.Clone(),
 		path: wq.path,
@@ -326,6 +351,17 @@ func (wq *WordQuery) WithRegisteredWords(opts ...func(*RegisteredWordQuery)) *Wo
 		opt(query)
 	}
 	wq.withRegisteredWords = query
+	return wq
+}
+
+// WithQuizQuestions tells the query-builder to eager-load the nodes that are connected to
+// the "quiz_questions" edge. The optional arguments are used to configure the query builder of the edge.
+func (wq *WordQuery) WithQuizQuestions(opts ...func(*QuizQuestionQuery)) *WordQuery {
+	query := (&QuizQuestionClient{config: wq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	wq.withQuizQuestions = query
 	return wq
 }
 
@@ -407,9 +443,10 @@ func (wq *WordQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Word, e
 	var (
 		nodes       = []*Word{}
 		_spec       = wq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			wq.withWordInfos != nil,
 			wq.withRegisteredWords != nil,
+			wq.withQuizQuestions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -441,6 +478,13 @@ func (wq *WordQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Word, e
 		if err := wq.loadRegisteredWords(ctx, query, nodes,
 			func(n *Word) { n.Edges.RegisteredWords = []*RegisteredWord{} },
 			func(n *Word, e *RegisteredWord) { n.Edges.RegisteredWords = append(n.Edges.RegisteredWords, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := wq.withQuizQuestions; query != nil {
+		if err := wq.loadQuizQuestions(ctx, query, nodes,
+			func(n *Word) { n.Edges.QuizQuestions = []*QuizQuestion{} },
+			func(n *Word, e *QuizQuestion) { n.Edges.QuizQuestions = append(n.Edges.QuizQuestions, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -492,6 +536,37 @@ func (wq *WordQuery) loadRegisteredWords(ctx context.Context, query *RegisteredW
 	}
 	query.Where(predicate.RegisteredWord(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(word.RegisteredWordsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.WordID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "word_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (wq *WordQuery) loadQuizQuestions(ctx context.Context, query *QuizQuestionQuery, nodes []*Word, init func(*Word), assign func(*Word, *QuizQuestion)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Word)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(quizquestion.FieldWordID)
+	}
+	query.Where(predicate.QuizQuestion(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(word.QuizQuestionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

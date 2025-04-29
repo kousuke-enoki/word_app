@@ -14,6 +14,11 @@ type appClient struct {
 	entClient *ent.Client
 }
 
+// CreateQuiz implements interfaces.ClientInterface.
+func (w *appClient) CreateQuiz(ctx context.Context, CreateQuizRequest *models.CreateQuizRequest) (*models.CreateQuizResponse, error) {
+	panic("unimplemented")
+}
+
 // BulkRegister implements interfaces.ClientInterface.
 func (c *appClient) BulkRegister(ctx context.Context, userID int, words []string) (*models.BulkRegisterResponse, error) {
 	panic("unimplemented")
@@ -167,4 +172,14 @@ func (c *appClient) WordInfo() *ent.WordInfoClient {
 // JapaneseMean は JapaneseMeanClient を返します。
 func (c *appClient) JapaneseMean() *ent.JapaneseMeanClient {
 	return c.entClient.JapaneseMean
+}
+
+// Quiz は QuizClient を返します。
+func (w *appClient) Quiz() *ent.QuizClient {
+	panic("unimplemented")
+}
+
+// QuizQuestion は QuizQuestionClient を返します。
+func (w *appClient) QuizQuestion() *ent.QuizQuestionClient {
+	panic("unimplemented")
 }

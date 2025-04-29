@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"word_app/backend/ent/quizquestion"
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/word"
 	"word_app/backend/ent/wordinfo"
@@ -142,6 +143,21 @@ func (wc *WordCreate) AddRegisteredWords(r ...*RegisteredWord) *WordCreate {
 		ids[i] = r[i].ID
 	}
 	return wc.AddRegisteredWordIDs(ids...)
+}
+
+// AddQuizQuestionIDs adds the "quiz_questions" edge to the QuizQuestion entity by IDs.
+func (wc *WordCreate) AddQuizQuestionIDs(ids ...int) *WordCreate {
+	wc.mutation.AddQuizQuestionIDs(ids...)
+	return wc
+}
+
+// AddQuizQuestions adds the "quiz_questions" edges to the QuizQuestion entity.
+func (wc *WordCreate) AddQuizQuestions(q ...*QuizQuestion) *WordCreate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return wc.AddQuizQuestionIDs(ids...)
 }
 
 // Mutation returns the WordMutation object of the builder.
@@ -306,6 +322,22 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := wc.mutation.QuizQuestionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.QuizQuestionsTable,
+			Columns: []string{word.QuizQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

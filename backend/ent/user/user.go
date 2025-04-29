@@ -30,8 +30,8 @@ const (
 	FieldIsRoot = "is_root"
 	// EdgeRegisteredWords holds the string denoting the registered_words edge name in mutations.
 	EdgeRegisteredWords = "registered_words"
-	// EdgeTests holds the string denoting the tests edge name in mutations.
-	EdgeTests = "tests"
+	// EdgeQuizs holds the string denoting the quizs edge name in mutations.
+	EdgeQuizs = "quizs"
 	// EdgeUserConfig holds the string denoting the user_config edge name in mutations.
 	EdgeUserConfig = "user_config"
 	// Table holds the table name of the user in the database.
@@ -43,13 +43,13 @@ const (
 	RegisteredWordsInverseTable = "registered_words"
 	// RegisteredWordsColumn is the table column denoting the registered_words relation/edge.
 	RegisteredWordsColumn = "user_id"
-	// TestsTable is the table that holds the tests relation/edge.
-	TestsTable = "tests"
-	// TestsInverseTable is the table name for the Test entity.
-	// It exists in this package in order to avoid circular dependency with the "test" package.
-	TestsInverseTable = "tests"
-	// TestsColumn is the table column denoting the tests relation/edge.
-	TestsColumn = "user_id"
+	// QuizsTable is the table that holds the quizs relation/edge.
+	QuizsTable = "quizs"
+	// QuizsInverseTable is the table name for the Quiz entity.
+	// It exists in this package in order to avoid circular dependency with the "quiz" package.
+	QuizsInverseTable = "quizs"
+	// QuizsColumn is the table column denoting the quizs relation/edge.
+	QuizsColumn = "user_id"
 	// UserConfigTable is the table that holds the user_config relation/edge.
 	UserConfigTable = "user_configs"
 	// UserConfigInverseTable is the table name for the UserConfig entity.
@@ -159,17 +159,17 @@ func ByRegisteredWords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByTestsCount orders the results by tests count.
-func ByTestsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByQuizsCount orders the results by quizs count.
+func ByQuizsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newTestsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newQuizsStep(), opts...)
 	}
 }
 
-// ByTests orders the results by tests terms.
-func ByTests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByQuizs orders the results by quizs terms.
+func ByQuizs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newTestsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newQuizsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -186,11 +186,11 @@ func newRegisteredWordsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, RegisteredWordsTable, RegisteredWordsColumn),
 	)
 }
-func newTestsStep() *sqlgraph.Step {
+func newQuizsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(TestsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, TestsTable, TestsColumn),
+		sqlgraph.To(QuizsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, QuizsTable, QuizsColumn),
 	)
 }
 func newUserConfigStep() *sqlgraph.Step {

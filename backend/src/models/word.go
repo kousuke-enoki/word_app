@@ -32,8 +32,8 @@ type Word struct {
 	WordInfos         []WordInfo `json:"wordInfos"`
 	IsRegistered      bool       `json:"isRegistered"`
 	AttentionLevel    int        `json:"attentionLevel"`
-	TestCount         int        `json:"testCount"`
-	CheckCount        int        `json:"checkCount"`
+	QuizCount         int        `json:"QuizCount"`
+	CorrectCount      int        `json:"CorrectCount"`
 }
 
 type WordInfo struct {
@@ -78,8 +78,8 @@ type WordShowResponse struct {
 	WordInfos         []WordInfo `json:"wordInfos"`
 	IsRegistered      bool       `json:"isRegistered"`
 	AttentionLevel    int        `json:"attentionLevel"`
-	TestCount         int        `json:"testCount"`
-	CheckCount        int        `json:"checkCount"`
+	QuizCount         int        `json:"QuizCount"`
+	CorrectCount      int        `json:"CorrectCount"`
 	Memo              string     `json:"memo"`
 }
 

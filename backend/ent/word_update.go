@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 	"word_app/backend/ent/predicate"
+	"word_app/backend/ent/quizquestion"
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/word"
 	"word_app/backend/ent/wordinfo"
@@ -163,6 +164,21 @@ func (wu *WordUpdate) AddRegisteredWords(r ...*RegisteredWord) *WordUpdate {
 	return wu.AddRegisteredWordIDs(ids...)
 }
 
+// AddQuizQuestionIDs adds the "quiz_questions" edge to the QuizQuestion entity by IDs.
+func (wu *WordUpdate) AddQuizQuestionIDs(ids ...int) *WordUpdate {
+	wu.mutation.AddQuizQuestionIDs(ids...)
+	return wu
+}
+
+// AddQuizQuestions adds the "quiz_questions" edges to the QuizQuestion entity.
+func (wu *WordUpdate) AddQuizQuestions(q ...*QuizQuestion) *WordUpdate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return wu.AddQuizQuestionIDs(ids...)
+}
+
 // Mutation returns the WordMutation object of the builder.
 func (wu *WordUpdate) Mutation() *WordMutation {
 	return wu.mutation
@@ -208,6 +224,27 @@ func (wu *WordUpdate) RemoveRegisteredWords(r ...*RegisteredWord) *WordUpdate {
 		ids[i] = r[i].ID
 	}
 	return wu.RemoveRegisteredWordIDs(ids...)
+}
+
+// ClearQuizQuestions clears all "quiz_questions" edges to the QuizQuestion entity.
+func (wu *WordUpdate) ClearQuizQuestions() *WordUpdate {
+	wu.mutation.ClearQuizQuestions()
+	return wu
+}
+
+// RemoveQuizQuestionIDs removes the "quiz_questions" edge to QuizQuestion entities by IDs.
+func (wu *WordUpdate) RemoveQuizQuestionIDs(ids ...int) *WordUpdate {
+	wu.mutation.RemoveQuizQuestionIDs(ids...)
+	return wu
+}
+
+// RemoveQuizQuestions removes "quiz_questions" edges to QuizQuestion entities.
+func (wu *WordUpdate) RemoveQuizQuestions(q ...*QuizQuestion) *WordUpdate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return wu.RemoveQuizQuestionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -385,6 +422,51 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if wu.mutation.QuizQuestionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.QuizQuestionsTable,
+			Columns: []string{word.QuizQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wu.mutation.RemovedQuizQuestionsIDs(); len(nodes) > 0 && !wu.mutation.QuizQuestionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.QuizQuestionsTable,
+			Columns: []string{word.QuizQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wu.mutation.QuizQuestionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.QuizQuestionsTable,
+			Columns: []string{word.QuizQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, wu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{word.Label}
@@ -538,6 +620,21 @@ func (wuo *WordUpdateOne) AddRegisteredWords(r ...*RegisteredWord) *WordUpdateOn
 	return wuo.AddRegisteredWordIDs(ids...)
 }
 
+// AddQuizQuestionIDs adds the "quiz_questions" edge to the QuizQuestion entity by IDs.
+func (wuo *WordUpdateOne) AddQuizQuestionIDs(ids ...int) *WordUpdateOne {
+	wuo.mutation.AddQuizQuestionIDs(ids...)
+	return wuo
+}
+
+// AddQuizQuestions adds the "quiz_questions" edges to the QuizQuestion entity.
+func (wuo *WordUpdateOne) AddQuizQuestions(q ...*QuizQuestion) *WordUpdateOne {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return wuo.AddQuizQuestionIDs(ids...)
+}
+
 // Mutation returns the WordMutation object of the builder.
 func (wuo *WordUpdateOne) Mutation() *WordMutation {
 	return wuo.mutation
@@ -583,6 +680,27 @@ func (wuo *WordUpdateOne) RemoveRegisteredWords(r ...*RegisteredWord) *WordUpdat
 		ids[i] = r[i].ID
 	}
 	return wuo.RemoveRegisteredWordIDs(ids...)
+}
+
+// ClearQuizQuestions clears all "quiz_questions" edges to the QuizQuestion entity.
+func (wuo *WordUpdateOne) ClearQuizQuestions() *WordUpdateOne {
+	wuo.mutation.ClearQuizQuestions()
+	return wuo
+}
+
+// RemoveQuizQuestionIDs removes the "quiz_questions" edge to QuizQuestion entities by IDs.
+func (wuo *WordUpdateOne) RemoveQuizQuestionIDs(ids ...int) *WordUpdateOne {
+	wuo.mutation.RemoveQuizQuestionIDs(ids...)
+	return wuo
+}
+
+// RemoveQuizQuestions removes "quiz_questions" edges to QuizQuestion entities.
+func (wuo *WordUpdateOne) RemoveQuizQuestions(q ...*QuizQuestion) *WordUpdateOne {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return wuo.RemoveQuizQuestionIDs(ids...)
 }
 
 // Where appends a list predicates to the WordUpdate builder.
@@ -783,6 +901,51 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (_node *Word, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if wuo.mutation.QuizQuestionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.QuizQuestionsTable,
+			Columns: []string{word.QuizQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wuo.mutation.RemovedQuizQuestionsIDs(); len(nodes) > 0 && !wuo.mutation.QuizQuestionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.QuizQuestionsTable,
+			Columns: []string{word.QuizQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wuo.mutation.QuizQuestionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.QuizQuestionsTable,
+			Columns: []string{word.QuizQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

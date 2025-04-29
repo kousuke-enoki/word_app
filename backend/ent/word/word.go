@@ -32,6 +32,8 @@ const (
 	EdgeWordInfos = "word_infos"
 	// EdgeRegisteredWords holds the string denoting the registered_words edge name in mutations.
 	EdgeRegisteredWords = "registered_words"
+	// EdgeQuizQuestions holds the string denoting the quiz_questions edge name in mutations.
+	EdgeQuizQuestions = "quiz_questions"
 	// Table holds the table name of the word in the database.
 	Table = "words"
 	// WordInfosTable is the table that holds the word_infos relation/edge.
@@ -48,6 +50,13 @@ const (
 	RegisteredWordsInverseTable = "registered_words"
 	// RegisteredWordsColumn is the table column denoting the registered_words relation/edge.
 	RegisteredWordsColumn = "word_id"
+	// QuizQuestionsTable is the table that holds the quiz_questions relation/edge.
+	QuizQuestionsTable = "quiz_questions"
+	// QuizQuestionsInverseTable is the table name for the QuizQuestion entity.
+	// It exists in this package in order to avoid circular dependency with the "quizquestion" package.
+	QuizQuestionsInverseTable = "quiz_questions"
+	// QuizQuestionsColumn is the table column denoting the quiz_questions relation/edge.
+	QuizQuestionsColumn = "word_id"
 )
 
 // Columns holds all SQL columns for word fields.
@@ -159,6 +168,20 @@ func ByRegisteredWords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newRegisteredWordsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByQuizQuestionsCount orders the results by quiz_questions count.
+func ByQuizQuestionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newQuizQuestionsStep(), opts...)
+	}
+}
+
+// ByQuizQuestions orders the results by quiz_questions terms.
+func ByQuizQuestions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newQuizQuestionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newWordInfosStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -171,5 +194,12 @@ func newRegisteredWordsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RegisteredWordsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, RegisteredWordsTable, RegisteredWordsColumn),
+	)
+}
+func newQuizQuestionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(QuizQuestionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, QuizQuestionsTable, QuizQuestionsColumn),
 	)
 }

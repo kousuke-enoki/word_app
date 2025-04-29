@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"time"
 	"word_app/backend/ent/predicate"
+	"word_app/backend/ent/quizquestion"
 	"word_app/backend/ent/registeredword"
-	"word_app/backend/ent/testquestion"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/word"
 
@@ -94,45 +94,66 @@ func (rwu *RegisteredWordUpdate) AddAttentionLevel(i int) *RegisteredWordUpdate 
 	return rwu
 }
 
-// SetTestCount sets the "test_count" field.
-func (rwu *RegisteredWordUpdate) SetTestCount(i int) *RegisteredWordUpdate {
-	rwu.mutation.ResetTestCount()
-	rwu.mutation.SetTestCount(i)
+// SetQuizCount sets the "quiz_count" field.
+func (rwu *RegisteredWordUpdate) SetQuizCount(i int) *RegisteredWordUpdate {
+	rwu.mutation.ResetQuizCount()
+	rwu.mutation.SetQuizCount(i)
 	return rwu
 }
 
-// SetNillableTestCount sets the "test_count" field if the given value is not nil.
-func (rwu *RegisteredWordUpdate) SetNillableTestCount(i *int) *RegisteredWordUpdate {
+// SetNillableQuizCount sets the "quiz_count" field if the given value is not nil.
+func (rwu *RegisteredWordUpdate) SetNillableQuizCount(i *int) *RegisteredWordUpdate {
 	if i != nil {
-		rwu.SetTestCount(*i)
+		rwu.SetQuizCount(*i)
 	}
 	return rwu
 }
 
-// AddTestCount adds i to the "test_count" field.
-func (rwu *RegisteredWordUpdate) AddTestCount(i int) *RegisteredWordUpdate {
-	rwu.mutation.AddTestCount(i)
+// AddQuizCount adds i to the "quiz_count" field.
+func (rwu *RegisteredWordUpdate) AddQuizCount(i int) *RegisteredWordUpdate {
+	rwu.mutation.AddQuizCount(i)
 	return rwu
 }
 
-// SetCheckCount sets the "check_count" field.
-func (rwu *RegisteredWordUpdate) SetCheckCount(i int) *RegisteredWordUpdate {
-	rwu.mutation.ResetCheckCount()
-	rwu.mutation.SetCheckCount(i)
+// SetCorrectCount sets the "correct_count" field.
+func (rwu *RegisteredWordUpdate) SetCorrectCount(i int) *RegisteredWordUpdate {
+	rwu.mutation.ResetCorrectCount()
+	rwu.mutation.SetCorrectCount(i)
 	return rwu
 }
 
-// SetNillableCheckCount sets the "check_count" field if the given value is not nil.
-func (rwu *RegisteredWordUpdate) SetNillableCheckCount(i *int) *RegisteredWordUpdate {
+// SetNillableCorrectCount sets the "correct_count" field if the given value is not nil.
+func (rwu *RegisteredWordUpdate) SetNillableCorrectCount(i *int) *RegisteredWordUpdate {
 	if i != nil {
-		rwu.SetCheckCount(*i)
+		rwu.SetCorrectCount(*i)
 	}
 	return rwu
 }
 
-// AddCheckCount adds i to the "check_count" field.
-func (rwu *RegisteredWordUpdate) AddCheckCount(i int) *RegisteredWordUpdate {
-	rwu.mutation.AddCheckCount(i)
+// AddCorrectCount adds i to the "correct_count" field.
+func (rwu *RegisteredWordUpdate) AddCorrectCount(i int) *RegisteredWordUpdate {
+	rwu.mutation.AddCorrectCount(i)
+	return rwu
+}
+
+// SetCorrectRate sets the "correct_rate" field.
+func (rwu *RegisteredWordUpdate) SetCorrectRate(i int) *RegisteredWordUpdate {
+	rwu.mutation.ResetCorrectRate()
+	rwu.mutation.SetCorrectRate(i)
+	return rwu
+}
+
+// SetNillableCorrectRate sets the "correct_rate" field if the given value is not nil.
+func (rwu *RegisteredWordUpdate) SetNillableCorrectRate(i *int) *RegisteredWordUpdate {
+	if i != nil {
+		rwu.SetCorrectRate(*i)
+	}
+	return rwu
+}
+
+// AddCorrectRate adds i to the "correct_rate" field.
+func (rwu *RegisteredWordUpdate) AddCorrectRate(i int) *RegisteredWordUpdate {
+	rwu.mutation.AddCorrectRate(i)
 	return rwu
 }
 
@@ -186,19 +207,19 @@ func (rwu *RegisteredWordUpdate) SetWord(w *Word) *RegisteredWordUpdate {
 	return rwu.SetWordID(w.ID)
 }
 
-// AddTestQuestionIDs adds the "test_questions" edge to the TestQuestion entity by IDs.
-func (rwu *RegisteredWordUpdate) AddTestQuestionIDs(ids ...int) *RegisteredWordUpdate {
-	rwu.mutation.AddTestQuestionIDs(ids...)
+// AddQuizQuestionIDs adds the "quiz_questions" edge to the QuizQuestion entity by IDs.
+func (rwu *RegisteredWordUpdate) AddQuizQuestionIDs(ids ...int) *RegisteredWordUpdate {
+	rwu.mutation.AddQuizQuestionIDs(ids...)
 	return rwu
 }
 
-// AddTestQuestions adds the "test_questions" edges to the TestQuestion entity.
-func (rwu *RegisteredWordUpdate) AddTestQuestions(t ...*TestQuestion) *RegisteredWordUpdate {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// AddQuizQuestions adds the "quiz_questions" edges to the QuizQuestion entity.
+func (rwu *RegisteredWordUpdate) AddQuizQuestions(q ...*QuizQuestion) *RegisteredWordUpdate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return rwu.AddTestQuestionIDs(ids...)
+	return rwu.AddQuizQuestionIDs(ids...)
 }
 
 // Mutation returns the RegisteredWordMutation object of the builder.
@@ -218,25 +239,25 @@ func (rwu *RegisteredWordUpdate) ClearWord() *RegisteredWordUpdate {
 	return rwu
 }
 
-// ClearTestQuestions clears all "test_questions" edges to the TestQuestion entity.
-func (rwu *RegisteredWordUpdate) ClearTestQuestions() *RegisteredWordUpdate {
-	rwu.mutation.ClearTestQuestions()
+// ClearQuizQuestions clears all "quiz_questions" edges to the QuizQuestion entity.
+func (rwu *RegisteredWordUpdate) ClearQuizQuestions() *RegisteredWordUpdate {
+	rwu.mutation.ClearQuizQuestions()
 	return rwu
 }
 
-// RemoveTestQuestionIDs removes the "test_questions" edge to TestQuestion entities by IDs.
-func (rwu *RegisteredWordUpdate) RemoveTestQuestionIDs(ids ...int) *RegisteredWordUpdate {
-	rwu.mutation.RemoveTestQuestionIDs(ids...)
+// RemoveQuizQuestionIDs removes the "quiz_questions" edge to QuizQuestion entities by IDs.
+func (rwu *RegisteredWordUpdate) RemoveQuizQuestionIDs(ids ...int) *RegisteredWordUpdate {
+	rwu.mutation.RemoveQuizQuestionIDs(ids...)
 	return rwu
 }
 
-// RemoveTestQuestions removes "test_questions" edges to TestQuestion entities.
-func (rwu *RegisteredWordUpdate) RemoveTestQuestions(t ...*TestQuestion) *RegisteredWordUpdate {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// RemoveQuizQuestions removes "quiz_questions" edges to QuizQuestion entities.
+func (rwu *RegisteredWordUpdate) RemoveQuizQuestions(q ...*QuizQuestion) *RegisteredWordUpdate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return rwu.RemoveTestQuestionIDs(ids...)
+	return rwu.RemoveQuizQuestionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -322,17 +343,23 @@ func (rwu *RegisteredWordUpdate) sqlSave(ctx context.Context) (n int, err error)
 	if value, ok := rwu.mutation.AddedAttentionLevel(); ok {
 		_spec.AddField(registeredword.FieldAttentionLevel, field.TypeInt, value)
 	}
-	if value, ok := rwu.mutation.TestCount(); ok {
-		_spec.SetField(registeredword.FieldTestCount, field.TypeInt, value)
+	if value, ok := rwu.mutation.QuizCount(); ok {
+		_spec.SetField(registeredword.FieldQuizCount, field.TypeInt, value)
 	}
-	if value, ok := rwu.mutation.AddedTestCount(); ok {
-		_spec.AddField(registeredword.FieldTestCount, field.TypeInt, value)
+	if value, ok := rwu.mutation.AddedQuizCount(); ok {
+		_spec.AddField(registeredword.FieldQuizCount, field.TypeInt, value)
 	}
-	if value, ok := rwu.mutation.CheckCount(); ok {
-		_spec.SetField(registeredword.FieldCheckCount, field.TypeInt, value)
+	if value, ok := rwu.mutation.CorrectCount(); ok {
+		_spec.SetField(registeredword.FieldCorrectCount, field.TypeInt, value)
 	}
-	if value, ok := rwu.mutation.AddedCheckCount(); ok {
-		_spec.AddField(registeredword.FieldCheckCount, field.TypeInt, value)
+	if value, ok := rwu.mutation.AddedCorrectCount(); ok {
+		_spec.AddField(registeredword.FieldCorrectCount, field.TypeInt, value)
+	}
+	if value, ok := rwu.mutation.CorrectRate(); ok {
+		_spec.SetField(registeredword.FieldCorrectRate, field.TypeInt, value)
+	}
+	if value, ok := rwu.mutation.AddedCorrectRate(); ok {
+		_spec.AddField(registeredword.FieldCorrectRate, field.TypeInt, value)
 	}
 	if value, ok := rwu.mutation.Memo(); ok {
 		_spec.SetField(registeredword.FieldMemo, field.TypeString, value)
@@ -404,28 +431,28 @@ func (rwu *RegisteredWordUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if rwu.mutation.TestQuestionsCleared() {
+	if rwu.mutation.QuizQuestionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   registeredword.TestQuestionsTable,
-			Columns: []string{registeredword.TestQuestionsColumn},
+			Table:   registeredword.QuizQuestionsTable,
+			Columns: []string{registeredword.QuizQuestionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(testquestion.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rwu.mutation.RemovedTestQuestionsIDs(); len(nodes) > 0 && !rwu.mutation.TestQuestionsCleared() {
+	if nodes := rwu.mutation.RemovedQuizQuestionsIDs(); len(nodes) > 0 && !rwu.mutation.QuizQuestionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   registeredword.TestQuestionsTable,
-			Columns: []string{registeredword.TestQuestionsColumn},
+			Table:   registeredword.QuizQuestionsTable,
+			Columns: []string{registeredword.QuizQuestionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(testquestion.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -433,15 +460,15 @@ func (rwu *RegisteredWordUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rwu.mutation.TestQuestionsIDs(); len(nodes) > 0 {
+	if nodes := rwu.mutation.QuizQuestionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   registeredword.TestQuestionsTable,
-			Columns: []string{registeredword.TestQuestionsColumn},
+			Table:   registeredword.QuizQuestionsTable,
+			Columns: []string{registeredword.QuizQuestionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(testquestion.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -532,45 +559,66 @@ func (rwuo *RegisteredWordUpdateOne) AddAttentionLevel(i int) *RegisteredWordUpd
 	return rwuo
 }
 
-// SetTestCount sets the "test_count" field.
-func (rwuo *RegisteredWordUpdateOne) SetTestCount(i int) *RegisteredWordUpdateOne {
-	rwuo.mutation.ResetTestCount()
-	rwuo.mutation.SetTestCount(i)
+// SetQuizCount sets the "quiz_count" field.
+func (rwuo *RegisteredWordUpdateOne) SetQuizCount(i int) *RegisteredWordUpdateOne {
+	rwuo.mutation.ResetQuizCount()
+	rwuo.mutation.SetQuizCount(i)
 	return rwuo
 }
 
-// SetNillableTestCount sets the "test_count" field if the given value is not nil.
-func (rwuo *RegisteredWordUpdateOne) SetNillableTestCount(i *int) *RegisteredWordUpdateOne {
+// SetNillableQuizCount sets the "quiz_count" field if the given value is not nil.
+func (rwuo *RegisteredWordUpdateOne) SetNillableQuizCount(i *int) *RegisteredWordUpdateOne {
 	if i != nil {
-		rwuo.SetTestCount(*i)
+		rwuo.SetQuizCount(*i)
 	}
 	return rwuo
 }
 
-// AddTestCount adds i to the "test_count" field.
-func (rwuo *RegisteredWordUpdateOne) AddTestCount(i int) *RegisteredWordUpdateOne {
-	rwuo.mutation.AddTestCount(i)
+// AddQuizCount adds i to the "quiz_count" field.
+func (rwuo *RegisteredWordUpdateOne) AddQuizCount(i int) *RegisteredWordUpdateOne {
+	rwuo.mutation.AddQuizCount(i)
 	return rwuo
 }
 
-// SetCheckCount sets the "check_count" field.
-func (rwuo *RegisteredWordUpdateOne) SetCheckCount(i int) *RegisteredWordUpdateOne {
-	rwuo.mutation.ResetCheckCount()
-	rwuo.mutation.SetCheckCount(i)
+// SetCorrectCount sets the "correct_count" field.
+func (rwuo *RegisteredWordUpdateOne) SetCorrectCount(i int) *RegisteredWordUpdateOne {
+	rwuo.mutation.ResetCorrectCount()
+	rwuo.mutation.SetCorrectCount(i)
 	return rwuo
 }
 
-// SetNillableCheckCount sets the "check_count" field if the given value is not nil.
-func (rwuo *RegisteredWordUpdateOne) SetNillableCheckCount(i *int) *RegisteredWordUpdateOne {
+// SetNillableCorrectCount sets the "correct_count" field if the given value is not nil.
+func (rwuo *RegisteredWordUpdateOne) SetNillableCorrectCount(i *int) *RegisteredWordUpdateOne {
 	if i != nil {
-		rwuo.SetCheckCount(*i)
+		rwuo.SetCorrectCount(*i)
 	}
 	return rwuo
 }
 
-// AddCheckCount adds i to the "check_count" field.
-func (rwuo *RegisteredWordUpdateOne) AddCheckCount(i int) *RegisteredWordUpdateOne {
-	rwuo.mutation.AddCheckCount(i)
+// AddCorrectCount adds i to the "correct_count" field.
+func (rwuo *RegisteredWordUpdateOne) AddCorrectCount(i int) *RegisteredWordUpdateOne {
+	rwuo.mutation.AddCorrectCount(i)
+	return rwuo
+}
+
+// SetCorrectRate sets the "correct_rate" field.
+func (rwuo *RegisteredWordUpdateOne) SetCorrectRate(i int) *RegisteredWordUpdateOne {
+	rwuo.mutation.ResetCorrectRate()
+	rwuo.mutation.SetCorrectRate(i)
+	return rwuo
+}
+
+// SetNillableCorrectRate sets the "correct_rate" field if the given value is not nil.
+func (rwuo *RegisteredWordUpdateOne) SetNillableCorrectRate(i *int) *RegisteredWordUpdateOne {
+	if i != nil {
+		rwuo.SetCorrectRate(*i)
+	}
+	return rwuo
+}
+
+// AddCorrectRate adds i to the "correct_rate" field.
+func (rwuo *RegisteredWordUpdateOne) AddCorrectRate(i int) *RegisteredWordUpdateOne {
+	rwuo.mutation.AddCorrectRate(i)
 	return rwuo
 }
 
@@ -624,19 +672,19 @@ func (rwuo *RegisteredWordUpdateOne) SetWord(w *Word) *RegisteredWordUpdateOne {
 	return rwuo.SetWordID(w.ID)
 }
 
-// AddTestQuestionIDs adds the "test_questions" edge to the TestQuestion entity by IDs.
-func (rwuo *RegisteredWordUpdateOne) AddTestQuestionIDs(ids ...int) *RegisteredWordUpdateOne {
-	rwuo.mutation.AddTestQuestionIDs(ids...)
+// AddQuizQuestionIDs adds the "quiz_questions" edge to the QuizQuestion entity by IDs.
+func (rwuo *RegisteredWordUpdateOne) AddQuizQuestionIDs(ids ...int) *RegisteredWordUpdateOne {
+	rwuo.mutation.AddQuizQuestionIDs(ids...)
 	return rwuo
 }
 
-// AddTestQuestions adds the "test_questions" edges to the TestQuestion entity.
-func (rwuo *RegisteredWordUpdateOne) AddTestQuestions(t ...*TestQuestion) *RegisteredWordUpdateOne {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// AddQuizQuestions adds the "quiz_questions" edges to the QuizQuestion entity.
+func (rwuo *RegisteredWordUpdateOne) AddQuizQuestions(q ...*QuizQuestion) *RegisteredWordUpdateOne {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return rwuo.AddTestQuestionIDs(ids...)
+	return rwuo.AddQuizQuestionIDs(ids...)
 }
 
 // Mutation returns the RegisteredWordMutation object of the builder.
@@ -656,25 +704,25 @@ func (rwuo *RegisteredWordUpdateOne) ClearWord() *RegisteredWordUpdateOne {
 	return rwuo
 }
 
-// ClearTestQuestions clears all "test_questions" edges to the TestQuestion entity.
-func (rwuo *RegisteredWordUpdateOne) ClearTestQuestions() *RegisteredWordUpdateOne {
-	rwuo.mutation.ClearTestQuestions()
+// ClearQuizQuestions clears all "quiz_questions" edges to the QuizQuestion entity.
+func (rwuo *RegisteredWordUpdateOne) ClearQuizQuestions() *RegisteredWordUpdateOne {
+	rwuo.mutation.ClearQuizQuestions()
 	return rwuo
 }
 
-// RemoveTestQuestionIDs removes the "test_questions" edge to TestQuestion entities by IDs.
-func (rwuo *RegisteredWordUpdateOne) RemoveTestQuestionIDs(ids ...int) *RegisteredWordUpdateOne {
-	rwuo.mutation.RemoveTestQuestionIDs(ids...)
+// RemoveQuizQuestionIDs removes the "quiz_questions" edge to QuizQuestion entities by IDs.
+func (rwuo *RegisteredWordUpdateOne) RemoveQuizQuestionIDs(ids ...int) *RegisteredWordUpdateOne {
+	rwuo.mutation.RemoveQuizQuestionIDs(ids...)
 	return rwuo
 }
 
-// RemoveTestQuestions removes "test_questions" edges to TestQuestion entities.
-func (rwuo *RegisteredWordUpdateOne) RemoveTestQuestions(t ...*TestQuestion) *RegisteredWordUpdateOne {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// RemoveQuizQuestions removes "quiz_questions" edges to QuizQuestion entities.
+func (rwuo *RegisteredWordUpdateOne) RemoveQuizQuestions(q ...*QuizQuestion) *RegisteredWordUpdateOne {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return rwuo.RemoveTestQuestionIDs(ids...)
+	return rwuo.RemoveQuizQuestionIDs(ids...)
 }
 
 // Where appends a list predicates to the RegisteredWordUpdate builder.
@@ -790,17 +838,23 @@ func (rwuo *RegisteredWordUpdateOne) sqlSave(ctx context.Context) (_node *Regist
 	if value, ok := rwuo.mutation.AddedAttentionLevel(); ok {
 		_spec.AddField(registeredword.FieldAttentionLevel, field.TypeInt, value)
 	}
-	if value, ok := rwuo.mutation.TestCount(); ok {
-		_spec.SetField(registeredword.FieldTestCount, field.TypeInt, value)
+	if value, ok := rwuo.mutation.QuizCount(); ok {
+		_spec.SetField(registeredword.FieldQuizCount, field.TypeInt, value)
 	}
-	if value, ok := rwuo.mutation.AddedTestCount(); ok {
-		_spec.AddField(registeredword.FieldTestCount, field.TypeInt, value)
+	if value, ok := rwuo.mutation.AddedQuizCount(); ok {
+		_spec.AddField(registeredword.FieldQuizCount, field.TypeInt, value)
 	}
-	if value, ok := rwuo.mutation.CheckCount(); ok {
-		_spec.SetField(registeredword.FieldCheckCount, field.TypeInt, value)
+	if value, ok := rwuo.mutation.CorrectCount(); ok {
+		_spec.SetField(registeredword.FieldCorrectCount, field.TypeInt, value)
 	}
-	if value, ok := rwuo.mutation.AddedCheckCount(); ok {
-		_spec.AddField(registeredword.FieldCheckCount, field.TypeInt, value)
+	if value, ok := rwuo.mutation.AddedCorrectCount(); ok {
+		_spec.AddField(registeredword.FieldCorrectCount, field.TypeInt, value)
+	}
+	if value, ok := rwuo.mutation.CorrectRate(); ok {
+		_spec.SetField(registeredword.FieldCorrectRate, field.TypeInt, value)
+	}
+	if value, ok := rwuo.mutation.AddedCorrectRate(); ok {
+		_spec.AddField(registeredword.FieldCorrectRate, field.TypeInt, value)
 	}
 	if value, ok := rwuo.mutation.Memo(); ok {
 		_spec.SetField(registeredword.FieldMemo, field.TypeString, value)
@@ -872,28 +926,28 @@ func (rwuo *RegisteredWordUpdateOne) sqlSave(ctx context.Context) (_node *Regist
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if rwuo.mutation.TestQuestionsCleared() {
+	if rwuo.mutation.QuizQuestionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   registeredword.TestQuestionsTable,
-			Columns: []string{registeredword.TestQuestionsColumn},
+			Table:   registeredword.QuizQuestionsTable,
+			Columns: []string{registeredword.QuizQuestionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(testquestion.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rwuo.mutation.RemovedTestQuestionsIDs(); len(nodes) > 0 && !rwuo.mutation.TestQuestionsCleared() {
+	if nodes := rwuo.mutation.RemovedQuizQuestionsIDs(); len(nodes) > 0 && !rwuo.mutation.QuizQuestionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   registeredword.TestQuestionsTable,
-			Columns: []string{registeredword.TestQuestionsColumn},
+			Table:   registeredword.QuizQuestionsTable,
+			Columns: []string{registeredword.QuizQuestionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(testquestion.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -901,15 +955,15 @@ func (rwuo *RegisteredWordUpdateOne) sqlSave(ctx context.Context) (_node *Regist
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rwuo.mutation.TestQuestionsIDs(); len(nodes) > 0 {
+	if nodes := rwuo.mutation.QuizQuestionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   registeredword.TestQuestionsTable,
-			Columns: []string{registeredword.TestQuestionsColumn},
+			Table:   registeredword.QuizQuestionsTable,
+			Columns: []string{registeredword.QuizQuestionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(testquestion.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

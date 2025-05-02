@@ -31,7 +31,7 @@ func (w *TestClientWrapper) GetUserConfig(ctx context.Context, userID int) (*ent
 }
 
 // UpdateRootConfig implements ClientInterface.
-func (w *TestClientWrapper) UpdateRootConfig(ctx context.Context, userID int, editingPermissions string, isTestUserMode bool, isEmailAuth bool) (*ent.RootConfig, error) {
+func (w *TestClientWrapper) UpdateRootConfig(ctx context.Context, userID int, editingPermissions string, isTestUserMode bool, IsEmailAuthCheck bool, isLineAuth bool) (*ent.RootConfig, error) {
 	panic("unimplemented")
 }
 

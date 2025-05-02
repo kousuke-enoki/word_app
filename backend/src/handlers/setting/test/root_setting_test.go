@@ -25,10 +25,11 @@ func TestGetRootSettingHandler(t *testing.T) {
 		mockSvc := new(mocks.SettingClient)
 		h := setting.NewSettingHandler(mockSvc)
 		rootCfg := &ent.RootConfig{
-			ID:                    1,
-			EditingPermission:     "admin",
-			IsTestUserMode:        false,
-			IsEmailAuthentication: false,
+			ID:                         1,
+			EditingPermission:          "admin",
+			IsTestUserMode:             false,
+			IsEmailAuthenticationCheck: false,
+			IsLineAuthentication:       false,
 		}
 		mockSvc.
 			On("GetRootConfig", mock.Anything, 99).
@@ -64,16 +65,18 @@ func TestGetRootSettingHandler(t *testing.T) {
 		payload := models.RootConfig{
 			EditingPermission: "admin",
 			IsTestUserMode:    true,
-			IsEmailAuth:       false,
+			IsEmailAuthCheck:  false,
+			IsLineAuth:        false,
 		}
 		updated := &ent.RootConfig{
-			ID:                    1,
-			EditingPermission:     "admin",
-			IsTestUserMode:        true,
-			IsEmailAuthentication: false,
+			ID:                         1,
+			EditingPermission:          "admin",
+			IsTestUserMode:             true,
+			IsEmailAuthenticationCheck: false,
+			IsLineAuthentication:       false,
 		}
 		mockSvc.
-			On("UpdateRootConfig", mock.Anything, 99, "admin", true, false).
+			On("UpdateRootConfig", mock.Anything, 99, "admin", true, false, false).
 			Return(updated, nil)
 		c, w := test.NewTestCtx("POST", "/setting/root_config", payload)
 		test.InjectUser(c, 99, true)
@@ -86,7 +89,8 @@ func TestGetRootSettingHandler(t *testing.T) {
 		payload := models.RootConfig{
 			EditingPermission: "admin",
 			IsTestUserMode:    true,
-			IsEmailAuth:       false,
+			IsEmailAuthCheck:  false,
+			IsLineAuth:        false,
 		}
 		bad := payload
 		bad.EditingPermission = "hacker"
@@ -101,7 +105,8 @@ func TestGetRootSettingHandler(t *testing.T) {
 		payload := models.RootConfig{
 			EditingPermission: "admin",
 			IsTestUserMode:    true,
-			IsEmailAuth:       false,
+			IsEmailAuthCheck:  false,
+			IsLineAuth:        false,
 		}
 		c3, w3 := test.NewTestCtx("POST", "/setting/root_config", payload)
 		test.InjectUser(c3, 10, false) // root でない

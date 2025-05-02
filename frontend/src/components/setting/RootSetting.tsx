@@ -9,17 +9,20 @@ const RootSetting: React.FC = () => {
     editing: EditingPermission
     test: boolean
     mail: boolean
-  }>({ 
+    line: boolean
+  }>({
     editing: 'admin',
     test: false,
     mail: false,
+    line: false,
   })
 
   /** フォームの現在値 */
   const [editingPermission, setEditingPermission] =
     useState<EditingPermission>('admin')
   const [isTestUserMode, setIsTestUserMode] = useState(false)
-  const [isEmailAuth, setIsEmailAuth] = useState(false)
+  const [isEmailAuthCheck, setIsEmailAuthCheck] = useState(false)
+  const [isLineAuth, setIsLineAuth] = useState(false)
 
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
@@ -31,13 +34,15 @@ const RootSetting: React.FC = () => {
         const res = await axiosInstance.get('/setting/root_config')
         setEditingPermission(res.data.editing_permission)
         setIsTestUserMode(res.data.is_test_user_mode)
-        setIsEmailAuth(res.data.is_email_authentication)
+        setIsEmailAuthCheck(res.data.is_email_authentication_check)
+        setIsLineAuth(res.data.is_line_authentication)
 
         // 初期値を保持
         setInitial({
           editing: res.data.editing_permission,
           test: res.data.is_test_user_mode,
-          mail: res.data.is_email_authentication,
+          mail: res.data.is_email_authentication_check,
+          line: res.data.is_line_authentication,
         })
       } catch {
         alert('ルート設定の取得中にエラーが発生しました。')
@@ -49,7 +54,8 @@ const RootSetting: React.FC = () => {
   const isDirty =
     editingPermission !== initial.editing ||
     isTestUserMode !== initial.test ||
-    isEmailAuth !== initial.mail
+    isEmailAuthCheck !== initial.mail ||
+    isLineAuth !== initial.line
 
   /* ─────────  保存処理  ───────── */
   const handleSave = async () => {
@@ -59,7 +65,8 @@ const RootSetting: React.FC = () => {
       const res = await axiosInstance.post('/setting/root_config', {
         editing_permission: editingPermission,
         is_test_user_mode: isTestUserMode,
-        is_email_authentication: isEmailAuth,
+        is_email_authentication_check: isEmailAuthCheck,
+        is_line_authentication: isLineAuth,
       })
       if (res.status === 200) {
         setMessage('設定が保存されました。')
@@ -67,7 +74,8 @@ const RootSetting: React.FC = () => {
         setInitial({
           editing: editingPermission,
           test: isTestUserMode,
-          mail: isEmailAuth,
+          mail: isEmailAuthCheck,
+          line: isLineAuth,
         })
       } else {
         setMessage('保存に失敗しました。')
@@ -110,8 +118,17 @@ const RootSetting: React.FC = () => {
         <label>メール認証：</label>
         <input
           type="checkbox"
-          checked={isEmailAuth}
-          onChange={(e) => setIsEmailAuth(e.target.checked)}
+          checked={isEmailAuthCheck}
+          onChange={(e) => setIsEmailAuthCheck(e.target.checked)}
+        />
+      </div>
+
+      <div className="row">
+        <label>LINE認証：</label>
+        <input
+          type="checkbox"
+          checked={isLineAuth}
+          onChange={(e) => setIsLineAuth(e.target.checked)}
         />
       </div>
 

@@ -50,7 +50,7 @@ func (c *appClient) RootConfig() *ent.RootConfigClient {
 }
 
 // UpdateRootConfig implements interfaces.ClientInterface.
-func (c *appClient) UpdateRootConfig(ctx context.Context, userID int, editingPermissions string, isTestUserMode bool, isEmailAuth bool) (*ent.RootConfig, error) {
+func (c *appClient) UpdateRootConfig(ctx context.Context, userID int, editingPermissions string, isTestUserMode bool, IsEmailAuthCheck bool, isLineAuth bool) (*ent.RootConfig, error) {
 	panic("unimplemented")
 }
 

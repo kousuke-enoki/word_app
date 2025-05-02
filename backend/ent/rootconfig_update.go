@@ -55,16 +55,30 @@ func (rcu *RootConfigUpdate) SetNillableIsTestUserMode(b *bool) *RootConfigUpdat
 	return rcu
 }
 
-// SetIsEmailAuthentication sets the "is_email_authentication" field.
-func (rcu *RootConfigUpdate) SetIsEmailAuthentication(b bool) *RootConfigUpdate {
-	rcu.mutation.SetIsEmailAuthentication(b)
+// SetIsEmailAuthenticationCheck sets the "is_email_authentication_check" field.
+func (rcu *RootConfigUpdate) SetIsEmailAuthenticationCheck(b bool) *RootConfigUpdate {
+	rcu.mutation.SetIsEmailAuthenticationCheck(b)
 	return rcu
 }
 
-// SetNillableIsEmailAuthentication sets the "is_email_authentication" field if the given value is not nil.
-func (rcu *RootConfigUpdate) SetNillableIsEmailAuthentication(b *bool) *RootConfigUpdate {
+// SetNillableIsEmailAuthenticationCheck sets the "is_email_authentication_check" field if the given value is not nil.
+func (rcu *RootConfigUpdate) SetNillableIsEmailAuthenticationCheck(b *bool) *RootConfigUpdate {
 	if b != nil {
-		rcu.SetIsEmailAuthentication(*b)
+		rcu.SetIsEmailAuthenticationCheck(*b)
+	}
+	return rcu
+}
+
+// SetIsLineAuthentication sets the "is_line_authentication" field.
+func (rcu *RootConfigUpdate) SetIsLineAuthentication(b bool) *RootConfigUpdate {
+	rcu.mutation.SetIsLineAuthentication(b)
+	return rcu
+}
+
+// SetNillableIsLineAuthentication sets the "is_line_authentication" field if the given value is not nil.
+func (rcu *RootConfigUpdate) SetNillableIsLineAuthentication(b *bool) *RootConfigUpdate {
+	if b != nil {
+		rcu.SetIsLineAuthentication(*b)
 	}
 	return rcu
 }
@@ -129,8 +143,11 @@ func (rcu *RootConfigUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := rcu.mutation.IsTestUserMode(); ok {
 		_spec.SetField(rootconfig.FieldIsTestUserMode, field.TypeBool, value)
 	}
-	if value, ok := rcu.mutation.IsEmailAuthentication(); ok {
-		_spec.SetField(rootconfig.FieldIsEmailAuthentication, field.TypeBool, value)
+	if value, ok := rcu.mutation.IsEmailAuthenticationCheck(); ok {
+		_spec.SetField(rootconfig.FieldIsEmailAuthenticationCheck, field.TypeBool, value)
+	}
+	if value, ok := rcu.mutation.IsLineAuthentication(); ok {
+		_spec.SetField(rootconfig.FieldIsLineAuthentication, field.TypeBool, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, rcu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -180,16 +197,30 @@ func (rcuo *RootConfigUpdateOne) SetNillableIsTestUserMode(b *bool) *RootConfigU
 	return rcuo
 }
 
-// SetIsEmailAuthentication sets the "is_email_authentication" field.
-func (rcuo *RootConfigUpdateOne) SetIsEmailAuthentication(b bool) *RootConfigUpdateOne {
-	rcuo.mutation.SetIsEmailAuthentication(b)
+// SetIsEmailAuthenticationCheck sets the "is_email_authentication_check" field.
+func (rcuo *RootConfigUpdateOne) SetIsEmailAuthenticationCheck(b bool) *RootConfigUpdateOne {
+	rcuo.mutation.SetIsEmailAuthenticationCheck(b)
 	return rcuo
 }
 
-// SetNillableIsEmailAuthentication sets the "is_email_authentication" field if the given value is not nil.
-func (rcuo *RootConfigUpdateOne) SetNillableIsEmailAuthentication(b *bool) *RootConfigUpdateOne {
+// SetNillableIsEmailAuthenticationCheck sets the "is_email_authentication_check" field if the given value is not nil.
+func (rcuo *RootConfigUpdateOne) SetNillableIsEmailAuthenticationCheck(b *bool) *RootConfigUpdateOne {
 	if b != nil {
-		rcuo.SetIsEmailAuthentication(*b)
+		rcuo.SetIsEmailAuthenticationCheck(*b)
+	}
+	return rcuo
+}
+
+// SetIsLineAuthentication sets the "is_line_authentication" field.
+func (rcuo *RootConfigUpdateOne) SetIsLineAuthentication(b bool) *RootConfigUpdateOne {
+	rcuo.mutation.SetIsLineAuthentication(b)
+	return rcuo
+}
+
+// SetNillableIsLineAuthentication sets the "is_line_authentication" field if the given value is not nil.
+func (rcuo *RootConfigUpdateOne) SetNillableIsLineAuthentication(b *bool) *RootConfigUpdateOne {
+	if b != nil {
+		rcuo.SetIsLineAuthentication(*b)
 	}
 	return rcuo
 }
@@ -284,8 +315,11 @@ func (rcuo *RootConfigUpdateOne) sqlSave(ctx context.Context) (_node *RootConfig
 	if value, ok := rcuo.mutation.IsTestUserMode(); ok {
 		_spec.SetField(rootconfig.FieldIsTestUserMode, field.TypeBool, value)
 	}
-	if value, ok := rcuo.mutation.IsEmailAuthentication(); ok {
-		_spec.SetField(rootconfig.FieldIsEmailAuthentication, field.TypeBool, value)
+	if value, ok := rcuo.mutation.IsEmailAuthenticationCheck(); ok {
+		_spec.SetField(rootconfig.FieldIsEmailAuthenticationCheck, field.TypeBool, value)
+	}
+	if value, ok := rcuo.mutation.IsLineAuthentication(); ok {
+		_spec.SetField(rootconfig.FieldIsLineAuthentication, field.TypeBool, value)
 	}
 	_node = &RootConfig{config: rcuo.config}
 	_spec.Assign = _node.assignValues

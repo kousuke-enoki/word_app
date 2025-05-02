@@ -13,7 +13,8 @@ func (e *EntSettingClient) UpdateRootConfig(
 	userID int,
 	editingPermission string,
 	isTestUserMode bool,
-	isEmailAuth bool,
+	isEmailAuthCheck bool,
+	isLineAuth bool,
 ) (*ent.RootConfig, error) {
 	userEntity, err := e.client.User().
 		Query().
@@ -39,7 +40,8 @@ func (e *EntSettingClient) UpdateRootConfig(
 				Create().
 				SetEditingPermission(editingPermission).
 				SetIsTestUserMode(isTestUserMode).
-				SetIsEmailAuthentication(isEmailAuth).
+				SetIsEmailAuthenticationCheck(isEmailAuthCheck).
+				SetIsLineAuthentication(isLineAuth).
 				Save(ctx)
 		}
 		logrus.Error(err)
@@ -51,7 +53,8 @@ func (e *EntSettingClient) UpdateRootConfig(
 		UpdateOne(existing).
 		SetEditingPermission(editingPermission).
 		SetIsTestUserMode(isTestUserMode).
-		SetIsEmailAuthentication(isEmailAuth).
+		SetIsEmailAuthenticationCheck(isEmailAuthCheck).
+		SetIsLineAuthentication(isLineAuth).
 		Save(ctx)
 
 	if err != nil {

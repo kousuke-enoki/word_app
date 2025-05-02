@@ -63,7 +63,7 @@ func (h *SettingHandler) SaveRootSettingHandler() gin.HandlerFunc {
 		}
 
 		rootConfig, err := h.settingService.UpdateRootConfig(
-			c, userID.(int), req.EditingPermission, req.IsTestUserMode, req.IsEmailAuth)
+			c, userID.(int), req.EditingPermission, req.IsTestUserMode, req.IsEmailAuthCheck, req.IsLineAuth)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

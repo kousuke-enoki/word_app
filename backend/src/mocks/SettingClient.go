@@ -74,9 +74,9 @@ func (_m *SettingClient) GetUserConfig(ctx context.Context, userID int) (*ent.Us
 	return r0, r1
 }
 
-// UpdateRootConfig provides a mock function with given fields: ctx, userID, editingPermission, isTestUserMode, isEmailAuth
-func (_m *SettingClient) UpdateRootConfig(ctx context.Context, userID int, editingPermission string, isTestUserMode bool, isEmailAuth bool) (*ent.RootConfig, error) {
-	ret := _m.Called(ctx, userID, editingPermission, isTestUserMode, isEmailAuth)
+// UpdateRootConfig provides a mock function with given fields: ctx, userID, editingPermission, isTestUserMode, isEmailAuthCheck, isLineAuth
+func (_m *SettingClient) UpdateRootConfig(ctx context.Context, userID int, editingPermission string, isTestUserMode bool, isEmailAuthCheck bool, isLineAuth bool) (*ent.RootConfig, error) {
+	ret := _m.Called(ctx, userID, editingPermission, isTestUserMode, isEmailAuthCheck, isLineAuth)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateRootConfig")
@@ -84,19 +84,19 @@ func (_m *SettingClient) UpdateRootConfig(ctx context.Context, userID int, editi
 
 	var r0 *ent.RootConfig
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int, string, bool, bool) (*ent.RootConfig, error)); ok {
-		return rf(ctx, userID, editingPermission, isTestUserMode, isEmailAuth)
+	if rf, ok := ret.Get(0).(func(context.Context, int, string, bool, bool, bool) (*ent.RootConfig, error)); ok {
+		return rf(ctx, userID, editingPermission, isTestUserMode, isEmailAuthCheck, isLineAuth)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int, string, bool, bool) *ent.RootConfig); ok {
-		r0 = rf(ctx, userID, editingPermission, isTestUserMode, isEmailAuth)
+	if rf, ok := ret.Get(0).(func(context.Context, int, string, bool, bool, bool) *ent.RootConfig); ok {
+		r0 = rf(ctx, userID, editingPermission, isTestUserMode, isEmailAuthCheck, isLineAuth)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*ent.RootConfig)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, int, string, bool, bool) error); ok {
-		r1 = rf(ctx, userID, editingPermission, isTestUserMode, isEmailAuth)
+	if rf, ok := ret.Get(1).(func(context.Context, int, string, bool, bool, bool) error); ok {
+		r1 = rf(ctx, userID, editingPermission, isTestUserMode, isEmailAuthCheck, isLineAuth)
 	} else {
 		r1 = ret.Error(1)
 	}

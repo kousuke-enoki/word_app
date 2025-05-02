@@ -121,10 +121,14 @@ func init() {
 	rootconfigDescIsTestUserMode := rootconfigFields[1].Descriptor()
 	// rootconfig.DefaultIsTestUserMode holds the default value on creation for the is_test_user_mode field.
 	rootconfig.DefaultIsTestUserMode = rootconfigDescIsTestUserMode.Default.(bool)
-	// rootconfigDescIsEmailAuthentication is the schema descriptor for is_email_authentication field.
-	rootconfigDescIsEmailAuthentication := rootconfigFields[2].Descriptor()
-	// rootconfig.DefaultIsEmailAuthentication holds the default value on creation for the is_email_authentication field.
-	rootconfig.DefaultIsEmailAuthentication = rootconfigDescIsEmailAuthentication.Default.(bool)
+	// rootconfigDescIsEmailAuthenticationCheck is the schema descriptor for is_email_authentication_check field.
+	rootconfigDescIsEmailAuthenticationCheck := rootconfigFields[2].Descriptor()
+	// rootconfig.DefaultIsEmailAuthenticationCheck holds the default value on creation for the is_email_authentication_check field.
+	rootconfig.DefaultIsEmailAuthenticationCheck = rootconfigDescIsEmailAuthenticationCheck.Default.(bool)
+	// rootconfigDescIsLineAuthentication is the schema descriptor for is_line_authentication field.
+	rootconfigDescIsLineAuthentication := rootconfigFields[3].Descriptor()
+	// rootconfig.DefaultIsLineAuthentication holds the default value on creation for the is_line_authentication field.
+	rootconfig.DefaultIsLineAuthentication = rootconfigDescIsLineAuthentication.Default.(bool)
 	testFields := schema.Test{}.Fields()
 	_ = testFields
 	// testDescTotalQuestions is the schema descriptor for total_questions field.

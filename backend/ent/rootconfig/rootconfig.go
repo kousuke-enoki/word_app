@@ -15,8 +15,10 @@ const (
 	FieldEditingPermission = "editing_permission"
 	// FieldIsTestUserMode holds the string denoting the is_test_user_mode field in the database.
 	FieldIsTestUserMode = "is_test_user_mode"
-	// FieldIsEmailAuthentication holds the string denoting the is_email_authentication field in the database.
-	FieldIsEmailAuthentication = "is_email_authentication"
+	// FieldIsEmailAuthenticationCheck holds the string denoting the is_email_authentication_check field in the database.
+	FieldIsEmailAuthenticationCheck = "is_email_authentication_check"
+	// FieldIsLineAuthentication holds the string denoting the is_line_authentication field in the database.
+	FieldIsLineAuthentication = "is_line_authentication"
 	// Table holds the table name of the rootconfig in the database.
 	Table = "root_configs"
 )
@@ -26,7 +28,8 @@ var Columns = []string{
 	FieldID,
 	FieldEditingPermission,
 	FieldIsTestUserMode,
-	FieldIsEmailAuthentication,
+	FieldIsEmailAuthenticationCheck,
+	FieldIsLineAuthentication,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -46,8 +49,10 @@ var (
 	EditingPermissionValidator func(string) error
 	// DefaultIsTestUserMode holds the default value on creation for the "is_test_user_mode" field.
 	DefaultIsTestUserMode bool
-	// DefaultIsEmailAuthentication holds the default value on creation for the "is_email_authentication" field.
-	DefaultIsEmailAuthentication bool
+	// DefaultIsEmailAuthenticationCheck holds the default value on creation for the "is_email_authentication_check" field.
+	DefaultIsEmailAuthenticationCheck bool
+	// DefaultIsLineAuthentication holds the default value on creation for the "is_line_authentication" field.
+	DefaultIsLineAuthentication bool
 )
 
 // OrderOption defines the ordering options for the RootConfig queries.
@@ -68,7 +73,12 @@ func ByIsTestUserMode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsTestUserMode, opts...).ToFunc()
 }
 
-// ByIsEmailAuthentication orders the results by the is_email_authentication field.
-func ByIsEmailAuthentication(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIsEmailAuthentication, opts...).ToFunc()
+// ByIsEmailAuthenticationCheck orders the results by the is_email_authentication_check field.
+func ByIsEmailAuthenticationCheck(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsEmailAuthenticationCheck, opts...).ToFunc()
+}
+
+// ByIsLineAuthentication orders the results by the is_line_authentication field.
+func ByIsLineAuthentication(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsLineAuthentication, opts...).ToFunc()
 }

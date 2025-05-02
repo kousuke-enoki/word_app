@@ -63,9 +63,14 @@ func IsTestUserMode(v bool) predicate.RootConfig {
 	return predicate.RootConfig(sql.FieldEQ(FieldIsTestUserMode, v))
 }
 
-// IsEmailAuthentication applies equality check predicate on the "is_email_authentication" field. It's identical to IsEmailAuthenticationEQ.
-func IsEmailAuthentication(v bool) predicate.RootConfig {
-	return predicate.RootConfig(sql.FieldEQ(FieldIsEmailAuthentication, v))
+// IsEmailAuthenticationCheck applies equality check predicate on the "is_email_authentication_check" field. It's identical to IsEmailAuthenticationCheckEQ.
+func IsEmailAuthenticationCheck(v bool) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldEQ(FieldIsEmailAuthenticationCheck, v))
+}
+
+// IsLineAuthentication applies equality check predicate on the "is_line_authentication" field. It's identical to IsLineAuthenticationEQ.
+func IsLineAuthentication(v bool) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldEQ(FieldIsLineAuthentication, v))
 }
 
 // EditingPermissionEQ applies the EQ predicate on the "editing_permission" field.
@@ -143,14 +148,24 @@ func IsTestUserModeNEQ(v bool) predicate.RootConfig {
 	return predicate.RootConfig(sql.FieldNEQ(FieldIsTestUserMode, v))
 }
 
-// IsEmailAuthenticationEQ applies the EQ predicate on the "is_email_authentication" field.
-func IsEmailAuthenticationEQ(v bool) predicate.RootConfig {
-	return predicate.RootConfig(sql.FieldEQ(FieldIsEmailAuthentication, v))
+// IsEmailAuthenticationCheckEQ applies the EQ predicate on the "is_email_authentication_check" field.
+func IsEmailAuthenticationCheckEQ(v bool) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldEQ(FieldIsEmailAuthenticationCheck, v))
 }
 
-// IsEmailAuthenticationNEQ applies the NEQ predicate on the "is_email_authentication" field.
-func IsEmailAuthenticationNEQ(v bool) predicate.RootConfig {
-	return predicate.RootConfig(sql.FieldNEQ(FieldIsEmailAuthentication, v))
+// IsEmailAuthenticationCheckNEQ applies the NEQ predicate on the "is_email_authentication_check" field.
+func IsEmailAuthenticationCheckNEQ(v bool) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldNEQ(FieldIsEmailAuthenticationCheck, v))
+}
+
+// IsLineAuthenticationEQ applies the EQ predicate on the "is_line_authentication" field.
+func IsLineAuthenticationEQ(v bool) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldEQ(FieldIsLineAuthentication, v))
+}
+
+// IsLineAuthenticationNEQ applies the NEQ predicate on the "is_line_authentication" field.
+func IsLineAuthenticationNEQ(v bool) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldNEQ(FieldIsLineAuthentication, v))
 }
 
 // And groups predicates with the AND operator between them.

@@ -2187,16 +2187,17 @@ func (m *RegisteredWordMutation) ResetEdge(name string) error {
 // RootConfigMutation represents an operation that mutates the RootConfig nodes in the graph.
 type RootConfigMutation struct {
 	config
-	op                      Op
-	typ                     string
-	id                      *int
-	editing_permission      *string
-	is_test_user_mode       *bool
-	is_email_authentication *bool
-	clearedFields           map[string]struct{}
-	done                    bool
-	oldValue                func(context.Context) (*RootConfig, error)
-	predicates              []predicate.RootConfig
+	op                            Op
+	typ                           string
+	id                            *int
+	editing_permission            *string
+	is_test_user_mode             *bool
+	is_email_authentication_check *bool
+	is_line_authentication        *bool
+	clearedFields                 map[string]struct{}
+	done                          bool
+	oldValue                      func(context.Context) (*RootConfig, error)
+	predicates                    []predicate.RootConfig
 }
 
 var _ ent.Mutation = (*RootConfigMutation)(nil)
@@ -2369,40 +2370,76 @@ func (m *RootConfigMutation) ResetIsTestUserMode() {
 	m.is_test_user_mode = nil
 }
 
-// SetIsEmailAuthentication sets the "is_email_authentication" field.
-func (m *RootConfigMutation) SetIsEmailAuthentication(b bool) {
-	m.is_email_authentication = &b
+// SetIsEmailAuthenticationCheck sets the "is_email_authentication_check" field.
+func (m *RootConfigMutation) SetIsEmailAuthenticationCheck(b bool) {
+	m.is_email_authentication_check = &b
 }
 
-// IsEmailAuthentication returns the value of the "is_email_authentication" field in the mutation.
-func (m *RootConfigMutation) IsEmailAuthentication() (r bool, exists bool) {
-	v := m.is_email_authentication
+// IsEmailAuthenticationCheck returns the value of the "is_email_authentication_check" field in the mutation.
+func (m *RootConfigMutation) IsEmailAuthenticationCheck() (r bool, exists bool) {
+	v := m.is_email_authentication_check
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldIsEmailAuthentication returns the old "is_email_authentication" field's value of the RootConfig entity.
+// OldIsEmailAuthenticationCheck returns the old "is_email_authentication_check" field's value of the RootConfig entity.
 // If the RootConfig object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RootConfigMutation) OldIsEmailAuthentication(ctx context.Context) (v bool, err error) {
+func (m *RootConfigMutation) OldIsEmailAuthenticationCheck(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsEmailAuthentication is only allowed on UpdateOne operations")
+		return v, errors.New("OldIsEmailAuthenticationCheck is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsEmailAuthentication requires an ID field in the mutation")
+		return v, errors.New("OldIsEmailAuthenticationCheck requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsEmailAuthentication: %w", err)
+		return v, fmt.Errorf("querying old value for OldIsEmailAuthenticationCheck: %w", err)
 	}
-	return oldValue.IsEmailAuthentication, nil
+	return oldValue.IsEmailAuthenticationCheck, nil
 }
 
-// ResetIsEmailAuthentication resets all changes to the "is_email_authentication" field.
-func (m *RootConfigMutation) ResetIsEmailAuthentication() {
-	m.is_email_authentication = nil
+// ResetIsEmailAuthenticationCheck resets all changes to the "is_email_authentication_check" field.
+func (m *RootConfigMutation) ResetIsEmailAuthenticationCheck() {
+	m.is_email_authentication_check = nil
+}
+
+// SetIsLineAuthentication sets the "is_line_authentication" field.
+func (m *RootConfigMutation) SetIsLineAuthentication(b bool) {
+	m.is_line_authentication = &b
+}
+
+// IsLineAuthentication returns the value of the "is_line_authentication" field in the mutation.
+func (m *RootConfigMutation) IsLineAuthentication() (r bool, exists bool) {
+	v := m.is_line_authentication
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsLineAuthentication returns the old "is_line_authentication" field's value of the RootConfig entity.
+// If the RootConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RootConfigMutation) OldIsLineAuthentication(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsLineAuthentication is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsLineAuthentication requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsLineAuthentication: %w", err)
+	}
+	return oldValue.IsLineAuthentication, nil
+}
+
+// ResetIsLineAuthentication resets all changes to the "is_line_authentication" field.
+func (m *RootConfigMutation) ResetIsLineAuthentication() {
+	m.is_line_authentication = nil
 }
 
 // Where appends a list predicates to the RootConfigMutation builder.
@@ -2439,15 +2476,18 @@ func (m *RootConfigMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RootConfigMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.editing_permission != nil {
 		fields = append(fields, rootconfig.FieldEditingPermission)
 	}
 	if m.is_test_user_mode != nil {
 		fields = append(fields, rootconfig.FieldIsTestUserMode)
 	}
-	if m.is_email_authentication != nil {
-		fields = append(fields, rootconfig.FieldIsEmailAuthentication)
+	if m.is_email_authentication_check != nil {
+		fields = append(fields, rootconfig.FieldIsEmailAuthenticationCheck)
+	}
+	if m.is_line_authentication != nil {
+		fields = append(fields, rootconfig.FieldIsLineAuthentication)
 	}
 	return fields
 }
@@ -2461,8 +2501,10 @@ func (m *RootConfigMutation) Field(name string) (ent.Value, bool) {
 		return m.EditingPermission()
 	case rootconfig.FieldIsTestUserMode:
 		return m.IsTestUserMode()
-	case rootconfig.FieldIsEmailAuthentication:
-		return m.IsEmailAuthentication()
+	case rootconfig.FieldIsEmailAuthenticationCheck:
+		return m.IsEmailAuthenticationCheck()
+	case rootconfig.FieldIsLineAuthentication:
+		return m.IsLineAuthentication()
 	}
 	return nil, false
 }
@@ -2476,8 +2518,10 @@ func (m *RootConfigMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldEditingPermission(ctx)
 	case rootconfig.FieldIsTestUserMode:
 		return m.OldIsTestUserMode(ctx)
-	case rootconfig.FieldIsEmailAuthentication:
-		return m.OldIsEmailAuthentication(ctx)
+	case rootconfig.FieldIsEmailAuthenticationCheck:
+		return m.OldIsEmailAuthenticationCheck(ctx)
+	case rootconfig.FieldIsLineAuthentication:
+		return m.OldIsLineAuthentication(ctx)
 	}
 	return nil, fmt.Errorf("unknown RootConfig field %s", name)
 }
@@ -2501,12 +2545,19 @@ func (m *RootConfigMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIsTestUserMode(v)
 		return nil
-	case rootconfig.FieldIsEmailAuthentication:
+	case rootconfig.FieldIsEmailAuthenticationCheck:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetIsEmailAuthentication(v)
+		m.SetIsEmailAuthenticationCheck(v)
+		return nil
+	case rootconfig.FieldIsLineAuthentication:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsLineAuthentication(v)
 		return nil
 	}
 	return fmt.Errorf("unknown RootConfig field %s", name)
@@ -2563,8 +2614,11 @@ func (m *RootConfigMutation) ResetField(name string) error {
 	case rootconfig.FieldIsTestUserMode:
 		m.ResetIsTestUserMode()
 		return nil
-	case rootconfig.FieldIsEmailAuthentication:
-		m.ResetIsEmailAuthentication()
+	case rootconfig.FieldIsEmailAuthenticationCheck:
+		m.ResetIsEmailAuthenticationCheck()
+		return nil
+	case rootconfig.FieldIsLineAuthentication:
+		m.ResetIsLineAuthentication()
 		return nil
 	}
 	return fmt.Errorf("unknown RootConfig field %s", name)

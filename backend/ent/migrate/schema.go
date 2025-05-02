@@ -88,7 +88,8 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "editing_permission", Type: field.TypeString, Default: "admin"},
 		{Name: "is_test_user_mode", Type: field.TypeBool, Default: false},
-		{Name: "is_email_authentication", Type: field.TypeBool, Default: false},
+		{Name: "is_email_authentication_check", Type: field.TypeBool, Default: false},
+		{Name: "is_line_authentication", Type: field.TypeBool, Default: false},
 	}
 	// RootConfigsTable holds the schema information for the "root_configs" table.
 	RootConfigsTable = &schema.Table{

@@ -49,16 +49,30 @@ func (rcc *RootConfigCreate) SetNillableIsTestUserMode(b *bool) *RootConfigCreat
 	return rcc
 }
 
-// SetIsEmailAuthentication sets the "is_email_authentication" field.
-func (rcc *RootConfigCreate) SetIsEmailAuthentication(b bool) *RootConfigCreate {
-	rcc.mutation.SetIsEmailAuthentication(b)
+// SetIsEmailAuthenticationCheck sets the "is_email_authentication_check" field.
+func (rcc *RootConfigCreate) SetIsEmailAuthenticationCheck(b bool) *RootConfigCreate {
+	rcc.mutation.SetIsEmailAuthenticationCheck(b)
 	return rcc
 }
 
-// SetNillableIsEmailAuthentication sets the "is_email_authentication" field if the given value is not nil.
-func (rcc *RootConfigCreate) SetNillableIsEmailAuthentication(b *bool) *RootConfigCreate {
+// SetNillableIsEmailAuthenticationCheck sets the "is_email_authentication_check" field if the given value is not nil.
+func (rcc *RootConfigCreate) SetNillableIsEmailAuthenticationCheck(b *bool) *RootConfigCreate {
 	if b != nil {
-		rcc.SetIsEmailAuthentication(*b)
+		rcc.SetIsEmailAuthenticationCheck(*b)
+	}
+	return rcc
+}
+
+// SetIsLineAuthentication sets the "is_line_authentication" field.
+func (rcc *RootConfigCreate) SetIsLineAuthentication(b bool) *RootConfigCreate {
+	rcc.mutation.SetIsLineAuthentication(b)
+	return rcc
+}
+
+// SetNillableIsLineAuthentication sets the "is_line_authentication" field if the given value is not nil.
+func (rcc *RootConfigCreate) SetNillableIsLineAuthentication(b *bool) *RootConfigCreate {
+	if b != nil {
+		rcc.SetIsLineAuthentication(*b)
 	}
 	return rcc
 }
@@ -106,9 +120,13 @@ func (rcc *RootConfigCreate) defaults() {
 		v := rootconfig.DefaultIsTestUserMode
 		rcc.mutation.SetIsTestUserMode(v)
 	}
-	if _, ok := rcc.mutation.IsEmailAuthentication(); !ok {
-		v := rootconfig.DefaultIsEmailAuthentication
-		rcc.mutation.SetIsEmailAuthentication(v)
+	if _, ok := rcc.mutation.IsEmailAuthenticationCheck(); !ok {
+		v := rootconfig.DefaultIsEmailAuthenticationCheck
+		rcc.mutation.SetIsEmailAuthenticationCheck(v)
+	}
+	if _, ok := rcc.mutation.IsLineAuthentication(); !ok {
+		v := rootconfig.DefaultIsLineAuthentication
+		rcc.mutation.SetIsLineAuthentication(v)
 	}
 }
 
@@ -125,8 +143,11 @@ func (rcc *RootConfigCreate) check() error {
 	if _, ok := rcc.mutation.IsTestUserMode(); !ok {
 		return &ValidationError{Name: "is_test_user_mode", err: errors.New(`ent: missing required field "RootConfig.is_test_user_mode"`)}
 	}
-	if _, ok := rcc.mutation.IsEmailAuthentication(); !ok {
-		return &ValidationError{Name: "is_email_authentication", err: errors.New(`ent: missing required field "RootConfig.is_email_authentication"`)}
+	if _, ok := rcc.mutation.IsEmailAuthenticationCheck(); !ok {
+		return &ValidationError{Name: "is_email_authentication_check", err: errors.New(`ent: missing required field "RootConfig.is_email_authentication_check"`)}
+	}
+	if _, ok := rcc.mutation.IsLineAuthentication(); !ok {
+		return &ValidationError{Name: "is_line_authentication", err: errors.New(`ent: missing required field "RootConfig.is_line_authentication"`)}
 	}
 	return nil
 }
@@ -163,9 +184,13 @@ func (rcc *RootConfigCreate) createSpec() (*RootConfig, *sqlgraph.CreateSpec) {
 		_spec.SetField(rootconfig.FieldIsTestUserMode, field.TypeBool, value)
 		_node.IsTestUserMode = value
 	}
-	if value, ok := rcc.mutation.IsEmailAuthentication(); ok {
-		_spec.SetField(rootconfig.FieldIsEmailAuthentication, field.TypeBool, value)
-		_node.IsEmailAuthentication = value
+	if value, ok := rcc.mutation.IsEmailAuthenticationCheck(); ok {
+		_spec.SetField(rootconfig.FieldIsEmailAuthenticationCheck, field.TypeBool, value)
+		_node.IsEmailAuthenticationCheck = value
+	}
+	if value, ok := rcc.mutation.IsLineAuthentication(); ok {
+		_spec.SetField(rootconfig.FieldIsLineAuthentication, field.TypeBool, value)
+		_node.IsLineAuthentication = value
 	}
 	return _node, _spec
 }
@@ -243,15 +268,27 @@ func (u *RootConfigUpsert) UpdateIsTestUserMode() *RootConfigUpsert {
 	return u
 }
 
-// SetIsEmailAuthentication sets the "is_email_authentication" field.
-func (u *RootConfigUpsert) SetIsEmailAuthentication(v bool) *RootConfigUpsert {
-	u.Set(rootconfig.FieldIsEmailAuthentication, v)
+// SetIsEmailAuthenticationCheck sets the "is_email_authentication_check" field.
+func (u *RootConfigUpsert) SetIsEmailAuthenticationCheck(v bool) *RootConfigUpsert {
+	u.Set(rootconfig.FieldIsEmailAuthenticationCheck, v)
 	return u
 }
 
-// UpdateIsEmailAuthentication sets the "is_email_authentication" field to the value that was provided on create.
-func (u *RootConfigUpsert) UpdateIsEmailAuthentication() *RootConfigUpsert {
-	u.SetExcluded(rootconfig.FieldIsEmailAuthentication)
+// UpdateIsEmailAuthenticationCheck sets the "is_email_authentication_check" field to the value that was provided on create.
+func (u *RootConfigUpsert) UpdateIsEmailAuthenticationCheck() *RootConfigUpsert {
+	u.SetExcluded(rootconfig.FieldIsEmailAuthenticationCheck)
+	return u
+}
+
+// SetIsLineAuthentication sets the "is_line_authentication" field.
+func (u *RootConfigUpsert) SetIsLineAuthentication(v bool) *RootConfigUpsert {
+	u.Set(rootconfig.FieldIsLineAuthentication, v)
+	return u
+}
+
+// UpdateIsLineAuthentication sets the "is_line_authentication" field to the value that was provided on create.
+func (u *RootConfigUpsert) UpdateIsLineAuthentication() *RootConfigUpsert {
+	u.SetExcluded(rootconfig.FieldIsLineAuthentication)
 	return u
 }
 
@@ -323,17 +360,31 @@ func (u *RootConfigUpsertOne) UpdateIsTestUserMode() *RootConfigUpsertOne {
 	})
 }
 
-// SetIsEmailAuthentication sets the "is_email_authentication" field.
-func (u *RootConfigUpsertOne) SetIsEmailAuthentication(v bool) *RootConfigUpsertOne {
+// SetIsEmailAuthenticationCheck sets the "is_email_authentication_check" field.
+func (u *RootConfigUpsertOne) SetIsEmailAuthenticationCheck(v bool) *RootConfigUpsertOne {
 	return u.Update(func(s *RootConfigUpsert) {
-		s.SetIsEmailAuthentication(v)
+		s.SetIsEmailAuthenticationCheck(v)
 	})
 }
 
-// UpdateIsEmailAuthentication sets the "is_email_authentication" field to the value that was provided on create.
-func (u *RootConfigUpsertOne) UpdateIsEmailAuthentication() *RootConfigUpsertOne {
+// UpdateIsEmailAuthenticationCheck sets the "is_email_authentication_check" field to the value that was provided on create.
+func (u *RootConfigUpsertOne) UpdateIsEmailAuthenticationCheck() *RootConfigUpsertOne {
 	return u.Update(func(s *RootConfigUpsert) {
-		s.UpdateIsEmailAuthentication()
+		s.UpdateIsEmailAuthenticationCheck()
+	})
+}
+
+// SetIsLineAuthentication sets the "is_line_authentication" field.
+func (u *RootConfigUpsertOne) SetIsLineAuthentication(v bool) *RootConfigUpsertOne {
+	return u.Update(func(s *RootConfigUpsert) {
+		s.SetIsLineAuthentication(v)
+	})
+}
+
+// UpdateIsLineAuthentication sets the "is_line_authentication" field to the value that was provided on create.
+func (u *RootConfigUpsertOne) UpdateIsLineAuthentication() *RootConfigUpsertOne {
+	return u.Update(func(s *RootConfigUpsert) {
+		s.UpdateIsLineAuthentication()
 	})
 }
 
@@ -569,17 +620,31 @@ func (u *RootConfigUpsertBulk) UpdateIsTestUserMode() *RootConfigUpsertBulk {
 	})
 }
 
-// SetIsEmailAuthentication sets the "is_email_authentication" field.
-func (u *RootConfigUpsertBulk) SetIsEmailAuthentication(v bool) *RootConfigUpsertBulk {
+// SetIsEmailAuthenticationCheck sets the "is_email_authentication_check" field.
+func (u *RootConfigUpsertBulk) SetIsEmailAuthenticationCheck(v bool) *RootConfigUpsertBulk {
 	return u.Update(func(s *RootConfigUpsert) {
-		s.SetIsEmailAuthentication(v)
+		s.SetIsEmailAuthenticationCheck(v)
 	})
 }
 
-// UpdateIsEmailAuthentication sets the "is_email_authentication" field to the value that was provided on create.
-func (u *RootConfigUpsertBulk) UpdateIsEmailAuthentication() *RootConfigUpsertBulk {
+// UpdateIsEmailAuthenticationCheck sets the "is_email_authentication_check" field to the value that was provided on create.
+func (u *RootConfigUpsertBulk) UpdateIsEmailAuthenticationCheck() *RootConfigUpsertBulk {
 	return u.Update(func(s *RootConfigUpsert) {
-		s.UpdateIsEmailAuthentication()
+		s.UpdateIsEmailAuthenticationCheck()
+	})
+}
+
+// SetIsLineAuthentication sets the "is_line_authentication" field.
+func (u *RootConfigUpsertBulk) SetIsLineAuthentication(v bool) *RootConfigUpsertBulk {
+	return u.Update(func(s *RootConfigUpsert) {
+		s.SetIsLineAuthentication(v)
+	})
+}
+
+// UpdateIsLineAuthentication sets the "is_line_authentication" field to the value that was provided on create.
+func (u *RootConfigUpsertBulk) UpdateIsLineAuthentication() *RootConfigUpsertBulk {
+	return u.Update(func(s *RootConfigUpsert) {
+		s.UpdateIsLineAuthentication()
 	})
 }
 

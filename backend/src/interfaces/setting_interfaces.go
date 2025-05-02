@@ -28,7 +28,8 @@ type SettingClient interface {
 		userID int,
 		editingPermission string,
 		isTestUserMode bool,
-		isEmailAuth bool,
+		isEmailAuthCheck bool,
+		isLineAuth bool,
 	) (*ent.RootConfig, error)
 }
 

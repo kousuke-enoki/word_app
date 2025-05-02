@@ -18,7 +18,9 @@ func (RootConfig) Fields() []ent.Field {
 			NotEmpty(),
 		field.Bool("is_test_user_mode").
 			Default(false),
-		field.Bool("is_email_authentication").
+		field.Bool("is_email_authentication_check").
+			Default(false),
+		field.Bool("is_line_authentication").
 			Default(false),
 	}
 }

@@ -1,24 +1,27 @@
-FROM golang:1.23.3 AS builder
-
+# ---------- base build stage ----------
+FROM golang:1.23.3 AS build-base
 WORKDIR /src
-
-# モジュールキャッシュを活用
 COPY go.mod go.sum ./
 RUN go mod download
-
-# 残りのソース
 COPY . .
 
-# ① API サーバー
-RUN CGO_ENABLED=0 go build -o /out/server      ./cmd/server
-# ② JMdict 取込 CLI
-RUN CGO_ENABLED=0 go build -o /out/import_dict ./cmd/import_dict
+# ---------- production build ----------
+FROM build-base AS prod-build
+RUN CGO_ENABLED=0 go build -o /out/server      ./cmd/server && \
+    CGO_ENABLED=0 go build -o /out/import_dict ./cmd/import_dict
 
-# ---------- runtime stage ----------
-# distroless でも alpine でも OK。例では軽量 busybox
-FROM busybox:uclibc
+# ---------- development (hot‑reload) ----------
+FROM golang:1.23.3 AS dev
 WORKDIR /app
-COPY --from=builder /out/* /usr/local/bin/
+# air をインストール
+RUN go install github.com/air-verse/air@latest
+COPY --from=build-base /src .
+# Air の設定ファイルがあれば一緒にコピー
+COPY .air.toml .
+ENTRYPOINT ["air"]
 
-# デフォルトは API サーバー
+# ---------- production runtime ----------
+FROM busybox:uclibc AS prod
+WORKDIR /app
+COPY --from=prod-build /out/* /usr/local/bin/
 ENTRYPOINT ["/usr/local/bin/server"]

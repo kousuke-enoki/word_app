@@ -1,0 +1,14 @@
+# .air.toml (backend/.air.toml)
+
+# 変更を監視するディレクトリ
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  # 再ビルド時のコマンド
+  cmd = "go build -o ./tmp/server ./cmd/server"
+  # 実行するバイナリ
+  bin = "tmp/server"
+  # ファイル拡張子 / 除外ディレクトリはお好みで調整
+  include_ext = ["go", "tmpl", "yaml"]
+  exclude_dir = ["tmp", "vendor", "assets"]

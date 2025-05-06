@@ -19,6 +19,7 @@ import (
 	"word_app/backend/ent/userconfig"
 	"word_app/backend/ent/word"
 	"word_app/backend/ent/wordinfo"
+	"word_app/backend/src/models"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -1205,38 +1206,42 @@ func (m *PartOfSpeechMutation) ResetEdge(name string) error {
 // QuizMutation represents an operation that mutates the Quiz nodes in the graph.
 type QuizMutation struct {
 	config
-	op                       Op
-	typ                      string
-	id                       *int
-	quiz_number              *int
-	addquiz_number           *int
-	total_questions_count    *int
-	addtotal_questions_count *int
-	correct_count            *int
-	addcorrect_count         *int
-	correct_rate             *int
-	addcorrect_rate          *int
-	is_running               *bool
-	is_registered_words      *int
-	addis_registered_words   *int
-	is_idioms                *int
-	addis_idioms             *int
-	is_special_characters    *int
-	addis_special_characters *int
-	target_word_types        *string
-	choices_pos_ids          *[]int
-	appendchoices_pos_ids    []int
-	created_at               *time.Time
-	deleted_at               *time.Time
-	clearedFields            map[string]struct{}
-	user                     *int
-	cleareduser              bool
-	quiz_questions           map[int]struct{}
-	removedquiz_questions    map[int]struct{}
-	clearedquiz_questions    bool
-	done                     bool
-	oldValue                 func(context.Context) (*Quiz, error)
-	predicates               []predicate.Quiz
+	op                         Op
+	typ                        string
+	id                         *int
+	quiz_number                *int
+	addquiz_number             *int
+	is_running                 *bool
+	total_questions_count      *int
+	addtotal_questions_count   *int
+	correct_count              *int
+	addcorrect_count           *int
+	result_correct_rate        *float64
+	addresult_correct_rate     *float64
+	is_save_result             *bool
+	is_registered_words        *int
+	addis_registered_words     *int
+	setting_correct_rate       *int
+	addsetting_correct_rate    *int
+	is_idioms                  *int
+	addis_idioms               *int
+	is_special_characters      *int
+	addis_special_characters   *int
+	attention_level_list       *[]int
+	appendattention_level_list []int
+	choices_pos_ids            *[]int
+	appendchoices_pos_ids      []int
+	created_at                 *time.Time
+	deleted_at                 *time.Time
+	clearedFields              map[string]struct{}
+	user                       *int
+	cleareduser                bool
+	quiz_questions             map[int]struct{}
+	removedquiz_questions      map[int]struct{}
+	clearedquiz_questions      bool
+	done                       bool
+	oldValue                   func(context.Context) (*Quiz, error)
+	predicates                 []predicate.Quiz
 }
 
 var _ ent.Mutation = (*QuizMutation)(nil)
@@ -1429,6 +1434,42 @@ func (m *QuizMutation) ResetQuizNumber() {
 	m.addquiz_number = nil
 }
 
+// SetIsRunning sets the "is_running" field.
+func (m *QuizMutation) SetIsRunning(b bool) {
+	m.is_running = &b
+}
+
+// IsRunning returns the value of the "is_running" field in the mutation.
+func (m *QuizMutation) IsRunning() (r bool, exists bool) {
+	v := m.is_running
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsRunning returns the old "is_running" field's value of the Quiz entity.
+// If the Quiz object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QuizMutation) OldIsRunning(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsRunning is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsRunning requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsRunning: %w", err)
+	}
+	return oldValue.IsRunning, nil
+}
+
+// ResetIsRunning resets all changes to the "is_running" field.
+func (m *QuizMutation) ResetIsRunning() {
+	m.is_running = nil
+}
+
 // SetTotalQuestionsCount sets the "total_questions_count" field.
 func (m *QuizMutation) SetTotalQuestionsCount(i int) {
 	m.total_questions_count = &i
@@ -1541,96 +1582,96 @@ func (m *QuizMutation) ResetCorrectCount() {
 	m.addcorrect_count = nil
 }
 
-// SetCorrectRate sets the "correct_rate" field.
-func (m *QuizMutation) SetCorrectRate(i int) {
-	m.correct_rate = &i
-	m.addcorrect_rate = nil
+// SetResultCorrectRate sets the "result_correct_rate" field.
+func (m *QuizMutation) SetResultCorrectRate(f float64) {
+	m.result_correct_rate = &f
+	m.addresult_correct_rate = nil
 }
 
-// CorrectRate returns the value of the "correct_rate" field in the mutation.
-func (m *QuizMutation) CorrectRate() (r int, exists bool) {
-	v := m.correct_rate
+// ResultCorrectRate returns the value of the "result_correct_rate" field in the mutation.
+func (m *QuizMutation) ResultCorrectRate() (r float64, exists bool) {
+	v := m.result_correct_rate
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldCorrectRate returns the old "correct_rate" field's value of the Quiz entity.
+// OldResultCorrectRate returns the old "result_correct_rate" field's value of the Quiz entity.
 // If the Quiz object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *QuizMutation) OldCorrectRate(ctx context.Context) (v int, err error) {
+func (m *QuizMutation) OldResultCorrectRate(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCorrectRate is only allowed on UpdateOne operations")
+		return v, errors.New("OldResultCorrectRate is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCorrectRate requires an ID field in the mutation")
+		return v, errors.New("OldResultCorrectRate requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCorrectRate: %w", err)
+		return v, fmt.Errorf("querying old value for OldResultCorrectRate: %w", err)
 	}
-	return oldValue.CorrectRate, nil
+	return oldValue.ResultCorrectRate, nil
 }
 
-// AddCorrectRate adds i to the "correct_rate" field.
-func (m *QuizMutation) AddCorrectRate(i int) {
-	if m.addcorrect_rate != nil {
-		*m.addcorrect_rate += i
+// AddResultCorrectRate adds f to the "result_correct_rate" field.
+func (m *QuizMutation) AddResultCorrectRate(f float64) {
+	if m.addresult_correct_rate != nil {
+		*m.addresult_correct_rate += f
 	} else {
-		m.addcorrect_rate = &i
+		m.addresult_correct_rate = &f
 	}
 }
 
-// AddedCorrectRate returns the value that was added to the "correct_rate" field in this mutation.
-func (m *QuizMutation) AddedCorrectRate() (r int, exists bool) {
-	v := m.addcorrect_rate
+// AddedResultCorrectRate returns the value that was added to the "result_correct_rate" field in this mutation.
+func (m *QuizMutation) AddedResultCorrectRate() (r float64, exists bool) {
+	v := m.addresult_correct_rate
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetCorrectRate resets all changes to the "correct_rate" field.
-func (m *QuizMutation) ResetCorrectRate() {
-	m.correct_rate = nil
-	m.addcorrect_rate = nil
+// ResetResultCorrectRate resets all changes to the "result_correct_rate" field.
+func (m *QuizMutation) ResetResultCorrectRate() {
+	m.result_correct_rate = nil
+	m.addresult_correct_rate = nil
 }
 
-// SetIsRunning sets the "is_running" field.
-func (m *QuizMutation) SetIsRunning(b bool) {
-	m.is_running = &b
+// SetIsSaveResult sets the "is_save_result" field.
+func (m *QuizMutation) SetIsSaveResult(b bool) {
+	m.is_save_result = &b
 }
 
-// IsRunning returns the value of the "is_running" field in the mutation.
-func (m *QuizMutation) IsRunning() (r bool, exists bool) {
-	v := m.is_running
+// IsSaveResult returns the value of the "is_save_result" field in the mutation.
+func (m *QuizMutation) IsSaveResult() (r bool, exists bool) {
+	v := m.is_save_result
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldIsRunning returns the old "is_running" field's value of the Quiz entity.
+// OldIsSaveResult returns the old "is_save_result" field's value of the Quiz entity.
 // If the Quiz object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *QuizMutation) OldIsRunning(ctx context.Context) (v bool, err error) {
+func (m *QuizMutation) OldIsSaveResult(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsRunning is only allowed on UpdateOne operations")
+		return v, errors.New("OldIsSaveResult is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsRunning requires an ID field in the mutation")
+		return v, errors.New("OldIsSaveResult requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsRunning: %w", err)
+		return v, fmt.Errorf("querying old value for OldIsSaveResult: %w", err)
 	}
-	return oldValue.IsRunning, nil
+	return oldValue.IsSaveResult, nil
 }
 
-// ResetIsRunning resets all changes to the "is_running" field.
-func (m *QuizMutation) ResetIsRunning() {
-	m.is_running = nil
+// ResetIsSaveResult resets all changes to the "is_save_result" field.
+func (m *QuizMutation) ResetIsSaveResult() {
+	m.is_save_result = nil
 }
 
 // SetIsRegisteredWords sets the "is_registered_words" field.
@@ -1687,6 +1728,62 @@ func (m *QuizMutation) AddedIsRegisteredWords() (r int, exists bool) {
 func (m *QuizMutation) ResetIsRegisteredWords() {
 	m.is_registered_words = nil
 	m.addis_registered_words = nil
+}
+
+// SetSettingCorrectRate sets the "setting_correct_rate" field.
+func (m *QuizMutation) SetSettingCorrectRate(i int) {
+	m.setting_correct_rate = &i
+	m.addsetting_correct_rate = nil
+}
+
+// SettingCorrectRate returns the value of the "setting_correct_rate" field in the mutation.
+func (m *QuizMutation) SettingCorrectRate() (r int, exists bool) {
+	v := m.setting_correct_rate
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSettingCorrectRate returns the old "setting_correct_rate" field's value of the Quiz entity.
+// If the Quiz object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QuizMutation) OldSettingCorrectRate(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSettingCorrectRate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSettingCorrectRate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSettingCorrectRate: %w", err)
+	}
+	return oldValue.SettingCorrectRate, nil
+}
+
+// AddSettingCorrectRate adds i to the "setting_correct_rate" field.
+func (m *QuizMutation) AddSettingCorrectRate(i int) {
+	if m.addsetting_correct_rate != nil {
+		*m.addsetting_correct_rate += i
+	} else {
+		m.addsetting_correct_rate = &i
+	}
+}
+
+// AddedSettingCorrectRate returns the value that was added to the "setting_correct_rate" field in this mutation.
+func (m *QuizMutation) AddedSettingCorrectRate() (r int, exists bool) {
+	v := m.addsetting_correct_rate
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSettingCorrectRate resets all changes to the "setting_correct_rate" field.
+func (m *QuizMutation) ResetSettingCorrectRate() {
+	m.setting_correct_rate = nil
+	m.addsetting_correct_rate = nil
 }
 
 // SetIsIdioms sets the "is_idioms" field.
@@ -1801,40 +1898,55 @@ func (m *QuizMutation) ResetIsSpecialCharacters() {
 	m.addis_special_characters = nil
 }
 
-// SetTargetWordTypes sets the "target_word_types" field.
-func (m *QuizMutation) SetTargetWordTypes(s string) {
-	m.target_word_types = &s
+// SetAttentionLevelList sets the "attention_level_list" field.
+func (m *QuizMutation) SetAttentionLevelList(i []int) {
+	m.attention_level_list = &i
+	m.appendattention_level_list = nil
 }
 
-// TargetWordTypes returns the value of the "target_word_types" field in the mutation.
-func (m *QuizMutation) TargetWordTypes() (r string, exists bool) {
-	v := m.target_word_types
+// AttentionLevelList returns the value of the "attention_level_list" field in the mutation.
+func (m *QuizMutation) AttentionLevelList() (r []int, exists bool) {
+	v := m.attention_level_list
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldTargetWordTypes returns the old "target_word_types" field's value of the Quiz entity.
+// OldAttentionLevelList returns the old "attention_level_list" field's value of the Quiz entity.
 // If the Quiz object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *QuizMutation) OldTargetWordTypes(ctx context.Context) (v string, err error) {
+func (m *QuizMutation) OldAttentionLevelList(ctx context.Context) (v []int, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTargetWordTypes is only allowed on UpdateOne operations")
+		return v, errors.New("OldAttentionLevelList is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTargetWordTypes requires an ID field in the mutation")
+		return v, errors.New("OldAttentionLevelList requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTargetWordTypes: %w", err)
+		return v, fmt.Errorf("querying old value for OldAttentionLevelList: %w", err)
 	}
-	return oldValue.TargetWordTypes, nil
+	return oldValue.AttentionLevelList, nil
 }
 
-// ResetTargetWordTypes resets all changes to the "target_word_types" field.
-func (m *QuizMutation) ResetTargetWordTypes() {
-	m.target_word_types = nil
+// AppendAttentionLevelList adds i to the "attention_level_list" field.
+func (m *QuizMutation) AppendAttentionLevelList(i []int) {
+	m.appendattention_level_list = append(m.appendattention_level_list, i...)
+}
+
+// AppendedAttentionLevelList returns the list of values that were appended to the "attention_level_list" field in this mutation.
+func (m *QuizMutation) AppendedAttentionLevelList() ([]int, bool) {
+	if len(m.appendattention_level_list) == 0 {
+		return nil, false
+	}
+	return m.appendattention_level_list, true
+}
+
+// ResetAttentionLevelList resets all changes to the "attention_level_list" field.
+func (m *QuizMutation) ResetAttentionLevelList() {
+	m.attention_level_list = nil
+	m.appendattention_level_list = nil
 }
 
 // SetChoicesPosIds sets the "choices_pos_ids" field.
@@ -2088,12 +2200,15 @@ func (m *QuizMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *QuizMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 15)
 	if m.user != nil {
 		fields = append(fields, quiz.FieldUserID)
 	}
 	if m.quiz_number != nil {
 		fields = append(fields, quiz.FieldQuizNumber)
+	}
+	if m.is_running != nil {
+		fields = append(fields, quiz.FieldIsRunning)
 	}
 	if m.total_questions_count != nil {
 		fields = append(fields, quiz.FieldTotalQuestionsCount)
@@ -2101,14 +2216,17 @@ func (m *QuizMutation) Fields() []string {
 	if m.correct_count != nil {
 		fields = append(fields, quiz.FieldCorrectCount)
 	}
-	if m.correct_rate != nil {
-		fields = append(fields, quiz.FieldCorrectRate)
+	if m.result_correct_rate != nil {
+		fields = append(fields, quiz.FieldResultCorrectRate)
 	}
-	if m.is_running != nil {
-		fields = append(fields, quiz.FieldIsRunning)
+	if m.is_save_result != nil {
+		fields = append(fields, quiz.FieldIsSaveResult)
 	}
 	if m.is_registered_words != nil {
 		fields = append(fields, quiz.FieldIsRegisteredWords)
+	}
+	if m.setting_correct_rate != nil {
+		fields = append(fields, quiz.FieldSettingCorrectRate)
 	}
 	if m.is_idioms != nil {
 		fields = append(fields, quiz.FieldIsIdioms)
@@ -2116,8 +2234,8 @@ func (m *QuizMutation) Fields() []string {
 	if m.is_special_characters != nil {
 		fields = append(fields, quiz.FieldIsSpecialCharacters)
 	}
-	if m.target_word_types != nil {
-		fields = append(fields, quiz.FieldTargetWordTypes)
+	if m.attention_level_list != nil {
+		fields = append(fields, quiz.FieldAttentionLevelList)
 	}
 	if m.choices_pos_ids != nil {
 		fields = append(fields, quiz.FieldChoicesPosIds)
@@ -2140,22 +2258,26 @@ func (m *QuizMutation) Field(name string) (ent.Value, bool) {
 		return m.UserID()
 	case quiz.FieldQuizNumber:
 		return m.QuizNumber()
+	case quiz.FieldIsRunning:
+		return m.IsRunning()
 	case quiz.FieldTotalQuestionsCount:
 		return m.TotalQuestionsCount()
 	case quiz.FieldCorrectCount:
 		return m.CorrectCount()
-	case quiz.FieldCorrectRate:
-		return m.CorrectRate()
-	case quiz.FieldIsRunning:
-		return m.IsRunning()
+	case quiz.FieldResultCorrectRate:
+		return m.ResultCorrectRate()
+	case quiz.FieldIsSaveResult:
+		return m.IsSaveResult()
 	case quiz.FieldIsRegisteredWords:
 		return m.IsRegisteredWords()
+	case quiz.FieldSettingCorrectRate:
+		return m.SettingCorrectRate()
 	case quiz.FieldIsIdioms:
 		return m.IsIdioms()
 	case quiz.FieldIsSpecialCharacters:
 		return m.IsSpecialCharacters()
-	case quiz.FieldTargetWordTypes:
-		return m.TargetWordTypes()
+	case quiz.FieldAttentionLevelList:
+		return m.AttentionLevelList()
 	case quiz.FieldChoicesPosIds:
 		return m.ChoicesPosIds()
 	case quiz.FieldCreatedAt:
@@ -2175,22 +2297,26 @@ func (m *QuizMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUserID(ctx)
 	case quiz.FieldQuizNumber:
 		return m.OldQuizNumber(ctx)
+	case quiz.FieldIsRunning:
+		return m.OldIsRunning(ctx)
 	case quiz.FieldTotalQuestionsCount:
 		return m.OldTotalQuestionsCount(ctx)
 	case quiz.FieldCorrectCount:
 		return m.OldCorrectCount(ctx)
-	case quiz.FieldCorrectRate:
-		return m.OldCorrectRate(ctx)
-	case quiz.FieldIsRunning:
-		return m.OldIsRunning(ctx)
+	case quiz.FieldResultCorrectRate:
+		return m.OldResultCorrectRate(ctx)
+	case quiz.FieldIsSaveResult:
+		return m.OldIsSaveResult(ctx)
 	case quiz.FieldIsRegisteredWords:
 		return m.OldIsRegisteredWords(ctx)
+	case quiz.FieldSettingCorrectRate:
+		return m.OldSettingCorrectRate(ctx)
 	case quiz.FieldIsIdioms:
 		return m.OldIsIdioms(ctx)
 	case quiz.FieldIsSpecialCharacters:
 		return m.OldIsSpecialCharacters(ctx)
-	case quiz.FieldTargetWordTypes:
-		return m.OldTargetWordTypes(ctx)
+	case quiz.FieldAttentionLevelList:
+		return m.OldAttentionLevelList(ctx)
 	case quiz.FieldChoicesPosIds:
 		return m.OldChoicesPosIds(ctx)
 	case quiz.FieldCreatedAt:
@@ -2220,6 +2346,13 @@ func (m *QuizMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetQuizNumber(v)
 		return nil
+	case quiz.FieldIsRunning:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsRunning(v)
+		return nil
 	case quiz.FieldTotalQuestionsCount:
 		v, ok := value.(int)
 		if !ok {
@@ -2234,19 +2367,19 @@ func (m *QuizMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCorrectCount(v)
 		return nil
-	case quiz.FieldCorrectRate:
-		v, ok := value.(int)
+	case quiz.FieldResultCorrectRate:
+		v, ok := value.(float64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetCorrectRate(v)
+		m.SetResultCorrectRate(v)
 		return nil
-	case quiz.FieldIsRunning:
+	case quiz.FieldIsSaveResult:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetIsRunning(v)
+		m.SetIsSaveResult(v)
 		return nil
 	case quiz.FieldIsRegisteredWords:
 		v, ok := value.(int)
@@ -2254,6 +2387,13 @@ func (m *QuizMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsRegisteredWords(v)
+		return nil
+	case quiz.FieldSettingCorrectRate:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSettingCorrectRate(v)
 		return nil
 	case quiz.FieldIsIdioms:
 		v, ok := value.(int)
@@ -2269,12 +2409,12 @@ func (m *QuizMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIsSpecialCharacters(v)
 		return nil
-	case quiz.FieldTargetWordTypes:
-		v, ok := value.(string)
+	case quiz.FieldAttentionLevelList:
+		v, ok := value.([]int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetTargetWordTypes(v)
+		m.SetAttentionLevelList(v)
 		return nil
 	case quiz.FieldChoicesPosIds:
 		v, ok := value.([]int)
@@ -2314,11 +2454,14 @@ func (m *QuizMutation) AddedFields() []string {
 	if m.addcorrect_count != nil {
 		fields = append(fields, quiz.FieldCorrectCount)
 	}
-	if m.addcorrect_rate != nil {
-		fields = append(fields, quiz.FieldCorrectRate)
+	if m.addresult_correct_rate != nil {
+		fields = append(fields, quiz.FieldResultCorrectRate)
 	}
 	if m.addis_registered_words != nil {
 		fields = append(fields, quiz.FieldIsRegisteredWords)
+	}
+	if m.addsetting_correct_rate != nil {
+		fields = append(fields, quiz.FieldSettingCorrectRate)
 	}
 	if m.addis_idioms != nil {
 		fields = append(fields, quiz.FieldIsIdioms)
@@ -2340,10 +2483,12 @@ func (m *QuizMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedTotalQuestionsCount()
 	case quiz.FieldCorrectCount:
 		return m.AddedCorrectCount()
-	case quiz.FieldCorrectRate:
-		return m.AddedCorrectRate()
+	case quiz.FieldResultCorrectRate:
+		return m.AddedResultCorrectRate()
 	case quiz.FieldIsRegisteredWords:
 		return m.AddedIsRegisteredWords()
+	case quiz.FieldSettingCorrectRate:
+		return m.AddedSettingCorrectRate()
 	case quiz.FieldIsIdioms:
 		return m.AddedIsIdioms()
 	case quiz.FieldIsSpecialCharacters:
@@ -2378,12 +2523,12 @@ func (m *QuizMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddCorrectCount(v)
 		return nil
-	case quiz.FieldCorrectRate:
-		v, ok := value.(int)
+	case quiz.FieldResultCorrectRate:
+		v, ok := value.(float64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddCorrectRate(v)
+		m.AddResultCorrectRate(v)
 		return nil
 	case quiz.FieldIsRegisteredWords:
 		v, ok := value.(int)
@@ -2391,6 +2536,13 @@ func (m *QuizMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddIsRegisteredWords(v)
+		return nil
+	case quiz.FieldSettingCorrectRate:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSettingCorrectRate(v)
 		return nil
 	case quiz.FieldIsIdioms:
 		v, ok := value.(int)
@@ -2448,20 +2600,26 @@ func (m *QuizMutation) ResetField(name string) error {
 	case quiz.FieldQuizNumber:
 		m.ResetQuizNumber()
 		return nil
+	case quiz.FieldIsRunning:
+		m.ResetIsRunning()
+		return nil
 	case quiz.FieldTotalQuestionsCount:
 		m.ResetTotalQuestionsCount()
 		return nil
 	case quiz.FieldCorrectCount:
 		m.ResetCorrectCount()
 		return nil
-	case quiz.FieldCorrectRate:
-		m.ResetCorrectRate()
+	case quiz.FieldResultCorrectRate:
+		m.ResetResultCorrectRate()
 		return nil
-	case quiz.FieldIsRunning:
-		m.ResetIsRunning()
+	case quiz.FieldIsSaveResult:
+		m.ResetIsSaveResult()
 		return nil
 	case quiz.FieldIsRegisteredWords:
 		m.ResetIsRegisteredWords()
+		return nil
+	case quiz.FieldSettingCorrectRate:
+		m.ResetSettingCorrectRate()
 		return nil
 	case quiz.FieldIsIdioms:
 		m.ResetIsIdioms()
@@ -2469,8 +2627,8 @@ func (m *QuizMutation) ResetField(name string) error {
 	case quiz.FieldIsSpecialCharacters:
 		m.ResetIsSpecialCharacters()
 		return nil
-	case quiz.FieldTargetWordTypes:
-		m.ResetTargetWordTypes()
+	case quiz.FieldAttentionLevelList:
+		m.ResetAttentionLevelList()
 		return nil
 	case quiz.FieldChoicesPosIds:
 		m.ResetChoicesPosIds()
@@ -2590,31 +2748,34 @@ func (m *QuizMutation) ResetEdge(name string) error {
 // QuizQuestionMutation represents an operation that mutates the QuizQuestion nodes in the graph.
 type QuizQuestionMutation struct {
 	config
-	op                    Op
-	typ                   string
-	id                    *int
-	question_number       *int
-	addquestion_number    *int
-	choices_jpm_ids       *[]int
-	appendchoices_jpm_ids []int
-	answer_jpm_id         *int
-	addanswer_jpm_id      *int
-	is_correct            *bool
-	answered_at           *time.Time
-	time_ms               *int
-	addtime_ms            *int
-	created_at            *time.Time
-	deleted_at            *time.Time
-	clearedFields         map[string]struct{}
-	quiz                  *int
-	clearedquiz           bool
-	word                  *int
-	clearedword           bool
-	japanese_mean         *int
-	clearedjapanese_mean  bool
-	done                  bool
-	oldValue              func(context.Context) (*QuizQuestion, error)
-	predicates            []predicate.QuizQuestion
+	op                   Op
+	typ                  string
+	id                   *int
+	question_number      *int
+	addquestion_number   *int
+	wordName             *string
+	pos_id               *int
+	addpos_id            *int
+	choices_jpms         *[]models.ChoiceJpm
+	appendchoices_jpms   []models.ChoiceJpm
+	answer_jpm_id        *int
+	addanswer_jpm_id     *int
+	is_correct           *bool
+	answered_at          *time.Time
+	time_ms              *int
+	addtime_ms           *int
+	created_at           *time.Time
+	deleted_at           *time.Time
+	clearedFields        map[string]struct{}
+	quiz                 *int
+	clearedquiz          bool
+	word                 *int
+	clearedword          bool
+	japanese_mean        *int
+	clearedjapanese_mean bool
+	done                 bool
+	oldValue             func(context.Context) (*QuizQuestion, error)
+	predicates           []predicate.QuizQuestion
 }
 
 var _ ent.Mutation = (*QuizQuestionMutation)(nil)
@@ -2843,6 +3004,98 @@ func (m *QuizQuestionMutation) ResetWordID() {
 	m.word = nil
 }
 
+// SetWordName sets the "wordName" field.
+func (m *QuizQuestionMutation) SetWordName(s string) {
+	m.wordName = &s
+}
+
+// WordName returns the value of the "wordName" field in the mutation.
+func (m *QuizQuestionMutation) WordName() (r string, exists bool) {
+	v := m.wordName
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWordName returns the old "wordName" field's value of the QuizQuestion entity.
+// If the QuizQuestion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QuizQuestionMutation) OldWordName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWordName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWordName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWordName: %w", err)
+	}
+	return oldValue.WordName, nil
+}
+
+// ResetWordName resets all changes to the "wordName" field.
+func (m *QuizQuestionMutation) ResetWordName() {
+	m.wordName = nil
+}
+
+// SetPosID sets the "pos_id" field.
+func (m *QuizQuestionMutation) SetPosID(i int) {
+	m.pos_id = &i
+	m.addpos_id = nil
+}
+
+// PosID returns the value of the "pos_id" field in the mutation.
+func (m *QuizQuestionMutation) PosID() (r int, exists bool) {
+	v := m.pos_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPosID returns the old "pos_id" field's value of the QuizQuestion entity.
+// If the QuizQuestion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QuizQuestionMutation) OldPosID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPosID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPosID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPosID: %w", err)
+	}
+	return oldValue.PosID, nil
+}
+
+// AddPosID adds i to the "pos_id" field.
+func (m *QuizQuestionMutation) AddPosID(i int) {
+	if m.addpos_id != nil {
+		*m.addpos_id += i
+	} else {
+		m.addpos_id = &i
+	}
+}
+
+// AddedPosID returns the value that was added to the "pos_id" field in this mutation.
+func (m *QuizQuestionMutation) AddedPosID() (r int, exists bool) {
+	v := m.addpos_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPosID resets all changes to the "pos_id" field.
+func (m *QuizQuestionMutation) ResetPosID() {
+	m.pos_id = nil
+	m.addpos_id = nil
+}
+
 // SetCorrectJpmID sets the "correct_jpm_id" field.
 func (m *QuizQuestionMutation) SetCorrectJpmID(i int) {
 	m.japanese_mean = &i
@@ -2879,55 +3132,55 @@ func (m *QuizQuestionMutation) ResetCorrectJpmID() {
 	m.japanese_mean = nil
 }
 
-// SetChoicesJpmIds sets the "choices_jpm_ids" field.
-func (m *QuizQuestionMutation) SetChoicesJpmIds(i []int) {
-	m.choices_jpm_ids = &i
-	m.appendchoices_jpm_ids = nil
+// SetChoicesJpms sets the "choices_jpms" field.
+func (m *QuizQuestionMutation) SetChoicesJpms(mj []models.ChoiceJpm) {
+	m.choices_jpms = &mj
+	m.appendchoices_jpms = nil
 }
 
-// ChoicesJpmIds returns the value of the "choices_jpm_ids" field in the mutation.
-func (m *QuizQuestionMutation) ChoicesJpmIds() (r []int, exists bool) {
-	v := m.choices_jpm_ids
+// ChoicesJpms returns the value of the "choices_jpms" field in the mutation.
+func (m *QuizQuestionMutation) ChoicesJpms() (r []models.ChoiceJpm, exists bool) {
+	v := m.choices_jpms
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldChoicesJpmIds returns the old "choices_jpm_ids" field's value of the QuizQuestion entity.
+// OldChoicesJpms returns the old "choices_jpms" field's value of the QuizQuestion entity.
 // If the QuizQuestion object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *QuizQuestionMutation) OldChoicesJpmIds(ctx context.Context) (v []int, err error) {
+func (m *QuizQuestionMutation) OldChoicesJpms(ctx context.Context) (v []models.ChoiceJpm, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldChoicesJpmIds is only allowed on UpdateOne operations")
+		return v, errors.New("OldChoicesJpms is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldChoicesJpmIds requires an ID field in the mutation")
+		return v, errors.New("OldChoicesJpms requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldChoicesJpmIds: %w", err)
+		return v, fmt.Errorf("querying old value for OldChoicesJpms: %w", err)
 	}
-	return oldValue.ChoicesJpmIds, nil
+	return oldValue.ChoicesJpms, nil
 }
 
-// AppendChoicesJpmIds adds i to the "choices_jpm_ids" field.
-func (m *QuizQuestionMutation) AppendChoicesJpmIds(i []int) {
-	m.appendchoices_jpm_ids = append(m.appendchoices_jpm_ids, i...)
+// AppendChoicesJpms adds mj to the "choices_jpms" field.
+func (m *QuizQuestionMutation) AppendChoicesJpms(mj []models.ChoiceJpm) {
+	m.appendchoices_jpms = append(m.appendchoices_jpms, mj...)
 }
 
-// AppendedChoicesJpmIds returns the list of values that were appended to the "choices_jpm_ids" field in this mutation.
-func (m *QuizQuestionMutation) AppendedChoicesJpmIds() ([]int, bool) {
-	if len(m.appendchoices_jpm_ids) == 0 {
+// AppendedChoicesJpms returns the list of values that were appended to the "choices_jpms" field in this mutation.
+func (m *QuizQuestionMutation) AppendedChoicesJpms() ([]models.ChoiceJpm, bool) {
+	if len(m.appendchoices_jpms) == 0 {
 		return nil, false
 	}
-	return m.appendchoices_jpm_ids, true
+	return m.appendchoices_jpms, true
 }
 
-// ResetChoicesJpmIds resets all changes to the "choices_jpm_ids" field.
-func (m *QuizQuestionMutation) ResetChoicesJpmIds() {
-	m.choices_jpm_ids = nil
-	m.appendchoices_jpm_ids = nil
+// ResetChoicesJpms resets all changes to the "choices_jpms" field.
+func (m *QuizQuestionMutation) ResetChoicesJpms() {
+	m.choices_jpms = nil
+	m.appendchoices_jpms = nil
 }
 
 // SetAnswerJpmID sets the "answer_jpm_id" field.
@@ -3314,7 +3567,7 @@ func (m *QuizQuestionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *QuizQuestionMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 13)
 	if m.quiz != nil {
 		fields = append(fields, quizquestion.FieldQuizID)
 	}
@@ -3324,11 +3577,17 @@ func (m *QuizQuestionMutation) Fields() []string {
 	if m.word != nil {
 		fields = append(fields, quizquestion.FieldWordID)
 	}
+	if m.wordName != nil {
+		fields = append(fields, quizquestion.FieldWordName)
+	}
+	if m.pos_id != nil {
+		fields = append(fields, quizquestion.FieldPosID)
+	}
 	if m.japanese_mean != nil {
 		fields = append(fields, quizquestion.FieldCorrectJpmID)
 	}
-	if m.choices_jpm_ids != nil {
-		fields = append(fields, quizquestion.FieldChoicesJpmIds)
+	if m.choices_jpms != nil {
+		fields = append(fields, quizquestion.FieldChoicesJpms)
 	}
 	if m.answer_jpm_id != nil {
 		fields = append(fields, quizquestion.FieldAnswerJpmID)
@@ -3362,10 +3621,14 @@ func (m *QuizQuestionMutation) Field(name string) (ent.Value, bool) {
 		return m.QuestionNumber()
 	case quizquestion.FieldWordID:
 		return m.WordID()
+	case quizquestion.FieldWordName:
+		return m.WordName()
+	case quizquestion.FieldPosID:
+		return m.PosID()
 	case quizquestion.FieldCorrectJpmID:
 		return m.CorrectJpmID()
-	case quizquestion.FieldChoicesJpmIds:
-		return m.ChoicesJpmIds()
+	case quizquestion.FieldChoicesJpms:
+		return m.ChoicesJpms()
 	case quizquestion.FieldAnswerJpmID:
 		return m.AnswerJpmID()
 	case quizquestion.FieldIsCorrect:
@@ -3393,10 +3656,14 @@ func (m *QuizQuestionMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldQuestionNumber(ctx)
 	case quizquestion.FieldWordID:
 		return m.OldWordID(ctx)
+	case quizquestion.FieldWordName:
+		return m.OldWordName(ctx)
+	case quizquestion.FieldPosID:
+		return m.OldPosID(ctx)
 	case quizquestion.FieldCorrectJpmID:
 		return m.OldCorrectJpmID(ctx)
-	case quizquestion.FieldChoicesJpmIds:
-		return m.OldChoicesJpmIds(ctx)
+	case quizquestion.FieldChoicesJpms:
+		return m.OldChoicesJpms(ctx)
 	case quizquestion.FieldAnswerJpmID:
 		return m.OldAnswerJpmID(ctx)
 	case quizquestion.FieldIsCorrect:
@@ -3439,6 +3706,20 @@ func (m *QuizQuestionMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetWordID(v)
 		return nil
+	case quizquestion.FieldWordName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWordName(v)
+		return nil
+	case quizquestion.FieldPosID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPosID(v)
+		return nil
 	case quizquestion.FieldCorrectJpmID:
 		v, ok := value.(int)
 		if !ok {
@@ -3446,12 +3727,12 @@ func (m *QuizQuestionMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCorrectJpmID(v)
 		return nil
-	case quizquestion.FieldChoicesJpmIds:
-		v, ok := value.([]int)
+	case quizquestion.FieldChoicesJpms:
+		v, ok := value.([]models.ChoiceJpm)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetChoicesJpmIds(v)
+		m.SetChoicesJpms(v)
 		return nil
 	case quizquestion.FieldAnswerJpmID:
 		v, ok := value.(int)
@@ -3506,6 +3787,9 @@ func (m *QuizQuestionMutation) AddedFields() []string {
 	if m.addquestion_number != nil {
 		fields = append(fields, quizquestion.FieldQuestionNumber)
 	}
+	if m.addpos_id != nil {
+		fields = append(fields, quizquestion.FieldPosID)
+	}
 	if m.addanswer_jpm_id != nil {
 		fields = append(fields, quizquestion.FieldAnswerJpmID)
 	}
@@ -3522,6 +3806,8 @@ func (m *QuizQuestionMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case quizquestion.FieldQuestionNumber:
 		return m.AddedQuestionNumber()
+	case quizquestion.FieldPosID:
+		return m.AddedPosID()
 	case quizquestion.FieldAnswerJpmID:
 		return m.AddedAnswerJpmID()
 	case quizquestion.FieldTimeMs:
@@ -3541,6 +3827,13 @@ func (m *QuizQuestionMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddQuestionNumber(v)
+		return nil
+	case quizquestion.FieldPosID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPosID(v)
 		return nil
 	case quizquestion.FieldAnswerJpmID:
 		v, ok := value.(int)
@@ -3592,11 +3885,17 @@ func (m *QuizQuestionMutation) ResetField(name string) error {
 	case quizquestion.FieldWordID:
 		m.ResetWordID()
 		return nil
+	case quizquestion.FieldWordName:
+		m.ResetWordName()
+		return nil
+	case quizquestion.FieldPosID:
+		m.ResetPosID()
+		return nil
 	case quizquestion.FieldCorrectJpmID:
 		m.ResetCorrectJpmID()
 		return nil
-	case quizquestion.FieldChoicesJpmIds:
-		m.ResetChoicesJpmIds()
+	case quizquestion.FieldChoicesJpms:
+		m.ResetChoicesJpms()
 		return nil
 	case quizquestion.FieldAnswerJpmID:
 		m.ResetAnswerJpmID()
@@ -5842,45 +6141,6 @@ func (m *UserMutation) ResetUserConfig() {
 	m.cleareduser_config = false
 }
 
-// SetUserConfigID sets the "user_config" edge to the UserConfig entity by id.
-func (m *UserMutation) SetUserConfigID(id int) {
-	m.user_config = &id
-}
-
-// ClearUserConfig clears the "user_config" edge to the UserConfig entity.
-func (m *UserMutation) ClearUserConfig() {
-	m.cleareduser_config = true
-}
-
-// UserConfigCleared reports if the "user_config" edge to the UserConfig entity was cleared.
-func (m *UserMutation) UserConfigCleared() bool {
-	return m.cleareduser_config
-}
-
-// UserConfigID returns the "user_config" edge ID in the mutation.
-func (m *UserMutation) UserConfigID() (id int, exists bool) {
-	if m.user_config != nil {
-		return *m.user_config, true
-	}
-	return
-}
-
-// UserConfigIDs returns the "user_config" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// UserConfigID instead. It exists only for internal usage by the builders.
-func (m *UserMutation) UserConfigIDs() (ids []int) {
-	if id := m.user_config; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetUserConfig resets all changes to the "user_config" edge.
-func (m *UserMutation) ResetUserConfig() {
-	m.user_config = nil
-	m.cleareduser_config = false
-}
-
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -6126,9 +6386,6 @@ func (m *UserMutation) AddedEdges() []string {
 	if m.user_config != nil {
 		edges = append(edges, user.EdgeUserConfig)
 	}
-	if m.user_config != nil {
-		edges = append(edges, user.EdgeUserConfig)
-	}
 	return edges
 }
 
@@ -6200,9 +6457,6 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.cleareduser_config {
 		edges = append(edges, user.EdgeUserConfig)
 	}
-	if m.cleareduser_config {
-		edges = append(edges, user.EdgeUserConfig)
-	}
 	return edges
 }
 
@@ -6240,9 +6494,6 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeQuizs:
 		m.ResetQuizs()
-		return nil
-	case user.EdgeUserConfig:
-		m.ResetUserConfig()
 		return nil
 	case user.EdgeUserConfig:
 		m.ResetUserConfig()

@@ -78,7 +78,9 @@ func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
 		protectedRoutes.POST("/words/bulk_tokenize", r.WordHandler.BulkTokenizeHandler())
 		protectedRoutes.POST("/words/bulk_register", r.WordHandler.BulkRegisterHandler())
 
-		protectedRoutes.POST("/quiz/new", r.QuizHandler.CreateQuizHandler())
+		protectedRoutes.POST("/quizzes/new", r.QuizHandler.CreateQuizHandler())
+		protectedRoutes.POST("/quizzes/:id/answers", r.QuizHandler.PostAnswerAndRouteHandler())
+		protectedRoutes.GET("/quizzes", r.QuizHandler.GetQuizHandler())
 	}
 }
 

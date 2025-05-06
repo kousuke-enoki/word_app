@@ -11,6 +11,7 @@ import (
 	"word_app/backend/ent/quiz"
 	"word_app/backend/ent/quizquestion"
 	"word_app/backend/ent/word"
+	"word_app/backend/src/models"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -27,11 +28,15 @@ type QuizQuestion struct {
 	QuestionNumber int `json:"question_number,omitempty"`
 	// WordID holds the value of the "word_id" field.
 	WordID int `json:"word_id,omitempty"`
-	// CorrectJpmID holds the value of the "correct_jpm_id" field.
+	// WordName holds the value of the "wordName" field.
+	WordName string `json:"wordName,omitempty"`
+	// PosID holds the value of the "pos_id" field.
+	PosID int `json:"pos_id,omitempty"`
+	// correct japanese mean id
 	CorrectJpmID int `json:"correct_jpm_id,omitempty"`
-	// ChoicesJpmIds holds the value of the "choices_jpm_ids" field.
-	ChoicesJpmIds []int `json:"choices_jpm_ids,omitempty"`
-	// AnswerJpmID holds the value of the "answer_jpm_id" field.
+	// 4 つの選択肢 (正解 + 誤答)
+	ChoicesJpms []models.ChoiceJpm `json:"choices_jpms,omitempty"`
+	// answered japanese mean ids
 	AnswerJpmID *int `json:"answer_jpm_id,omitempty"`
 	// IsCorrect holds the value of the "is_correct" field.
 	IsCorrect *bool `json:"is_correct,omitempty"`
@@ -101,12 +106,14 @@ func (*QuizQuestion) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case quizquestion.FieldChoicesJpmIds:
+		case quizquestion.FieldChoicesJpms:
 			values[i] = new([]byte)
 		case quizquestion.FieldIsCorrect:
 			values[i] = new(sql.NullBool)
-		case quizquestion.FieldID, quizquestion.FieldQuizID, quizquestion.FieldQuestionNumber, quizquestion.FieldWordID, quizquestion.FieldCorrectJpmID, quizquestion.FieldAnswerJpmID, quizquestion.FieldTimeMs:
+		case quizquestion.FieldID, quizquestion.FieldQuizID, quizquestion.FieldQuestionNumber, quizquestion.FieldWordID, quizquestion.FieldPosID, quizquestion.FieldCorrectJpmID, quizquestion.FieldAnswerJpmID, quizquestion.FieldTimeMs:
 			values[i] = new(sql.NullInt64)
+		case quizquestion.FieldWordName:
+			values[i] = new(sql.NullString)
 		case quizquestion.FieldAnsweredAt, quizquestion.FieldCreatedAt, quizquestion.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
 		case quizquestion.ForeignKeys[0]: // registered_word_quiz_questions
@@ -150,18 +157,30 @@ func (qq *QuizQuestion) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				qq.WordID = int(value.Int64)
 			}
+		case quizquestion.FieldWordName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field wordName", values[i])
+			} else if value.Valid {
+				qq.WordName = value.String
+			}
+		case quizquestion.FieldPosID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field pos_id", values[i])
+			} else if value.Valid {
+				qq.PosID = int(value.Int64)
+			}
 		case quizquestion.FieldCorrectJpmID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field correct_jpm_id", values[i])
 			} else if value.Valid {
 				qq.CorrectJpmID = int(value.Int64)
 			}
-		case quizquestion.FieldChoicesJpmIds:
+		case quizquestion.FieldChoicesJpms:
 			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field choices_jpm_ids", values[i])
+				return fmt.Errorf("unexpected type %T for field choices_jpms", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &qq.ChoicesJpmIds); err != nil {
-					return fmt.Errorf("unmarshal field choices_jpm_ids: %w", err)
+				if err := json.Unmarshal(*value, &qq.ChoicesJpms); err != nil {
+					return fmt.Errorf("unmarshal field choices_jpms: %w", err)
 				}
 			}
 		case quizquestion.FieldAnswerJpmID:
@@ -271,11 +290,17 @@ func (qq *QuizQuestion) String() string {
 	builder.WriteString("word_id=")
 	builder.WriteString(fmt.Sprintf("%v", qq.WordID))
 	builder.WriteString(", ")
+	builder.WriteString("wordName=")
+	builder.WriteString(qq.WordName)
+	builder.WriteString(", ")
+	builder.WriteString("pos_id=")
+	builder.WriteString(fmt.Sprintf("%v", qq.PosID))
+	builder.WriteString(", ")
 	builder.WriteString("correct_jpm_id=")
 	builder.WriteString(fmt.Sprintf("%v", qq.CorrectJpmID))
 	builder.WriteString(", ")
-	builder.WriteString("choices_jpm_ids=")
-	builder.WriteString(fmt.Sprintf("%v", qq.ChoicesJpmIds))
+	builder.WriteString("choices_jpms=")
+	builder.WriteString(fmt.Sprintf("%v", qq.ChoicesJpms))
 	builder.WriteString(", ")
 	if v := qq.AnswerJpmID; v != nil {
 		builder.WriteString("answer_jpm_id=")

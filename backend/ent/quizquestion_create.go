@@ -11,6 +11,7 @@ import (
 	"word_app/backend/ent/quiz"
 	"word_app/backend/ent/quizquestion"
 	"word_app/backend/ent/word"
+	"word_app/backend/src/models"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -43,15 +44,27 @@ func (qqc *QuizQuestionCreate) SetWordID(i int) *QuizQuestionCreate {
 	return qqc
 }
 
+// SetWordName sets the "wordName" field.
+func (qqc *QuizQuestionCreate) SetWordName(s string) *QuizQuestionCreate {
+	qqc.mutation.SetWordName(s)
+	return qqc
+}
+
+// SetPosID sets the "pos_id" field.
+func (qqc *QuizQuestionCreate) SetPosID(i int) *QuizQuestionCreate {
+	qqc.mutation.SetPosID(i)
+	return qqc
+}
+
 // SetCorrectJpmID sets the "correct_jpm_id" field.
 func (qqc *QuizQuestionCreate) SetCorrectJpmID(i int) *QuizQuestionCreate {
 	qqc.mutation.SetCorrectJpmID(i)
 	return qqc
 }
 
-// SetChoicesJpmIds sets the "choices_jpm_ids" field.
-func (qqc *QuizQuestionCreate) SetChoicesJpmIds(i []int) *QuizQuestionCreate {
-	qqc.mutation.SetChoicesJpmIds(i)
+// SetChoicesJpms sets the "choices_jpms" field.
+func (qqc *QuizQuestionCreate) SetChoicesJpms(mj []models.ChoiceJpm) *QuizQuestionCreate {
+	qqc.mutation.SetChoicesJpms(mj)
 	return qqc
 }
 
@@ -177,11 +190,27 @@ func (qqc *QuizQuestionCreate) check() error {
 			return &ValidationError{Name: "word_id", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.word_id": %w`, err)}
 		}
 	}
+	if _, ok := qqc.mutation.WordName(); !ok {
+		return &ValidationError{Name: "wordName", err: errors.New(`ent: missing required field "QuizQuestion.wordName"`)}
+	}
+	if v, ok := qqc.mutation.WordName(); ok {
+		if err := quizquestion.WordNameValidator(v); err != nil {
+			return &ValidationError{Name: "wordName", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.wordName": %w`, err)}
+		}
+	}
+	if _, ok := qqc.mutation.PosID(); !ok {
+		return &ValidationError{Name: "pos_id", err: errors.New(`ent: missing required field "QuizQuestion.pos_id"`)}
+	}
+	if v, ok := qqc.mutation.PosID(); ok {
+		if err := quizquestion.PosIDValidator(v); err != nil {
+			return &ValidationError{Name: "pos_id", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.pos_id": %w`, err)}
+		}
+	}
 	if _, ok := qqc.mutation.CorrectJpmID(); !ok {
 		return &ValidationError{Name: "correct_jpm_id", err: errors.New(`ent: missing required field "QuizQuestion.correct_jpm_id"`)}
 	}
-	if _, ok := qqc.mutation.ChoicesJpmIds(); !ok {
-		return &ValidationError{Name: "choices_jpm_ids", err: errors.New(`ent: missing required field "QuizQuestion.choices_jpm_ids"`)}
+	if _, ok := qqc.mutation.ChoicesJpms(); !ok {
+		return &ValidationError{Name: "choices_jpms", err: errors.New(`ent: missing required field "QuizQuestion.choices_jpms"`)}
 	}
 	if _, ok := qqc.mutation.AnswerJpmID(); !ok {
 		return &ValidationError{Name: "answer_jpm_id", err: errors.New(`ent: missing required field "QuizQuestion.answer_jpm_id"`)}
@@ -241,9 +270,17 @@ func (qqc *QuizQuestionCreate) createSpec() (*QuizQuestion, *sqlgraph.CreateSpec
 		_spec.SetField(quizquestion.FieldQuestionNumber, field.TypeInt, value)
 		_node.QuestionNumber = value
 	}
-	if value, ok := qqc.mutation.ChoicesJpmIds(); ok {
-		_spec.SetField(quizquestion.FieldChoicesJpmIds, field.TypeJSON, value)
-		_node.ChoicesJpmIds = value
+	if value, ok := qqc.mutation.WordName(); ok {
+		_spec.SetField(quizquestion.FieldWordName, field.TypeString, value)
+		_node.WordName = value
+	}
+	if value, ok := qqc.mutation.PosID(); ok {
+		_spec.SetField(quizquestion.FieldPosID, field.TypeInt, value)
+		_node.PosID = value
+	}
+	if value, ok := qqc.mutation.ChoicesJpms(); ok {
+		_spec.SetField(quizquestion.FieldChoicesJpms, field.TypeJSON, value)
+		_node.ChoicesJpms = value
 	}
 	if value, ok := qqc.mutation.AnswerJpmID(); ok {
 		_spec.SetField(quizquestion.FieldAnswerJpmID, field.TypeInt, value)
@@ -414,6 +451,36 @@ func (u *QuizQuestionUpsert) UpdateWordID() *QuizQuestionUpsert {
 	return u
 }
 
+// SetWordName sets the "wordName" field.
+func (u *QuizQuestionUpsert) SetWordName(v string) *QuizQuestionUpsert {
+	u.Set(quizquestion.FieldWordName, v)
+	return u
+}
+
+// UpdateWordName sets the "wordName" field to the value that was provided on create.
+func (u *QuizQuestionUpsert) UpdateWordName() *QuizQuestionUpsert {
+	u.SetExcluded(quizquestion.FieldWordName)
+	return u
+}
+
+// SetPosID sets the "pos_id" field.
+func (u *QuizQuestionUpsert) SetPosID(v int) *QuizQuestionUpsert {
+	u.Set(quizquestion.FieldPosID, v)
+	return u
+}
+
+// UpdatePosID sets the "pos_id" field to the value that was provided on create.
+func (u *QuizQuestionUpsert) UpdatePosID() *QuizQuestionUpsert {
+	u.SetExcluded(quizquestion.FieldPosID)
+	return u
+}
+
+// AddPosID adds v to the "pos_id" field.
+func (u *QuizQuestionUpsert) AddPosID(v int) *QuizQuestionUpsert {
+	u.Add(quizquestion.FieldPosID, v)
+	return u
+}
+
 // SetCorrectJpmID sets the "correct_jpm_id" field.
 func (u *QuizQuestionUpsert) SetCorrectJpmID(v int) *QuizQuestionUpsert {
 	u.Set(quizquestion.FieldCorrectJpmID, v)
@@ -426,15 +493,15 @@ func (u *QuizQuestionUpsert) UpdateCorrectJpmID() *QuizQuestionUpsert {
 	return u
 }
 
-// SetChoicesJpmIds sets the "choices_jpm_ids" field.
-func (u *QuizQuestionUpsert) SetChoicesJpmIds(v []int) *QuizQuestionUpsert {
-	u.Set(quizquestion.FieldChoicesJpmIds, v)
+// SetChoicesJpms sets the "choices_jpms" field.
+func (u *QuizQuestionUpsert) SetChoicesJpms(v []models.ChoiceJpm) *QuizQuestionUpsert {
+	u.Set(quizquestion.FieldChoicesJpms, v)
 	return u
 }
 
-// UpdateChoicesJpmIds sets the "choices_jpm_ids" field to the value that was provided on create.
-func (u *QuizQuestionUpsert) UpdateChoicesJpmIds() *QuizQuestionUpsert {
-	u.SetExcluded(quizquestion.FieldChoicesJpmIds)
+// UpdateChoicesJpms sets the "choices_jpms" field to the value that was provided on create.
+func (u *QuizQuestionUpsert) UpdateChoicesJpms() *QuizQuestionUpsert {
+	u.SetExcluded(quizquestion.FieldChoicesJpms)
 	return u
 }
 
@@ -611,6 +678,41 @@ func (u *QuizQuestionUpsertOne) UpdateWordID() *QuizQuestionUpsertOne {
 	})
 }
 
+// SetWordName sets the "wordName" field.
+func (u *QuizQuestionUpsertOne) SetWordName(v string) *QuizQuestionUpsertOne {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.SetWordName(v)
+	})
+}
+
+// UpdateWordName sets the "wordName" field to the value that was provided on create.
+func (u *QuizQuestionUpsertOne) UpdateWordName() *QuizQuestionUpsertOne {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.UpdateWordName()
+	})
+}
+
+// SetPosID sets the "pos_id" field.
+func (u *QuizQuestionUpsertOne) SetPosID(v int) *QuizQuestionUpsertOne {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.SetPosID(v)
+	})
+}
+
+// AddPosID adds v to the "pos_id" field.
+func (u *QuizQuestionUpsertOne) AddPosID(v int) *QuizQuestionUpsertOne {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.AddPosID(v)
+	})
+}
+
+// UpdatePosID sets the "pos_id" field to the value that was provided on create.
+func (u *QuizQuestionUpsertOne) UpdatePosID() *QuizQuestionUpsertOne {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.UpdatePosID()
+	})
+}
+
 // SetCorrectJpmID sets the "correct_jpm_id" field.
 func (u *QuizQuestionUpsertOne) SetCorrectJpmID(v int) *QuizQuestionUpsertOne {
 	return u.Update(func(s *QuizQuestionUpsert) {
@@ -625,17 +727,17 @@ func (u *QuizQuestionUpsertOne) UpdateCorrectJpmID() *QuizQuestionUpsertOne {
 	})
 }
 
-// SetChoicesJpmIds sets the "choices_jpm_ids" field.
-func (u *QuizQuestionUpsertOne) SetChoicesJpmIds(v []int) *QuizQuestionUpsertOne {
+// SetChoicesJpms sets the "choices_jpms" field.
+func (u *QuizQuestionUpsertOne) SetChoicesJpms(v []models.ChoiceJpm) *QuizQuestionUpsertOne {
 	return u.Update(func(s *QuizQuestionUpsert) {
-		s.SetChoicesJpmIds(v)
+		s.SetChoicesJpms(v)
 	})
 }
 
-// UpdateChoicesJpmIds sets the "choices_jpm_ids" field to the value that was provided on create.
-func (u *QuizQuestionUpsertOne) UpdateChoicesJpmIds() *QuizQuestionUpsertOne {
+// UpdateChoicesJpms sets the "choices_jpms" field to the value that was provided on create.
+func (u *QuizQuestionUpsertOne) UpdateChoicesJpms() *QuizQuestionUpsertOne {
 	return u.Update(func(s *QuizQuestionUpsert) {
-		s.UpdateChoicesJpmIds()
+		s.UpdateChoicesJpms()
 	})
 }
 
@@ -990,6 +1092,41 @@ func (u *QuizQuestionUpsertBulk) UpdateWordID() *QuizQuestionUpsertBulk {
 	})
 }
 
+// SetWordName sets the "wordName" field.
+func (u *QuizQuestionUpsertBulk) SetWordName(v string) *QuizQuestionUpsertBulk {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.SetWordName(v)
+	})
+}
+
+// UpdateWordName sets the "wordName" field to the value that was provided on create.
+func (u *QuizQuestionUpsertBulk) UpdateWordName() *QuizQuestionUpsertBulk {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.UpdateWordName()
+	})
+}
+
+// SetPosID sets the "pos_id" field.
+func (u *QuizQuestionUpsertBulk) SetPosID(v int) *QuizQuestionUpsertBulk {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.SetPosID(v)
+	})
+}
+
+// AddPosID adds v to the "pos_id" field.
+func (u *QuizQuestionUpsertBulk) AddPosID(v int) *QuizQuestionUpsertBulk {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.AddPosID(v)
+	})
+}
+
+// UpdatePosID sets the "pos_id" field to the value that was provided on create.
+func (u *QuizQuestionUpsertBulk) UpdatePosID() *QuizQuestionUpsertBulk {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.UpdatePosID()
+	})
+}
+
 // SetCorrectJpmID sets the "correct_jpm_id" field.
 func (u *QuizQuestionUpsertBulk) SetCorrectJpmID(v int) *QuizQuestionUpsertBulk {
 	return u.Update(func(s *QuizQuestionUpsert) {
@@ -1004,17 +1141,17 @@ func (u *QuizQuestionUpsertBulk) UpdateCorrectJpmID() *QuizQuestionUpsertBulk {
 	})
 }
 
-// SetChoicesJpmIds sets the "choices_jpm_ids" field.
-func (u *QuizQuestionUpsertBulk) SetChoicesJpmIds(v []int) *QuizQuestionUpsertBulk {
+// SetChoicesJpms sets the "choices_jpms" field.
+func (u *QuizQuestionUpsertBulk) SetChoicesJpms(v []models.ChoiceJpm) *QuizQuestionUpsertBulk {
 	return u.Update(func(s *QuizQuestionUpsert) {
-		s.SetChoicesJpmIds(v)
+		s.SetChoicesJpms(v)
 	})
 }
 
-// UpdateChoicesJpmIds sets the "choices_jpm_ids" field to the value that was provided on create.
-func (u *QuizQuestionUpsertBulk) UpdateChoicesJpmIds() *QuizQuestionUpsertBulk {
+// UpdateChoicesJpms sets the "choices_jpms" field to the value that was provided on create.
+func (u *QuizQuestionUpsertBulk) UpdateChoicesJpms() *QuizQuestionUpsertBulk {
 	return u.Update(func(s *QuizQuestionUpsert) {
-		s.UpdateChoicesJpmIds()
+		s.UpdateChoicesJpms()
 	})
 }
 

@@ -12,6 +12,7 @@ import (
 	"word_app/backend/ent/quiz"
 	"word_app/backend/ent/quizquestion"
 	"word_app/backend/ent/word"
+	"word_app/backend/src/models"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -81,6 +82,41 @@ func (qqu *QuizQuestionUpdate) SetNillableWordID(i *int) *QuizQuestionUpdate {
 	return qqu
 }
 
+// SetWordName sets the "wordName" field.
+func (qqu *QuizQuestionUpdate) SetWordName(s string) *QuizQuestionUpdate {
+	qqu.mutation.SetWordName(s)
+	return qqu
+}
+
+// SetNillableWordName sets the "wordName" field if the given value is not nil.
+func (qqu *QuizQuestionUpdate) SetNillableWordName(s *string) *QuizQuestionUpdate {
+	if s != nil {
+		qqu.SetWordName(*s)
+	}
+	return qqu
+}
+
+// SetPosID sets the "pos_id" field.
+func (qqu *QuizQuestionUpdate) SetPosID(i int) *QuizQuestionUpdate {
+	qqu.mutation.ResetPosID()
+	qqu.mutation.SetPosID(i)
+	return qqu
+}
+
+// SetNillablePosID sets the "pos_id" field if the given value is not nil.
+func (qqu *QuizQuestionUpdate) SetNillablePosID(i *int) *QuizQuestionUpdate {
+	if i != nil {
+		qqu.SetPosID(*i)
+	}
+	return qqu
+}
+
+// AddPosID adds i to the "pos_id" field.
+func (qqu *QuizQuestionUpdate) AddPosID(i int) *QuizQuestionUpdate {
+	qqu.mutation.AddPosID(i)
+	return qqu
+}
+
 // SetCorrectJpmID sets the "correct_jpm_id" field.
 func (qqu *QuizQuestionUpdate) SetCorrectJpmID(i int) *QuizQuestionUpdate {
 	qqu.mutation.SetCorrectJpmID(i)
@@ -95,15 +131,15 @@ func (qqu *QuizQuestionUpdate) SetNillableCorrectJpmID(i *int) *QuizQuestionUpda
 	return qqu
 }
 
-// SetChoicesJpmIds sets the "choices_jpm_ids" field.
-func (qqu *QuizQuestionUpdate) SetChoicesJpmIds(i []int) *QuizQuestionUpdate {
-	qqu.mutation.SetChoicesJpmIds(i)
+// SetChoicesJpms sets the "choices_jpms" field.
+func (qqu *QuizQuestionUpdate) SetChoicesJpms(mj []models.ChoiceJpm) *QuizQuestionUpdate {
+	qqu.mutation.SetChoicesJpms(mj)
 	return qqu
 }
 
-// AppendChoicesJpmIds appends i to the "choices_jpm_ids" field.
-func (qqu *QuizQuestionUpdate) AppendChoicesJpmIds(i []int) *QuizQuestionUpdate {
-	qqu.mutation.AppendChoicesJpmIds(i)
+// AppendChoicesJpms appends mj to the "choices_jpms" field.
+func (qqu *QuizQuestionUpdate) AppendChoicesJpms(mj []models.ChoiceJpm) *QuizQuestionUpdate {
+	qqu.mutation.AppendChoicesJpms(mj)
 	return qqu
 }
 
@@ -283,6 +319,16 @@ func (qqu *QuizQuestionUpdate) check() error {
 			return &ValidationError{Name: "word_id", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.word_id": %w`, err)}
 		}
 	}
+	if v, ok := qqu.mutation.WordName(); ok {
+		if err := quizquestion.WordNameValidator(v); err != nil {
+			return &ValidationError{Name: "wordName", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.wordName": %w`, err)}
+		}
+	}
+	if v, ok := qqu.mutation.PosID(); ok {
+		if err := quizquestion.PosIDValidator(v); err != nil {
+			return &ValidationError{Name: "pos_id", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.pos_id": %w`, err)}
+		}
+	}
 	if qqu.mutation.QuizCleared() && len(qqu.mutation.QuizIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "QuizQuestion.quiz"`)
 	}
@@ -313,12 +359,21 @@ func (qqu *QuizQuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := qqu.mutation.AddedQuestionNumber(); ok {
 		_spec.AddField(quizquestion.FieldQuestionNumber, field.TypeInt, value)
 	}
-	if value, ok := qqu.mutation.ChoicesJpmIds(); ok {
-		_spec.SetField(quizquestion.FieldChoicesJpmIds, field.TypeJSON, value)
+	if value, ok := qqu.mutation.WordName(); ok {
+		_spec.SetField(quizquestion.FieldWordName, field.TypeString, value)
 	}
-	if value, ok := qqu.mutation.AppendedChoicesJpmIds(); ok {
+	if value, ok := qqu.mutation.PosID(); ok {
+		_spec.SetField(quizquestion.FieldPosID, field.TypeInt, value)
+	}
+	if value, ok := qqu.mutation.AddedPosID(); ok {
+		_spec.AddField(quizquestion.FieldPosID, field.TypeInt, value)
+	}
+	if value, ok := qqu.mutation.ChoicesJpms(); ok {
+		_spec.SetField(quizquestion.FieldChoicesJpms, field.TypeJSON, value)
+	}
+	if value, ok := qqu.mutation.AppendedChoicesJpms(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, quizquestion.FieldChoicesJpmIds, value)
+			sqljson.Append(u, quizquestion.FieldChoicesJpms, value)
 		})
 	}
 	if value, ok := qqu.mutation.AnswerJpmID(); ok {
@@ -501,6 +556,41 @@ func (qquo *QuizQuestionUpdateOne) SetNillableWordID(i *int) *QuizQuestionUpdate
 	return qquo
 }
 
+// SetWordName sets the "wordName" field.
+func (qquo *QuizQuestionUpdateOne) SetWordName(s string) *QuizQuestionUpdateOne {
+	qquo.mutation.SetWordName(s)
+	return qquo
+}
+
+// SetNillableWordName sets the "wordName" field if the given value is not nil.
+func (qquo *QuizQuestionUpdateOne) SetNillableWordName(s *string) *QuizQuestionUpdateOne {
+	if s != nil {
+		qquo.SetWordName(*s)
+	}
+	return qquo
+}
+
+// SetPosID sets the "pos_id" field.
+func (qquo *QuizQuestionUpdateOne) SetPosID(i int) *QuizQuestionUpdateOne {
+	qquo.mutation.ResetPosID()
+	qquo.mutation.SetPosID(i)
+	return qquo
+}
+
+// SetNillablePosID sets the "pos_id" field if the given value is not nil.
+func (qquo *QuizQuestionUpdateOne) SetNillablePosID(i *int) *QuizQuestionUpdateOne {
+	if i != nil {
+		qquo.SetPosID(*i)
+	}
+	return qquo
+}
+
+// AddPosID adds i to the "pos_id" field.
+func (qquo *QuizQuestionUpdateOne) AddPosID(i int) *QuizQuestionUpdateOne {
+	qquo.mutation.AddPosID(i)
+	return qquo
+}
+
 // SetCorrectJpmID sets the "correct_jpm_id" field.
 func (qquo *QuizQuestionUpdateOne) SetCorrectJpmID(i int) *QuizQuestionUpdateOne {
 	qquo.mutation.SetCorrectJpmID(i)
@@ -515,15 +605,15 @@ func (qquo *QuizQuestionUpdateOne) SetNillableCorrectJpmID(i *int) *QuizQuestion
 	return qquo
 }
 
-// SetChoicesJpmIds sets the "choices_jpm_ids" field.
-func (qquo *QuizQuestionUpdateOne) SetChoicesJpmIds(i []int) *QuizQuestionUpdateOne {
-	qquo.mutation.SetChoicesJpmIds(i)
+// SetChoicesJpms sets the "choices_jpms" field.
+func (qquo *QuizQuestionUpdateOne) SetChoicesJpms(mj []models.ChoiceJpm) *QuizQuestionUpdateOne {
+	qquo.mutation.SetChoicesJpms(mj)
 	return qquo
 }
 
-// AppendChoicesJpmIds appends i to the "choices_jpm_ids" field.
-func (qquo *QuizQuestionUpdateOne) AppendChoicesJpmIds(i []int) *QuizQuestionUpdateOne {
-	qquo.mutation.AppendChoicesJpmIds(i)
+// AppendChoicesJpms appends mj to the "choices_jpms" field.
+func (qquo *QuizQuestionUpdateOne) AppendChoicesJpms(mj []models.ChoiceJpm) *QuizQuestionUpdateOne {
+	qquo.mutation.AppendChoicesJpms(mj)
 	return qquo
 }
 
@@ -716,6 +806,16 @@ func (qquo *QuizQuestionUpdateOne) check() error {
 			return &ValidationError{Name: "word_id", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.word_id": %w`, err)}
 		}
 	}
+	if v, ok := qquo.mutation.WordName(); ok {
+		if err := quizquestion.WordNameValidator(v); err != nil {
+			return &ValidationError{Name: "wordName", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.wordName": %w`, err)}
+		}
+	}
+	if v, ok := qquo.mutation.PosID(); ok {
+		if err := quizquestion.PosIDValidator(v); err != nil {
+			return &ValidationError{Name: "pos_id", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.pos_id": %w`, err)}
+		}
+	}
 	if qquo.mutation.QuizCleared() && len(qquo.mutation.QuizIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "QuizQuestion.quiz"`)
 	}
@@ -763,12 +863,21 @@ func (qquo *QuizQuestionUpdateOne) sqlSave(ctx context.Context) (_node *QuizQues
 	if value, ok := qquo.mutation.AddedQuestionNumber(); ok {
 		_spec.AddField(quizquestion.FieldQuestionNumber, field.TypeInt, value)
 	}
-	if value, ok := qquo.mutation.ChoicesJpmIds(); ok {
-		_spec.SetField(quizquestion.FieldChoicesJpmIds, field.TypeJSON, value)
+	if value, ok := qquo.mutation.WordName(); ok {
+		_spec.SetField(quizquestion.FieldWordName, field.TypeString, value)
 	}
-	if value, ok := qquo.mutation.AppendedChoicesJpmIds(); ok {
+	if value, ok := qquo.mutation.PosID(); ok {
+		_spec.SetField(quizquestion.FieldPosID, field.TypeInt, value)
+	}
+	if value, ok := qquo.mutation.AddedPosID(); ok {
+		_spec.AddField(quizquestion.FieldPosID, field.TypeInt, value)
+	}
+	if value, ok := qquo.mutation.ChoicesJpms(); ok {
+		_spec.SetField(quizquestion.FieldChoicesJpms, field.TypeJSON, value)
+	}
+	if value, ok := qquo.mutation.AppendedChoicesJpms(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, quizquestion.FieldChoicesJpmIds, value)
+			sqljson.Append(u, quizquestion.FieldChoicesJpms, value)
 		})
 	}
 	if value, ok := qquo.mutation.AnswerJpmID(); ok {

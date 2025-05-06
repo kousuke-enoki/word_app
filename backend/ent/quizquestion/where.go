@@ -70,6 +70,16 @@ func WordID(v int) predicate.QuizQuestion {
 	return predicate.QuizQuestion(sql.FieldEQ(FieldWordID, v))
 }
 
+// WordName applies equality check predicate on the "wordName" field. It's identical to WordNameEQ.
+func WordName(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldWordName, v))
+}
+
+// PosID applies equality check predicate on the "pos_id" field. It's identical to PosIDEQ.
+func PosID(v int) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldPosID, v))
+}
+
 // CorrectJpmID applies equality check predicate on the "correct_jpm_id" field. It's identical to CorrectJpmIDEQ.
 func CorrectJpmID(v int) predicate.QuizQuestion {
 	return predicate.QuizQuestion(sql.FieldEQ(FieldCorrectJpmID, v))
@@ -183,6 +193,111 @@ func WordIDIn(vs ...int) predicate.QuizQuestion {
 // WordIDNotIn applies the NotIn predicate on the "word_id" field.
 func WordIDNotIn(vs ...int) predicate.QuizQuestion {
 	return predicate.QuizQuestion(sql.FieldNotIn(FieldWordID, vs...))
+}
+
+// WordNameEQ applies the EQ predicate on the "wordName" field.
+func WordNameEQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldWordName, v))
+}
+
+// WordNameNEQ applies the NEQ predicate on the "wordName" field.
+func WordNameNEQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNEQ(FieldWordName, v))
+}
+
+// WordNameIn applies the In predicate on the "wordName" field.
+func WordNameIn(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIn(FieldWordName, vs...))
+}
+
+// WordNameNotIn applies the NotIn predicate on the "wordName" field.
+func WordNameNotIn(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotIn(FieldWordName, vs...))
+}
+
+// WordNameGT applies the GT predicate on the "wordName" field.
+func WordNameGT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGT(FieldWordName, v))
+}
+
+// WordNameGTE applies the GTE predicate on the "wordName" field.
+func WordNameGTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGTE(FieldWordName, v))
+}
+
+// WordNameLT applies the LT predicate on the "wordName" field.
+func WordNameLT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLT(FieldWordName, v))
+}
+
+// WordNameLTE applies the LTE predicate on the "wordName" field.
+func WordNameLTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLTE(FieldWordName, v))
+}
+
+// WordNameContains applies the Contains predicate on the "wordName" field.
+func WordNameContains(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContains(FieldWordName, v))
+}
+
+// WordNameHasPrefix applies the HasPrefix predicate on the "wordName" field.
+func WordNameHasPrefix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasPrefix(FieldWordName, v))
+}
+
+// WordNameHasSuffix applies the HasSuffix predicate on the "wordName" field.
+func WordNameHasSuffix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasSuffix(FieldWordName, v))
+}
+
+// WordNameEqualFold applies the EqualFold predicate on the "wordName" field.
+func WordNameEqualFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEqualFold(FieldWordName, v))
+}
+
+// WordNameContainsFold applies the ContainsFold predicate on the "wordName" field.
+func WordNameContainsFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContainsFold(FieldWordName, v))
+}
+
+// PosIDEQ applies the EQ predicate on the "pos_id" field.
+func PosIDEQ(v int) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldPosID, v))
+}
+
+// PosIDNEQ applies the NEQ predicate on the "pos_id" field.
+func PosIDNEQ(v int) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNEQ(FieldPosID, v))
+}
+
+// PosIDIn applies the In predicate on the "pos_id" field.
+func PosIDIn(vs ...int) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIn(FieldPosID, vs...))
+}
+
+// PosIDNotIn applies the NotIn predicate on the "pos_id" field.
+func PosIDNotIn(vs ...int) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotIn(FieldPosID, vs...))
+}
+
+// PosIDGT applies the GT predicate on the "pos_id" field.
+func PosIDGT(v int) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGT(FieldPosID, v))
+}
+
+// PosIDGTE applies the GTE predicate on the "pos_id" field.
+func PosIDGTE(v int) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGTE(FieldPosID, v))
+}
+
+// PosIDLT applies the LT predicate on the "pos_id" field.
+func PosIDLT(v int) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLT(FieldPosID, v))
+}
+
+// PosIDLTE applies the LTE predicate on the "pos_id" field.
+func PosIDLTE(v int) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLTE(FieldPosID, v))
 }
 
 // CorrectJpmIDEQ applies the EQ predicate on the "correct_jpm_id" field.

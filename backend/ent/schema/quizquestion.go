@@ -3,6 +3,8 @@ package schema
 import (
 	"time"
 
+	"word_app/backend/src/models"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -20,10 +22,17 @@ func (QuizQuestion) Fields() []ent.Field {
 		field.Int("question_number"),
 		field.Int("word_id").
 			Positive(),
-		field.Int("correct_jpm_id"),
-		field.JSON("choices_jpm_ids", []int{}),
+		field.String("wordName").
+			NotEmpty(),
+		field.Int("pos_id").
+			Positive(),
+		field.Int("correct_jpm_id").
+			Comment("correct japanese mean id"),
+		field.JSON("choices_jpms", []models.ChoiceJpm{}).
+			Comment("4 つの選択肢 (正解 + 誤答)"),
 		field.Int("answer_jpm_id").
-			Nillable(),
+			Nillable().
+			Comment("answered japanese mean ids"),
 		field.Bool("is_correct").
 			Nillable(),
 		field.Time("answered_at").

@@ -1,13 +1,19 @@
 import React, { useEffect, useRef } from 'react'
 import axiosInstance from '../../axiosConfig'
 
-type QuizStartProps = {
-  settings?: {
-    questionCount: number
-    targetWordTypes: string
-    partsOfSpeeches: number[]
-  }
+interface QuizSettingsType {
+  quizSettingCompleted: boolean;
+  questionCount: number;
+  isSaveResult: boolean;
+  isRegisteredWord: number;
+  correctRate: number;
+  attentionLevelList: number[];
+  partsOfSpeeches: number[];
+  isIdioms: number;
+  isSpecialCharacters: number;
 }
+
+type QuizStartProps = any;
 
 const QuizStart: React.FC<QuizStartProps> = ({ settings }) => {
   const isFetchedRef = useRef(false) // フラグを追跡

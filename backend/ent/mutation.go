@@ -3233,10 +3233,24 @@ func (m *QuizQuestionMutation) AddedAnswerJpmID() (r int, exists bool) {
 	return *v, true
 }
 
+// ClearAnswerJpmID clears the value of the "answer_jpm_id" field.
+func (m *QuizQuestionMutation) ClearAnswerJpmID() {
+	m.answer_jpm_id = nil
+	m.addanswer_jpm_id = nil
+	m.clearedFields[quizquestion.FieldAnswerJpmID] = struct{}{}
+}
+
+// AnswerJpmIDCleared returns if the "answer_jpm_id" field was cleared in this mutation.
+func (m *QuizQuestionMutation) AnswerJpmIDCleared() bool {
+	_, ok := m.clearedFields[quizquestion.FieldAnswerJpmID]
+	return ok
+}
+
 // ResetAnswerJpmID resets all changes to the "answer_jpm_id" field.
 func (m *QuizQuestionMutation) ResetAnswerJpmID() {
 	m.answer_jpm_id = nil
 	m.addanswer_jpm_id = nil
+	delete(m.clearedFields, quizquestion.FieldAnswerJpmID)
 }
 
 // SetIsCorrect sets the "is_correct" field.
@@ -3270,9 +3284,22 @@ func (m *QuizQuestionMutation) OldIsCorrect(ctx context.Context) (v *bool, err e
 	return oldValue.IsCorrect, nil
 }
 
+// ClearIsCorrect clears the value of the "is_correct" field.
+func (m *QuizQuestionMutation) ClearIsCorrect() {
+	m.is_correct = nil
+	m.clearedFields[quizquestion.FieldIsCorrect] = struct{}{}
+}
+
+// IsCorrectCleared returns if the "is_correct" field was cleared in this mutation.
+func (m *QuizQuestionMutation) IsCorrectCleared() bool {
+	_, ok := m.clearedFields[quizquestion.FieldIsCorrect]
+	return ok
+}
+
 // ResetIsCorrect resets all changes to the "is_correct" field.
 func (m *QuizQuestionMutation) ResetIsCorrect() {
 	m.is_correct = nil
+	delete(m.clearedFields, quizquestion.FieldIsCorrect)
 }
 
 // SetAnsweredAt sets the "answered_at" field.
@@ -3306,9 +3333,22 @@ func (m *QuizQuestionMutation) OldAnsweredAt(ctx context.Context) (v *time.Time,
 	return oldValue.AnsweredAt, nil
 }
 
+// ClearAnsweredAt clears the value of the "answered_at" field.
+func (m *QuizQuestionMutation) ClearAnsweredAt() {
+	m.answered_at = nil
+	m.clearedFields[quizquestion.FieldAnsweredAt] = struct{}{}
+}
+
+// AnsweredAtCleared returns if the "answered_at" field was cleared in this mutation.
+func (m *QuizQuestionMutation) AnsweredAtCleared() bool {
+	_, ok := m.clearedFields[quizquestion.FieldAnsweredAt]
+	return ok
+}
+
 // ResetAnsweredAt resets all changes to the "answered_at" field.
 func (m *QuizQuestionMutation) ResetAnsweredAt() {
 	m.answered_at = nil
+	delete(m.clearedFields, quizquestion.FieldAnsweredAt)
 }
 
 // SetTimeMs sets the "time_ms" field.
@@ -3361,10 +3401,24 @@ func (m *QuizQuestionMutation) AddedTimeMs() (r int, exists bool) {
 	return *v, true
 }
 
+// ClearTimeMs clears the value of the "time_ms" field.
+func (m *QuizQuestionMutation) ClearTimeMs() {
+	m.time_ms = nil
+	m.addtime_ms = nil
+	m.clearedFields[quizquestion.FieldTimeMs] = struct{}{}
+}
+
+// TimeMsCleared returns if the "time_ms" field was cleared in this mutation.
+func (m *QuizQuestionMutation) TimeMsCleared() bool {
+	_, ok := m.clearedFields[quizquestion.FieldTimeMs]
+	return ok
+}
+
 // ResetTimeMs resets all changes to the "time_ms" field.
 func (m *QuizQuestionMutation) ResetTimeMs() {
 	m.time_ms = nil
 	m.addtime_ms = nil
+	delete(m.clearedFields, quizquestion.FieldTimeMs)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -3420,7 +3474,7 @@ func (m *QuizQuestionMutation) DeletedAt() (r time.Time, exists bool) {
 // OldDeletedAt returns the old "deleted_at" field's value of the QuizQuestion entity.
 // If the QuizQuestion object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *QuizQuestionMutation) OldDeletedAt(ctx context.Context) (v time.Time, err error) {
+func (m *QuizQuestionMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
 	}
@@ -3434,9 +3488,22 @@ func (m *QuizQuestionMutation) OldDeletedAt(ctx context.Context) (v time.Time, e
 	return oldValue.DeletedAt, nil
 }
 
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *QuizQuestionMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[quizquestion.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *QuizQuestionMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[quizquestion.FieldDeletedAt]
+	return ok
+}
+
 // ResetDeletedAt resets all changes to the "deleted_at" field.
 func (m *QuizQuestionMutation) ResetDeletedAt() {
 	m.deleted_at = nil
+	delete(m.clearedFields, quizquestion.FieldDeletedAt)
 }
 
 // ClearQuiz clears the "quiz" edge to the Quiz entity.
@@ -3856,7 +3923,23 @@ func (m *QuizQuestionMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *QuizQuestionMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(quizquestion.FieldAnswerJpmID) {
+		fields = append(fields, quizquestion.FieldAnswerJpmID)
+	}
+	if m.FieldCleared(quizquestion.FieldIsCorrect) {
+		fields = append(fields, quizquestion.FieldIsCorrect)
+	}
+	if m.FieldCleared(quizquestion.FieldAnsweredAt) {
+		fields = append(fields, quizquestion.FieldAnsweredAt)
+	}
+	if m.FieldCleared(quizquestion.FieldTimeMs) {
+		fields = append(fields, quizquestion.FieldTimeMs)
+	}
+	if m.FieldCleared(quizquestion.FieldDeletedAt) {
+		fields = append(fields, quizquestion.FieldDeletedAt)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -3869,6 +3952,23 @@ func (m *QuizQuestionMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *QuizQuestionMutation) ClearField(name string) error {
+	switch name {
+	case quizquestion.FieldAnswerJpmID:
+		m.ClearAnswerJpmID()
+		return nil
+	case quizquestion.FieldIsCorrect:
+		m.ClearIsCorrect()
+		return nil
+	case quizquestion.FieldAnsweredAt:
+		m.ClearAnsweredAt()
+		return nil
+	case quizquestion.FieldTimeMs:
+		m.ClearTimeMs()
+		return nil
+	case quizquestion.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
 	return fmt.Errorf("unknown QuizQuestion nullable field %s", name)
 }
 

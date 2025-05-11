@@ -74,9 +74,25 @@ func (qqc *QuizQuestionCreate) SetAnswerJpmID(i int) *QuizQuestionCreate {
 	return qqc
 }
 
+// SetNillableAnswerJpmID sets the "answer_jpm_id" field if the given value is not nil.
+func (qqc *QuizQuestionCreate) SetNillableAnswerJpmID(i *int) *QuizQuestionCreate {
+	if i != nil {
+		qqc.SetAnswerJpmID(*i)
+	}
+	return qqc
+}
+
 // SetIsCorrect sets the "is_correct" field.
 func (qqc *QuizQuestionCreate) SetIsCorrect(b bool) *QuizQuestionCreate {
 	qqc.mutation.SetIsCorrect(b)
+	return qqc
+}
+
+// SetNillableIsCorrect sets the "is_correct" field if the given value is not nil.
+func (qqc *QuizQuestionCreate) SetNillableIsCorrect(b *bool) *QuizQuestionCreate {
+	if b != nil {
+		qqc.SetIsCorrect(*b)
+	}
 	return qqc
 }
 
@@ -86,9 +102,25 @@ func (qqc *QuizQuestionCreate) SetAnsweredAt(t time.Time) *QuizQuestionCreate {
 	return qqc
 }
 
+// SetNillableAnsweredAt sets the "answered_at" field if the given value is not nil.
+func (qqc *QuizQuestionCreate) SetNillableAnsweredAt(t *time.Time) *QuizQuestionCreate {
+	if t != nil {
+		qqc.SetAnsweredAt(*t)
+	}
+	return qqc
+}
+
 // SetTimeMs sets the "time_ms" field.
 func (qqc *QuizQuestionCreate) SetTimeMs(i int) *QuizQuestionCreate {
 	qqc.mutation.SetTimeMs(i)
+	return qqc
+}
+
+// SetNillableTimeMs sets the "time_ms" field if the given value is not nil.
+func (qqc *QuizQuestionCreate) SetNillableTimeMs(i *int) *QuizQuestionCreate {
+	if i != nil {
+		qqc.SetTimeMs(*i)
+	}
 	return qqc
 }
 
@@ -109,6 +141,14 @@ func (qqc *QuizQuestionCreate) SetNillableCreatedAt(t *time.Time) *QuizQuestionC
 // SetDeletedAt sets the "deleted_at" field.
 func (qqc *QuizQuestionCreate) SetDeletedAt(t time.Time) *QuizQuestionCreate {
 	qqc.mutation.SetDeletedAt(t)
+	return qqc
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (qqc *QuizQuestionCreate) SetNillableDeletedAt(t *time.Time) *QuizQuestionCreate {
+	if t != nil {
+		qqc.SetDeletedAt(*t)
+	}
 	return qqc
 }
 
@@ -212,23 +252,8 @@ func (qqc *QuizQuestionCreate) check() error {
 	if _, ok := qqc.mutation.ChoicesJpms(); !ok {
 		return &ValidationError{Name: "choices_jpms", err: errors.New(`ent: missing required field "QuizQuestion.choices_jpms"`)}
 	}
-	if _, ok := qqc.mutation.AnswerJpmID(); !ok {
-		return &ValidationError{Name: "answer_jpm_id", err: errors.New(`ent: missing required field "QuizQuestion.answer_jpm_id"`)}
-	}
-	if _, ok := qqc.mutation.IsCorrect(); !ok {
-		return &ValidationError{Name: "is_correct", err: errors.New(`ent: missing required field "QuizQuestion.is_correct"`)}
-	}
-	if _, ok := qqc.mutation.AnsweredAt(); !ok {
-		return &ValidationError{Name: "answered_at", err: errors.New(`ent: missing required field "QuizQuestion.answered_at"`)}
-	}
-	if _, ok := qqc.mutation.TimeMs(); !ok {
-		return &ValidationError{Name: "time_ms", err: errors.New(`ent: missing required field "QuizQuestion.time_ms"`)}
-	}
 	if _, ok := qqc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "QuizQuestion.created_at"`)}
-	}
-	if _, ok := qqc.mutation.DeletedAt(); !ok {
-		return &ValidationError{Name: "deleted_at", err: errors.New(`ent: missing required field "QuizQuestion.deleted_at"`)}
 	}
 	if len(qqc.mutation.QuizIDs()) == 0 {
 		return &ValidationError{Name: "quiz", err: errors.New(`ent: missing required edge "QuizQuestion.quiz"`)}
@@ -304,7 +329,7 @@ func (qqc *QuizQuestionCreate) createSpec() (*QuizQuestion, *sqlgraph.CreateSpec
 	}
 	if value, ok := qqc.mutation.DeletedAt(); ok {
 		_spec.SetField(quizquestion.FieldDeletedAt, field.TypeTime, value)
-		_node.DeletedAt = value
+		_node.DeletedAt = &value
 	}
 	if nodes := qqc.mutation.QuizIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -523,6 +548,12 @@ func (u *QuizQuestionUpsert) AddAnswerJpmID(v int) *QuizQuestionUpsert {
 	return u
 }
 
+// ClearAnswerJpmID clears the value of the "answer_jpm_id" field.
+func (u *QuizQuestionUpsert) ClearAnswerJpmID() *QuizQuestionUpsert {
+	u.SetNull(quizquestion.FieldAnswerJpmID)
+	return u
+}
+
 // SetIsCorrect sets the "is_correct" field.
 func (u *QuizQuestionUpsert) SetIsCorrect(v bool) *QuizQuestionUpsert {
 	u.Set(quizquestion.FieldIsCorrect, v)
@@ -535,6 +566,12 @@ func (u *QuizQuestionUpsert) UpdateIsCorrect() *QuizQuestionUpsert {
 	return u
 }
 
+// ClearIsCorrect clears the value of the "is_correct" field.
+func (u *QuizQuestionUpsert) ClearIsCorrect() *QuizQuestionUpsert {
+	u.SetNull(quizquestion.FieldIsCorrect)
+	return u
+}
+
 // SetAnsweredAt sets the "answered_at" field.
 func (u *QuizQuestionUpsert) SetAnsweredAt(v time.Time) *QuizQuestionUpsert {
 	u.Set(quizquestion.FieldAnsweredAt, v)
@@ -544,6 +581,12 @@ func (u *QuizQuestionUpsert) SetAnsweredAt(v time.Time) *QuizQuestionUpsert {
 // UpdateAnsweredAt sets the "answered_at" field to the value that was provided on create.
 func (u *QuizQuestionUpsert) UpdateAnsweredAt() *QuizQuestionUpsert {
 	u.SetExcluded(quizquestion.FieldAnsweredAt)
+	return u
+}
+
+// ClearAnsweredAt clears the value of the "answered_at" field.
+func (u *QuizQuestionUpsert) ClearAnsweredAt() *QuizQuestionUpsert {
+	u.SetNull(quizquestion.FieldAnsweredAt)
 	return u
 }
 
@@ -562,6 +605,12 @@ func (u *QuizQuestionUpsert) UpdateTimeMs() *QuizQuestionUpsert {
 // AddTimeMs adds v to the "time_ms" field.
 func (u *QuizQuestionUpsert) AddTimeMs(v int) *QuizQuestionUpsert {
 	u.Add(quizquestion.FieldTimeMs, v)
+	return u
+}
+
+// ClearTimeMs clears the value of the "time_ms" field.
+func (u *QuizQuestionUpsert) ClearTimeMs() *QuizQuestionUpsert {
+	u.SetNull(quizquestion.FieldTimeMs)
 	return u
 }
 
@@ -586,6 +635,12 @@ func (u *QuizQuestionUpsert) SetDeletedAt(v time.Time) *QuizQuestionUpsert {
 // UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
 func (u *QuizQuestionUpsert) UpdateDeletedAt() *QuizQuestionUpsert {
 	u.SetExcluded(quizquestion.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *QuizQuestionUpsert) ClearDeletedAt() *QuizQuestionUpsert {
+	u.SetNull(quizquestion.FieldDeletedAt)
 	return u
 }
 
@@ -762,6 +817,13 @@ func (u *QuizQuestionUpsertOne) UpdateAnswerJpmID() *QuizQuestionUpsertOne {
 	})
 }
 
+// ClearAnswerJpmID clears the value of the "answer_jpm_id" field.
+func (u *QuizQuestionUpsertOne) ClearAnswerJpmID() *QuizQuestionUpsertOne {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.ClearAnswerJpmID()
+	})
+}
+
 // SetIsCorrect sets the "is_correct" field.
 func (u *QuizQuestionUpsertOne) SetIsCorrect(v bool) *QuizQuestionUpsertOne {
 	return u.Update(func(s *QuizQuestionUpsert) {
@@ -776,6 +838,13 @@ func (u *QuizQuestionUpsertOne) UpdateIsCorrect() *QuizQuestionUpsertOne {
 	})
 }
 
+// ClearIsCorrect clears the value of the "is_correct" field.
+func (u *QuizQuestionUpsertOne) ClearIsCorrect() *QuizQuestionUpsertOne {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.ClearIsCorrect()
+	})
+}
+
 // SetAnsweredAt sets the "answered_at" field.
 func (u *QuizQuestionUpsertOne) SetAnsweredAt(v time.Time) *QuizQuestionUpsertOne {
 	return u.Update(func(s *QuizQuestionUpsert) {
@@ -787,6 +856,13 @@ func (u *QuizQuestionUpsertOne) SetAnsweredAt(v time.Time) *QuizQuestionUpsertOn
 func (u *QuizQuestionUpsertOne) UpdateAnsweredAt() *QuizQuestionUpsertOne {
 	return u.Update(func(s *QuizQuestionUpsert) {
 		s.UpdateAnsweredAt()
+	})
+}
+
+// ClearAnsweredAt clears the value of the "answered_at" field.
+func (u *QuizQuestionUpsertOne) ClearAnsweredAt() *QuizQuestionUpsertOne {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.ClearAnsweredAt()
 	})
 }
 
@@ -808,6 +884,13 @@ func (u *QuizQuestionUpsertOne) AddTimeMs(v int) *QuizQuestionUpsertOne {
 func (u *QuizQuestionUpsertOne) UpdateTimeMs() *QuizQuestionUpsertOne {
 	return u.Update(func(s *QuizQuestionUpsert) {
 		s.UpdateTimeMs()
+	})
+}
+
+// ClearTimeMs clears the value of the "time_ms" field.
+func (u *QuizQuestionUpsertOne) ClearTimeMs() *QuizQuestionUpsertOne {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.ClearTimeMs()
 	})
 }
 
@@ -836,6 +919,13 @@ func (u *QuizQuestionUpsertOne) SetDeletedAt(v time.Time) *QuizQuestionUpsertOne
 func (u *QuizQuestionUpsertOne) UpdateDeletedAt() *QuizQuestionUpsertOne {
 	return u.Update(func(s *QuizQuestionUpsert) {
 		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *QuizQuestionUpsertOne) ClearDeletedAt() *QuizQuestionUpsertOne {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.ClearDeletedAt()
 	})
 }
 
@@ -1176,6 +1266,13 @@ func (u *QuizQuestionUpsertBulk) UpdateAnswerJpmID() *QuizQuestionUpsertBulk {
 	})
 }
 
+// ClearAnswerJpmID clears the value of the "answer_jpm_id" field.
+func (u *QuizQuestionUpsertBulk) ClearAnswerJpmID() *QuizQuestionUpsertBulk {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.ClearAnswerJpmID()
+	})
+}
+
 // SetIsCorrect sets the "is_correct" field.
 func (u *QuizQuestionUpsertBulk) SetIsCorrect(v bool) *QuizQuestionUpsertBulk {
 	return u.Update(func(s *QuizQuestionUpsert) {
@@ -1190,6 +1287,13 @@ func (u *QuizQuestionUpsertBulk) UpdateIsCorrect() *QuizQuestionUpsertBulk {
 	})
 }
 
+// ClearIsCorrect clears the value of the "is_correct" field.
+func (u *QuizQuestionUpsertBulk) ClearIsCorrect() *QuizQuestionUpsertBulk {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.ClearIsCorrect()
+	})
+}
+
 // SetAnsweredAt sets the "answered_at" field.
 func (u *QuizQuestionUpsertBulk) SetAnsweredAt(v time.Time) *QuizQuestionUpsertBulk {
 	return u.Update(func(s *QuizQuestionUpsert) {
@@ -1201,6 +1305,13 @@ func (u *QuizQuestionUpsertBulk) SetAnsweredAt(v time.Time) *QuizQuestionUpsertB
 func (u *QuizQuestionUpsertBulk) UpdateAnsweredAt() *QuizQuestionUpsertBulk {
 	return u.Update(func(s *QuizQuestionUpsert) {
 		s.UpdateAnsweredAt()
+	})
+}
+
+// ClearAnsweredAt clears the value of the "answered_at" field.
+func (u *QuizQuestionUpsertBulk) ClearAnsweredAt() *QuizQuestionUpsertBulk {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.ClearAnsweredAt()
 	})
 }
 
@@ -1222,6 +1333,13 @@ func (u *QuizQuestionUpsertBulk) AddTimeMs(v int) *QuizQuestionUpsertBulk {
 func (u *QuizQuestionUpsertBulk) UpdateTimeMs() *QuizQuestionUpsertBulk {
 	return u.Update(func(s *QuizQuestionUpsert) {
 		s.UpdateTimeMs()
+	})
+}
+
+// ClearTimeMs clears the value of the "time_ms" field.
+func (u *QuizQuestionUpsertBulk) ClearTimeMs() *QuizQuestionUpsertBulk {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.ClearTimeMs()
 	})
 }
 
@@ -1250,6 +1368,13 @@ func (u *QuizQuestionUpsertBulk) SetDeletedAt(v time.Time) *QuizQuestionUpsertBu
 func (u *QuizQuestionUpsertBulk) UpdateDeletedAt() *QuizQuestionUpsertBulk {
 	return u.Update(func(s *QuizQuestionUpsert) {
 		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *QuizQuestionUpsertBulk) ClearDeletedAt() *QuizQuestionUpsertBulk {
+	return u.Update(func(s *QuizQuestionUpsert) {
+		s.ClearDeletedAt()
 	})
 }
 

@@ -31,18 +31,23 @@ func (QuizQuestion) Fields() []ent.Field {
 		field.JSON("choices_jpms", []models.ChoiceJpm{}).
 			Comment("4 つの選択肢 (正解 + 誤答)"),
 		field.Int("answer_jpm_id").
+			Optional().
 			Nillable().
 			Comment("answered japanese mean ids"),
 		field.Bool("is_correct").
+			Optional().
 			Nillable(),
 		field.Time("answered_at").
+			Optional().
 			Nillable(),
 		field.Int("time_ms").
+			Optional().
 			Nillable(),
 		field.Time("created_at").
 			Default(time.Now),
 		field.Time("deleted_at").
-			Default(nil),
+			Optional().
+			Nillable(),
 	}
 }
 

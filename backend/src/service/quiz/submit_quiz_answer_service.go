@@ -8,6 +8,8 @@ import (
 	"word_app/backend/ent/quiz"
 	"word_app/backend/ent/quizquestion"
 	"word_app/backend/src/models"
+
+	"github.com/sirupsen/logrus"
 )
 
 // SubmitAnswerAndRoute = 回答を保存し、次の分岐を判断
@@ -16,13 +18,18 @@ func (s *QuizServiceImpl) SubmitAnswerAndRoute(
 	userID int,
 	in *models.PostAnswerQuestionRequest,
 ) (*models.AnswerRouteRes, error) {
-
+	logrus.Info("submitservice")
+	logrus.Info(userID)
+	logrus.Info(in)
 	tx, err := s.client.Tx(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer finishTx(&err, tx)
-
+	logrus.Info("1")
+	logrus.Info(in.QuizID)
+	logrus.Info(in.QuestionNumber)
+	logrus.Info(quiz.UserID(userID))
 	// ① 該当問題を取得
 	qq, err := tx.QuizQuestion.
 		Query().
@@ -36,10 +43,14 @@ func (s *QuizServiceImpl) SubmitAnswerAndRoute(
 	if err != nil {
 		return nil, err
 	}
+	logrus.Info(qq)
 
 	isCorrect := qq.CorrectJpmID == in.AnswerJpmID
 	elapsedMs := int(time.Since(qq.CreatedAt).Milliseconds())
 
+	logrus.Info(isCorrect)
+	logrus.Info(in.AnswerJpmID)
+	logrus.Info("2")
 	// ② 回答を保存
 	if _, err = tx.QuizQuestion.
 		UpdateOne(qq).
@@ -51,6 +62,7 @@ func (s *QuizServiceImpl) SubmitAnswerAndRoute(
 		return nil, err
 	}
 
+	logrus.Info("3")
 	// ③ 次問題があるか？
 	nextQQ, err := tx.QuizQuestion.
 		Query().
@@ -59,9 +71,11 @@ func (s *QuizServiceImpl) SubmitAnswerAndRoute(
 			quizquestion.QuestionNumber(in.QuestionNumber+1),
 		).
 		Only(ctx)
-
+	logrus.Info(nextQQ)
+	logrus.Info(err)
 	switch {
 	case err == nil: // ------ 次の問題あり ------
+		logrus.Info("next question")
 		return &models.AnswerRouteRes{
 			IsFinish: false,
 			NextQuestion: models.NextQuestion{
@@ -73,8 +87,9 @@ func (s *QuizServiceImpl) SubmitAnswerAndRoute(
 		}, nil
 
 	case ent.IsNotFound(err): // ------ これが最終 ------
+		logrus.Info("finish question")
 		// FinishQuiz を呼び出して結果 DTO を構築
-		result, err2 := s.finishQuizTx(ctx, tx, qq.Edges.Quiz)
+		result, err2 := s.finishQuizTx(ctx, tx, qq.Edges.Quiz, userID)
 		if err2 != nil {
 			return nil, err2
 		}

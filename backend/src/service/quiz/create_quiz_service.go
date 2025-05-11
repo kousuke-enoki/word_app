@@ -265,6 +265,7 @@ func (s *QuizServiceImpl) CreateQuiz(
 		}
 
 		firstQuizQuestions = models.NextQuestion{
+			QuizID:         quiz.ID,
 			QuestionNumber: 1,
 			WordName:       word.Name,
 			ChoicesJpms:    choicesJpms,

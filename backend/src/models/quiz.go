@@ -35,7 +35,7 @@ type PostAnswerQuestionRequest struct {
 // }
 
 type GetQuizRequest struct {
-	QuizID               *int `json:"quizId,omitempty" form:"quizId"`
+	QuizID               *int `json:"quizID,omitempty" form:"quizID"`
 	BeforeQuestionNumber *int `json:"questionNumber,omitempty" form:"questionNumber"`
 }
 
@@ -53,7 +53,7 @@ type AnswerRouteRes struct {
 }
 
 type NextQuestion struct {
-	QuizID         int         `json:"quizId"`
+	QuizID         int         `json:"quizID"`
 	QuestionNumber int         `json:"questionNumber"`
 	WordName       string      `json:"wordName"`
 	ChoicesJpms    []ChoiceJpm `json:"choicesJpms"`
@@ -69,19 +69,27 @@ type Result struct {
 	TotalQuestionsCount int              `json:"totalQuestionsCount"`
 	CorrectCount        int              `json:"correctCount"`
 	ResultCorrectRate   float64          `json:"resultCorrectRate"`
-	ResultSetting       ResultSetting    `json:"ResultSetting"`
+	ResultSetting       ResultSetting    `json:"resultSetting"`
 	ResultQuestions     []ResultQuestion `json:"resultQuestions"`
 }
 
 type ResultQuestion struct {
-	QuestionNumber int         `json:"questionNumber"`
-	WordName       string      `json:"wordName"`
-	PosID          int         `json:"posID"`
-	CorrectJpmId   int         `json:"correctJpmId"`
-	ChoicesJpms    []ChoiceJpm `json:"choicesJpms"`
-	AnswerJpmId    int         `json:"answerJpmId"`
-	IsCorrect      bool        `json:"isCorrect"`
-	TimeMs         int         `json:"timeMs"`
+	QuestionNumber int            `json:"questionNumber"`
+	WordName       string         `json:"wordName"`
+	PosID          int            `json:"posID"`
+	CorrectJpmId   int            `json:"correctJpmId"`
+	ChoicesJpms    []ChoiceJpm    `json:"choicesJpms"`
+	AnswerJpmId    int            `json:"answerJpmId"`
+	IsCorrect      bool           `json:"isCorrect"`
+	TimeMs         int            `json:"timeMs"`
+	ResisteredWord ResisteredWord `json:"resisteredWord"`
+}
+
+type ResisteredWord struct {
+	IsRegistered   bool `json:"isRegistered"`
+	AttentionLevel int  `json:"attentionLevel"`
+	QuizCount      int  `json:"quizCount"`
+	CorrectCount   int  `json:"correctCount"`
 }
 
 type ResultSetting struct {

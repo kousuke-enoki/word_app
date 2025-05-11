@@ -360,6 +360,16 @@ func AnswerJpmIDLTE(v int) predicate.QuizQuestion {
 	return predicate.QuizQuestion(sql.FieldLTE(FieldAnswerJpmID, v))
 }
 
+// AnswerJpmIDIsNil applies the IsNil predicate on the "answer_jpm_id" field.
+func AnswerJpmIDIsNil() predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIsNull(FieldAnswerJpmID))
+}
+
+// AnswerJpmIDNotNil applies the NotNil predicate on the "answer_jpm_id" field.
+func AnswerJpmIDNotNil() predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotNull(FieldAnswerJpmID))
+}
+
 // IsCorrectEQ applies the EQ predicate on the "is_correct" field.
 func IsCorrectEQ(v bool) predicate.QuizQuestion {
 	return predicate.QuizQuestion(sql.FieldEQ(FieldIsCorrect, v))
@@ -368,6 +378,16 @@ func IsCorrectEQ(v bool) predicate.QuizQuestion {
 // IsCorrectNEQ applies the NEQ predicate on the "is_correct" field.
 func IsCorrectNEQ(v bool) predicate.QuizQuestion {
 	return predicate.QuizQuestion(sql.FieldNEQ(FieldIsCorrect, v))
+}
+
+// IsCorrectIsNil applies the IsNil predicate on the "is_correct" field.
+func IsCorrectIsNil() predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIsNull(FieldIsCorrect))
+}
+
+// IsCorrectNotNil applies the NotNil predicate on the "is_correct" field.
+func IsCorrectNotNil() predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotNull(FieldIsCorrect))
 }
 
 // AnsweredAtEQ applies the EQ predicate on the "answered_at" field.
@@ -410,6 +430,16 @@ func AnsweredAtLTE(v time.Time) predicate.QuizQuestion {
 	return predicate.QuizQuestion(sql.FieldLTE(FieldAnsweredAt, v))
 }
 
+// AnsweredAtIsNil applies the IsNil predicate on the "answered_at" field.
+func AnsweredAtIsNil() predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIsNull(FieldAnsweredAt))
+}
+
+// AnsweredAtNotNil applies the NotNil predicate on the "answered_at" field.
+func AnsweredAtNotNil() predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotNull(FieldAnsweredAt))
+}
+
 // TimeMsEQ applies the EQ predicate on the "time_ms" field.
 func TimeMsEQ(v int) predicate.QuizQuestion {
 	return predicate.QuizQuestion(sql.FieldEQ(FieldTimeMs, v))
@@ -448,6 +478,16 @@ func TimeMsLT(v int) predicate.QuizQuestion {
 // TimeMsLTE applies the LTE predicate on the "time_ms" field.
 func TimeMsLTE(v int) predicate.QuizQuestion {
 	return predicate.QuizQuestion(sql.FieldLTE(FieldTimeMs, v))
+}
+
+// TimeMsIsNil applies the IsNil predicate on the "time_ms" field.
+func TimeMsIsNil() predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIsNull(FieldTimeMs))
+}
+
+// TimeMsNotNil applies the NotNil predicate on the "time_ms" field.
+func TimeMsNotNil() predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotNull(FieldTimeMs))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -528,6 +568,16 @@ func DeletedAtLT(v time.Time) predicate.QuizQuestion {
 // DeletedAtLTE applies the LTE predicate on the "deleted_at" field.
 func DeletedAtLTE(v time.Time) predicate.QuizQuestion {
 	return predicate.QuizQuestion(sql.FieldLTE(FieldDeletedAt, v))
+}
+
+// DeletedAtIsNil applies the IsNil predicate on the "deleted_at" field.
+func DeletedAtIsNil() predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIsNull(FieldDeletedAt))
+}
+
+// DeletedAtNotNil applies the NotNil predicate on the "deleted_at" field.
+func DeletedAtNotNil() predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotNull(FieldDeletedAt))
 }
 
 // HasQuiz applies the HasEdge predicate on the "quiz" edge.

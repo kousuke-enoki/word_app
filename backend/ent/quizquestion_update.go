@@ -164,6 +164,12 @@ func (qqu *QuizQuestionUpdate) AddAnswerJpmID(i int) *QuizQuestionUpdate {
 	return qqu
 }
 
+// ClearAnswerJpmID clears the value of the "answer_jpm_id" field.
+func (qqu *QuizQuestionUpdate) ClearAnswerJpmID() *QuizQuestionUpdate {
+	qqu.mutation.ClearAnswerJpmID()
+	return qqu
+}
+
 // SetIsCorrect sets the "is_correct" field.
 func (qqu *QuizQuestionUpdate) SetIsCorrect(b bool) *QuizQuestionUpdate {
 	qqu.mutation.SetIsCorrect(b)
@@ -178,6 +184,12 @@ func (qqu *QuizQuestionUpdate) SetNillableIsCorrect(b *bool) *QuizQuestionUpdate
 	return qqu
 }
 
+// ClearIsCorrect clears the value of the "is_correct" field.
+func (qqu *QuizQuestionUpdate) ClearIsCorrect() *QuizQuestionUpdate {
+	qqu.mutation.ClearIsCorrect()
+	return qqu
+}
+
 // SetAnsweredAt sets the "answered_at" field.
 func (qqu *QuizQuestionUpdate) SetAnsweredAt(t time.Time) *QuizQuestionUpdate {
 	qqu.mutation.SetAnsweredAt(t)
@@ -189,6 +201,12 @@ func (qqu *QuizQuestionUpdate) SetNillableAnsweredAt(t *time.Time) *QuizQuestion
 	if t != nil {
 		qqu.SetAnsweredAt(*t)
 	}
+	return qqu
+}
+
+// ClearAnsweredAt clears the value of the "answered_at" field.
+func (qqu *QuizQuestionUpdate) ClearAnsweredAt() *QuizQuestionUpdate {
+	qqu.mutation.ClearAnsweredAt()
 	return qqu
 }
 
@@ -210,6 +228,12 @@ func (qqu *QuizQuestionUpdate) SetNillableTimeMs(i *int) *QuizQuestionUpdate {
 // AddTimeMs adds i to the "time_ms" field.
 func (qqu *QuizQuestionUpdate) AddTimeMs(i int) *QuizQuestionUpdate {
 	qqu.mutation.AddTimeMs(i)
+	return qqu
+}
+
+// ClearTimeMs clears the value of the "time_ms" field.
+func (qqu *QuizQuestionUpdate) ClearTimeMs() *QuizQuestionUpdate {
+	qqu.mutation.ClearTimeMs()
 	return qqu
 }
 
@@ -238,6 +262,12 @@ func (qqu *QuizQuestionUpdate) SetNillableDeletedAt(t *time.Time) *QuizQuestionU
 	if t != nil {
 		qqu.SetDeletedAt(*t)
 	}
+	return qqu
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (qqu *QuizQuestionUpdate) ClearDeletedAt() *QuizQuestionUpdate {
+	qqu.mutation.ClearDeletedAt()
 	return qqu
 }
 
@@ -382,11 +412,20 @@ func (qqu *QuizQuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := qqu.mutation.AddedAnswerJpmID(); ok {
 		_spec.AddField(quizquestion.FieldAnswerJpmID, field.TypeInt, value)
 	}
+	if qqu.mutation.AnswerJpmIDCleared() {
+		_spec.ClearField(quizquestion.FieldAnswerJpmID, field.TypeInt)
+	}
 	if value, ok := qqu.mutation.IsCorrect(); ok {
 		_spec.SetField(quizquestion.FieldIsCorrect, field.TypeBool, value)
 	}
+	if qqu.mutation.IsCorrectCleared() {
+		_spec.ClearField(quizquestion.FieldIsCorrect, field.TypeBool)
+	}
 	if value, ok := qqu.mutation.AnsweredAt(); ok {
 		_spec.SetField(quizquestion.FieldAnsweredAt, field.TypeTime, value)
+	}
+	if qqu.mutation.AnsweredAtCleared() {
+		_spec.ClearField(quizquestion.FieldAnsweredAt, field.TypeTime)
 	}
 	if value, ok := qqu.mutation.TimeMs(); ok {
 		_spec.SetField(quizquestion.FieldTimeMs, field.TypeInt, value)
@@ -394,11 +433,17 @@ func (qqu *QuizQuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := qqu.mutation.AddedTimeMs(); ok {
 		_spec.AddField(quizquestion.FieldTimeMs, field.TypeInt, value)
 	}
+	if qqu.mutation.TimeMsCleared() {
+		_spec.ClearField(quizquestion.FieldTimeMs, field.TypeInt)
+	}
 	if value, ok := qqu.mutation.CreatedAt(); ok {
 		_spec.SetField(quizquestion.FieldCreatedAt, field.TypeTime, value)
 	}
 	if value, ok := qqu.mutation.DeletedAt(); ok {
 		_spec.SetField(quizquestion.FieldDeletedAt, field.TypeTime, value)
+	}
+	if qqu.mutation.DeletedAtCleared() {
+		_spec.ClearField(quizquestion.FieldDeletedAt, field.TypeTime)
 	}
 	if qqu.mutation.QuizCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -638,6 +683,12 @@ func (qquo *QuizQuestionUpdateOne) AddAnswerJpmID(i int) *QuizQuestionUpdateOne 
 	return qquo
 }
 
+// ClearAnswerJpmID clears the value of the "answer_jpm_id" field.
+func (qquo *QuizQuestionUpdateOne) ClearAnswerJpmID() *QuizQuestionUpdateOne {
+	qquo.mutation.ClearAnswerJpmID()
+	return qquo
+}
+
 // SetIsCorrect sets the "is_correct" field.
 func (qquo *QuizQuestionUpdateOne) SetIsCorrect(b bool) *QuizQuestionUpdateOne {
 	qquo.mutation.SetIsCorrect(b)
@@ -652,6 +703,12 @@ func (qquo *QuizQuestionUpdateOne) SetNillableIsCorrect(b *bool) *QuizQuestionUp
 	return qquo
 }
 
+// ClearIsCorrect clears the value of the "is_correct" field.
+func (qquo *QuizQuestionUpdateOne) ClearIsCorrect() *QuizQuestionUpdateOne {
+	qquo.mutation.ClearIsCorrect()
+	return qquo
+}
+
 // SetAnsweredAt sets the "answered_at" field.
 func (qquo *QuizQuestionUpdateOne) SetAnsweredAt(t time.Time) *QuizQuestionUpdateOne {
 	qquo.mutation.SetAnsweredAt(t)
@@ -663,6 +720,12 @@ func (qquo *QuizQuestionUpdateOne) SetNillableAnsweredAt(t *time.Time) *QuizQues
 	if t != nil {
 		qquo.SetAnsweredAt(*t)
 	}
+	return qquo
+}
+
+// ClearAnsweredAt clears the value of the "answered_at" field.
+func (qquo *QuizQuestionUpdateOne) ClearAnsweredAt() *QuizQuestionUpdateOne {
+	qquo.mutation.ClearAnsweredAt()
 	return qquo
 }
 
@@ -684,6 +747,12 @@ func (qquo *QuizQuestionUpdateOne) SetNillableTimeMs(i *int) *QuizQuestionUpdate
 // AddTimeMs adds i to the "time_ms" field.
 func (qquo *QuizQuestionUpdateOne) AddTimeMs(i int) *QuizQuestionUpdateOne {
 	qquo.mutation.AddTimeMs(i)
+	return qquo
+}
+
+// ClearTimeMs clears the value of the "time_ms" field.
+func (qquo *QuizQuestionUpdateOne) ClearTimeMs() *QuizQuestionUpdateOne {
+	qquo.mutation.ClearTimeMs()
 	return qquo
 }
 
@@ -712,6 +781,12 @@ func (qquo *QuizQuestionUpdateOne) SetNillableDeletedAt(t *time.Time) *QuizQuest
 	if t != nil {
 		qquo.SetDeletedAt(*t)
 	}
+	return qquo
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (qquo *QuizQuestionUpdateOne) ClearDeletedAt() *QuizQuestionUpdateOne {
+	qquo.mutation.ClearDeletedAt()
 	return qquo
 }
 
@@ -886,11 +961,20 @@ func (qquo *QuizQuestionUpdateOne) sqlSave(ctx context.Context) (_node *QuizQues
 	if value, ok := qquo.mutation.AddedAnswerJpmID(); ok {
 		_spec.AddField(quizquestion.FieldAnswerJpmID, field.TypeInt, value)
 	}
+	if qquo.mutation.AnswerJpmIDCleared() {
+		_spec.ClearField(quizquestion.FieldAnswerJpmID, field.TypeInt)
+	}
 	if value, ok := qquo.mutation.IsCorrect(); ok {
 		_spec.SetField(quizquestion.FieldIsCorrect, field.TypeBool, value)
 	}
+	if qquo.mutation.IsCorrectCleared() {
+		_spec.ClearField(quizquestion.FieldIsCorrect, field.TypeBool)
+	}
 	if value, ok := qquo.mutation.AnsweredAt(); ok {
 		_spec.SetField(quizquestion.FieldAnsweredAt, field.TypeTime, value)
+	}
+	if qquo.mutation.AnsweredAtCleared() {
+		_spec.ClearField(quizquestion.FieldAnsweredAt, field.TypeTime)
 	}
 	if value, ok := qquo.mutation.TimeMs(); ok {
 		_spec.SetField(quizquestion.FieldTimeMs, field.TypeInt, value)
@@ -898,11 +982,17 @@ func (qquo *QuizQuestionUpdateOne) sqlSave(ctx context.Context) (_node *QuizQues
 	if value, ok := qquo.mutation.AddedTimeMs(); ok {
 		_spec.AddField(quizquestion.FieldTimeMs, field.TypeInt, value)
 	}
+	if qquo.mutation.TimeMsCleared() {
+		_spec.ClearField(quizquestion.FieldTimeMs, field.TypeInt)
+	}
 	if value, ok := qquo.mutation.CreatedAt(); ok {
 		_spec.SetField(quizquestion.FieldCreatedAt, field.TypeTime, value)
 	}
 	if value, ok := qquo.mutation.DeletedAt(); ok {
 		_spec.SetField(quizquestion.FieldDeletedAt, field.TypeTime, value)
+	}
+	if qquo.mutation.DeletedAtCleared() {
+		_spec.ClearField(quizquestion.FieldDeletedAt, field.TypeTime)
 	}
 	if qquo.mutation.QuizCleared() {
 		edge := &sqlgraph.EdgeSpec{

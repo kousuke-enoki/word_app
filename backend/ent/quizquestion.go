@@ -47,7 +47,7 @@ type QuizQuestion struct {
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// DeletedAt holds the value of the "deleted_at" field.
-	DeletedAt time.Time `json:"deleted_at,omitempty"`
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the QuizQuestionQuery when eager-loading is set.
 	Edges                          QuizQuestionEdges `json:"edges"`
@@ -221,7 +221,8 @@ func (qq *QuizQuestion) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
 			} else if value.Valid {
-				qq.DeletedAt = value.Time
+				qq.DeletedAt = new(time.Time)
+				*qq.DeletedAt = value.Time
 			}
 		case quizquestion.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -325,8 +326,10 @@ func (qq *QuizQuestion) String() string {
 	builder.WriteString("created_at=")
 	builder.WriteString(qq.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("deleted_at=")
-	builder.WriteString(qq.DeletedAt.Format(time.ANSIC))
+	if v := qq.DeletedAt; v != nil {
+		builder.WriteString("deleted_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

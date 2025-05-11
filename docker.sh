@@ -28,7 +28,12 @@ fi
 
 case "$CMD" in
   up)
-    docker compose --env-file "$ENV_FILE" up db backend frontend
+    if [[ "$ENV_NAME" == "dev" ]]; then
+      docker compose --env-file "$ENV_FILE" up db backend frontend
+    else                       # prod
+      docker compose --env-file "$ENV_FILE" \
+        --profile import up -d db backend frontend   # import はプロファイル管理
+    fi
     ;;
 
   up_d)

@@ -79,7 +79,7 @@ func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
 		protectedRoutes.POST("/words/bulk_register", r.WordHandler.BulkRegisterHandler())
 
 		protectedRoutes.POST("/quizzes/new", r.QuizHandler.CreateQuizHandler())
-		protectedRoutes.POST("/quizzes/:id/answers", r.QuizHandler.PostAnswerAndRouteHandler())
+		protectedRoutes.POST("/quizzes/answers/:id", r.QuizHandler.PostAnswerAndRouteHandler())
 		protectedRoutes.GET("/quizzes", r.QuizHandler.GetQuizHandler())
 	}
 }

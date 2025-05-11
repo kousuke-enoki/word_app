@@ -13,7 +13,7 @@ import (
 func (h *QuizHandler) CreateQuizHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
-
+		logrus.Info("createQuiz")
 		// リクエストを解析
 		req, err := h.parseCreateQuizRequest(c)
 		if err != nil {

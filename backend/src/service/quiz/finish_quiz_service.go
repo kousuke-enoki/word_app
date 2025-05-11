@@ -2,10 +2,12 @@ package quiz_service
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"word_app/backend/ent"
 	"word_app/backend/ent/quizquestion"
+	"word_app/backend/ent/registeredword"
 	"word_app/backend/src/models"
 )
 
@@ -13,6 +15,7 @@ func (s *QuizServiceImpl) finishQuizTx(
 	ctx context.Context,
 	tx *ent.Tx,
 	q *ent.Quiz,
+	userID int,
 ) (*models.Result, error) {
 
 	// 集計はメモリ側で
@@ -23,10 +26,70 @@ func (s *QuizServiceImpl) finishQuizTx(
 	)
 
 	for _, x := range qs {
+		var (
+			IsRegistered   bool
+			AttentionLevel int
+			QuizCount      int
+			CorrectCount   int
+			CorrectRate    int
+		)
 		// nil セーフガード
 		isCor := x.IsCorrect != nil && *x.IsCorrect
 		if isCor {
 			correct++
+		}
+
+		// registeredWord 取得、更新
+		rw, err := tx.RegisteredWord.
+			Query().
+			Where(
+				registeredword.WordID(x.WordID),
+				registeredword.UserID(userID),
+			).
+			Only(ctx)
+		if ent.IsNotFound(err) {
+			return nil, nil // 登録が存在しない場合はnilを返す
+		}
+		if err != nil {
+			return nil, errors.New("failed to query RegisteredWord")
+		}
+		if rw == nil {
+			IsRegistered = false
+			AttentionLevel = 1
+			QuizCount = 1
+			if isCor {
+				CorrectCount++
+			}
+			CorrectRate = CorrectCount / QuizCount
+			_, err := s.client.RegisteredWord().
+				Create().
+				SetUserID(userID).
+				SetWordID(x.WordID).
+				SetIsActive(false).
+				SetAttentionLevel(AttentionLevel).
+				SetQuizCount(QuizCount).
+				SetCorrectCount(CorrectCount).
+				SetCorrectRate(CorrectRate).
+				Save(ctx)
+			if err != nil {
+				return nil, errors.New("Failed to create RegisteredWord")
+			}
+		} else {
+			CorrectCount = rw.CorrectCount
+			QuizCount = rw.QuizCount
+			if isCor {
+				CorrectCount++
+			}
+			QuizCount++
+			CorrectRate = CorrectCount / QuizCount
+			_, err := rw.Update().
+				SetQuizCount(QuizCount).
+				SetCorrectCount(CorrectCount).
+				SetCorrectRate(CorrectRate).
+				Save(ctx)
+			if err != nil {
+				return nil, errors.New("Failed to update RegisteredWord")
+			}
 		}
 
 		resQ := models.ResultQuestion{
@@ -38,6 +101,12 @@ func (s *QuizServiceImpl) finishQuizTx(
 			AnswerJpmId:    derefInt(x.AnswerJpmID),
 			IsCorrect:      isCor,
 			TimeMs:         derefInt(x.TimeMs),
+			ResisteredWord: models.ResisteredWord{
+				IsRegistered:   IsRegistered,
+				AttentionLevel: AttentionLevel,
+				QuizCount:      QuizCount,
+				CorrectCount:   CorrectCount,
+			},
 		}
 		resultQuestions = append(resultQuestions, resQ)
 	}

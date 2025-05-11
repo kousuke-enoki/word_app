@@ -7,10 +7,12 @@ import (
 	"word_app/backend/src/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func (h *QuizHandler) GetQuizHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		logrus.Info("getquiz")
 
 		// --- 認証済み userID を取得 ---
 		raw, ok := c.Get("userID")

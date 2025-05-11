@@ -16,7 +16,7 @@ func (s *QuizServiceImpl) GetNextOrResume(
 	userID int,
 	req *models.GetQuizRequest,
 ) (*models.GetQuizResponse, error) {
-
+	logrus.Info("GetNextOrResume")
 	tx, err := s.client.Tx(ctx)
 	if err != nil {
 		defer func() {

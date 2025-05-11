@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
 import { getPartOfSpeech } from '../../service/word/GetPartOfSpeech';
+import { QuizSettingsType } from '../../types/quiz';
 import { MySwitch } from '../myUi/MySwitch';
 import { MyNumberInput } from '../myUi/MyNumberInput';
 import { MySelect } from '../myUi/MySelect';
 import { MyCheckbox } from '../myUi/MyCheckBox';
-interface QuizSettingsType {
-  quizSettingCompleted: boolean;
-  questionCount: number;
-  isSaveResult: boolean;
-  isRegisteredWord: number;
-  correctRate: number;
-  attentionLevelList: number[];
-  partsOfSpeeches: number[];
-  isIdioms: number;
-  isSpecialCharacters: number;
-}
+// interface QuizSettingsType {
+//   quizSettingCompleted: boolean;
+//   questionCount: number;
+//   isSaveResult: boolean;
+//   isRegisteredWords: number;
+//   correctRate: number;
+//   attentionLevelList: number[];
+//   partsOfSpeeches: number[];
+//   isIdioms: number;
+//   isSpecialCharacters: number;
+// }
 
 const targetOptions = [
   { value: 0, label: '全単語' },
@@ -69,9 +70,9 @@ const QuizSettings: React.FC<QuizSettingsProps> = ({
         <label>登録単語:</label>
         <MySelect
           options={targetOptions}
-          value={localSettings.isRegisteredWord}
+          value={localSettings.isRegisteredWords}
           onChange={(v) =>
-            setLocalSettings((p:any) => ({ ...p, isRegisteredWord: v }))
+            setLocalSettings((p:any) => ({ ...p, isRegisteredWords: v }))
           }
         />
       </div>

@@ -13,7 +13,7 @@ import (
 func (h *QuizHandler) PostAnswerAndRouteHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
-
+		logrus.Info("submithandler asdf")
 		// リクエストを解析
 		answerReq, err := h.parsePostAnswerQuizRequest(c)
 		if err != nil {
@@ -36,11 +36,12 @@ func (h *QuizHandler) PostAnswerAndRouteHandler() gin.HandlerFunc {
 			return
 		}
 
+		logrus.Info(answerReq)
 		// サービス層にリクエストを渡して処理
 		response, err := h.quizService.SubmitAnswerAndRoute(ctx, userIDInt, answerReq)
 		if err != nil {
-			logrus.Errorf("Failed to create quiz: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create quiz"})
+			logrus.Errorf("Failed to submit answer: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to submit answer"})
 			return
 		}
 

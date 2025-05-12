@@ -3,6 +3,7 @@ package quiz_service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/rand"
 
 	"word_app/backend/ent"
@@ -50,6 +51,14 @@ func (s *QuizServiceImpl) CreateQuiz(
 	quizCount, err := tx.Quiz.Query().Where(quiz.UserID(userID)).Count(ctx)
 	if err != nil {
 		return nil, err
+	}
+	if exists, _ := tx.Quiz.
+		Query().
+		Where(
+			quiz.UserID(userID),
+			quiz.IsRunning(true),
+		).Exist(ctx); exists {
+		return nil, fmt.Errorf("another quiz is running: userID=%d", userID)
 	}
 
 	quiz, err := tx.Quiz.

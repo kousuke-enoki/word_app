@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../axiosConfig';
 import { QuizQuestion, ChoiceJpm, AnswerRouteRes } from '../../types/quiz';
 
@@ -12,6 +12,12 @@ interface Props {
 const QuizQuestionView: React.FC<Props> = ({ question, onAnswered }) => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [posting, setPosting] = useState(false);
+
+  /* question が変わったら state をリセット */
+  useEffect(() => {
+    setSelectedId(null);
+    setPosting(false);
+  }, [question.quizID, question.questionNumber]);
 
   const handleSubmit = async () => {
     if (selectedId == null) return;
@@ -34,11 +40,15 @@ const QuizQuestionView: React.FC<Props> = ({ question, onAnswered }) => {
       console.error(e);
       alert('回答送信に失敗しました');
       setPosting(false);
+    }  finally {
+      setPosting(false);
     }
   };
 
   /** 2×2 グリッド用に行列化 */
-  const gridChoices = [...question.choicesJpms];
+  const gridChoices = [...question.choicesJpms]
+    .concat(new Array(4).fill({ japaneseMeanID: -1, name: '' }))
+    .slice(0, 4);
   while (gridChoices.length < 4) gridChoices.push({ japaneseMeanID: -1, name: '' });
 
   const renderChoice = (c: ChoiceJpm) => {

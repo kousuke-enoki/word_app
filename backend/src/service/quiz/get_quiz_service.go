@@ -35,18 +35,18 @@ func (s *QuizServiceImpl) GetNextOrResume(
 	}
 	var q *ent.Quiz
 
-	if req.QuizID != nil { // クエリで指定あり
-		q, err = tx.Quiz.
-			Query().
-			Where(quiz.IDEQ(*req.QuizID), quiz.UserID(userID)).
-			Only(ctx)
-	} else {
-		q, err = tx.Quiz.
-			Query().
-			Where(quiz.UserID(userID), quiz.IsRunning(true)).
-			Order(ent.Desc(quiz.FieldID)).
-			First(ctx)
-	}
+	// if req.QuizID != nil { // クエリで指定あり
+	// 	q, err = tx.Quiz.
+	// 		Query().
+	// 		Where(quiz.IDEQ(*req.QuizID), quiz.UserID(userID)).
+	// 		Only(ctx)
+	// } else {
+	q, err = tx.Quiz.
+		Query().
+		Where(quiz.UserID(userID), quiz.IsRunning(true)).
+		Order(ent.Desc(quiz.FieldID)).
+		First(ctx)
+	// }
 	if err != nil {
 		return &models.GetQuizResponse{
 			IsRunningQuiz: false,
@@ -64,7 +64,7 @@ func (s *QuizServiceImpl) GetNextOrResume(
 			Query().
 			Where(
 				quizquestion.QuizIDEQ(q.ID),
-				quizquestion.AnswerJpmID(0),
+				quizquestion.AnswerJpmIDIsNil(),
 			).
 			Order(ent.Asc(quizquestion.FieldQuestionNumber)).
 			First(ctx)

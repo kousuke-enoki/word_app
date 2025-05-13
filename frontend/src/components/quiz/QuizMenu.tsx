@@ -131,6 +131,7 @@ const QuizMenu: React.FC = () => {
 
   const handleAnswerRoute = (res: AnswerRouteRes) => {
     if (res.isFinish == false && res.nextQuestion) {
+      console.log('isfinish')
       console.log(res)
       setQuestion(res.nextQuestion);
     } else if (res.isFinish == true && res.result) {

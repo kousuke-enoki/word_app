@@ -35,6 +35,8 @@ const QuizQuestionView: React.FC<Props> = ({ question, onAnswered }) => {
         `/quizzes/answers/${question.quizID}`,
         payload,
       );
+      console.log("res.data")
+      console.log(res.data)
       onAnswered(res.data);
     } catch (e) {
       console.error(e);

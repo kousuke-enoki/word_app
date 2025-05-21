@@ -1,72 +1,83 @@
 package quiz
 
 import (
-	"context"
-	"errors"
 	"net/http"
-	"word_app/backend/src/models"
+	"word_app/backend/src/converter"
+	"word_app/backend/src/middleware"
+	"word_app/backend/src/validator"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
-func (h *QuizHandler) CreateQuizHandler() gin.HandlerFunc {
+func (h *QuizHandler) CreateQuiz() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ctx := context.Background()
-
-		// リクエストを解析
-		req, err := h.parseCreateQuizRequest(c)
+		userID := middleware.MustUserID(c)      // ①認可
+		dto, err := converter.BindCreateQuiz(c) // ②bind
 		if err != nil {
-			logrus.Errorf("Failed to parse request: %v", err)
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			respond400(c, err)
 			return
 		}
-
-		// // バリデーション
-		// validationErrors := word.ValidateCreateQuizRequest(req)
-		// if len(validationErrors) > 0 {
-		// 	c.JSON(http.StatusBadRequest, gin.H{"errors": validationErrors})
-		// 	return
-		// }
-
-		// サービス層にリクエストを渡して処理
-		response, err := h.quizService.CreateQuiz(ctx, req)
-		if err != nil {
-			logrus.Errorf("Failed to create quiz: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create quiz"})
+		if err := validator.ValidateCreateQuiz(dto); err != nil { // ③validate
+			respond400(c, err)
 			return
 		}
-		logrus.Info(response)
-
-		c.JSON(http.StatusOK, response)
+		out, err := h.quizService.Execute(c.Request.Context(), userID, dto) // ④usecase
+		if err != nil {
+			respond500(c, err)
+			return
+		}
+		c.JSON(http.StatusOK, out) // ⑤response
 	}
 }
 
-// リクエスト構造体を解析
-func (h *QuizHandler) parseCreateQuizRequest(c *gin.Context) (*models.CreateQuizRequest, error) {
-	var req models.CreateQuizRequest
+// func (h *QuizHandler) CreateQuizHandler() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		ctx := context.Background()
+// 		logrus.Info("createQuiz")
+// 		// リクエストを解析
+// 		req, err := h.parseCreateQuizRequest(c)
+// 		if err != nil {
+// 			logrus.Errorf("Failed to parse request: %v", err)
+// 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 			return
+// 		}
 
-	// JSONリクエストをバインド
-	if err := c.ShouldBindJSON(&req); err != nil {
-		logrus.Errorf("Failed to bind JSON: %v", err)
-		return nil, err
-	}
+// 		// ユーザーIDをコンテキストから取得
+// 		userID, exists := c.Get("userID")
+// 		if !exists {
+// 			logrus.Error(errors.New("unauthorized: userID not found in context"))
+// 			return
+// 		}
 
-	// ユーザーIDをコンテキストから取得
-	userID, exists := c.Get("userID")
-	if !exists {
-		return nil, errors.New("unauthorized: userID not found in context")
-	}
+// 		// userIDの型チェック
+// 		userIDInt, ok := userID.(int)
+// 		if !ok {
+// 			logrus.Error(errors.New("invalid userID type"))
+// 			return
+// 		}
 
-	// userIDの型チェック
-	userIDInt, ok := userID.(int)
-	if !ok {
-		return nil, errors.New("invalid userID type")
-	}
+// 		// サービス層にリクエストを渡して処理
+// 		response, err := h.quizService.CreateQuiz(ctx, userIDInt, req)
+// 		if err != nil {
+// 			logrus.Errorf("Failed to create quiz: %v", err)
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create quiz"})
+// 			return
+// 		}
+// 		logrus.Info(response)
 
-	// コンテキストから取得したuserIDをリクエストに設定
-	req.UserID = userIDInt
-	logrus.Infof("Final parsed request with userID: %+v", req)
+// 		c.JSON(http.StatusOK, response)
+// 	}
+// }
 
-	return &req, nil
-}
+// // リクエスト構造体を解析
+// func (h *QuizHandler) parseCreateQuizRequest(c *gin.Context) (*models.CreateQuizReq, error) {
+// 	var req models.CreateQuizReq
+
+// 	// JSONリクエストをバインド
+// 	if err := c.ShouldBindJSON(&req); err != nil {
+// 		logrus.Errorf("Failed to bind JSON: %v", err)
+// 		return nil, err
+// 	}
+
+// 	return &req, nil
+// }

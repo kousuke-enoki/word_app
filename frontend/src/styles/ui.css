@@ -1,0 +1,148 @@
+.ui-card     { @apply bg-surface border border-gray-300 rounded-card shadow-sm p-5; }
+.ui-heading  { @apply font-semibold text-gray-700 text-sm uppercase tracking-wider}
+.ui-section  { @apply mt-4 space-y-2; }
+.ui-label    { @apply text-gray-700 text-sm font-medium; }
+.ui-disabled { @apply opacity-40 pointer-events-none select-none; }
+/* ---------- 基本カード ---------- */
+/* ---------- 基本カード ---------- */
+.ui-card{
+  background: var(--container_bg);
+  color:      var(--container_c);
+  border: 1px solid var(--container_bd);
+  border-radius: .75rem;
+  padding: 1.75rem 1.5rem;
+  box-shadow: 0 4px 10px var(--shadow);
+  transition: background .3s,color .3s;
+}
+
+/* ---------- 見出し ---------- */
+.ui-card h2{
+  font-size: 1.125rem;        /* ≒ text-lg */
+  font-weight: 700;           /* ≒ font-bold */
+  margin-bottom: 1rem;
+  color: var(--h1_fg);        /* ダークでも読める */
+}
+
+/* ---------- セクション使い回し ---------- */
+.ui-section{ 
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed var(--border);
+}
+.ui-heading{
+  font-weight: 600;
+  color: var(--primary);
+  font-size: .95rem;
+}
+.dark .ui-heading{
+  color:#60a5fa;
+  font-weight:700;
+}
+
+/* ---------- ラベル & フォーム ---------- */
+.ui-label{ 
+  font-weight: 500;
+  color: var(--fg);
+}
+input[type="number"],
+select{
+  background: var(--input);
+  color: var(--input_c);
+  border: 1px solid var(--input_bd);
+  border-radius: .375rem;
+  padding: .25rem .5rem;
+}
+.dark input[type="number"],
+.dark select{
+  background: var(--select);      /* ダーク時は var(--select) の暗色 */
+  color: var(--select_c);
+}
+
+/* ---------- Segment / Switch を並べる用 ---------- */
+.my-segment-item{             /* MySegment 側で付与している想定 */
+  padding:.25rem .75rem;
+  border-radius:.375rem;
+  border:1px solid var(--border);
+  background:var(--input);
+  color:var(--fg);
+  cursor:pointer;
+  transition:all .15s;
+}
+.my-segment-item.active{
+  background:var(--primary);
+  color:#fff;
+  border-color:var(--primary);
+}
+
+/* ---------- Collapsible ---------- */
+.my-collapsible-trigger{
+  display:flex;align-items:center;
+  width:100%;
+  justify-content:space-between;
+  font-weight:500;
+  padding:.5rem .25rem;
+  cursor:pointer;
+  color:var(--fg);
+}
+.my-collapsible-content{
+  margin-top:.75rem;
+}
+
+/* ---------- disabled セクション ---------- */
+.ui-disabled{
+  opacity:.55;
+  pointer-events:none;
+  filter:grayscale(.1);
+}
+
+/* ---------- Flash message ---------- */
+.rs-flash{
+  position:fixed;
+  bottom:1rem;
+  right:1rem;
+  background:var(--success_pop_bc);
+  color:#fff;
+  padding:.75rem 1.25rem;
+  border-radius:.5rem;
+  box-shadow:0 3px 10px rgba(0,0,0,.25);
+}
+
+/* ---------- ページサイズボタン ---------- */
+.rs-page-btn{
+  padding:.25rem .75rem;
+  border:1px solid var(--border);
+  border-radius:.375rem;
+  background:#e5e7eb;       /* gray-200 */
+  color:#1f2937;            /* gray-800 */
+  font-size:.875rem;
+  transition:background .15s;
+}
+.rs-page-btn:hover{ background:#d1d5db; }
+.rs-page-btn.active{
+  background:#2563eb;       /* blue-600 */
+  color:#fff;
+}
+.dark .rs-page-btn{ 
+  background:#374151;       /* neutral-700 */
+  color:#e5e7eb;
+  border-color:#4b5563;
+}
+.dark .rs-page-btn:hover{ background:#4b5563; }
+.dark .rs-page-btn.active{ background:#3b82f6; }
+
+/* ---------- テーブル縞模様 ---------- */
+.rs-table thead th{
+  background:var(--table_th);
+  color:var(--table_th_c);
+  font-weight:600;
+}
+.rs-table tbody tr:nth-child(odd){ background:#ffffff; }
+.rs-table tbody tr:nth-child(even){ background:#f3f4f6; }  /* gray-100 */
+.dark .rs-table tbody tr:nth-child(odd){ background:#1f2937; } /* neutral-800 */
+.dark .rs-table tbody tr:nth-child(even){ background:#374151; } /* neutral-700 */
+.rs-table td, .rs-table th{
+  border:1px solid var(--border);
+  padding:.25rem .5rem;
+  text-align:center;
+  transition:background .2s;
+}

@@ -73,46 +73,50 @@ func init() {
 	partofspeech.UpdateDefaultUpdatedAt = partofspeechDescUpdatedAt.UpdateDefault.(func() time.Time)
 	quizFields := schema.Quiz{}.Fields()
 	_ = quizFields
+	// quizDescIsRunning is the schema descriptor for is_running field.
+	quizDescIsRunning := quizFields[2].Descriptor()
+	// quiz.DefaultIsRunning holds the default value on creation for the is_running field.
+	quiz.DefaultIsRunning = quizDescIsRunning.Default.(bool)
 	// quizDescTotalQuestionsCount is the schema descriptor for total_questions_count field.
-	quizDescTotalQuestionsCount := quizFields[2].Descriptor()
+	quizDescTotalQuestionsCount := quizFields[3].Descriptor()
 	// quiz.DefaultTotalQuestionsCount holds the default value on creation for the total_questions_count field.
 	quiz.DefaultTotalQuestionsCount = quizDescTotalQuestionsCount.Default.(int)
 	// quizDescCorrectCount is the schema descriptor for correct_count field.
-	quizDescCorrectCount := quizFields[3].Descriptor()
+	quizDescCorrectCount := quizFields[4].Descriptor()
 	// quiz.DefaultCorrectCount holds the default value on creation for the correct_count field.
 	quiz.DefaultCorrectCount = quizDescCorrectCount.Default.(int)
-	// quizDescCorrectRate is the schema descriptor for correct_rate field.
-	quizDescCorrectRate := quizFields[4].Descriptor()
-	// quiz.DefaultCorrectRate holds the default value on creation for the correct_rate field.
-	quiz.DefaultCorrectRate = quizDescCorrectRate.Default.(int)
-	// quizDescIsRunning is the schema descriptor for is_running field.
-	quizDescIsRunning := quizFields[5].Descriptor()
-	// quiz.DefaultIsRunning holds the default value on creation for the is_running field.
-	quiz.DefaultIsRunning = quizDescIsRunning.Default.(bool)
+	// quizDescResultCorrectRate is the schema descriptor for result_correct_rate field.
+	quizDescResultCorrectRate := quizFields[5].Descriptor()
+	// quiz.DefaultResultCorrectRate holds the default value on creation for the result_correct_rate field.
+	quiz.DefaultResultCorrectRate = quizDescResultCorrectRate.Default.(float64)
+	// quizDescIsSaveResult is the schema descriptor for is_save_result field.
+	quizDescIsSaveResult := quizFields[6].Descriptor()
+	// quiz.DefaultIsSaveResult holds the default value on creation for the is_save_result field.
+	quiz.DefaultIsSaveResult = quizDescIsSaveResult.Default.(bool)
 	// quizDescIsRegisteredWords is the schema descriptor for is_registered_words field.
-	quizDescIsRegisteredWords := quizFields[6].Descriptor()
+	quizDescIsRegisteredWords := quizFields[7].Descriptor()
 	// quiz.DefaultIsRegisteredWords holds the default value on creation for the is_registered_words field.
 	quiz.DefaultIsRegisteredWords = quizDescIsRegisteredWords.Default.(int)
 	// quiz.IsRegisteredWordsValidator is a validator for the "is_registered_words" field. It is called by the builders before save.
 	quiz.IsRegisteredWordsValidator = quizDescIsRegisteredWords.Validators[0].(func(int) error)
+	// quizDescSettingCorrectRate is the schema descriptor for setting_correct_rate field.
+	quizDescSettingCorrectRate := quizFields[8].Descriptor()
+	// quiz.DefaultSettingCorrectRate holds the default value on creation for the setting_correct_rate field.
+	quiz.DefaultSettingCorrectRate = quizDescSettingCorrectRate.Default.(int)
 	// quizDescIsIdioms is the schema descriptor for is_idioms field.
-	quizDescIsIdioms := quizFields[7].Descriptor()
+	quizDescIsIdioms := quizFields[9].Descriptor()
 	// quiz.DefaultIsIdioms holds the default value on creation for the is_idioms field.
 	quiz.DefaultIsIdioms = quizDescIsIdioms.Default.(int)
 	// quiz.IsIdiomsValidator is a validator for the "is_idioms" field. It is called by the builders before save.
 	quiz.IsIdiomsValidator = quizDescIsIdioms.Validators[0].(func(int) error)
 	// quizDescIsSpecialCharacters is the schema descriptor for is_special_characters field.
-	quizDescIsSpecialCharacters := quizFields[8].Descriptor()
+	quizDescIsSpecialCharacters := quizFields[10].Descriptor()
 	// quiz.DefaultIsSpecialCharacters holds the default value on creation for the is_special_characters field.
 	quiz.DefaultIsSpecialCharacters = quizDescIsSpecialCharacters.Default.(int)
 	// quiz.IsSpecialCharactersValidator is a validator for the "is_special_characters" field. It is called by the builders before save.
 	quiz.IsSpecialCharactersValidator = quizDescIsSpecialCharacters.Validators[0].(func(int) error)
-	// quizDescTargetWordTypes is the schema descriptor for target_word_types field.
-	quizDescTargetWordTypes := quizFields[9].Descriptor()
-	// quiz.TargetWordTypesValidator is a validator for the "target_word_types" field. It is called by the builders before save.
-	quiz.TargetWordTypesValidator = quizDescTargetWordTypes.Validators[0].(func(string) error)
 	// quizDescCreatedAt is the schema descriptor for created_at field.
-	quizDescCreatedAt := quizFields[11].Descriptor()
+	quizDescCreatedAt := quizFields[13].Descriptor()
 	// quiz.DefaultCreatedAt holds the default value on creation for the created_at field.
 	quiz.DefaultCreatedAt = quizDescCreatedAt.Default.(func() time.Time)
 	quizquestionFields := schema.QuizQuestion{}.Fields()
@@ -121,8 +125,16 @@ func init() {
 	quizquestionDescWordID := quizquestionFields[2].Descriptor()
 	// quizquestion.WordIDValidator is a validator for the "word_id" field. It is called by the builders before save.
 	quizquestion.WordIDValidator = quizquestionDescWordID.Validators[0].(func(int) error)
+	// quizquestionDescWordName is the schema descriptor for wordName field.
+	quizquestionDescWordName := quizquestionFields[3].Descriptor()
+	// quizquestion.WordNameValidator is a validator for the "wordName" field. It is called by the builders before save.
+	quizquestion.WordNameValidator = quizquestionDescWordName.Validators[0].(func(string) error)
+	// quizquestionDescPosID is the schema descriptor for pos_id field.
+	quizquestionDescPosID := quizquestionFields[4].Descriptor()
+	// quizquestion.PosIDValidator is a validator for the "pos_id" field. It is called by the builders before save.
+	quizquestion.PosIDValidator = quizquestionDescPosID.Validators[0].(func(int) error)
 	// quizquestionDescCreatedAt is the schema descriptor for created_at field.
-	quizquestionDescCreatedAt := quizquestionFields[9].Descriptor()
+	quizquestionDescCreatedAt := quizquestionFields[11].Descriptor()
 	// quizquestion.DefaultCreatedAt holds the default value on creation for the created_at field.
 	quizquestion.DefaultCreatedAt = quizquestionDescCreatedAt.Default.(func() time.Time)
 	registeredwordFields := schema.RegisteredWord{}.Fields()

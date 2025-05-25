@@ -1,11 +1,14 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}", // 必要に応じてパスを調整
+    './index.html',                  // Vite のエントリ
+    './src/**/*.{js,ts,jsx,tsx}',    // すべての React/TS ファイル
   ],
   theme: {
-    extend: {},
+    extend:{
+      colors:{ primary:'#2563eb', surface:'#f9fafb' },
+      borderRadius:{ card:'0.75rem' }
+    }
   },
   plugins: [],
-}
+};

@@ -43,9 +43,11 @@ type WordEdges struct {
 	WordInfos []*WordInfo `json:"word_infos,omitempty"`
 	// RegisteredWords holds the value of the registered_words edge.
 	RegisteredWords []*RegisteredWord `json:"registered_words,omitempty"`
+	// QuizQuestions holds the value of the quiz_questions edge.
+	QuizQuestions []*QuizQuestion `json:"quiz_questions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // WordInfosOrErr returns the WordInfos value or an error if the edge
@@ -64,6 +66,15 @@ func (e WordEdges) RegisteredWordsOrErr() ([]*RegisteredWord, error) {
 		return e.RegisteredWords, nil
 	}
 	return nil, &NotLoadedError{edge: "registered_words"}
+}
+
+// QuizQuestionsOrErr returns the QuizQuestions value or an error if the edge
+// was not loaded in eager-loading.
+func (e WordEdges) QuizQuestionsOrErr() ([]*QuizQuestion, error) {
+	if e.loadedTypes[2] {
+		return e.QuizQuestions, nil
+	}
+	return nil, &NotLoadedError{edge: "quiz_questions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -164,6 +175,11 @@ func (w *Word) QueryWordInfos() *WordInfoQuery {
 // QueryRegisteredWords queries the "registered_words" edge of the Word entity.
 func (w *Word) QueryRegisteredWords() *RegisteredWordQuery {
 	return NewWordClient(w.config).QueryRegisteredWords(w)
+}
+
+// QueryQuizQuestions queries the "quiz_questions" edge of the Word entity.
+func (w *Word) QueryQuizQuestions() *QuizQuestionQuery {
+	return NewWordClient(w.config).QueryQuizQuestions(w)
 }
 
 // Update returns a builder for updating this Word.

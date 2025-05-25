@@ -14,5 +14,7 @@ type EntClientInterface interface {
 	RegisteredWord() *ent.RegisteredWordClient
 	WordInfo() *ent.WordInfoClient
 	JapaneseMean() *ent.JapaneseMeanClient
+	Quiz() *ent.QuizClient
+	QuizQuestion() *ent.QuizQuestionClient
 	EntClient() *ent.Client
 }

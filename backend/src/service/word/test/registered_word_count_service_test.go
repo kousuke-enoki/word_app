@@ -69,8 +69,8 @@ func TestRegisteredWordCount(t *testing.T) {
 		SetUserID(userID).
 		SetIsActive(true).
 		SetAttentionLevel(2).
-		SetTestCount(10).
-		SetCheckCount(5).
+		SetQuizCount(10).
+		SetCorrectCount(5).
 		SaveX(ctx)
 
 	t.Run("Success_countAdd", func(t *testing.T) {

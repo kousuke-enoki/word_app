@@ -416,6 +416,29 @@ func HasRegisteredWordsWith(preds ...predicate.RegisteredWord) predicate.Word {
 	})
 }
 
+// HasQuizQuestions applies the HasEdge predicate on the "quiz_questions" edge.
+func HasQuizQuestions() predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, QuizQuestionsTable, QuizQuestionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasQuizQuestionsWith applies the HasEdge predicate on the "quiz_questions" edge with a given conditions (other predicates).
+func HasQuizQuestionsWith(preds ...predicate.QuizQuestion) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		step := newQuizQuestionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Word) predicate.Word {
 	return predicate.Word(sql.AndPredicates(predicates...))

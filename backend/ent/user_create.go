@@ -156,25 +156,6 @@ func (uc *UserCreate) SetUserConfig(u *UserConfig) *UserCreate {
 	return uc.SetUserConfigID(u.ID)
 }
 
-// SetUserConfigID sets the "user_config" edge to the UserConfig entity by ID.
-func (uc *UserCreate) SetUserConfigID(id int) *UserCreate {
-	uc.mutation.SetUserConfigID(id)
-	return uc
-}
-
-// SetNillableUserConfigID sets the "user_config" edge to the UserConfig entity by ID if the given value is not nil.
-func (uc *UserCreate) SetNillableUserConfigID(id *int) *UserCreate {
-	if id != nil {
-		uc = uc.SetUserConfigID(*id)
-	}
-	return uc
-}
-
-// SetUserConfig sets the "user_config" edge to the UserConfig entity.
-func (uc *UserCreate) SetUserConfig(u *UserConfig) *UserCreate {
-	return uc.SetUserConfigID(u.ID)
-}
-
 // Mutation returns the UserMutation object of the builder.
 func (uc *UserCreate) Mutation() *UserMutation {
 	return uc.mutation
@@ -350,22 +331,6 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := uc.mutation.UserConfigIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   user.UserConfigTable,
-			Columns: []string{user.UserConfigColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(userconfig.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

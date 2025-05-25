@@ -22,7 +22,7 @@ export interface Word {
   wordInfos: WordInfo[]
   isRegistered: boolean
   attentionLevel: number
-  QuizCount?: number
-  CorrectCount?: number
+  quizCount?: number
+  correctCount?: number
   memo?: string
 }

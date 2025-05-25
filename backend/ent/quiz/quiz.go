@@ -18,22 +18,26 @@ const (
 	FieldUserID = "user_id"
 	// FieldQuizNumber holds the string denoting the quiz_number field in the database.
 	FieldQuizNumber = "quiz_number"
+	// FieldIsRunning holds the string denoting the is_running field in the database.
+	FieldIsRunning = "is_running"
 	// FieldTotalQuestionsCount holds the string denoting the total_questions_count field in the database.
 	FieldTotalQuestionsCount = "total_questions_count"
 	// FieldCorrectCount holds the string denoting the correct_count field in the database.
 	FieldCorrectCount = "correct_count"
-	// FieldCorrectRate holds the string denoting the correct_rate field in the database.
-	FieldCorrectRate = "correct_rate"
-	// FieldIsRunning holds the string denoting the is_running field in the database.
-	FieldIsRunning = "is_running"
+	// FieldResultCorrectRate holds the string denoting the result_correct_rate field in the database.
+	FieldResultCorrectRate = "result_correct_rate"
+	// FieldIsSaveResult holds the string denoting the is_save_result field in the database.
+	FieldIsSaveResult = "is_save_result"
 	// FieldIsRegisteredWords holds the string denoting the is_registered_words field in the database.
 	FieldIsRegisteredWords = "is_registered_words"
+	// FieldSettingCorrectRate holds the string denoting the setting_correct_rate field in the database.
+	FieldSettingCorrectRate = "setting_correct_rate"
 	// FieldIsIdioms holds the string denoting the is_idioms field in the database.
 	FieldIsIdioms = "is_idioms"
 	// FieldIsSpecialCharacters holds the string denoting the is_special_characters field in the database.
 	FieldIsSpecialCharacters = "is_special_characters"
-	// FieldTargetWordTypes holds the string denoting the target_word_types field in the database.
-	FieldTargetWordTypes = "target_word_types"
+	// FieldAttentionLevelList holds the string denoting the attention_level_list field in the database.
+	FieldAttentionLevelList = "attention_level_list"
 	// FieldChoicesPosIds holds the string denoting the choices_pos_ids field in the database.
 	FieldChoicesPosIds = "choices_pos_ids"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -67,14 +71,16 @@ var Columns = []string{
 	FieldID,
 	FieldUserID,
 	FieldQuizNumber,
+	FieldIsRunning,
 	FieldTotalQuestionsCount,
 	FieldCorrectCount,
-	FieldCorrectRate,
-	FieldIsRunning,
+	FieldResultCorrectRate,
+	FieldIsSaveResult,
 	FieldIsRegisteredWords,
+	FieldSettingCorrectRate,
 	FieldIsIdioms,
 	FieldIsSpecialCharacters,
-	FieldTargetWordTypes,
+	FieldAttentionLevelList,
 	FieldChoicesPosIds,
 	FieldCreatedAt,
 	FieldDeletedAt,
@@ -91,18 +97,22 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultIsRunning holds the default value on creation for the "is_running" field.
+	DefaultIsRunning bool
 	// DefaultTotalQuestionsCount holds the default value on creation for the "total_questions_count" field.
 	DefaultTotalQuestionsCount int
 	// DefaultCorrectCount holds the default value on creation for the "correct_count" field.
 	DefaultCorrectCount int
-	// DefaultCorrectRate holds the default value on creation for the "correct_rate" field.
-	DefaultCorrectRate int
-	// DefaultIsRunning holds the default value on creation for the "is_running" field.
-	DefaultIsRunning bool
+	// DefaultResultCorrectRate holds the default value on creation for the "result_correct_rate" field.
+	DefaultResultCorrectRate float64
+	// DefaultIsSaveResult holds the default value on creation for the "is_save_result" field.
+	DefaultIsSaveResult bool
 	// DefaultIsRegisteredWords holds the default value on creation for the "is_registered_words" field.
 	DefaultIsRegisteredWords int
 	// IsRegisteredWordsValidator is a validator for the "is_registered_words" field. It is called by the builders before save.
 	IsRegisteredWordsValidator func(int) error
+	// DefaultSettingCorrectRate holds the default value on creation for the "setting_correct_rate" field.
+	DefaultSettingCorrectRate int
 	// DefaultIsIdioms holds the default value on creation for the "is_idioms" field.
 	DefaultIsIdioms int
 	// IsIdiomsValidator is a validator for the "is_idioms" field. It is called by the builders before save.
@@ -111,8 +121,6 @@ var (
 	DefaultIsSpecialCharacters int
 	// IsSpecialCharactersValidator is a validator for the "is_special_characters" field. It is called by the builders before save.
 	IsSpecialCharactersValidator func(int) error
-	// TargetWordTypesValidator is a validator for the "target_word_types" field. It is called by the builders before save.
-	TargetWordTypesValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 )
@@ -135,6 +143,11 @@ func ByQuizNumber(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldQuizNumber, opts...).ToFunc()
 }
 
+// ByIsRunning orders the results by the is_running field.
+func ByIsRunning(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsRunning, opts...).ToFunc()
+}
+
 // ByTotalQuestionsCount orders the results by the total_questions_count field.
 func ByTotalQuestionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTotalQuestionsCount, opts...).ToFunc()
@@ -145,19 +158,24 @@ func ByCorrectCount(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCorrectCount, opts...).ToFunc()
 }
 
-// ByCorrectRate orders the results by the correct_rate field.
-func ByCorrectRate(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCorrectRate, opts...).ToFunc()
+// ByResultCorrectRate orders the results by the result_correct_rate field.
+func ByResultCorrectRate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldResultCorrectRate, opts...).ToFunc()
 }
 
-// ByIsRunning orders the results by the is_running field.
-func ByIsRunning(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIsRunning, opts...).ToFunc()
+// ByIsSaveResult orders the results by the is_save_result field.
+func ByIsSaveResult(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsSaveResult, opts...).ToFunc()
 }
 
 // ByIsRegisteredWords orders the results by the is_registered_words field.
 func ByIsRegisteredWords(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsRegisteredWords, opts...).ToFunc()
+}
+
+// BySettingCorrectRate orders the results by the setting_correct_rate field.
+func BySettingCorrectRate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSettingCorrectRate, opts...).ToFunc()
 }
 
 // ByIsIdioms orders the results by the is_idioms field.
@@ -168,11 +186,6 @@ func ByIsIdioms(opts ...sql.OrderTermOption) OrderOption {
 // ByIsSpecialCharacters orders the results by the is_special_characters field.
 func ByIsSpecialCharacters(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsSpecialCharacters, opts...).ToFunc()
-}
-
-// ByTargetWordTypes orders the results by the target_word_types field.
-func ByTargetWordTypes(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTargetWordTypes, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

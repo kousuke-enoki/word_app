@@ -23,22 +23,26 @@ type Quiz struct {
 	UserID int `json:"user_id,omitempty"`
 	// QuizNumber holds the value of the "quiz_number" field.
 	QuizNumber int `json:"quiz_number,omitempty"`
+	// IsRunning holds the value of the "is_running" field.
+	IsRunning bool `json:"is_running,omitempty"`
 	// TotalQuestionsCount holds the value of the "total_questions_count" field.
 	TotalQuestionsCount int `json:"total_questions_count,omitempty"`
 	// CorrectCount holds the value of the "correct_count" field.
 	CorrectCount int `json:"correct_count,omitempty"`
-	// CorrectRate holds the value of the "correct_rate" field.
-	CorrectRate int `json:"correct_rate,omitempty"`
-	// IsRunning holds the value of the "is_running" field.
-	IsRunning bool `json:"is_running,omitempty"`
+	// ResultCorrectRate holds the value of the "result_correct_rate" field.
+	ResultCorrectRate float64 `json:"result_correct_rate,omitempty"`
+	// IsSaveResult holds the value of the "is_save_result" field.
+	IsSaveResult bool `json:"is_save_result,omitempty"`
 	// 0: all, 1: registered only, 2: unregistered only
 	IsRegisteredWords int `json:"is_registered_words,omitempty"`
+	// SettingCorrectRate holds the value of the "setting_correct_rate" field.
+	SettingCorrectRate int `json:"setting_correct_rate,omitempty"`
 	// 0: all, 1: idioms only, 2: not idioms only
 	IsIdioms int `json:"is_idioms,omitempty"`
 	// 0: all, 1: special characters only, 2: not special characters only
 	IsSpecialCharacters int `json:"is_special_characters,omitempty"`
-	// TargetWordTypes holds the value of the "target_word_types" field.
-	TargetWordTypes string `json:"target_word_types,omitempty"`
+	// AttentionLevelList holds the value of the "attention_level_list" field.
+	AttentionLevelList []int `json:"attention_level_list,omitempty"`
 	// ChoicesPosIds holds the value of the "choices_pos_ids" field.
 	ChoicesPosIds []int `json:"choices_pos_ids,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -87,14 +91,14 @@ func (*Quiz) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case quiz.FieldChoicesPosIds:
+		case quiz.FieldAttentionLevelList, quiz.FieldChoicesPosIds:
 			values[i] = new([]byte)
-		case quiz.FieldIsRunning:
+		case quiz.FieldIsRunning, quiz.FieldIsSaveResult:
 			values[i] = new(sql.NullBool)
-		case quiz.FieldID, quiz.FieldUserID, quiz.FieldQuizNumber, quiz.FieldTotalQuestionsCount, quiz.FieldCorrectCount, quiz.FieldCorrectRate, quiz.FieldIsRegisteredWords, quiz.FieldIsIdioms, quiz.FieldIsSpecialCharacters:
+		case quiz.FieldResultCorrectRate:
+			values[i] = new(sql.NullFloat64)
+		case quiz.FieldID, quiz.FieldUserID, quiz.FieldQuizNumber, quiz.FieldTotalQuestionsCount, quiz.FieldCorrectCount, quiz.FieldIsRegisteredWords, quiz.FieldSettingCorrectRate, quiz.FieldIsIdioms, quiz.FieldIsSpecialCharacters:
 			values[i] = new(sql.NullInt64)
-		case quiz.FieldTargetWordTypes:
-			values[i] = new(sql.NullString)
 		case quiz.FieldCreatedAt, quiz.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
 		default:
@@ -130,6 +134,12 @@ func (q *Quiz) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				q.QuizNumber = int(value.Int64)
 			}
+		case quiz.FieldIsRunning:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_running", values[i])
+			} else if value.Valid {
+				q.IsRunning = value.Bool
+			}
 		case quiz.FieldTotalQuestionsCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field total_questions_count", values[i])
@@ -142,23 +152,29 @@ func (q *Quiz) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				q.CorrectCount = int(value.Int64)
 			}
-		case quiz.FieldCorrectRate:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field correct_rate", values[i])
+		case quiz.FieldResultCorrectRate:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field result_correct_rate", values[i])
 			} else if value.Valid {
-				q.CorrectRate = int(value.Int64)
+				q.ResultCorrectRate = value.Float64
 			}
-		case quiz.FieldIsRunning:
+		case quiz.FieldIsSaveResult:
 			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_running", values[i])
+				return fmt.Errorf("unexpected type %T for field is_save_result", values[i])
 			} else if value.Valid {
-				q.IsRunning = value.Bool
+				q.IsSaveResult = value.Bool
 			}
 		case quiz.FieldIsRegisteredWords:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field is_registered_words", values[i])
 			} else if value.Valid {
 				q.IsRegisteredWords = int(value.Int64)
+			}
+		case quiz.FieldSettingCorrectRate:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field setting_correct_rate", values[i])
+			} else if value.Valid {
+				q.SettingCorrectRate = int(value.Int64)
 			}
 		case quiz.FieldIsIdioms:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -172,11 +188,13 @@ func (q *Quiz) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				q.IsSpecialCharacters = int(value.Int64)
 			}
-		case quiz.FieldTargetWordTypes:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field target_word_types", values[i])
-			} else if value.Valid {
-				q.TargetWordTypes = value.String
+		case quiz.FieldAttentionLevelList:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field attention_level_list", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &q.AttentionLevelList); err != nil {
+					return fmt.Errorf("unmarshal field attention_level_list: %w", err)
+				}
 			}
 		case quiz.FieldChoicesPosIds:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -251,20 +269,26 @@ func (q *Quiz) String() string {
 	builder.WriteString("quiz_number=")
 	builder.WriteString(fmt.Sprintf("%v", q.QuizNumber))
 	builder.WriteString(", ")
+	builder.WriteString("is_running=")
+	builder.WriteString(fmt.Sprintf("%v", q.IsRunning))
+	builder.WriteString(", ")
 	builder.WriteString("total_questions_count=")
 	builder.WriteString(fmt.Sprintf("%v", q.TotalQuestionsCount))
 	builder.WriteString(", ")
 	builder.WriteString("correct_count=")
 	builder.WriteString(fmt.Sprintf("%v", q.CorrectCount))
 	builder.WriteString(", ")
-	builder.WriteString("correct_rate=")
-	builder.WriteString(fmt.Sprintf("%v", q.CorrectRate))
+	builder.WriteString("result_correct_rate=")
+	builder.WriteString(fmt.Sprintf("%v", q.ResultCorrectRate))
 	builder.WriteString(", ")
-	builder.WriteString("is_running=")
-	builder.WriteString(fmt.Sprintf("%v", q.IsRunning))
+	builder.WriteString("is_save_result=")
+	builder.WriteString(fmt.Sprintf("%v", q.IsSaveResult))
 	builder.WriteString(", ")
 	builder.WriteString("is_registered_words=")
 	builder.WriteString(fmt.Sprintf("%v", q.IsRegisteredWords))
+	builder.WriteString(", ")
+	builder.WriteString("setting_correct_rate=")
+	builder.WriteString(fmt.Sprintf("%v", q.SettingCorrectRate))
 	builder.WriteString(", ")
 	builder.WriteString("is_idioms=")
 	builder.WriteString(fmt.Sprintf("%v", q.IsIdioms))
@@ -272,8 +296,8 @@ func (q *Quiz) String() string {
 	builder.WriteString("is_special_characters=")
 	builder.WriteString(fmt.Sprintf("%v", q.IsSpecialCharacters))
 	builder.WriteString(", ")
-	builder.WriteString("target_word_types=")
-	builder.WriteString(q.TargetWordTypes)
+	builder.WriteString("attention_level_list=")
+	builder.WriteString(fmt.Sprintf("%v", q.AttentionLevelList))
 	builder.WriteString(", ")
 	builder.WriteString("choices_pos_ids=")
 	builder.WriteString(fmt.Sprintf("%v", q.ChoicesPosIds))

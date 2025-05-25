@@ -47,6 +47,14 @@ func (JapaneseMean) Edges() []ent.Edge {
 			Field("word_info_id").
 			Unique().
 			Required(),
+		edge.To("quiz_questions", QuizQuestion.Type),
+	}
+}
+
+func (JapaneseMean) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("word_info_id", "name").
+			Unique(),
 	}
 }
 

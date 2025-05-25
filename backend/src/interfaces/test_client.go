@@ -10,6 +10,11 @@ type TestClientWrapper struct {
 	entClient *ent.Client
 }
 
+// CreateQuiz implements ClientInterface.
+func (w *TestClientWrapper) CreateQuiz(ctx context.Context, CreateQuizRequest *models.CreateQuizRequest) (*models.CreateQuizResponse, error) {
+	panic("unimplemented")
+}
+
 // BulkRegister implements ClientInterface.
 func (w *TestClientWrapper) BulkRegister(ctx context.Context, userID int, words []string) (*models.BulkRegisterResponse, error) {
 	panic("unimplemented")
@@ -145,5 +150,15 @@ func (w *TestClientWrapper) WordInfo() *ent.WordInfoClient {
 
 // JapaneseMean は JapaneseMeanClient を返します。
 func (w *TestClientWrapper) JapaneseMean() *ent.JapaneseMeanClient {
+	panic("unimplemented")
+}
+
+// Quiz は QuizClient を返します。
+func (w *TestClientWrapper) Quiz() *ent.QuizClient {
+	panic("unimplemented")
+}
+
+// QuizQuestion は QuizQuestionClient を返します。
+func (w *TestClientWrapper) QuizQuestion() *ent.QuizQuestionClient {
 	panic("unimplemented")
 }

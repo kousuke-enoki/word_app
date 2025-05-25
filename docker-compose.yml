@@ -38,9 +38,12 @@ services:
 
   dict-import:
     profiles: ["import"]
-    image: wordapp-backend:latest
+    build:
+      context: ./backend
+      dockerfile: dockerfile
+      target: prod
     entrypoint: ["/usr/local/bin/import_dict"]
-    command: ["-file=/data/jmdict_sample.json", "-workers=4"]
+    command: ["-file=/data/jmdict.json", "-workers=4"]
     volumes:
       - ./backend/assets:/data
     environment:

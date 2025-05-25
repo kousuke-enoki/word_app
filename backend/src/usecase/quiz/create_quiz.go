@@ -3,11 +3,14 @@ package quiz
 import (
 	"context"
 	"math/rand"
+	"word_app/backend/src/domain"
+	"word_app/backend/src/domain/quiz"
 	"word_app/backend/src/models"
+	repo_models "word_app/backend/src/repository/models"
 )
 
 type CreateQuizUsecase struct {
-	Repo repository.WordRepo
+	Repo quiz.WordRepo
 	Rand *rand.Rand
 }
 
@@ -27,7 +30,7 @@ func (u *CreateQuizUsecase) Execute(ctx context.Context, userID int, in *models.
 	defer tx.Rollback() // safety
 
 	quizID, _ := tx.CreateQuiz(ctx, userID, toQuizRecord(in))
-	questions := make([]QuizQuestionRecord, 0, len(words))
+	questions := make([]repo_models.QuizQuestionRecord, 0, len(words))
 	// … slices.Map で変換 …
 	if err := tx.CreateQuestions(ctx, quizID, questions); err != nil {
 		return nil, err

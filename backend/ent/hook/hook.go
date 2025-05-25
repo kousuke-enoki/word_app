@@ -5,7 +5,7 @@ package hook
 import (
 	"context"
 	"fmt"
-	"word_app/ent"
+	"word_app/backend/ent"
 )
 
 // The JapaneseMeanFunc type is an adapter to allow the use of ordinary
@@ -32,6 +32,54 @@ func (f PartOfSpeechFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartOfSpeechMutation", m)
 }
 
+// The QuizFunc type is an adapter to allow the use of ordinary
+// function as Quiz mutator.
+type QuizFunc func(context.Context, *ent.QuizMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QuizFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.QuizMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuizMutation", m)
+}
+
+// The QuizQuestionFunc type is an adapter to allow the use of ordinary
+// function as QuizQuestion mutator.
+type QuizQuestionFunc func(context.Context, *ent.QuizQuestionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QuizQuestionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.QuizQuestionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuizQuestionMutation", m)
+}
+
+// The RegisteredWordFunc type is an adapter to allow the use of ordinary
+// function as RegisteredWord mutator.
+type RegisteredWordFunc func(context.Context, *ent.RegisteredWordMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RegisteredWordFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RegisteredWordMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RegisteredWordMutation", m)
+}
+
+// The RootConfigFunc type is an adapter to allow the use of ordinary
+// function as RootConfig mutator.
+type RootConfigFunc func(context.Context, *ent.RootConfigMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RootConfigFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RootConfigMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RootConfigMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)
@@ -42,6 +90,18 @@ func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+}
+
+// The UserConfigFunc type is an adapter to allow the use of ordinary
+// function as UserConfig mutator.
+type UserConfigFunc func(context.Context, *ent.UserConfigMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserConfigFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserConfigMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserConfigMutation", m)
 }
 
 // The WordFunc type is an adapter to allow the use of ordinary

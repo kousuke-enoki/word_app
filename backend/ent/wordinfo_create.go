@@ -7,11 +7,12 @@ import (
 	"errors"
 	"fmt"
 	"time"
-	"word_app/ent/japanesemean"
-	"word_app/ent/partofspeech"
-	"word_app/ent/word"
-	"word_app/ent/wordinfo"
+	"word_app/backend/ent/japanesemean"
+	"word_app/backend/ent/partofspeech"
+	"word_app/backend/ent/word"
+	"word_app/backend/ent/wordinfo"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )
@@ -21,6 +22,7 @@ type WordInfoCreate struct {
 	config
 	mutation *WordInfoMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetWordID sets the "word_id" field.
@@ -189,6 +191,7 @@ func (wic *WordInfoCreate) createSpec() (*WordInfo, *sqlgraph.CreateSpec) {
 		_node = &WordInfo{config: wic.config}
 		_spec = sqlgraph.NewCreateSpec(wordinfo.Table, sqlgraph.NewFieldSpec(wordinfo.FieldID, field.TypeInt))
 	)
+	_spec.OnConflict = wic.conflict
 	if value, ok := wic.mutation.CreatedAt(); ok {
 		_spec.SetField(wordinfo.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -250,11 +253,238 @@ func (wic *WordInfoCreate) createSpec() (*WordInfo, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.WordInfo.Create().
+//		SetWordID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.WordInfoUpsert) {
+//			SetWordID(v+v).
+//		}).
+//		Exec(ctx)
+func (wic *WordInfoCreate) OnConflict(opts ...sql.ConflictOption) *WordInfoUpsertOne {
+	wic.conflict = opts
+	return &WordInfoUpsertOne{
+		create: wic,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.WordInfo.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (wic *WordInfoCreate) OnConflictColumns(columns ...string) *WordInfoUpsertOne {
+	wic.conflict = append(wic.conflict, sql.ConflictColumns(columns...))
+	return &WordInfoUpsertOne{
+		create: wic,
+	}
+}
+
+type (
+	// WordInfoUpsertOne is the builder for "upsert"-ing
+	//  one WordInfo node.
+	WordInfoUpsertOne struct {
+		create *WordInfoCreate
+	}
+
+	// WordInfoUpsert is the "OnConflict" setter.
+	WordInfoUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetWordID sets the "word_id" field.
+func (u *WordInfoUpsert) SetWordID(v int) *WordInfoUpsert {
+	u.Set(wordinfo.FieldWordID, v)
+	return u
+}
+
+// UpdateWordID sets the "word_id" field to the value that was provided on create.
+func (u *WordInfoUpsert) UpdateWordID() *WordInfoUpsert {
+	u.SetExcluded(wordinfo.FieldWordID)
+	return u
+}
+
+// SetPartOfSpeechID sets the "part_of_speech_id" field.
+func (u *WordInfoUpsert) SetPartOfSpeechID(v int) *WordInfoUpsert {
+	u.Set(wordinfo.FieldPartOfSpeechID, v)
+	return u
+}
+
+// UpdatePartOfSpeechID sets the "part_of_speech_id" field to the value that was provided on create.
+func (u *WordInfoUpsert) UpdatePartOfSpeechID() *WordInfoUpsert {
+	u.SetExcluded(wordinfo.FieldPartOfSpeechID)
+	return u
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *WordInfoUpsert) SetCreatedAt(v time.Time) *WordInfoUpsert {
+	u.Set(wordinfo.FieldCreatedAt, v)
+	return u
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *WordInfoUpsert) UpdateCreatedAt() *WordInfoUpsert {
+	u.SetExcluded(wordinfo.FieldCreatedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *WordInfoUpsert) SetUpdatedAt(v time.Time) *WordInfoUpsert {
+	u.Set(wordinfo.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *WordInfoUpsert) UpdateUpdatedAt() *WordInfoUpsert {
+	u.SetExcluded(wordinfo.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// Using this option is equivalent to using:
+//
+//	client.WordInfo.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *WordInfoUpsertOne) UpdateNewValues() *WordInfoUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.WordInfo.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *WordInfoUpsertOne) Ignore() *WordInfoUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *WordInfoUpsertOne) DoNothing() *WordInfoUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the WordInfoCreate.OnConflict
+// documentation for more info.
+func (u *WordInfoUpsertOne) Update(set func(*WordInfoUpsert)) *WordInfoUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&WordInfoUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetWordID sets the "word_id" field.
+func (u *WordInfoUpsertOne) SetWordID(v int) *WordInfoUpsertOne {
+	return u.Update(func(s *WordInfoUpsert) {
+		s.SetWordID(v)
+	})
+}
+
+// UpdateWordID sets the "word_id" field to the value that was provided on create.
+func (u *WordInfoUpsertOne) UpdateWordID() *WordInfoUpsertOne {
+	return u.Update(func(s *WordInfoUpsert) {
+		s.UpdateWordID()
+	})
+}
+
+// SetPartOfSpeechID sets the "part_of_speech_id" field.
+func (u *WordInfoUpsertOne) SetPartOfSpeechID(v int) *WordInfoUpsertOne {
+	return u.Update(func(s *WordInfoUpsert) {
+		s.SetPartOfSpeechID(v)
+	})
+}
+
+// UpdatePartOfSpeechID sets the "part_of_speech_id" field to the value that was provided on create.
+func (u *WordInfoUpsertOne) UpdatePartOfSpeechID() *WordInfoUpsertOne {
+	return u.Update(func(s *WordInfoUpsert) {
+		s.UpdatePartOfSpeechID()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *WordInfoUpsertOne) SetCreatedAt(v time.Time) *WordInfoUpsertOne {
+	return u.Update(func(s *WordInfoUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *WordInfoUpsertOne) UpdateCreatedAt() *WordInfoUpsertOne {
+	return u.Update(func(s *WordInfoUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *WordInfoUpsertOne) SetUpdatedAt(v time.Time) *WordInfoUpsertOne {
+	return u.Update(func(s *WordInfoUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *WordInfoUpsertOne) UpdateUpdatedAt() *WordInfoUpsertOne {
+	return u.Update(func(s *WordInfoUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *WordInfoUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for WordInfoCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *WordInfoUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *WordInfoUpsertOne) ID(ctx context.Context) (id int, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *WordInfoUpsertOne) IDX(ctx context.Context) int {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // WordInfoCreateBulk is the builder for creating many WordInfo entities in bulk.
 type WordInfoCreateBulk struct {
 	config
 	err      error
 	builders []*WordInfoCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the WordInfo entities in the database.
@@ -284,6 +514,7 @@ func (wicb *WordInfoCreateBulk) Save(ctx context.Context) ([]*WordInfo, error) {
 					_, err = mutators[i+1].Mutate(root, wicb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = wicb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, wicb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -334,6 +565,166 @@ func (wicb *WordInfoCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (wicb *WordInfoCreateBulk) ExecX(ctx context.Context) {
 	if err := wicb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.WordInfo.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.WordInfoUpsert) {
+//			SetWordID(v+v).
+//		}).
+//		Exec(ctx)
+func (wicb *WordInfoCreateBulk) OnConflict(opts ...sql.ConflictOption) *WordInfoUpsertBulk {
+	wicb.conflict = opts
+	return &WordInfoUpsertBulk{
+		create: wicb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.WordInfo.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (wicb *WordInfoCreateBulk) OnConflictColumns(columns ...string) *WordInfoUpsertBulk {
+	wicb.conflict = append(wicb.conflict, sql.ConflictColumns(columns...))
+	return &WordInfoUpsertBulk{
+		create: wicb,
+	}
+}
+
+// WordInfoUpsertBulk is the builder for "upsert"-ing
+// a bulk of WordInfo nodes.
+type WordInfoUpsertBulk struct {
+	create *WordInfoCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.WordInfo.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *WordInfoUpsertBulk) UpdateNewValues() *WordInfoUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.WordInfo.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *WordInfoUpsertBulk) Ignore() *WordInfoUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *WordInfoUpsertBulk) DoNothing() *WordInfoUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the WordInfoCreateBulk.OnConflict
+// documentation for more info.
+func (u *WordInfoUpsertBulk) Update(set func(*WordInfoUpsert)) *WordInfoUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&WordInfoUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetWordID sets the "word_id" field.
+func (u *WordInfoUpsertBulk) SetWordID(v int) *WordInfoUpsertBulk {
+	return u.Update(func(s *WordInfoUpsert) {
+		s.SetWordID(v)
+	})
+}
+
+// UpdateWordID sets the "word_id" field to the value that was provided on create.
+func (u *WordInfoUpsertBulk) UpdateWordID() *WordInfoUpsertBulk {
+	return u.Update(func(s *WordInfoUpsert) {
+		s.UpdateWordID()
+	})
+}
+
+// SetPartOfSpeechID sets the "part_of_speech_id" field.
+func (u *WordInfoUpsertBulk) SetPartOfSpeechID(v int) *WordInfoUpsertBulk {
+	return u.Update(func(s *WordInfoUpsert) {
+		s.SetPartOfSpeechID(v)
+	})
+}
+
+// UpdatePartOfSpeechID sets the "part_of_speech_id" field to the value that was provided on create.
+func (u *WordInfoUpsertBulk) UpdatePartOfSpeechID() *WordInfoUpsertBulk {
+	return u.Update(func(s *WordInfoUpsert) {
+		s.UpdatePartOfSpeechID()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *WordInfoUpsertBulk) SetCreatedAt(v time.Time) *WordInfoUpsertBulk {
+	return u.Update(func(s *WordInfoUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *WordInfoUpsertBulk) UpdateCreatedAt() *WordInfoUpsertBulk {
+	return u.Update(func(s *WordInfoUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *WordInfoUpsertBulk) SetUpdatedAt(v time.Time) *WordInfoUpsertBulk {
+	return u.Update(func(s *WordInfoUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *WordInfoUpsertBulk) UpdateUpdatedAt() *WordInfoUpsertBulk {
+	return u.Update(func(s *WordInfoUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *WordInfoUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the WordInfoCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for WordInfoCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *WordInfoUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

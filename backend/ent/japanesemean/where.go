@@ -4,7 +4,7 @@ package japanesemean
 
 import (
 	"time"
-	"word_app/ent/predicate"
+	"word_app/backend/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -255,6 +255,29 @@ func HasWordInfo() predicate.JapaneseMean {
 func HasWordInfoWith(preds ...predicate.WordInfo) predicate.JapaneseMean {
 	return predicate.JapaneseMean(func(s *sql.Selector) {
 		step := newWordInfoStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasQuizQuestions applies the HasEdge predicate on the "quiz_questions" edge.
+func HasQuizQuestions() predicate.JapaneseMean {
+	return predicate.JapaneseMean(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, QuizQuestionsTable, QuizQuestionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasQuizQuestionsWith applies the HasEdge predicate on the "quiz_questions" edge with a given conditions (other predicates).
+func HasQuizQuestionsWith(preds ...predicate.QuizQuestion) predicate.JapaneseMean {
+	return predicate.JapaneseMean(func(s *sql.Selector) {
+		step := newQuizQuestionsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

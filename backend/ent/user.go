@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	"word_app/ent/user"
+	"word_app/backend/ent/user"
+	"word_app/backend/ent/userconfig"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -21,13 +22,63 @@ type User struct {
 	Email string `json:"email,omitempty"`
 	// Password holds the value of the "password" field.
 	Password string `json:"-"`
-	// Name holds the value of the "name" field.
+	// Name of the user.
+	//  If not specified, defaults to "John Doe".
 	Name string `json:"name,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt    time.Time `json:"updated_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// IsAdmin holds the value of the "isAdmin" field.
+	IsAdmin bool `json:"isAdmin,omitempty"`
+	// IsRoot holds the value of the "isRoot" field.
+	IsRoot bool `json:"isRoot,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges        UserEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// RegisteredWords holds the value of the registered_words edge.
+	RegisteredWords []*RegisteredWord `json:"registered_words,omitempty"`
+	// Quizs holds the value of the quizs edge.
+	Quizs []*Quiz `json:"quizs,omitempty"`
+	// UserConfig holds the value of the user_config edge.
+	UserConfig *UserConfig `json:"user_config,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+}
+
+// RegisteredWordsOrErr returns the RegisteredWords value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) RegisteredWordsOrErr() ([]*RegisteredWord, error) {
+	if e.loadedTypes[0] {
+		return e.RegisteredWords, nil
+	}
+	return nil, &NotLoadedError{edge: "registered_words"}
+}
+
+// QuizsOrErr returns the Quizs value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) QuizsOrErr() ([]*Quiz, error) {
+	if e.loadedTypes[1] {
+		return e.Quizs, nil
+	}
+	return nil, &NotLoadedError{edge: "quizs"}
+}
+
+// UserConfigOrErr returns the UserConfig value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) UserConfigOrErr() (*UserConfig, error) {
+	if e.UserConfig != nil {
+		return e.UserConfig, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: userconfig.Label}
+	}
+	return nil, &NotLoadedError{edge: "user_config"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -35,6 +86,8 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case user.FieldIsAdmin, user.FieldIsRoot:
+			values[i] = new(sql.NullBool)
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
 		case user.FieldEmail, user.FieldPassword, user.FieldName:
@@ -92,6 +145,18 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.UpdatedAt = value.Time
 			}
+		case user.FieldIsAdmin:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field isAdmin", values[i])
+			} else if value.Valid {
+				u.IsAdmin = value.Bool
+			}
+		case user.FieldIsRoot:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field isRoot", values[i])
+			} else if value.Valid {
+				u.IsRoot = value.Bool
+			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
 		}
@@ -103,6 +168,21 @@ func (u *User) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (u *User) Value(name string) (ent.Value, error) {
 	return u.selectValues.Get(name)
+}
+
+// QueryRegisteredWords queries the "registered_words" edge of the User entity.
+func (u *User) QueryRegisteredWords() *RegisteredWordQuery {
+	return NewUserClient(u.config).QueryRegisteredWords(u)
+}
+
+// QueryQuizs queries the "quizs" edge of the User entity.
+func (u *User) QueryQuizs() *QuizQuery {
+	return NewUserClient(u.config).QueryQuizs(u)
+}
+
+// QueryUserConfig queries the "user_config" edge of the User entity.
+func (u *User) QueryUserConfig() *UserConfigQuery {
+	return NewUserClient(u.config).QueryUserConfig(u)
 }
 
 // Update returns a builder for updating this User.
@@ -141,6 +221,12 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(u.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("isAdmin=")
+	builder.WriteString(fmt.Sprintf("%v", u.IsAdmin))
+	builder.WriteString(", ")
+	builder.WriteString("isRoot=")
+	builder.WriteString(fmt.Sprintf("%v", u.IsRoot))
 	builder.WriteByte(')')
 	return builder.String()
 }

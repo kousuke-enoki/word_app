@@ -4,9 +4,10 @@ package user
 
 import (
 	"time"
-	"word_app/ent/predicate"
+	"word_app/backend/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -77,6 +78,16 @@ func CreatedAt(v time.Time) predicate.User {
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// IsAdmin applies equality check predicate on the "isAdmin" field. It's identical to IsAdminEQ.
+func IsAdmin(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldIsAdmin, v))
+}
+
+// IsRoot applies equality check predicate on the "isRoot" field. It's identical to IsRootEQ.
+func IsRoot(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldIsRoot, v))
 }
 
 // EmailEQ applies the EQ predicate on the "email" field.
@@ -352,6 +363,95 @@ func UpdatedAtLT(v time.Time) predicate.User {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// IsAdminEQ applies the EQ predicate on the "isAdmin" field.
+func IsAdminEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldIsAdmin, v))
+}
+
+// IsAdminNEQ applies the NEQ predicate on the "isAdmin" field.
+func IsAdminNEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldIsAdmin, v))
+}
+
+// IsRootEQ applies the EQ predicate on the "isRoot" field.
+func IsRootEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldIsRoot, v))
+}
+
+// IsRootNEQ applies the NEQ predicate on the "isRoot" field.
+func IsRootNEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldIsRoot, v))
+}
+
+// HasRegisteredWords applies the HasEdge predicate on the "registered_words" edge.
+func HasRegisteredWords() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RegisteredWordsTable, RegisteredWordsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRegisteredWordsWith applies the HasEdge predicate on the "registered_words" edge with a given conditions (other predicates).
+func HasRegisteredWordsWith(preds ...predicate.RegisteredWord) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newRegisteredWordsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasQuizs applies the HasEdge predicate on the "quizs" edge.
+func HasQuizs() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, QuizsTable, QuizsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasQuizsWith applies the HasEdge predicate on the "quizs" edge with a given conditions (other predicates).
+func HasQuizsWith(preds ...predicate.Quiz) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newQuizsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUserConfig applies the HasEdge predicate on the "user_config" edge.
+func HasUserConfig() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, UserConfigTable, UserConfigColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserConfigWith applies the HasEdge predicate on the "user_config" edge with a given conditions (other predicates).
+func HasUserConfigWith(preds ...predicate.UserConfig) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newUserConfigStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

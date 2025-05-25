@@ -7,9 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"time"
-	"word_app/ent/predicate"
-	"word_app/ent/word"
-	"word_app/ent/wordinfo"
+	"word_app/backend/ent/predicate"
+	"word_app/backend/ent/quizquestion"
+	"word_app/backend/ent/registeredword"
+	"word_app/backend/ent/word"
+	"word_app/backend/ent/wordinfo"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -44,23 +46,71 @@ func (wu *WordUpdate) SetNillableName(s *string) *WordUpdate {
 }
 
 // SetVoiceID sets the "voice_id" field.
-func (wu *WordUpdate) SetVoiceID(i int) *WordUpdate {
-	wu.mutation.ResetVoiceID()
-	wu.mutation.SetVoiceID(i)
+func (wu *WordUpdate) SetVoiceID(s string) *WordUpdate {
+	wu.mutation.SetVoiceID(s)
 	return wu
 }
 
 // SetNillableVoiceID sets the "voice_id" field if the given value is not nil.
-func (wu *WordUpdate) SetNillableVoiceID(i *int) *WordUpdate {
-	if i != nil {
-		wu.SetVoiceID(*i)
+func (wu *WordUpdate) SetNillableVoiceID(s *string) *WordUpdate {
+	if s != nil {
+		wu.SetVoiceID(*s)
 	}
 	return wu
 }
 
-// AddVoiceID adds i to the "voice_id" field.
-func (wu *WordUpdate) AddVoiceID(i int) *WordUpdate {
-	wu.mutation.AddVoiceID(i)
+// ClearVoiceID clears the value of the "voice_id" field.
+func (wu *WordUpdate) ClearVoiceID() *WordUpdate {
+	wu.mutation.ClearVoiceID()
+	return wu
+}
+
+// SetIsIdioms sets the "is_idioms" field.
+func (wu *WordUpdate) SetIsIdioms(b bool) *WordUpdate {
+	wu.mutation.SetIsIdioms(b)
+	return wu
+}
+
+// SetNillableIsIdioms sets the "is_idioms" field if the given value is not nil.
+func (wu *WordUpdate) SetNillableIsIdioms(b *bool) *WordUpdate {
+	if b != nil {
+		wu.SetIsIdioms(*b)
+	}
+	return wu
+}
+
+// SetIsSpecialCharacters sets the "is_special_characters" field.
+func (wu *WordUpdate) SetIsSpecialCharacters(b bool) *WordUpdate {
+	wu.mutation.SetIsSpecialCharacters(b)
+	return wu
+}
+
+// SetNillableIsSpecialCharacters sets the "is_special_characters" field if the given value is not nil.
+func (wu *WordUpdate) SetNillableIsSpecialCharacters(b *bool) *WordUpdate {
+	if b != nil {
+		wu.SetIsSpecialCharacters(*b)
+	}
+	return wu
+}
+
+// SetRegistrationCount sets the "registration_count" field.
+func (wu *WordUpdate) SetRegistrationCount(i int) *WordUpdate {
+	wu.mutation.ResetRegistrationCount()
+	wu.mutation.SetRegistrationCount(i)
+	return wu
+}
+
+// SetNillableRegistrationCount sets the "registration_count" field if the given value is not nil.
+func (wu *WordUpdate) SetNillableRegistrationCount(i *int) *WordUpdate {
+	if i != nil {
+		wu.SetRegistrationCount(*i)
+	}
+	return wu
+}
+
+// AddRegistrationCount adds i to the "registration_count" field.
+func (wu *WordUpdate) AddRegistrationCount(i int) *WordUpdate {
+	wu.mutation.AddRegistrationCount(i)
 	return wu
 }
 
@@ -99,6 +149,36 @@ func (wu *WordUpdate) AddWordInfos(w ...*WordInfo) *WordUpdate {
 	return wu.AddWordInfoIDs(ids...)
 }
 
+// AddRegisteredWordIDs adds the "registered_words" edge to the RegisteredWord entity by IDs.
+func (wu *WordUpdate) AddRegisteredWordIDs(ids ...int) *WordUpdate {
+	wu.mutation.AddRegisteredWordIDs(ids...)
+	return wu
+}
+
+// AddRegisteredWords adds the "registered_words" edges to the RegisteredWord entity.
+func (wu *WordUpdate) AddRegisteredWords(r ...*RegisteredWord) *WordUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return wu.AddRegisteredWordIDs(ids...)
+}
+
+// AddQuizQuestionIDs adds the "quiz_questions" edge to the QuizQuestion entity by IDs.
+func (wu *WordUpdate) AddQuizQuestionIDs(ids ...int) *WordUpdate {
+	wu.mutation.AddQuizQuestionIDs(ids...)
+	return wu
+}
+
+// AddQuizQuestions adds the "quiz_questions" edges to the QuizQuestion entity.
+func (wu *WordUpdate) AddQuizQuestions(q ...*QuizQuestion) *WordUpdate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return wu.AddQuizQuestionIDs(ids...)
+}
+
 // Mutation returns the WordMutation object of the builder.
 func (wu *WordUpdate) Mutation() *WordMutation {
 	return wu.mutation
@@ -123,6 +203,48 @@ func (wu *WordUpdate) RemoveWordInfos(w ...*WordInfo) *WordUpdate {
 		ids[i] = w[i].ID
 	}
 	return wu.RemoveWordInfoIDs(ids...)
+}
+
+// ClearRegisteredWords clears all "registered_words" edges to the RegisteredWord entity.
+func (wu *WordUpdate) ClearRegisteredWords() *WordUpdate {
+	wu.mutation.ClearRegisteredWords()
+	return wu
+}
+
+// RemoveRegisteredWordIDs removes the "registered_words" edge to RegisteredWord entities by IDs.
+func (wu *WordUpdate) RemoveRegisteredWordIDs(ids ...int) *WordUpdate {
+	wu.mutation.RemoveRegisteredWordIDs(ids...)
+	return wu
+}
+
+// RemoveRegisteredWords removes "registered_words" edges to RegisteredWord entities.
+func (wu *WordUpdate) RemoveRegisteredWords(r ...*RegisteredWord) *WordUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return wu.RemoveRegisteredWordIDs(ids...)
+}
+
+// ClearQuizQuestions clears all "quiz_questions" edges to the QuizQuestion entity.
+func (wu *WordUpdate) ClearQuizQuestions() *WordUpdate {
+	wu.mutation.ClearQuizQuestions()
+	return wu
+}
+
+// RemoveQuizQuestionIDs removes the "quiz_questions" edge to QuizQuestion entities by IDs.
+func (wu *WordUpdate) RemoveQuizQuestionIDs(ids ...int) *WordUpdate {
+	wu.mutation.RemoveQuizQuestionIDs(ids...)
+	return wu
+}
+
+// RemoveQuizQuestions removes "quiz_questions" edges to QuizQuestion entities.
+func (wu *WordUpdate) RemoveQuizQuestions(q ...*QuizQuestion) *WordUpdate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return wu.RemoveQuizQuestionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -168,11 +290,6 @@ func (wu *WordUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Word.name": %w`, err)}
 		}
 	}
-	if v, ok := wu.mutation.VoiceID(); ok {
-		if err := word.VoiceIDValidator(v); err != nil {
-			return &ValidationError{Name: "voice_id", err: fmt.Errorf(`ent: validator failed for field "Word.voice_id": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -192,10 +309,22 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(word.FieldName, field.TypeString, value)
 	}
 	if value, ok := wu.mutation.VoiceID(); ok {
-		_spec.SetField(word.FieldVoiceID, field.TypeInt, value)
+		_spec.SetField(word.FieldVoiceID, field.TypeString, value)
 	}
-	if value, ok := wu.mutation.AddedVoiceID(); ok {
-		_spec.AddField(word.FieldVoiceID, field.TypeInt, value)
+	if wu.mutation.VoiceIDCleared() {
+		_spec.ClearField(word.FieldVoiceID, field.TypeString)
+	}
+	if value, ok := wu.mutation.IsIdioms(); ok {
+		_spec.SetField(word.FieldIsIdioms, field.TypeBool, value)
+	}
+	if value, ok := wu.mutation.IsSpecialCharacters(); ok {
+		_spec.SetField(word.FieldIsSpecialCharacters, field.TypeBool, value)
+	}
+	if value, ok := wu.mutation.RegistrationCount(); ok {
+		_spec.SetField(word.FieldRegistrationCount, field.TypeInt, value)
+	}
+	if value, ok := wu.mutation.AddedRegistrationCount(); ok {
+		_spec.AddField(word.FieldRegistrationCount, field.TypeInt, value)
 	}
 	if value, ok := wu.mutation.CreatedAt(); ok {
 		_spec.SetField(word.FieldCreatedAt, field.TypeTime, value)
@@ -248,6 +377,96 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if wu.mutation.RegisteredWordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.RegisteredWordsTable,
+			Columns: []string{word.RegisteredWordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wu.mutation.RemovedRegisteredWordsIDs(); len(nodes) > 0 && !wu.mutation.RegisteredWordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.RegisteredWordsTable,
+			Columns: []string{word.RegisteredWordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wu.mutation.RegisteredWordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.RegisteredWordsTable,
+			Columns: []string{word.RegisteredWordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if wu.mutation.QuizQuestionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.QuizQuestionsTable,
+			Columns: []string{word.QuizQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wu.mutation.RemovedQuizQuestionsIDs(); len(nodes) > 0 && !wu.mutation.QuizQuestionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.QuizQuestionsTable,
+			Columns: []string{word.QuizQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wu.mutation.QuizQuestionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.QuizQuestionsTable,
+			Columns: []string{word.QuizQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, wu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{word.Label}
@@ -283,23 +502,71 @@ func (wuo *WordUpdateOne) SetNillableName(s *string) *WordUpdateOne {
 }
 
 // SetVoiceID sets the "voice_id" field.
-func (wuo *WordUpdateOne) SetVoiceID(i int) *WordUpdateOne {
-	wuo.mutation.ResetVoiceID()
-	wuo.mutation.SetVoiceID(i)
+func (wuo *WordUpdateOne) SetVoiceID(s string) *WordUpdateOne {
+	wuo.mutation.SetVoiceID(s)
 	return wuo
 }
 
 // SetNillableVoiceID sets the "voice_id" field if the given value is not nil.
-func (wuo *WordUpdateOne) SetNillableVoiceID(i *int) *WordUpdateOne {
-	if i != nil {
-		wuo.SetVoiceID(*i)
+func (wuo *WordUpdateOne) SetNillableVoiceID(s *string) *WordUpdateOne {
+	if s != nil {
+		wuo.SetVoiceID(*s)
 	}
 	return wuo
 }
 
-// AddVoiceID adds i to the "voice_id" field.
-func (wuo *WordUpdateOne) AddVoiceID(i int) *WordUpdateOne {
-	wuo.mutation.AddVoiceID(i)
+// ClearVoiceID clears the value of the "voice_id" field.
+func (wuo *WordUpdateOne) ClearVoiceID() *WordUpdateOne {
+	wuo.mutation.ClearVoiceID()
+	return wuo
+}
+
+// SetIsIdioms sets the "is_idioms" field.
+func (wuo *WordUpdateOne) SetIsIdioms(b bool) *WordUpdateOne {
+	wuo.mutation.SetIsIdioms(b)
+	return wuo
+}
+
+// SetNillableIsIdioms sets the "is_idioms" field if the given value is not nil.
+func (wuo *WordUpdateOne) SetNillableIsIdioms(b *bool) *WordUpdateOne {
+	if b != nil {
+		wuo.SetIsIdioms(*b)
+	}
+	return wuo
+}
+
+// SetIsSpecialCharacters sets the "is_special_characters" field.
+func (wuo *WordUpdateOne) SetIsSpecialCharacters(b bool) *WordUpdateOne {
+	wuo.mutation.SetIsSpecialCharacters(b)
+	return wuo
+}
+
+// SetNillableIsSpecialCharacters sets the "is_special_characters" field if the given value is not nil.
+func (wuo *WordUpdateOne) SetNillableIsSpecialCharacters(b *bool) *WordUpdateOne {
+	if b != nil {
+		wuo.SetIsSpecialCharacters(*b)
+	}
+	return wuo
+}
+
+// SetRegistrationCount sets the "registration_count" field.
+func (wuo *WordUpdateOne) SetRegistrationCount(i int) *WordUpdateOne {
+	wuo.mutation.ResetRegistrationCount()
+	wuo.mutation.SetRegistrationCount(i)
+	return wuo
+}
+
+// SetNillableRegistrationCount sets the "registration_count" field if the given value is not nil.
+func (wuo *WordUpdateOne) SetNillableRegistrationCount(i *int) *WordUpdateOne {
+	if i != nil {
+		wuo.SetRegistrationCount(*i)
+	}
+	return wuo
+}
+
+// AddRegistrationCount adds i to the "registration_count" field.
+func (wuo *WordUpdateOne) AddRegistrationCount(i int) *WordUpdateOne {
+	wuo.mutation.AddRegistrationCount(i)
 	return wuo
 }
 
@@ -338,6 +605,36 @@ func (wuo *WordUpdateOne) AddWordInfos(w ...*WordInfo) *WordUpdateOne {
 	return wuo.AddWordInfoIDs(ids...)
 }
 
+// AddRegisteredWordIDs adds the "registered_words" edge to the RegisteredWord entity by IDs.
+func (wuo *WordUpdateOne) AddRegisteredWordIDs(ids ...int) *WordUpdateOne {
+	wuo.mutation.AddRegisteredWordIDs(ids...)
+	return wuo
+}
+
+// AddRegisteredWords adds the "registered_words" edges to the RegisteredWord entity.
+func (wuo *WordUpdateOne) AddRegisteredWords(r ...*RegisteredWord) *WordUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return wuo.AddRegisteredWordIDs(ids...)
+}
+
+// AddQuizQuestionIDs adds the "quiz_questions" edge to the QuizQuestion entity by IDs.
+func (wuo *WordUpdateOne) AddQuizQuestionIDs(ids ...int) *WordUpdateOne {
+	wuo.mutation.AddQuizQuestionIDs(ids...)
+	return wuo
+}
+
+// AddQuizQuestions adds the "quiz_questions" edges to the QuizQuestion entity.
+func (wuo *WordUpdateOne) AddQuizQuestions(q ...*QuizQuestion) *WordUpdateOne {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return wuo.AddQuizQuestionIDs(ids...)
+}
+
 // Mutation returns the WordMutation object of the builder.
 func (wuo *WordUpdateOne) Mutation() *WordMutation {
 	return wuo.mutation
@@ -362,6 +659,48 @@ func (wuo *WordUpdateOne) RemoveWordInfos(w ...*WordInfo) *WordUpdateOne {
 		ids[i] = w[i].ID
 	}
 	return wuo.RemoveWordInfoIDs(ids...)
+}
+
+// ClearRegisteredWords clears all "registered_words" edges to the RegisteredWord entity.
+func (wuo *WordUpdateOne) ClearRegisteredWords() *WordUpdateOne {
+	wuo.mutation.ClearRegisteredWords()
+	return wuo
+}
+
+// RemoveRegisteredWordIDs removes the "registered_words" edge to RegisteredWord entities by IDs.
+func (wuo *WordUpdateOne) RemoveRegisteredWordIDs(ids ...int) *WordUpdateOne {
+	wuo.mutation.RemoveRegisteredWordIDs(ids...)
+	return wuo
+}
+
+// RemoveRegisteredWords removes "registered_words" edges to RegisteredWord entities.
+func (wuo *WordUpdateOne) RemoveRegisteredWords(r ...*RegisteredWord) *WordUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return wuo.RemoveRegisteredWordIDs(ids...)
+}
+
+// ClearQuizQuestions clears all "quiz_questions" edges to the QuizQuestion entity.
+func (wuo *WordUpdateOne) ClearQuizQuestions() *WordUpdateOne {
+	wuo.mutation.ClearQuizQuestions()
+	return wuo
+}
+
+// RemoveQuizQuestionIDs removes the "quiz_questions" edge to QuizQuestion entities by IDs.
+func (wuo *WordUpdateOne) RemoveQuizQuestionIDs(ids ...int) *WordUpdateOne {
+	wuo.mutation.RemoveQuizQuestionIDs(ids...)
+	return wuo
+}
+
+// RemoveQuizQuestions removes "quiz_questions" edges to QuizQuestion entities.
+func (wuo *WordUpdateOne) RemoveQuizQuestions(q ...*QuizQuestion) *WordUpdateOne {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return wuo.RemoveQuizQuestionIDs(ids...)
 }
 
 // Where appends a list predicates to the WordUpdate builder.
@@ -420,11 +759,6 @@ func (wuo *WordUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Word.name": %w`, err)}
 		}
 	}
-	if v, ok := wuo.mutation.VoiceID(); ok {
-		if err := word.VoiceIDValidator(v); err != nil {
-			return &ValidationError{Name: "voice_id", err: fmt.Errorf(`ent: validator failed for field "Word.voice_id": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -461,10 +795,22 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (_node *Word, err error) 
 		_spec.SetField(word.FieldName, field.TypeString, value)
 	}
 	if value, ok := wuo.mutation.VoiceID(); ok {
-		_spec.SetField(word.FieldVoiceID, field.TypeInt, value)
+		_spec.SetField(word.FieldVoiceID, field.TypeString, value)
 	}
-	if value, ok := wuo.mutation.AddedVoiceID(); ok {
-		_spec.AddField(word.FieldVoiceID, field.TypeInt, value)
+	if wuo.mutation.VoiceIDCleared() {
+		_spec.ClearField(word.FieldVoiceID, field.TypeString)
+	}
+	if value, ok := wuo.mutation.IsIdioms(); ok {
+		_spec.SetField(word.FieldIsIdioms, field.TypeBool, value)
+	}
+	if value, ok := wuo.mutation.IsSpecialCharacters(); ok {
+		_spec.SetField(word.FieldIsSpecialCharacters, field.TypeBool, value)
+	}
+	if value, ok := wuo.mutation.RegistrationCount(); ok {
+		_spec.SetField(word.FieldRegistrationCount, field.TypeInt, value)
+	}
+	if value, ok := wuo.mutation.AddedRegistrationCount(); ok {
+		_spec.AddField(word.FieldRegistrationCount, field.TypeInt, value)
 	}
 	if value, ok := wuo.mutation.CreatedAt(); ok {
 		_spec.SetField(word.FieldCreatedAt, field.TypeTime, value)
@@ -510,6 +856,96 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (_node *Word, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(wordinfo.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if wuo.mutation.RegisteredWordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.RegisteredWordsTable,
+			Columns: []string{word.RegisteredWordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wuo.mutation.RemovedRegisteredWordsIDs(); len(nodes) > 0 && !wuo.mutation.RegisteredWordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.RegisteredWordsTable,
+			Columns: []string{word.RegisteredWordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wuo.mutation.RegisteredWordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.RegisteredWordsTable,
+			Columns: []string{word.RegisteredWordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if wuo.mutation.QuizQuestionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.QuizQuestionsTable,
+			Columns: []string{word.QuizQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wuo.mutation.RemovedQuizQuestionsIDs(); len(nodes) > 0 && !wuo.mutation.QuizQuestionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.QuizQuestionsTable,
+			Columns: []string{word.QuizQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wuo.mutation.QuizQuestionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.QuizQuestionsTable,
+			Columns: []string{word.QuizQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

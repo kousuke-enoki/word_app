@@ -29,6 +29,13 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "japanesemean_word_info_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{JapaneseMeansColumns[4], JapaneseMeansColumns[1]},
+			},
+		},
 	}
 	// PartOfSpeechesColumns holds the columns for the "part_of_speeches" table.
 	PartOfSpeechesColumns = []*schema.Column{
@@ -43,14 +50,146 @@ var (
 		Columns:    PartOfSpeechesColumns,
 		PrimaryKey: []*schema.Column{PartOfSpeechesColumns[0]},
 	}
+	// QuizsColumns holds the columns for the "quizs" table.
+	QuizsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "quiz_number", Type: field.TypeInt},
+		{Name: "is_running", Type: field.TypeBool, Default: false},
+		{Name: "total_questions_count", Type: field.TypeInt, Default: 10},
+		{Name: "correct_count", Type: field.TypeInt, Default: 0},
+		{Name: "result_correct_rate", Type: field.TypeFloat64, Default: 0},
+		{Name: "is_save_result", Type: field.TypeBool, Default: false},
+		{Name: "is_registered_words", Type: field.TypeInt, Default: 0},
+		{Name: "setting_correct_rate", Type: field.TypeInt, Default: 0},
+		{Name: "is_idioms", Type: field.TypeInt, Default: 0},
+		{Name: "is_special_characters", Type: field.TypeInt, Default: 0},
+		{Name: "attention_level_list", Type: field.TypeJSON},
+		{Name: "choices_pos_ids", Type: field.TypeJSON},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// QuizsTable holds the schema information for the "quizs" table.
+	QuizsTable = &schema.Table{
+		Name:       "quizs",
+		Columns:    QuizsColumns,
+		PrimaryKey: []*schema.Column{QuizsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "quizs_users_quizs",
+				Columns:    []*schema.Column{QuizsColumns[15]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// QuizQuestionsColumns holds the columns for the "quiz_questions" table.
+	QuizQuestionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "question_number", Type: field.TypeInt},
+		{Name: "word_name", Type: field.TypeString},
+		{Name: "pos_id", Type: field.TypeInt},
+		{Name: "choices_jpms", Type: field.TypeJSON},
+		{Name: "answer_jpm_id", Type: field.TypeInt, Nullable: true},
+		{Name: "is_correct", Type: field.TypeBool, Nullable: true},
+		{Name: "answered_at", Type: field.TypeTime, Nullable: true},
+		{Name: "time_ms", Type: field.TypeInt, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "correct_jpm_id", Type: field.TypeInt},
+		{Name: "quiz_id", Type: field.TypeInt},
+		{Name: "registered_word_quiz_questions", Type: field.TypeInt, Nullable: true},
+		{Name: "word_id", Type: field.TypeInt},
+	}
+	// QuizQuestionsTable holds the schema information for the "quiz_questions" table.
+	QuizQuestionsTable = &schema.Table{
+		Name:       "quiz_questions",
+		Columns:    QuizQuestionsColumns,
+		PrimaryKey: []*schema.Column{QuizQuestionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "quiz_questions_japanese_means_quiz_questions",
+				Columns:    []*schema.Column{QuizQuestionsColumns[11]},
+				RefColumns: []*schema.Column{JapaneseMeansColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "quiz_questions_quizs_quiz_questions",
+				Columns:    []*schema.Column{QuizQuestionsColumns[12]},
+				RefColumns: []*schema.Column{QuizsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "quiz_questions_registered_words_quiz_questions",
+				Columns:    []*schema.Column{QuizQuestionsColumns[13]},
+				RefColumns: []*schema.Column{RegisteredWordsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "quiz_questions_words_quiz_questions",
+				Columns:    []*schema.Column{QuizQuestionsColumns[14]},
+				RefColumns: []*schema.Column{WordsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// RegisteredWordsColumns holds the columns for the "registered_words" table.
+	RegisteredWordsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "attention_level", Type: field.TypeInt, Default: 1},
+		{Name: "quiz_count", Type: field.TypeInt, Default: 0},
+		{Name: "correct_count", Type: field.TypeInt, Default: 0},
+		{Name: "correct_rate", Type: field.TypeInt, Default: 0},
+		{Name: "memo", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "word_id", Type: field.TypeInt},
+	}
+	// RegisteredWordsTable holds the schema information for the "registered_words" table.
+	RegisteredWordsTable = &schema.Table{
+		Name:       "registered_words",
+		Columns:    RegisteredWordsColumns,
+		PrimaryKey: []*schema.Column{RegisteredWordsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "registered_words_users_registered_words",
+				Columns:    []*schema.Column{RegisteredWordsColumns[9]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "registered_words_words_registered_words",
+				Columns:    []*schema.Column{RegisteredWordsColumns[10]},
+				RefColumns: []*schema.Column{WordsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// RootConfigsColumns holds the columns for the "root_configs" table.
+	RootConfigsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "editing_permission", Type: field.TypeString, Default: "admin"},
+		{Name: "is_test_user_mode", Type: field.TypeBool, Default: false},
+		{Name: "is_email_authentication", Type: field.TypeBool, Default: false},
+	}
+	// RootConfigsTable holds the schema information for the "root_configs" table.
+	RootConfigsTable = &schema.Table{
+		Name:       "root_configs",
+		Columns:    RootConfigsColumns,
+		PrimaryKey: []*schema.Column{RootConfigsColumns[0]},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "password", Type: field.TypeString},
-		{Name: "name", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Default: "JohnDoe"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "is_admin", Type: field.TypeBool, Default: false},
+		{Name: "is_root", Type: field.TypeBool, Default: false},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -58,11 +197,34 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// UserConfigsColumns holds the columns for the "user_configs" table.
+	UserConfigsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "is_dark_mode", Type: field.TypeBool, Default: false},
+		{Name: "user_id", Type: field.TypeInt, Unique: true},
+	}
+	// UserConfigsTable holds the schema information for the "user_configs" table.
+	UserConfigsTable = &schema.Table{
+		Name:       "user_configs",
+		Columns:    UserConfigsColumns,
+		PrimaryKey: []*schema.Column{UserConfigsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_configs_users_user_config",
+				Columns:    []*schema.Column{UserConfigsColumns[2]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// WordsColumns holds the columns for the "words" table.
 	WordsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "name", Type: field.TypeString},
-		{Name: "voice_id", Type: field.TypeInt},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "voice_id", Type: field.TypeString, Nullable: true},
+		{Name: "is_idioms", Type: field.TypeBool, Default: false},
+		{Name: "is_special_characters", Type: field.TypeBool, Default: false},
+		{Name: "registration_count", Type: field.TypeInt, Default: 0},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -104,7 +266,12 @@ var (
 	Tables = []*schema.Table{
 		JapaneseMeansTable,
 		PartOfSpeechesTable,
+		QuizsTable,
+		QuizQuestionsTable,
+		RegisteredWordsTable,
+		RootConfigsTable,
 		UsersTable,
+		UserConfigsTable,
 		WordsTable,
 		WordInfosTable,
 	}
@@ -112,6 +279,14 @@ var (
 
 func init() {
 	JapaneseMeansTable.ForeignKeys[0].RefTable = WordInfosTable
+	QuizsTable.ForeignKeys[0].RefTable = UsersTable
+	QuizQuestionsTable.ForeignKeys[0].RefTable = JapaneseMeansTable
+	QuizQuestionsTable.ForeignKeys[1].RefTable = QuizsTable
+	QuizQuestionsTable.ForeignKeys[2].RefTable = RegisteredWordsTable
+	QuizQuestionsTable.ForeignKeys[3].RefTable = WordsTable
+	RegisteredWordsTable.ForeignKeys[0].RefTable = UsersTable
+	RegisteredWordsTable.ForeignKeys[1].RefTable = WordsTable
+	UserConfigsTable.ForeignKeys[0].RefTable = UsersTable
 	WordInfosTable.ForeignKeys[0].RefTable = PartOfSpeechesTable
 	WordInfosTable.ForeignKeys[1].RefTable = WordsTable
 }

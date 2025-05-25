@@ -4,10 +4,14 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
-	"word_app/ent/predicate"
-	"word_app/ent/user"
+	"word_app/backend/ent/predicate"
+	"word_app/backend/ent/quiz"
+	"word_app/backend/ent/registeredword"
+	"word_app/backend/ent/user"
+	"word_app/backend/ent/userconfig"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -18,10 +22,13 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx        *QueryContext
-	order      []user.OrderOption
-	inters     []Interceptor
-	predicates []predicate.User
+	ctx                 *QueryContext
+	order               []user.OrderOption
+	inters              []Interceptor
+	predicates          []predicate.User
+	withRegisteredWords *RegisteredWordQuery
+	withQuizs           *QuizQuery
+	withUserConfig      *UserConfigQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +63,72 @@ func (uq *UserQuery) Unique(unique bool) *UserQuery {
 func (uq *UserQuery) Order(o ...user.OrderOption) *UserQuery {
 	uq.order = append(uq.order, o...)
 	return uq
+}
+
+// QueryRegisteredWords chains the current query on the "registered_words" edge.
+func (uq *UserQuery) QueryRegisteredWords() *RegisteredWordQuery {
+	query := (&RegisteredWordClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(registeredword.Table, registeredword.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RegisteredWordsTable, user.RegisteredWordsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryQuizs chains the current query on the "quizs" edge.
+func (uq *UserQuery) QueryQuizs() *QuizQuery {
+	query := (&QuizClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(quiz.Table, quiz.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.QuizsTable, user.QuizsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUserConfig chains the current query on the "user_config" edge.
+func (uq *UserQuery) QueryUserConfig() *UserConfigQuery {
+	query := (&UserConfigClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(userconfig.Table, userconfig.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.UserConfigTable, user.UserConfigColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first User entity from the query.
@@ -245,15 +318,51 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:     uq.config,
-		ctx:        uq.ctx.Clone(),
-		order:      append([]user.OrderOption{}, uq.order...),
-		inters:     append([]Interceptor{}, uq.inters...),
-		predicates: append([]predicate.User{}, uq.predicates...),
+		config:              uq.config,
+		ctx:                 uq.ctx.Clone(),
+		order:               append([]user.OrderOption{}, uq.order...),
+		inters:              append([]Interceptor{}, uq.inters...),
+		predicates:          append([]predicate.User{}, uq.predicates...),
+		withRegisteredWords: uq.withRegisteredWords.Clone(),
+		withQuizs:           uq.withQuizs.Clone(),
+		withUserConfig:      uq.withUserConfig.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
 	}
+}
+
+// WithRegisteredWords tells the query-builder to eager-load the nodes that are connected to
+// the "registered_words" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithRegisteredWords(opts ...func(*RegisteredWordQuery)) *UserQuery {
+	query := (&RegisteredWordClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withRegisteredWords = query
+	return uq
+}
+
+// WithQuizs tells the query-builder to eager-load the nodes that are connected to
+// the "quizs" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithQuizs(opts ...func(*QuizQuery)) *UserQuery {
+	query := (&QuizClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withQuizs = query
+	return uq
+}
+
+// WithUserConfig tells the query-builder to eager-load the nodes that are connected to
+// the "user_config" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithUserConfig(opts ...func(*UserConfigQuery)) *UserQuery {
+	query := (&UserConfigClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withUserConfig = query
+	return uq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -332,8 +441,13 @@ func (uq *UserQuery) prepareQuery(ctx context.Context) error {
 
 func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, error) {
 	var (
-		nodes = []*User{}
-		_spec = uq.querySpec()
+		nodes       = []*User{}
+		_spec       = uq.querySpec()
+		loadedTypes = [3]bool{
+			uq.withRegisteredWords != nil,
+			uq.withQuizs != nil,
+			uq.withUserConfig != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*User).scanValues(nil, columns)
@@ -341,6 +455,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &User{config: uq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +467,115 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := uq.withRegisteredWords; query != nil {
+		if err := uq.loadRegisteredWords(ctx, query, nodes,
+			func(n *User) { n.Edges.RegisteredWords = []*RegisteredWord{} },
+			func(n *User, e *RegisteredWord) { n.Edges.RegisteredWords = append(n.Edges.RegisteredWords, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withQuizs; query != nil {
+		if err := uq.loadQuizs(ctx, query, nodes,
+			func(n *User) { n.Edges.Quizs = []*Quiz{} },
+			func(n *User, e *Quiz) { n.Edges.Quizs = append(n.Edges.Quizs, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withUserConfig; query != nil {
+		if err := uq.loadUserConfig(ctx, query, nodes, nil,
+			func(n *User, e *UserConfig) { n.Edges.UserConfig = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (uq *UserQuery) loadRegisteredWords(ctx context.Context, query *RegisteredWordQuery, nodes []*User, init func(*User), assign func(*User, *RegisteredWord)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(registeredword.FieldUserID)
+	}
+	query.Where(predicate.RegisteredWord(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.RegisteredWordsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadQuizs(ctx context.Context, query *QuizQuery, nodes []*User, init func(*User), assign func(*User, *Quiz)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(quiz.FieldUserID)
+	}
+	query.Where(predicate.Quiz(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.QuizsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadUserConfig(ctx context.Context, query *UserConfigQuery, nodes []*User, init func(*User), assign func(*User, *UserConfig)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(userconfig.FieldUserID)
+	}
+	query.Where(predicate.UserConfig(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.UserConfigColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (uq *UserQuery) sqlCount(ctx context.Context) (int, error) {

@@ -1,0 +1,58 @@
+/* -------------------------------------------
+   QuizQuestionView – choice button styling
+   テーマは index.css で定義済みの CSS 変数を使用
+   ------------------------------------------- */
+
+/* 共通（light / dark）  */
+.question-button {
+  width: 100%;
+  height: 5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 1rem;
+  line-height: 1.2;
+  font-weight: 600;
+  border: 2px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--select);
+  color: var(--fg);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease,
+    transform 0.05s ease;
+}
+
+.question-button:hover:not(:disabled) {
+  background-color: var(--primary);
+  color: var(--pagination);          /* ＝白系 */
+  border-color: var(--primary);
+}
+
+.question-button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* 選択状態（`selected` クラスを付与） */
+.question-button.selected {
+  background-color: var(--primary);
+  color: var(--pagination);
+  border-color: var(--primary);
+}
+
+/* disable 用 */
+.question-button:disabled {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+  color: transparent;
+}
+
+/* ---- Dark モード微調整 ---- */
+.dark .question-button {
+  background-color: var(--input);    /* = #000 系 */
+  border-color: var(--border);
+}
+
+.dark .question-button:hover:not(:disabled),
+.dark .question-button.selected {
+  background-color: var(--button_bg); /* = #248aff 系 */
+  border-color: var(--button_bg);
+  color: var(--button);               /* = #000 系 (白でも可) */
+}

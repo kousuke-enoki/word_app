@@ -1,18 +1,29 @@
-# ビルド用のステージ
-FROM golang:1.23 AS builder
+# ---------- base build stage ----------
+FROM golang:1.23.3 AS build-base
+WORKDIR /src
 
-# 作業ディレクトリを設定
-WORKDIR /app
-
-# Goのモジュールをコピー
 COPY go.mod go.sum ./
 RUN go mod download
 
-# アプリケーションのソースコードをコピー
 COPY . .
 
-# airをインストール (修正)
-RUN go install github.com/air-verse/air@latest
+# ---------- production build ----------
+FROM build-base AS prod-build
+RUN CGO_ENABLED=0 go build -o /out/server      ./cmd/server && \
+    CGO_ENABLED=0 go build -o /out/import_dict ./cmd/import_dict
 
-# アプリケーションをビルドしないので、CMDを変更
-CMD ["air"]
+# ---------- development (hot‑reload) ----------
+FROM golang:1.23.3 AS dev
+WORKDIR /app
+# air をインストール
+RUN go install github.com/air-verse/air@latest
+COPY --from=build-base /src .
+# Air の設定ファイルがあれば一緒にコピー
+COPY .air.toml .
+ENTRYPOINT ["air"]
+
+# ---------- production runtime ----------
+FROM busybox:uclibc AS prod
+WORKDIR /app
+COPY --from=prod-build /out/* /usr/local/bin/
+ENTRYPOINT ["/usr/local/bin/server"]

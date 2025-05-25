@@ -19,13 +19,15 @@ func (Quiz) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int("user_id"),
 		field.Int("quiz_number"),
+		field.Bool("is_running").
+			Default(false),
 		field.Int("total_questions_count").
 			Default(10),
 		field.Int("correct_count").
 			Default(0),
-		field.Int("correct_rate").
+		field.Float("result_correct_rate").
 			Default(0),
-		field.Bool("is_running").
+		field.Bool("is_save_result").
 			Default(false),
 		field.Int("is_registered_words").
 			Default(0).
@@ -36,6 +38,8 @@ func (Quiz) Fields() []ent.Field {
 				}
 				return nil
 			}),
+		field.Int("setting_correct_rate").
+			Default(0),
 		field.Int("is_idioms").
 			Default(0).
 			Comment("0: all, 1: idioms only, 2: not idioms only").
@@ -54,8 +58,7 @@ func (Quiz) Fields() []ent.Field {
 				}
 				return nil
 			}),
-		field.String("target_word_types").
-			NotEmpty(),
+		field.JSON("attention_level_list", []int{}),
 		field.JSON("choices_pos_ids", []int{}),
 		field.Time("created_at").
 			Default(time.Now),

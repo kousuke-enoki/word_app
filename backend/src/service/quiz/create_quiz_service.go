@@ -2,175 +2,207 @@ package quiz_service
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"math/rand"
-	"strconv"
-
 	"word_app/backend/ent"
 	"word_app/backend/ent/japanesemean"
+	"word_app/backend/ent/quiz"
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/word"
 	"word_app/backend/ent/wordinfo"
 	"word_app/backend/src/models"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/sirupsen/logrus"
 )
 
-func (s *QuizServiceImpl) CreateQuiz(ctx context.Context, req *models.CreateQuizRequest) (*models.CreateQuizResponse, error) {
-	// トランザクション開始
+func (s *QuizServiceImpl) CreateQuiz(
+	ctx context.Context,
+	userID int,
+	req *models.CreateQuizReq,
+) (resp *models.CreateQuizResponse, err error) {
+	// ① 先に出題候補を取得して “問題不足” を弾く
+	baseWQ := s.client.Word().
+		Query().
+		Where(
+			word.HasWordInfosWith(
+				wordinfo.PartOfSpeechIDIn(req.PartsOfSpeeches...),
+				wordinfo.HasJapaneseMeans(),
+			),
+		).
+		WithWordInfos(func(wi *ent.WordInfoQuery) {
+			wi.Where(wordinfo.PartOfSpeechIDIn(req.PartsOfSpeeches...)).
+				WithJapaneseMeans()
+		}).
+		WithRegisteredWords(func(rw *ent.RegisteredWordQuery) {
+			rw.Where(registeredword.UserID(userID))
+		})
+
+	if req.IsRegisteredWords == 1 {
+		baseWQ = baseWQ.Where(
+			word.HasRegisteredWordsWith(
+				registeredword.UserID(userID),
+				registeredword.IsActiveEQ(true),
+				registeredword.CorrectRateLTE(req.CorrectRate),
+				registeredword.AttentionLevelIn(req.AttentionLevelList...),
+			))
+	}
+
+	if req.IsRegisteredWords == 2 {
+		baseWQ = baseWQ.
+			Where(word.Not(word.HasRegisteredWordsWith(
+				registeredword.UserID(userID),
+				registeredword.IsActiveEQ(true))))
+	}
+
+	if req.IsIdioms != 0 {
+		baseWQ = baseWQ.Where(word.IsIdiomsEQ(req.IsIdioms == 1))
+	}
+
+	if req.IsSpecialCharacters != 0 {
+		baseWQ = baseWQ.Where(word.IsSpecialCharactersEQ(req.IsSpecialCharacters == 1))
+	}
+
+	words, err := baseWQ.
+		Order(func(s *sql.Selector) { s.OrderBy("RANDOM()") }).
+		Limit(req.QuestionCount).
+		All(ctx)
+
+	if err != nil {
+		logrus.Error(err)
+		err = fmt.Errorf("get words: %w", err)
+		return
+	}
+	if len(words) < req.QuestionCount { // 問題数が足りなければ直帰
+		err = errors.New("quiz question is not enough")
+		return
+	}
+
+	// ② ここからトランザクション開始
 	tx, err := s.client.Tx(ctx)
 	if err != nil {
 		logrus.Error(err)
-		return nil, ErrDatabaseFailure
+		return
 	}
-
 	defer func() {
-		if r := recover(); r != nil {
+		if p := recover(); p != nil {
 			_ = tx.Rollback()
-			panic(r)
-		} else if err != nil {
+			panic(p)
+		}
+		if err != nil {
 			_ = tx.Rollback()
 		} else {
 			err = tx.Commit()
-			if err != nil {
-				logrus.Error(err)
-			}
 		}
 	}()
 
-	userID := req.UserID
-	partsOfSpeeches := req.PartsOfSpeeches
-	targetWords := req.TargetWords
-	quizCount := req.QuizCount
+	// --- 同時実行中のクイズチェック --------------------
+	exists, err := tx.Quiz.Query().
+		Where(quiz.UserID(userID), quiz.IsRunning(true)).
+		Exist(ctx)
 
-	// クエリのベースを作成
-	wordQuery := tx.Word.Query().
-		WithWordInfos(func(wiQuery *ent.WordInfoQuery) {
-			if len(partsOfSpeeches) > 0 {
-				wiQuery.Where(wordinfo.PartOfSpeechIDIn(partsOfSpeeches...))
-			}
-			wiQuery.WithJapaneseMeans()
-		}).
-		WithRegisteredWords(func(rwQuery *ent.RegisteredWordQuery) {
-			rwQuery.Where(registeredword.UserID(userID))
-		})
-
-	// 単語のターゲットが "registered" の場合
-	if targetWords == "registered" {
-		wordQuery = wordQuery.Where(word.HasRegisteredWordsWith(registeredword.UserID(userID)))
-	}
-
-	// ランダムに単語を取得
-	words, err := wordQuery.Order(ent.Desc()).All(ctx) // 一旦全取得
 	if err != nil {
 		logrus.Error(err)
-		return nil, err
+		return
+	}
+	if exists {
+		err = fmt.Errorf("another quiz is running: userID=%d", userID)
+		return
 	}
 
-	// シャッフルしてQuizCount分だけ選択
-	// rand.Seed(time.Now().UnixNano())
-	rand.Shuffle(len(words), func(i, j int) { words[i], words[j] = words[j], words[i] })
-
-	selectedWords := words
-	if len(words) > quizCount {
-		selectedWords = words[:quizCount]
+	// --- quiz レコード INSERT -------------------------
+	qCount, err := tx.Quiz.Query().Where(quiz.UserID(userID)).Count(ctx)
+	if err != nil {
+		logrus.Error(err)
+		return
 	}
 
-	// // トランザクション開始
-	// tx, err := s.client.Tx(ctx)
-	// if err != nil {
-	// 	logrus.Error(err)
-	// 	return nil, err
-	// }
-	// defer func() {
-	// 	if r := recover(); r != nil {
-	// 		tx.Rollback()
-	// 		panic(r)
-	// 	}
-	// }()
-
-	quiz, err := tx.Quiz.Create().
+	qEnt, err := tx.Quiz.
+		Create().
 		SetUserID(userID).
-		SetTotalQuestionsCount(quizCount).
+		SetQuizNumber(qCount + 1).
 		SetIsRunning(true).
-		SetTargetWordTypes(targetWords).
-		SetChoicesPosIds(partsOfSpeeches).
+		SetTotalQuestionsCount(req.QuestionCount).
+		SetIsSaveResult(req.IsSaveResult).
+		SetIsRegisteredWords(req.IsRegisteredWords).
+		SetSettingCorrectRate(req.CorrectRate).
+		SetIsIdioms(req.IsIdioms).
+		SetIsSpecialCharacters(req.IsSpecialCharacters).
+		SetAttentionLevelList(req.AttentionLevelList).
+		SetChoicesPosIds(req.PartsOfSpeeches).
 		Save(ctx)
 	if err != nil {
 		logrus.Error(err)
-		tx.Rollback()
-		return nil, err
+		return
 	}
 
-	var quizQuestions []models.QuizQuestion
-	for _, word := range selectedWords {
-		// 正解の日本語訳
-		if len(word.Edges.WordInfos) == 0 || len(word.Edges.WordInfos[0].Edges.JapaneseMeans) == 0 {
-			continue // 日本語訳が存在しない場合はスキップ
+	// ③ quiz_question を作成
+	var firstDTO models.NextQuestion
+	for i, w := range words {
+		if len(w.Edges.WordInfos) == 0 ||
+			len(w.Edges.WordInfos[0].Edges.JapaneseMeans) == 0 {
+			err = fmt.Errorf("invalid word (%d) selected – no meanings", w.ID)
+			return
 		}
 
-		correctMean := word.Edges.WordInfos[0].Edges.JapaneseMeans[0]
-		correctJpmID := correctMean.ID
+		wi := w.Edges.WordInfos[0] // 前段で WithWordInfos してある
+		correct := wi.Edges.JapaneseMeans[0]
 
-		// 誤回答（ランダムに3つ選択）
-		allMeans, err := tx.JapaneseMean.Query().Where(japanesemean.IDNEQ(correctJpmID)).All(ctx)
-		if err != nil {
-			logrus.Error(err)
-			// tx.Rollback()
-			return nil, err
+		// --- 誤答３件抽出 (tx を使う) ---------------
+		wrongs, err2 := tx.JapaneseMean.Query().
+			Where(
+				japanesemean.IDNEQ(correct.ID),
+				japanesemean.HasWordInfoWith(wordinfo.PartOfSpeechID(wi.PartOfSpeechID)),
+			).
+			Order(func(s *sql.Selector) { s.OrderBy("RANDOM()") }).
+			Limit(3).
+			All(ctx)
+		if err2 != nil {
+			logrus.Error(err2)
+			err = err2
+			return
 		}
 
-		rand.Shuffle(len(allMeans), func(i, j int) { allMeans[i], allMeans[j] = allMeans[j], allMeans[i] })
-		wrongMeans := allMeans
-		if len(allMeans) > 3 {
-			wrongMeans = allMeans[:3]
+		// --- choices 組立 -----------------------------
+		choices := make([]models.ChoiceJpm, 0, 4)
+		for _, jm := range wrongs {
+			choices = append(choices, models.ChoiceJpm{JapaneseMeanID: jm.ID, Name: jm.Name})
 		}
+		choices = append(choices, models.ChoiceJpm{JapaneseMeanID: correct.ID, Name: correct.Name})
+		rand.Shuffle(len(choices), func(i, j int) { choices[i], choices[j] = choices[j], choices[i] })
 
-		// 選択肢のIDをまとめる
-		choiceIDs := []int{correctJpmID}
-		for _, wm := range wrongMeans {
-			choiceIDs = append(choiceIDs, wm.ID)
-		}
-		rand.Shuffle(len(choiceIDs), func(i, j int) { choiceIDs[i], choiceIDs[j] = choiceIDs[j], choiceIDs[i] })
-
-		// QuizQuestionを作成
-		quizQuestion, err := tx.QuizQuestion.Create().
-			SetQuizID(quiz.ID).
-			SetCorrectJpmID(correctJpmID).
-			SetChoicesJpmIds(choiceIDs).
+		// --- INSERT quiz_question ----------------------
+		qq, err2 := tx.QuizQuestion.Create().
+			SetQuizID(qEnt.ID).
+			SetQuestionNumber(i + 1).
+			SetWordID(w.ID).
+			SetWordName(w.Name).
+			SetPosID(wi.PartOfSpeechID).
+			SetCorrectJpmID(correct.ID).
+			SetChoicesJpms(choices).
 			Save(ctx)
-		if err != nil {
-			// tx.Rollback()
-			return nil, err
+		if err2 != nil {
+			logrus.Error(err2)
+			err = err2
+			return
 		}
 
-		// wrongMeans を models.QuestionJpm に変換
-		var convertedWrongMeans []models.QuestionJpm
-		for _, wm := range wrongMeans {
-			convertedWrongMeans = append(convertedWrongMeans, models.QuestionJpm{
-				JapaneseMeanID: wm.ID, // wm.ID を使用 (ent.JapaneseMean のフィールドに基づく)
-				Name:           wm.Name,
-			})
+		if i == 0 { // 一問目を保存
+			firstDTO = models.NextQuestion{
+				QuizID:         qEnt.ID,
+				QuestionNumber: qq.QuestionNumber,
+				WordName:       qq.WordName,
+				ChoicesJpms:    qq.ChoicesJpms,
+			}
 		}
-
-		// quizQuestions に追加
-		quizQuestions = append(quizQuestions, models.QuizQuestion{
-			QuizQuestionID: quizQuestion.ID,
-			WordName:       word.Name,
-			QuestionJpms: append([]models.QuestionJpm{
-				{JapaneseMeanID: correctMean.ID, Name: correctMean.Name},
-			}, convertedWrongMeans...), // 変換済みスライスを追加
-		})
 	}
 
-	// コミット
-	if err := tx.Commit(); err != nil {
-		logrus.Error(err)
-		return nil, err
+	// ④ 正常終了レスポンスをセット
+	resp = &models.CreateQuizResponse{
+		QuizID:               qEnt.ID,
+		TotalCreatedQuestion: req.QuestionCount,
+		NextQuestion:         firstDTO,
 	}
-
-	return &models.CreateQuizResponse{
-		QuizID:        quiz.ID,
-		TotalQuizs:    strconv.Itoa(quizCount),
-		QuizQuestions: quizQuestions,
-	}, nil
+	return
 }

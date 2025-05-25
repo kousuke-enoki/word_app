@@ -65,6 +65,11 @@ func QuizNumber(v int) predicate.Quiz {
 	return predicate.Quiz(sql.FieldEQ(FieldQuizNumber, v))
 }
 
+// IsRunning applies equality check predicate on the "is_running" field. It's identical to IsRunningEQ.
+func IsRunning(v bool) predicate.Quiz {
+	return predicate.Quiz(sql.FieldEQ(FieldIsRunning, v))
+}
+
 // TotalQuestionsCount applies equality check predicate on the "total_questions_count" field. It's identical to TotalQuestionsCountEQ.
 func TotalQuestionsCount(v int) predicate.Quiz {
 	return predicate.Quiz(sql.FieldEQ(FieldTotalQuestionsCount, v))
@@ -75,19 +80,24 @@ func CorrectCount(v int) predicate.Quiz {
 	return predicate.Quiz(sql.FieldEQ(FieldCorrectCount, v))
 }
 
-// CorrectRate applies equality check predicate on the "correct_rate" field. It's identical to CorrectRateEQ.
-func CorrectRate(v int) predicate.Quiz {
-	return predicate.Quiz(sql.FieldEQ(FieldCorrectRate, v))
+// ResultCorrectRate applies equality check predicate on the "result_correct_rate" field. It's identical to ResultCorrectRateEQ.
+func ResultCorrectRate(v float64) predicate.Quiz {
+	return predicate.Quiz(sql.FieldEQ(FieldResultCorrectRate, v))
 }
 
-// IsRunning applies equality check predicate on the "is_running" field. It's identical to IsRunningEQ.
-func IsRunning(v bool) predicate.Quiz {
-	return predicate.Quiz(sql.FieldEQ(FieldIsRunning, v))
+// IsSaveResult applies equality check predicate on the "is_save_result" field. It's identical to IsSaveResultEQ.
+func IsSaveResult(v bool) predicate.Quiz {
+	return predicate.Quiz(sql.FieldEQ(FieldIsSaveResult, v))
 }
 
 // IsRegisteredWords applies equality check predicate on the "is_registered_words" field. It's identical to IsRegisteredWordsEQ.
 func IsRegisteredWords(v int) predicate.Quiz {
 	return predicate.Quiz(sql.FieldEQ(FieldIsRegisteredWords, v))
+}
+
+// SettingCorrectRate applies equality check predicate on the "setting_correct_rate" field. It's identical to SettingCorrectRateEQ.
+func SettingCorrectRate(v int) predicate.Quiz {
+	return predicate.Quiz(sql.FieldEQ(FieldSettingCorrectRate, v))
 }
 
 // IsIdioms applies equality check predicate on the "is_idioms" field. It's identical to IsIdiomsEQ.
@@ -98,11 +108,6 @@ func IsIdioms(v int) predicate.Quiz {
 // IsSpecialCharacters applies equality check predicate on the "is_special_characters" field. It's identical to IsSpecialCharactersEQ.
 func IsSpecialCharacters(v int) predicate.Quiz {
 	return predicate.Quiz(sql.FieldEQ(FieldIsSpecialCharacters, v))
-}
-
-// TargetWordTypes applies equality check predicate on the "target_word_types" field. It's identical to TargetWordTypesEQ.
-func TargetWordTypes(v string) predicate.Quiz {
-	return predicate.Quiz(sql.FieldEQ(FieldTargetWordTypes, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -173,6 +178,16 @@ func QuizNumberLT(v int) predicate.Quiz {
 // QuizNumberLTE applies the LTE predicate on the "quiz_number" field.
 func QuizNumberLTE(v int) predicate.Quiz {
 	return predicate.Quiz(sql.FieldLTE(FieldQuizNumber, v))
+}
+
+// IsRunningEQ applies the EQ predicate on the "is_running" field.
+func IsRunningEQ(v bool) predicate.Quiz {
+	return predicate.Quiz(sql.FieldEQ(FieldIsRunning, v))
+}
+
+// IsRunningNEQ applies the NEQ predicate on the "is_running" field.
+func IsRunningNEQ(v bool) predicate.Quiz {
+	return predicate.Quiz(sql.FieldNEQ(FieldIsRunning, v))
 }
 
 // TotalQuestionsCountEQ applies the EQ predicate on the "total_questions_count" field.
@@ -255,54 +270,54 @@ func CorrectCountLTE(v int) predicate.Quiz {
 	return predicate.Quiz(sql.FieldLTE(FieldCorrectCount, v))
 }
 
-// CorrectRateEQ applies the EQ predicate on the "correct_rate" field.
-func CorrectRateEQ(v int) predicate.Quiz {
-	return predicate.Quiz(sql.FieldEQ(FieldCorrectRate, v))
+// ResultCorrectRateEQ applies the EQ predicate on the "result_correct_rate" field.
+func ResultCorrectRateEQ(v float64) predicate.Quiz {
+	return predicate.Quiz(sql.FieldEQ(FieldResultCorrectRate, v))
 }
 
-// CorrectRateNEQ applies the NEQ predicate on the "correct_rate" field.
-func CorrectRateNEQ(v int) predicate.Quiz {
-	return predicate.Quiz(sql.FieldNEQ(FieldCorrectRate, v))
+// ResultCorrectRateNEQ applies the NEQ predicate on the "result_correct_rate" field.
+func ResultCorrectRateNEQ(v float64) predicate.Quiz {
+	return predicate.Quiz(sql.FieldNEQ(FieldResultCorrectRate, v))
 }
 
-// CorrectRateIn applies the In predicate on the "correct_rate" field.
-func CorrectRateIn(vs ...int) predicate.Quiz {
-	return predicate.Quiz(sql.FieldIn(FieldCorrectRate, vs...))
+// ResultCorrectRateIn applies the In predicate on the "result_correct_rate" field.
+func ResultCorrectRateIn(vs ...float64) predicate.Quiz {
+	return predicate.Quiz(sql.FieldIn(FieldResultCorrectRate, vs...))
 }
 
-// CorrectRateNotIn applies the NotIn predicate on the "correct_rate" field.
-func CorrectRateNotIn(vs ...int) predicate.Quiz {
-	return predicate.Quiz(sql.FieldNotIn(FieldCorrectRate, vs...))
+// ResultCorrectRateNotIn applies the NotIn predicate on the "result_correct_rate" field.
+func ResultCorrectRateNotIn(vs ...float64) predicate.Quiz {
+	return predicate.Quiz(sql.FieldNotIn(FieldResultCorrectRate, vs...))
 }
 
-// CorrectRateGT applies the GT predicate on the "correct_rate" field.
-func CorrectRateGT(v int) predicate.Quiz {
-	return predicate.Quiz(sql.FieldGT(FieldCorrectRate, v))
+// ResultCorrectRateGT applies the GT predicate on the "result_correct_rate" field.
+func ResultCorrectRateGT(v float64) predicate.Quiz {
+	return predicate.Quiz(sql.FieldGT(FieldResultCorrectRate, v))
 }
 
-// CorrectRateGTE applies the GTE predicate on the "correct_rate" field.
-func CorrectRateGTE(v int) predicate.Quiz {
-	return predicate.Quiz(sql.FieldGTE(FieldCorrectRate, v))
+// ResultCorrectRateGTE applies the GTE predicate on the "result_correct_rate" field.
+func ResultCorrectRateGTE(v float64) predicate.Quiz {
+	return predicate.Quiz(sql.FieldGTE(FieldResultCorrectRate, v))
 }
 
-// CorrectRateLT applies the LT predicate on the "correct_rate" field.
-func CorrectRateLT(v int) predicate.Quiz {
-	return predicate.Quiz(sql.FieldLT(FieldCorrectRate, v))
+// ResultCorrectRateLT applies the LT predicate on the "result_correct_rate" field.
+func ResultCorrectRateLT(v float64) predicate.Quiz {
+	return predicate.Quiz(sql.FieldLT(FieldResultCorrectRate, v))
 }
 
-// CorrectRateLTE applies the LTE predicate on the "correct_rate" field.
-func CorrectRateLTE(v int) predicate.Quiz {
-	return predicate.Quiz(sql.FieldLTE(FieldCorrectRate, v))
+// ResultCorrectRateLTE applies the LTE predicate on the "result_correct_rate" field.
+func ResultCorrectRateLTE(v float64) predicate.Quiz {
+	return predicate.Quiz(sql.FieldLTE(FieldResultCorrectRate, v))
 }
 
-// IsRunningEQ applies the EQ predicate on the "is_running" field.
-func IsRunningEQ(v bool) predicate.Quiz {
-	return predicate.Quiz(sql.FieldEQ(FieldIsRunning, v))
+// IsSaveResultEQ applies the EQ predicate on the "is_save_result" field.
+func IsSaveResultEQ(v bool) predicate.Quiz {
+	return predicate.Quiz(sql.FieldEQ(FieldIsSaveResult, v))
 }
 
-// IsRunningNEQ applies the NEQ predicate on the "is_running" field.
-func IsRunningNEQ(v bool) predicate.Quiz {
-	return predicate.Quiz(sql.FieldNEQ(FieldIsRunning, v))
+// IsSaveResultNEQ applies the NEQ predicate on the "is_save_result" field.
+func IsSaveResultNEQ(v bool) predicate.Quiz {
+	return predicate.Quiz(sql.FieldNEQ(FieldIsSaveResult, v))
 }
 
 // IsRegisteredWordsEQ applies the EQ predicate on the "is_registered_words" field.
@@ -343,6 +358,46 @@ func IsRegisteredWordsLT(v int) predicate.Quiz {
 // IsRegisteredWordsLTE applies the LTE predicate on the "is_registered_words" field.
 func IsRegisteredWordsLTE(v int) predicate.Quiz {
 	return predicate.Quiz(sql.FieldLTE(FieldIsRegisteredWords, v))
+}
+
+// SettingCorrectRateEQ applies the EQ predicate on the "setting_correct_rate" field.
+func SettingCorrectRateEQ(v int) predicate.Quiz {
+	return predicate.Quiz(sql.FieldEQ(FieldSettingCorrectRate, v))
+}
+
+// SettingCorrectRateNEQ applies the NEQ predicate on the "setting_correct_rate" field.
+func SettingCorrectRateNEQ(v int) predicate.Quiz {
+	return predicate.Quiz(sql.FieldNEQ(FieldSettingCorrectRate, v))
+}
+
+// SettingCorrectRateIn applies the In predicate on the "setting_correct_rate" field.
+func SettingCorrectRateIn(vs ...int) predicate.Quiz {
+	return predicate.Quiz(sql.FieldIn(FieldSettingCorrectRate, vs...))
+}
+
+// SettingCorrectRateNotIn applies the NotIn predicate on the "setting_correct_rate" field.
+func SettingCorrectRateNotIn(vs ...int) predicate.Quiz {
+	return predicate.Quiz(sql.FieldNotIn(FieldSettingCorrectRate, vs...))
+}
+
+// SettingCorrectRateGT applies the GT predicate on the "setting_correct_rate" field.
+func SettingCorrectRateGT(v int) predicate.Quiz {
+	return predicate.Quiz(sql.FieldGT(FieldSettingCorrectRate, v))
+}
+
+// SettingCorrectRateGTE applies the GTE predicate on the "setting_correct_rate" field.
+func SettingCorrectRateGTE(v int) predicate.Quiz {
+	return predicate.Quiz(sql.FieldGTE(FieldSettingCorrectRate, v))
+}
+
+// SettingCorrectRateLT applies the LT predicate on the "setting_correct_rate" field.
+func SettingCorrectRateLT(v int) predicate.Quiz {
+	return predicate.Quiz(sql.FieldLT(FieldSettingCorrectRate, v))
+}
+
+// SettingCorrectRateLTE applies the LTE predicate on the "setting_correct_rate" field.
+func SettingCorrectRateLTE(v int) predicate.Quiz {
+	return predicate.Quiz(sql.FieldLTE(FieldSettingCorrectRate, v))
 }
 
 // IsIdiomsEQ applies the EQ predicate on the "is_idioms" field.
@@ -423,71 +478,6 @@ func IsSpecialCharactersLT(v int) predicate.Quiz {
 // IsSpecialCharactersLTE applies the LTE predicate on the "is_special_characters" field.
 func IsSpecialCharactersLTE(v int) predicate.Quiz {
 	return predicate.Quiz(sql.FieldLTE(FieldIsSpecialCharacters, v))
-}
-
-// TargetWordTypesEQ applies the EQ predicate on the "target_word_types" field.
-func TargetWordTypesEQ(v string) predicate.Quiz {
-	return predicate.Quiz(sql.FieldEQ(FieldTargetWordTypes, v))
-}
-
-// TargetWordTypesNEQ applies the NEQ predicate on the "target_word_types" field.
-func TargetWordTypesNEQ(v string) predicate.Quiz {
-	return predicate.Quiz(sql.FieldNEQ(FieldTargetWordTypes, v))
-}
-
-// TargetWordTypesIn applies the In predicate on the "target_word_types" field.
-func TargetWordTypesIn(vs ...string) predicate.Quiz {
-	return predicate.Quiz(sql.FieldIn(FieldTargetWordTypes, vs...))
-}
-
-// TargetWordTypesNotIn applies the NotIn predicate on the "target_word_types" field.
-func TargetWordTypesNotIn(vs ...string) predicate.Quiz {
-	return predicate.Quiz(sql.FieldNotIn(FieldTargetWordTypes, vs...))
-}
-
-// TargetWordTypesGT applies the GT predicate on the "target_word_types" field.
-func TargetWordTypesGT(v string) predicate.Quiz {
-	return predicate.Quiz(sql.FieldGT(FieldTargetWordTypes, v))
-}
-
-// TargetWordTypesGTE applies the GTE predicate on the "target_word_types" field.
-func TargetWordTypesGTE(v string) predicate.Quiz {
-	return predicate.Quiz(sql.FieldGTE(FieldTargetWordTypes, v))
-}
-
-// TargetWordTypesLT applies the LT predicate on the "target_word_types" field.
-func TargetWordTypesLT(v string) predicate.Quiz {
-	return predicate.Quiz(sql.FieldLT(FieldTargetWordTypes, v))
-}
-
-// TargetWordTypesLTE applies the LTE predicate on the "target_word_types" field.
-func TargetWordTypesLTE(v string) predicate.Quiz {
-	return predicate.Quiz(sql.FieldLTE(FieldTargetWordTypes, v))
-}
-
-// TargetWordTypesContains applies the Contains predicate on the "target_word_types" field.
-func TargetWordTypesContains(v string) predicate.Quiz {
-	return predicate.Quiz(sql.FieldContains(FieldTargetWordTypes, v))
-}
-
-// TargetWordTypesHasPrefix applies the HasPrefix predicate on the "target_word_types" field.
-func TargetWordTypesHasPrefix(v string) predicate.Quiz {
-	return predicate.Quiz(sql.FieldHasPrefix(FieldTargetWordTypes, v))
-}
-
-// TargetWordTypesHasSuffix applies the HasSuffix predicate on the "target_word_types" field.
-func TargetWordTypesHasSuffix(v string) predicate.Quiz {
-	return predicate.Quiz(sql.FieldHasSuffix(FieldTargetWordTypes, v))
-}
-
-// TargetWordTypesEqualFold applies the EqualFold predicate on the "target_word_types" field.
-func TargetWordTypesEqualFold(v string) predicate.Quiz {
-	return predicate.Quiz(sql.FieldEqualFold(FieldTargetWordTypes, v))
-}
-
-// TargetWordTypesContainsFold applies the ContainsFold predicate on the "target_word_types" field.
-func TargetWordTypesContainsFold(v string) predicate.Quiz {
-	return predicate.Quiz(sql.FieldContainsFold(FieldTargetWordTypes, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

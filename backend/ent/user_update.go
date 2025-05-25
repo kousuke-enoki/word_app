@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"time"
 	"word_app/backend/ent/predicate"
+	"word_app/backend/ent/quiz"
 	"word_app/backend/ent/registeredword"
-	"word_app/backend/ent/test"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
 
@@ -136,19 +136,38 @@ func (uu *UserUpdate) AddRegisteredWords(r ...*RegisteredWord) *UserUpdate {
 	return uu.AddRegisteredWordIDs(ids...)
 }
 
-// AddTestIDs adds the "tests" edge to the Test entity by IDs.
-func (uu *UserUpdate) AddTestIDs(ids ...int) *UserUpdate {
-	uu.mutation.AddTestIDs(ids...)
+// AddQuizIDs adds the "quizs" edge to the Quiz entity by IDs.
+func (uu *UserUpdate) AddQuizIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddQuizIDs(ids...)
 	return uu
 }
 
-// AddTests adds the "tests" edges to the Test entity.
-func (uu *UserUpdate) AddTests(t ...*Test) *UserUpdate {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// AddQuizs adds the "quizs" edges to the Quiz entity.
+func (uu *UserUpdate) AddQuizs(q ...*Quiz) *UserUpdate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return uu.AddTestIDs(ids...)
+	return uu.AddQuizIDs(ids...)
+}
+
+// SetUserConfigID sets the "user_config" edge to the UserConfig entity by ID.
+func (uu *UserUpdate) SetUserConfigID(id int) *UserUpdate {
+	uu.mutation.SetUserConfigID(id)
+	return uu
+}
+
+// SetNillableUserConfigID sets the "user_config" edge to the UserConfig entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableUserConfigID(id *int) *UserUpdate {
+	if id != nil {
+		uu = uu.SetUserConfigID(*id)
+	}
+	return uu
+}
+
+// SetUserConfig sets the "user_config" edge to the UserConfig entity.
+func (uu *UserUpdate) SetUserConfig(u *UserConfig) *UserUpdate {
+	return uu.SetUserConfigID(u.ID)
 }
 
 // SetUserConfigID sets the "user_config" edge to the UserConfig entity by ID.
@@ -196,25 +215,31 @@ func (uu *UserUpdate) RemoveRegisteredWords(r ...*RegisteredWord) *UserUpdate {
 	return uu.RemoveRegisteredWordIDs(ids...)
 }
 
-// ClearTests clears all "tests" edges to the Test entity.
-func (uu *UserUpdate) ClearTests() *UserUpdate {
-	uu.mutation.ClearTests()
+// ClearQuizs clears all "quizs" edges to the Quiz entity.
+func (uu *UserUpdate) ClearQuizs() *UserUpdate {
+	uu.mutation.ClearQuizs()
 	return uu
 }
 
-// RemoveTestIDs removes the "tests" edge to Test entities by IDs.
-func (uu *UserUpdate) RemoveTestIDs(ids ...int) *UserUpdate {
-	uu.mutation.RemoveTestIDs(ids...)
+// RemoveQuizIDs removes the "quizs" edge to Quiz entities by IDs.
+func (uu *UserUpdate) RemoveQuizIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveQuizIDs(ids...)
 	return uu
 }
 
-// RemoveTests removes "tests" edges to Test entities.
-func (uu *UserUpdate) RemoveTests(t ...*Test) *UserUpdate {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// RemoveQuizs removes "quizs" edges to Quiz entities.
+func (uu *UserUpdate) RemoveQuizs(q ...*Quiz) *UserUpdate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return uu.RemoveTestIDs(ids...)
+	return uu.RemoveQuizIDs(ids...)
+}
+
+// ClearUserConfig clears the "user_config" edge to the UserConfig entity.
+func (uu *UserUpdate) ClearUserConfig() *UserUpdate {
+	uu.mutation.ClearUserConfig()
+	return uu
 }
 
 // ClearUserConfig clears the "user_config" edge to the UserConfig entity.
@@ -357,28 +382,28 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uu.mutation.TestsCleared() {
+	if uu.mutation.QuizsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TestsTable,
-			Columns: []string{user.TestsColumn},
+			Table:   user.QuizsTable,
+			Columns: []string{user.QuizsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(test.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedTestsIDs(); len(nodes) > 0 && !uu.mutation.TestsCleared() {
+	if nodes := uu.mutation.RemovedQuizsIDs(); len(nodes) > 0 && !uu.mutation.QuizsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TestsTable,
-			Columns: []string{user.TestsColumn},
+			Table:   user.QuizsTable,
+			Columns: []string{user.QuizsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(test.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -386,15 +411,44 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.TestsIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.QuizsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TestsTable,
-			Columns: []string{user.TestsColumn},
+			Table:   user.QuizsTable,
+			Columns: []string{user.QuizsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(test.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.UserConfigCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.UserConfigTable,
+			Columns: []string{user.UserConfigColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userconfig.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.UserConfigIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.UserConfigTable,
+			Columns: []string{user.UserConfigColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userconfig.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -556,19 +610,38 @@ func (uuo *UserUpdateOne) AddRegisteredWords(r ...*RegisteredWord) *UserUpdateOn
 	return uuo.AddRegisteredWordIDs(ids...)
 }
 
-// AddTestIDs adds the "tests" edge to the Test entity by IDs.
-func (uuo *UserUpdateOne) AddTestIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.AddTestIDs(ids...)
+// AddQuizIDs adds the "quizs" edge to the Quiz entity by IDs.
+func (uuo *UserUpdateOne) AddQuizIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddQuizIDs(ids...)
 	return uuo
 }
 
-// AddTests adds the "tests" edges to the Test entity.
-func (uuo *UserUpdateOne) AddTests(t ...*Test) *UserUpdateOne {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// AddQuizs adds the "quizs" edges to the Quiz entity.
+func (uuo *UserUpdateOne) AddQuizs(q ...*Quiz) *UserUpdateOne {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return uuo.AddTestIDs(ids...)
+	return uuo.AddQuizIDs(ids...)
+}
+
+// SetUserConfigID sets the "user_config" edge to the UserConfig entity by ID.
+func (uuo *UserUpdateOne) SetUserConfigID(id int) *UserUpdateOne {
+	uuo.mutation.SetUserConfigID(id)
+	return uuo
+}
+
+// SetNillableUserConfigID sets the "user_config" edge to the UserConfig entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableUserConfigID(id *int) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetUserConfigID(*id)
+	}
+	return uuo
+}
+
+// SetUserConfig sets the "user_config" edge to the UserConfig entity.
+func (uuo *UserUpdateOne) SetUserConfig(u *UserConfig) *UserUpdateOne {
+	return uuo.SetUserConfigID(u.ID)
 }
 
 // SetUserConfigID sets the "user_config" edge to the UserConfig entity by ID.
@@ -616,25 +689,31 @@ func (uuo *UserUpdateOne) RemoveRegisteredWords(r ...*RegisteredWord) *UserUpdat
 	return uuo.RemoveRegisteredWordIDs(ids...)
 }
 
-// ClearTests clears all "tests" edges to the Test entity.
-func (uuo *UserUpdateOne) ClearTests() *UserUpdateOne {
-	uuo.mutation.ClearTests()
+// ClearQuizs clears all "quizs" edges to the Quiz entity.
+func (uuo *UserUpdateOne) ClearQuizs() *UserUpdateOne {
+	uuo.mutation.ClearQuizs()
 	return uuo
 }
 
-// RemoveTestIDs removes the "tests" edge to Test entities by IDs.
-func (uuo *UserUpdateOne) RemoveTestIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.RemoveTestIDs(ids...)
+// RemoveQuizIDs removes the "quizs" edge to Quiz entities by IDs.
+func (uuo *UserUpdateOne) RemoveQuizIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveQuizIDs(ids...)
 	return uuo
 }
 
-// RemoveTests removes "tests" edges to Test entities.
-func (uuo *UserUpdateOne) RemoveTests(t ...*Test) *UserUpdateOne {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// RemoveQuizs removes "quizs" edges to Quiz entities.
+func (uuo *UserUpdateOne) RemoveQuizs(q ...*Quiz) *UserUpdateOne {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return uuo.RemoveTestIDs(ids...)
+	return uuo.RemoveQuizIDs(ids...)
+}
+
+// ClearUserConfig clears the "user_config" edge to the UserConfig entity.
+func (uuo *UserUpdateOne) ClearUserConfig() *UserUpdateOne {
+	uuo.mutation.ClearUserConfig()
+	return uuo
 }
 
 // ClearUserConfig clears the "user_config" edge to the UserConfig entity.
@@ -807,28 +886,28 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uuo.mutation.TestsCleared() {
+	if uuo.mutation.QuizsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TestsTable,
-			Columns: []string{user.TestsColumn},
+			Table:   user.QuizsTable,
+			Columns: []string{user.QuizsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(test.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedTestsIDs(); len(nodes) > 0 && !uuo.mutation.TestsCleared() {
+	if nodes := uuo.mutation.RemovedQuizsIDs(); len(nodes) > 0 && !uuo.mutation.QuizsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TestsTable,
-			Columns: []string{user.TestsColumn},
+			Table:   user.QuizsTable,
+			Columns: []string{user.QuizsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(test.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -836,15 +915,44 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.TestsIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.QuizsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TestsTable,
-			Columns: []string{user.TestsColumn},
+			Table:   user.QuizsTable,
+			Columns: []string{user.QuizsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(test.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.UserConfigCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.UserConfigTable,
+			Columns: []string{user.UserConfigColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userconfig.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.UserConfigIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.UserConfigTable,
+			Columns: []string{user.UserConfigColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userconfig.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

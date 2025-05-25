@@ -125,3 +125,12 @@ https://github.com/scriptin/jmdict-simplified/tree/master?search=1
 
 # jmdict ライセンス
 CC‑BY‑SA 4.0 / WordNet License
+
+
+# backend側については、できるだけ次のような方針で実装していく
+| 層                 | 責務                                | ここに書いたファイル                           |
+| ----------------- | --------------------------------- | ------------------------------------ |
+| **repository**    | DB 方言・トランザクション・ランダム取得             | `word_repo_ent.go`, `quiz_tx_ent.go` |
+| **domain**        | ビジネスエラーパッケージとエンティティ変換             | `domain/errors.go`, `domain/word.go` |
+| **usecase**       | “何をするか” 手順と DTO/Record 変換         | `usecase/quiz/*.go`                  |
+| **handler(HTTP)** | userID 抽出と DTO への bind、ユースケース呼び出し | `handlers/quiz/create.go` など         |

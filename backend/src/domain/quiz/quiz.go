@@ -13,3 +13,13 @@ type Tx interface {
 	Commit() error
 	Rollback() error
 }
+
+// ───────── 単語取得用フィルタ ─────────
+type WordFilter struct {
+	PartsOfSpeech   []int
+	RegisteredMode  int // 0:全 1:登録 2:未登録
+	MaxCorrectRate  int
+	AttentionLevels []int
+	IncludeIdioms   int
+	IncludeSpecial  int
+}

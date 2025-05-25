@@ -57,10 +57,3 @@ func (JapaneseMean) Indexes() []ent.Index {
 			Unique(),
 	}
 }
-
-func (JapaneseMean) Indexes() []ent.Index {
-	return []ent.Index{
-		index.Fields("word_info_id", "name").
-			Unique(),
-	}
-}

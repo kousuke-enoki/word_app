@@ -20,6 +20,8 @@ import WordShow from '../components/word/WordShow'
 import WordBulkRegister from '../components/word/WordBulkRegister'
 import QuizMenu from '../components/quiz/QuizMenu'
 import Header from '../components/Header'
+import ResultShow   from '../components/result/ResultShow/ResultShow';
+import ResultIndex  from '../components/result/ResultIndex';
 // import Dashboard from '../components/Dashboard';
 // import Footer from '../components/Footer';
 
@@ -125,6 +127,22 @@ const AppRouter: React.FC = () => {
           element={
             <PrivateRoute>
               <QuizMenu />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/results"
+          element={
+            <PrivateRoute>
+              <ResultIndex />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/results/:quizNo"
+          element={
+            <PrivateRoute>
+              <ResultShow />
             </PrivateRoute>
           }
         />

@@ -66,6 +66,20 @@ func (qu *QuizUpdate) AddQuizNumber(i int) *QuizUpdate {
 	return qu
 }
 
+// SetIsRunning sets the "is_running" field.
+func (qu *QuizUpdate) SetIsRunning(b bool) *QuizUpdate {
+	qu.mutation.SetIsRunning(b)
+	return qu
+}
+
+// SetNillableIsRunning sets the "is_running" field if the given value is not nil.
+func (qu *QuizUpdate) SetNillableIsRunning(b *bool) *QuizUpdate {
+	if b != nil {
+		qu.SetIsRunning(*b)
+	}
+	return qu
+}
+
 // SetTotalQuestionsCount sets the "total_questions_count" field.
 func (qu *QuizUpdate) SetTotalQuestionsCount(i int) *QuizUpdate {
 	qu.mutation.ResetTotalQuestionsCount()
@@ -108,37 +122,37 @@ func (qu *QuizUpdate) AddCorrectCount(i int) *QuizUpdate {
 	return qu
 }
 
-// SetCorrectRate sets the "correct_rate" field.
-func (qu *QuizUpdate) SetCorrectRate(i int) *QuizUpdate {
-	qu.mutation.ResetCorrectRate()
-	qu.mutation.SetCorrectRate(i)
+// SetResultCorrectRate sets the "result_correct_rate" field.
+func (qu *QuizUpdate) SetResultCorrectRate(f float64) *QuizUpdate {
+	qu.mutation.ResetResultCorrectRate()
+	qu.mutation.SetResultCorrectRate(f)
 	return qu
 }
 
-// SetNillableCorrectRate sets the "correct_rate" field if the given value is not nil.
-func (qu *QuizUpdate) SetNillableCorrectRate(i *int) *QuizUpdate {
-	if i != nil {
-		qu.SetCorrectRate(*i)
+// SetNillableResultCorrectRate sets the "result_correct_rate" field if the given value is not nil.
+func (qu *QuizUpdate) SetNillableResultCorrectRate(f *float64) *QuizUpdate {
+	if f != nil {
+		qu.SetResultCorrectRate(*f)
 	}
 	return qu
 }
 
-// AddCorrectRate adds i to the "correct_rate" field.
-func (qu *QuizUpdate) AddCorrectRate(i int) *QuizUpdate {
-	qu.mutation.AddCorrectRate(i)
+// AddResultCorrectRate adds f to the "result_correct_rate" field.
+func (qu *QuizUpdate) AddResultCorrectRate(f float64) *QuizUpdate {
+	qu.mutation.AddResultCorrectRate(f)
 	return qu
 }
 
-// SetIsRunning sets the "is_running" field.
-func (qu *QuizUpdate) SetIsRunning(b bool) *QuizUpdate {
-	qu.mutation.SetIsRunning(b)
+// SetIsSaveResult sets the "is_save_result" field.
+func (qu *QuizUpdate) SetIsSaveResult(b bool) *QuizUpdate {
+	qu.mutation.SetIsSaveResult(b)
 	return qu
 }
 
-// SetNillableIsRunning sets the "is_running" field if the given value is not nil.
-func (qu *QuizUpdate) SetNillableIsRunning(b *bool) *QuizUpdate {
+// SetNillableIsSaveResult sets the "is_save_result" field if the given value is not nil.
+func (qu *QuizUpdate) SetNillableIsSaveResult(b *bool) *QuizUpdate {
 	if b != nil {
-		qu.SetIsRunning(*b)
+		qu.SetIsSaveResult(*b)
 	}
 	return qu
 }
@@ -161,6 +175,27 @@ func (qu *QuizUpdate) SetNillableIsRegisteredWords(i *int) *QuizUpdate {
 // AddIsRegisteredWords adds i to the "is_registered_words" field.
 func (qu *QuizUpdate) AddIsRegisteredWords(i int) *QuizUpdate {
 	qu.mutation.AddIsRegisteredWords(i)
+	return qu
+}
+
+// SetSettingCorrectRate sets the "setting_correct_rate" field.
+func (qu *QuizUpdate) SetSettingCorrectRate(i int) *QuizUpdate {
+	qu.mutation.ResetSettingCorrectRate()
+	qu.mutation.SetSettingCorrectRate(i)
+	return qu
+}
+
+// SetNillableSettingCorrectRate sets the "setting_correct_rate" field if the given value is not nil.
+func (qu *QuizUpdate) SetNillableSettingCorrectRate(i *int) *QuizUpdate {
+	if i != nil {
+		qu.SetSettingCorrectRate(*i)
+	}
+	return qu
+}
+
+// AddSettingCorrectRate adds i to the "setting_correct_rate" field.
+func (qu *QuizUpdate) AddSettingCorrectRate(i int) *QuizUpdate {
+	qu.mutation.AddSettingCorrectRate(i)
 	return qu
 }
 
@@ -206,17 +241,15 @@ func (qu *QuizUpdate) AddIsSpecialCharacters(i int) *QuizUpdate {
 	return qu
 }
 
-// SetTargetWordTypes sets the "target_word_types" field.
-func (qu *QuizUpdate) SetTargetWordTypes(s string) *QuizUpdate {
-	qu.mutation.SetTargetWordTypes(s)
+// SetAttentionLevelList sets the "attention_level_list" field.
+func (qu *QuizUpdate) SetAttentionLevelList(i []int) *QuizUpdate {
+	qu.mutation.SetAttentionLevelList(i)
 	return qu
 }
 
-// SetNillableTargetWordTypes sets the "target_word_types" field if the given value is not nil.
-func (qu *QuizUpdate) SetNillableTargetWordTypes(s *string) *QuizUpdate {
-	if s != nil {
-		qu.SetTargetWordTypes(*s)
-	}
+// AppendAttentionLevelList appends i to the "attention_level_list" field.
+func (qu *QuizUpdate) AppendAttentionLevelList(i []int) *QuizUpdate {
+	qu.mutation.AppendAttentionLevelList(i)
 	return qu
 }
 
@@ -362,11 +395,6 @@ func (qu *QuizUpdate) check() error {
 			return &ValidationError{Name: "is_special_characters", err: fmt.Errorf(`ent: validator failed for field "Quiz.is_special_characters": %w`, err)}
 		}
 	}
-	if v, ok := qu.mutation.TargetWordTypes(); ok {
-		if err := quiz.TargetWordTypesValidator(v); err != nil {
-			return &ValidationError{Name: "target_word_types", err: fmt.Errorf(`ent: validator failed for field "Quiz.target_word_types": %w`, err)}
-		}
-	}
 	if qu.mutation.UserCleared() && len(qu.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Quiz.user"`)
 	}
@@ -391,6 +419,9 @@ func (qu *QuizUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := qu.mutation.AddedQuizNumber(); ok {
 		_spec.AddField(quiz.FieldQuizNumber, field.TypeInt, value)
 	}
+	if value, ok := qu.mutation.IsRunning(); ok {
+		_spec.SetField(quiz.FieldIsRunning, field.TypeBool, value)
+	}
 	if value, ok := qu.mutation.TotalQuestionsCount(); ok {
 		_spec.SetField(quiz.FieldTotalQuestionsCount, field.TypeInt, value)
 	}
@@ -403,20 +434,26 @@ func (qu *QuizUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := qu.mutation.AddedCorrectCount(); ok {
 		_spec.AddField(quiz.FieldCorrectCount, field.TypeInt, value)
 	}
-	if value, ok := qu.mutation.CorrectRate(); ok {
-		_spec.SetField(quiz.FieldCorrectRate, field.TypeInt, value)
+	if value, ok := qu.mutation.ResultCorrectRate(); ok {
+		_spec.SetField(quiz.FieldResultCorrectRate, field.TypeFloat64, value)
 	}
-	if value, ok := qu.mutation.AddedCorrectRate(); ok {
-		_spec.AddField(quiz.FieldCorrectRate, field.TypeInt, value)
+	if value, ok := qu.mutation.AddedResultCorrectRate(); ok {
+		_spec.AddField(quiz.FieldResultCorrectRate, field.TypeFloat64, value)
 	}
-	if value, ok := qu.mutation.IsRunning(); ok {
-		_spec.SetField(quiz.FieldIsRunning, field.TypeBool, value)
+	if value, ok := qu.mutation.IsSaveResult(); ok {
+		_spec.SetField(quiz.FieldIsSaveResult, field.TypeBool, value)
 	}
 	if value, ok := qu.mutation.IsRegisteredWords(); ok {
 		_spec.SetField(quiz.FieldIsRegisteredWords, field.TypeInt, value)
 	}
 	if value, ok := qu.mutation.AddedIsRegisteredWords(); ok {
 		_spec.AddField(quiz.FieldIsRegisteredWords, field.TypeInt, value)
+	}
+	if value, ok := qu.mutation.SettingCorrectRate(); ok {
+		_spec.SetField(quiz.FieldSettingCorrectRate, field.TypeInt, value)
+	}
+	if value, ok := qu.mutation.AddedSettingCorrectRate(); ok {
+		_spec.AddField(quiz.FieldSettingCorrectRate, field.TypeInt, value)
 	}
 	if value, ok := qu.mutation.IsIdioms(); ok {
 		_spec.SetField(quiz.FieldIsIdioms, field.TypeInt, value)
@@ -430,8 +467,13 @@ func (qu *QuizUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := qu.mutation.AddedIsSpecialCharacters(); ok {
 		_spec.AddField(quiz.FieldIsSpecialCharacters, field.TypeInt, value)
 	}
-	if value, ok := qu.mutation.TargetWordTypes(); ok {
-		_spec.SetField(quiz.FieldTargetWordTypes, field.TypeString, value)
+	if value, ok := qu.mutation.AttentionLevelList(); ok {
+		_spec.SetField(quiz.FieldAttentionLevelList, field.TypeJSON, value)
+	}
+	if value, ok := qu.mutation.AppendedAttentionLevelList(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, quiz.FieldAttentionLevelList, value)
+		})
 	}
 	if value, ok := qu.mutation.ChoicesPosIds(); ok {
 		_spec.SetField(quiz.FieldChoicesPosIds, field.TypeJSON, value)
@@ -579,6 +621,20 @@ func (quo *QuizUpdateOne) AddQuizNumber(i int) *QuizUpdateOne {
 	return quo
 }
 
+// SetIsRunning sets the "is_running" field.
+func (quo *QuizUpdateOne) SetIsRunning(b bool) *QuizUpdateOne {
+	quo.mutation.SetIsRunning(b)
+	return quo
+}
+
+// SetNillableIsRunning sets the "is_running" field if the given value is not nil.
+func (quo *QuizUpdateOne) SetNillableIsRunning(b *bool) *QuizUpdateOne {
+	if b != nil {
+		quo.SetIsRunning(*b)
+	}
+	return quo
+}
+
 // SetTotalQuestionsCount sets the "total_questions_count" field.
 func (quo *QuizUpdateOne) SetTotalQuestionsCount(i int) *QuizUpdateOne {
 	quo.mutation.ResetTotalQuestionsCount()
@@ -621,37 +677,37 @@ func (quo *QuizUpdateOne) AddCorrectCount(i int) *QuizUpdateOne {
 	return quo
 }
 
-// SetCorrectRate sets the "correct_rate" field.
-func (quo *QuizUpdateOne) SetCorrectRate(i int) *QuizUpdateOne {
-	quo.mutation.ResetCorrectRate()
-	quo.mutation.SetCorrectRate(i)
+// SetResultCorrectRate sets the "result_correct_rate" field.
+func (quo *QuizUpdateOne) SetResultCorrectRate(f float64) *QuizUpdateOne {
+	quo.mutation.ResetResultCorrectRate()
+	quo.mutation.SetResultCorrectRate(f)
 	return quo
 }
 
-// SetNillableCorrectRate sets the "correct_rate" field if the given value is not nil.
-func (quo *QuizUpdateOne) SetNillableCorrectRate(i *int) *QuizUpdateOne {
-	if i != nil {
-		quo.SetCorrectRate(*i)
+// SetNillableResultCorrectRate sets the "result_correct_rate" field if the given value is not nil.
+func (quo *QuizUpdateOne) SetNillableResultCorrectRate(f *float64) *QuizUpdateOne {
+	if f != nil {
+		quo.SetResultCorrectRate(*f)
 	}
 	return quo
 }
 
-// AddCorrectRate adds i to the "correct_rate" field.
-func (quo *QuizUpdateOne) AddCorrectRate(i int) *QuizUpdateOne {
-	quo.mutation.AddCorrectRate(i)
+// AddResultCorrectRate adds f to the "result_correct_rate" field.
+func (quo *QuizUpdateOne) AddResultCorrectRate(f float64) *QuizUpdateOne {
+	quo.mutation.AddResultCorrectRate(f)
 	return quo
 }
 
-// SetIsRunning sets the "is_running" field.
-func (quo *QuizUpdateOne) SetIsRunning(b bool) *QuizUpdateOne {
-	quo.mutation.SetIsRunning(b)
+// SetIsSaveResult sets the "is_save_result" field.
+func (quo *QuizUpdateOne) SetIsSaveResult(b bool) *QuizUpdateOne {
+	quo.mutation.SetIsSaveResult(b)
 	return quo
 }
 
-// SetNillableIsRunning sets the "is_running" field if the given value is not nil.
-func (quo *QuizUpdateOne) SetNillableIsRunning(b *bool) *QuizUpdateOne {
+// SetNillableIsSaveResult sets the "is_save_result" field if the given value is not nil.
+func (quo *QuizUpdateOne) SetNillableIsSaveResult(b *bool) *QuizUpdateOne {
 	if b != nil {
-		quo.SetIsRunning(*b)
+		quo.SetIsSaveResult(*b)
 	}
 	return quo
 }
@@ -674,6 +730,27 @@ func (quo *QuizUpdateOne) SetNillableIsRegisteredWords(i *int) *QuizUpdateOne {
 // AddIsRegisteredWords adds i to the "is_registered_words" field.
 func (quo *QuizUpdateOne) AddIsRegisteredWords(i int) *QuizUpdateOne {
 	quo.mutation.AddIsRegisteredWords(i)
+	return quo
+}
+
+// SetSettingCorrectRate sets the "setting_correct_rate" field.
+func (quo *QuizUpdateOne) SetSettingCorrectRate(i int) *QuizUpdateOne {
+	quo.mutation.ResetSettingCorrectRate()
+	quo.mutation.SetSettingCorrectRate(i)
+	return quo
+}
+
+// SetNillableSettingCorrectRate sets the "setting_correct_rate" field if the given value is not nil.
+func (quo *QuizUpdateOne) SetNillableSettingCorrectRate(i *int) *QuizUpdateOne {
+	if i != nil {
+		quo.SetSettingCorrectRate(*i)
+	}
+	return quo
+}
+
+// AddSettingCorrectRate adds i to the "setting_correct_rate" field.
+func (quo *QuizUpdateOne) AddSettingCorrectRate(i int) *QuizUpdateOne {
+	quo.mutation.AddSettingCorrectRate(i)
 	return quo
 }
 
@@ -719,17 +796,15 @@ func (quo *QuizUpdateOne) AddIsSpecialCharacters(i int) *QuizUpdateOne {
 	return quo
 }
 
-// SetTargetWordTypes sets the "target_word_types" field.
-func (quo *QuizUpdateOne) SetTargetWordTypes(s string) *QuizUpdateOne {
-	quo.mutation.SetTargetWordTypes(s)
+// SetAttentionLevelList sets the "attention_level_list" field.
+func (quo *QuizUpdateOne) SetAttentionLevelList(i []int) *QuizUpdateOne {
+	quo.mutation.SetAttentionLevelList(i)
 	return quo
 }
 
-// SetNillableTargetWordTypes sets the "target_word_types" field if the given value is not nil.
-func (quo *QuizUpdateOne) SetNillableTargetWordTypes(s *string) *QuizUpdateOne {
-	if s != nil {
-		quo.SetTargetWordTypes(*s)
-	}
+// AppendAttentionLevelList appends i to the "attention_level_list" field.
+func (quo *QuizUpdateOne) AppendAttentionLevelList(i []int) *QuizUpdateOne {
+	quo.mutation.AppendAttentionLevelList(i)
 	return quo
 }
 
@@ -888,11 +963,6 @@ func (quo *QuizUpdateOne) check() error {
 			return &ValidationError{Name: "is_special_characters", err: fmt.Errorf(`ent: validator failed for field "Quiz.is_special_characters": %w`, err)}
 		}
 	}
-	if v, ok := quo.mutation.TargetWordTypes(); ok {
-		if err := quiz.TargetWordTypesValidator(v); err != nil {
-			return &ValidationError{Name: "target_word_types", err: fmt.Errorf(`ent: validator failed for field "Quiz.target_word_types": %w`, err)}
-		}
-	}
 	if quo.mutation.UserCleared() && len(quo.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Quiz.user"`)
 	}
@@ -934,6 +1004,9 @@ func (quo *QuizUpdateOne) sqlSave(ctx context.Context) (_node *Quiz, err error) 
 	if value, ok := quo.mutation.AddedQuizNumber(); ok {
 		_spec.AddField(quiz.FieldQuizNumber, field.TypeInt, value)
 	}
+	if value, ok := quo.mutation.IsRunning(); ok {
+		_spec.SetField(quiz.FieldIsRunning, field.TypeBool, value)
+	}
 	if value, ok := quo.mutation.TotalQuestionsCount(); ok {
 		_spec.SetField(quiz.FieldTotalQuestionsCount, field.TypeInt, value)
 	}
@@ -946,20 +1019,26 @@ func (quo *QuizUpdateOne) sqlSave(ctx context.Context) (_node *Quiz, err error) 
 	if value, ok := quo.mutation.AddedCorrectCount(); ok {
 		_spec.AddField(quiz.FieldCorrectCount, field.TypeInt, value)
 	}
-	if value, ok := quo.mutation.CorrectRate(); ok {
-		_spec.SetField(quiz.FieldCorrectRate, field.TypeInt, value)
+	if value, ok := quo.mutation.ResultCorrectRate(); ok {
+		_spec.SetField(quiz.FieldResultCorrectRate, field.TypeFloat64, value)
 	}
-	if value, ok := quo.mutation.AddedCorrectRate(); ok {
-		_spec.AddField(quiz.FieldCorrectRate, field.TypeInt, value)
+	if value, ok := quo.mutation.AddedResultCorrectRate(); ok {
+		_spec.AddField(quiz.FieldResultCorrectRate, field.TypeFloat64, value)
 	}
-	if value, ok := quo.mutation.IsRunning(); ok {
-		_spec.SetField(quiz.FieldIsRunning, field.TypeBool, value)
+	if value, ok := quo.mutation.IsSaveResult(); ok {
+		_spec.SetField(quiz.FieldIsSaveResult, field.TypeBool, value)
 	}
 	if value, ok := quo.mutation.IsRegisteredWords(); ok {
 		_spec.SetField(quiz.FieldIsRegisteredWords, field.TypeInt, value)
 	}
 	if value, ok := quo.mutation.AddedIsRegisteredWords(); ok {
 		_spec.AddField(quiz.FieldIsRegisteredWords, field.TypeInt, value)
+	}
+	if value, ok := quo.mutation.SettingCorrectRate(); ok {
+		_spec.SetField(quiz.FieldSettingCorrectRate, field.TypeInt, value)
+	}
+	if value, ok := quo.mutation.AddedSettingCorrectRate(); ok {
+		_spec.AddField(quiz.FieldSettingCorrectRate, field.TypeInt, value)
 	}
 	if value, ok := quo.mutation.IsIdioms(); ok {
 		_spec.SetField(quiz.FieldIsIdioms, field.TypeInt, value)
@@ -973,8 +1052,13 @@ func (quo *QuizUpdateOne) sqlSave(ctx context.Context) (_node *Quiz, err error) 
 	if value, ok := quo.mutation.AddedIsSpecialCharacters(); ok {
 		_spec.AddField(quiz.FieldIsSpecialCharacters, field.TypeInt, value)
 	}
-	if value, ok := quo.mutation.TargetWordTypes(); ok {
-		_spec.SetField(quiz.FieldTargetWordTypes, field.TypeString, value)
+	if value, ok := quo.mutation.AttentionLevelList(); ok {
+		_spec.SetField(quiz.FieldAttentionLevelList, field.TypeJSON, value)
+	}
+	if value, ok := quo.mutation.AppendedAttentionLevelList(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, quiz.FieldAttentionLevelList, value)
+		})
 	}
 	if value, ok := quo.mutation.ChoicesPosIds(); ok {
 		_spec.SetField(quiz.FieldChoicesPosIds, field.TypeJSON, value)

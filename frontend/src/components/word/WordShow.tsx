@@ -151,8 +151,8 @@ const WordShow: React.FC = () => {
       <p>{word.isRegistered ? '登録済み' : '未登録'}</p>
       <p>全ユーザーの登録数: {word.registrationCount}</p>
       <p>単語注意レベル: {word.attentionLevel}</p>
-      <p>テスト回数: {word.QuizCount}</p>
-      <p>チェック回数: {word.CorrectCount}</p>
+      <p>テスト回数: {word.quizCount}</p>
+      <p>チェック回数: {word.correctCount}</p>
       <div>
         <label>
           メモ:

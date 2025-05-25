@@ -10,8 +10,33 @@ type TestClientWrapper struct {
 	entClient *ent.Client
 }
 
+// GetResultSummaries implements ClientInterface.
+func (w *TestClientWrapper) GetResultSummaries(ctx context.Context, userID int) ([]models.ResultSummary, error) {
+	panic("unimplemented")
+}
+
+// GetResultByQuizNo implements ClientInterface.
+func (w *TestClientWrapper) GetResultByQuizNo(ctx context.Context, userID int, QuizNo int) (*models.Result, error) {
+	panic("unimplemented")
+}
+
 // CreateQuiz implements ClientInterface.
-func (w *TestClientWrapper) CreateQuiz(ctx context.Context, CreateQuizRequest *models.CreateQuizRequest) (*models.CreateQuizResponse, error) {
+func (w *TestClientWrapper) CreateQuiz(ctx context.Context, userID int, CreateQuizRequest *models.CreateQuizReq) (*models.CreateQuizResponse, error) {
+	panic("unimplemented")
+}
+
+// SubmitAnswerAndRoute implements ClientInterface.
+func (w *TestClientWrapper) SubmitAnswerAndRoute(ctx context.Context, userID int, CreateQuizRequest *models.PostAnswerQuestionRequest) (*models.AnswerRouteRes, error) {
+	panic("unimplemented")
+}
+
+// finishQuizTx implements ClientInterface.
+func (w *TestClientWrapper) finishQuizTx(ctx context.Context, tx *ent.Tx, q *ent.Quiz) (*models.Result, error) {
+	panic("unimplemented")
+}
+
+// GetNextOrResume implements ClientInterface.
+func (w *TestClientWrapper) GetNextOrResume(ctx context.Context, userID int, req *models.GetQuizRequest) (*models.GetQuizResponse, error) {
 	panic("unimplemented")
 }
 

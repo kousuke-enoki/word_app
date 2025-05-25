@@ -1,51 +1,107 @@
-import React, { useState } from 'react'
-import QuizOptions from './QuizOptions'
+import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import axiosInstance from '../../axiosConfig'
 import QuizSettings from './QuizSettings'
 import QuizStart from './QuizStart'
+import QuizQuestionView from './QuizQuestionView'
+import { QuizQuestion, ChoiceJpm, AnswerRouteRes, QuizSettingsType } from '../../types/quiz';
 
-type QuizType = 'all' | 'registered' | 'custom' | 'start'
+type QuizState = 'pause' | 'setting' | 'create' | 'running'
 
 const QuizMenu: React.FC = () => {
-  const [selectedQuizType, setSelectedQuizType] = useState<QuizType | null>(
-    null,
+  const [quizState, setQuizState] = useState<QuizState | null>(
+    'pause',
   )
-  const [customSettings, setCustomSettings] = useState({
+  const [quizSettings, setQuizSettings] = useState<QuizSettingsType>({
+    quizSettingCompleted: false,
     questionCount: 10,
     isSaveResult: true,
-    targetWordTypes: 'all',
+    isRegisteredWords: 0,
+    correctRate: 100,
+    attentionLevelList: [1, 2, 3, 4, 5] as number[],
     partsOfSpeeches: [1, 3, 4, 5] as number[],
+    isIdioms: 0,
+    isSpecialCharacters: 0,
   })
-  console.log("asdf")
-  const handleQuizTypeSelect = (testType: QuizType) => {
-    setSelectedQuizType(testType)
-    if (testType !== 'custom') {
-      setCustomSettings({
-        ...customSettings,
-        targetWordTypes: testType,
-      })
+  const [loading, setLoading] = useState<boolean>(true)
+  const [question, setQuestion] = useState<QuizQuestion|null>(null)
+  const nav = useNavigate()
+  useEffect(() => {
+    const fetchQuiz = async () => {
+      try {
+        const response = await axiosInstance.get(`/quizzes`)
+        if(response.data.isRunningQuiz){
+          const { nextQuestion } = response.data;
+          const quizQuestion: QuizQuestion = {
+            quizID: nextQuestion.quizID,
+            questionNumber: nextQuestion.questionNumber,
+            wordName: nextQuestion.wordName,
+            choicesJpms: nextQuestion.choicesJpms.map((c:ChoiceJpm) => ({
+              japaneseMeanID: c.japaneseMeanID,
+              name: c.name,
+            })),
+          };
+          setQuestion(quizQuestion)
+          setQuizState('running')
+        } else {
+          setQuizState('setting')
+        }
+      } catch (error) {
+        console.log(error)
+        setQuizState('setting')
+      } finally {
+        setLoading(false)
+      }
     }
+    fetchQuiz()
+  }, [])
+
+  const handleSaveSettings = (settings: QuizSettingsType) => {
+    setQuizSettings(settings)
+    setQuizState('create')
   }
 
-  const handleSaveSettings = (settings: typeof customSettings) => {
-    setCustomSettings(settings)
-    setSelectedQuizType('custom')
-  }
+  const handleQuizCreated = (id: number, first: QuizQuestion) => {
+    setQuestion(first);
+    setQuizState('running');
+  };
+  
+  const handleQuizCreateError = (msg: string) => {
+    alert(msg);
+    setQuizState('setting');
+  };
 
+  const handleAnswerRoute = (res: AnswerRouteRes) => {
+    if (res.isFinish == false && res.nextQuestion) {
+      setQuestion(res.nextQuestion);
+    } else if (res.isFinish == true) {
+      nav(`/results/${res.quizNumber}`)
+    }
+  };
+  
   return (
     <div>
-    {'quiz menu'}
-      {!selectedQuizType && <QuizOptions onSelect={handleQuizTypeSelect} />}
+      {loading || quizState == 'pause' &&(
+        <p>Loading...</p>
+      )}
 
-      {selectedQuizType === 'custom' && (
+      {!quizState || quizState == 'setting' && (
         <QuizSettings
-          settings={customSettings}
+          settings={quizSettings}
           onSaveSettings={handleSaveSettings}
-          onStart={() => setSelectedQuizType('start')}
         />
       )}
 
-      {selectedQuizType && selectedQuizType !== 'custom' && (
-        <QuizStart settings={customSettings} />
+      {quizState === 'create' && (
+        <QuizStart
+          settings={quizSettings}
+          onSuccess={handleQuizCreated}
+          onFail={handleQuizCreateError}
+        />
+      )}
+
+      {quizState === 'running' && question && (
+        <QuizQuestionView question={question} onAnswered={handleAnswerRoute} />
       )}
     </div>
   )

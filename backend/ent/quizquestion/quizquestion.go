@@ -20,10 +20,14 @@ const (
 	FieldQuestionNumber = "question_number"
 	// FieldWordID holds the string denoting the word_id field in the database.
 	FieldWordID = "word_id"
+	// FieldWordName holds the string denoting the wordname field in the database.
+	FieldWordName = "word_name"
+	// FieldPosID holds the string denoting the pos_id field in the database.
+	FieldPosID = "pos_id"
 	// FieldCorrectJpmID holds the string denoting the correct_jpm_id field in the database.
 	FieldCorrectJpmID = "correct_jpm_id"
-	// FieldChoicesJpmIds holds the string denoting the choices_jpm_ids field in the database.
-	FieldChoicesJpmIds = "choices_jpm_ids"
+	// FieldChoicesJpms holds the string denoting the choices_jpms field in the database.
+	FieldChoicesJpms = "choices_jpms"
 	// FieldAnswerJpmID holds the string denoting the answer_jpm_id field in the database.
 	FieldAnswerJpmID = "answer_jpm_id"
 	// FieldIsCorrect holds the string denoting the is_correct field in the database.
@@ -73,8 +77,10 @@ var Columns = []string{
 	FieldQuizID,
 	FieldQuestionNumber,
 	FieldWordID,
+	FieldWordName,
+	FieldPosID,
 	FieldCorrectJpmID,
-	FieldChoicesJpmIds,
+	FieldChoicesJpms,
 	FieldAnswerJpmID,
 	FieldIsCorrect,
 	FieldAnsweredAt,
@@ -107,6 +113,10 @@ func ValidColumn(column string) bool {
 var (
 	// WordIDValidator is a validator for the "word_id" field. It is called by the builders before save.
 	WordIDValidator func(int) error
+	// WordNameValidator is a validator for the "wordName" field. It is called by the builders before save.
+	WordNameValidator func(string) error
+	// PosIDValidator is a validator for the "pos_id" field. It is called by the builders before save.
+	PosIDValidator func(int) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 )
@@ -132,6 +142,16 @@ func ByQuestionNumber(opts ...sql.OrderTermOption) OrderOption {
 // ByWordID orders the results by the word_id field.
 func ByWordID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldWordID, opts...).ToFunc()
+}
+
+// ByWordName orders the results by the wordName field.
+func ByWordName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWordName, opts...).ToFunc()
+}
+
+// ByPosID orders the results by the pos_id field.
+func ByPosID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPosID, opts...).ToFunc()
 }
 
 // ByCorrectJpmID orders the results by the correct_jpm_id field.

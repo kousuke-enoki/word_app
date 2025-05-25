@@ -408,21 +408,44 @@ func HasRegisteredWordsWith(preds ...predicate.RegisteredWord) predicate.User {
 	})
 }
 
-// HasTests applies the HasEdge predicate on the "tests" edge.
-func HasTests() predicate.User {
+// HasQuizs applies the HasEdge predicate on the "quizs" edge.
+func HasQuizs() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, TestsTable, TestsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, QuizsTable, QuizsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasTestsWith applies the HasEdge predicate on the "tests" edge with a given conditions (other predicates).
-func HasTestsWith(preds ...predicate.Test) predicate.User {
+// HasQuizsWith applies the HasEdge predicate on the "quizs" edge with a given conditions (other predicates).
+func HasQuizsWith(preds ...predicate.Quiz) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := newTestsStep()
+		step := newQuizsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUserConfig applies the HasEdge predicate on the "user_config" edge.
+func HasUserConfig() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, UserConfigTable, UserConfigColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserConfigWith applies the HasEdge predicate on the "user_config" edge with a given conditions (other predicates).
+func HasUserConfigWith(preds ...predicate.UserConfig) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newUserConfigStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

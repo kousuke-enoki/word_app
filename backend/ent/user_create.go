@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"word_app/backend/ent/quiz"
 	"word_app/backend/ent/registeredword"
-	"word_app/backend/ent/test"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
 
@@ -122,19 +122,38 @@ func (uc *UserCreate) AddRegisteredWords(r ...*RegisteredWord) *UserCreate {
 	return uc.AddRegisteredWordIDs(ids...)
 }
 
-// AddTestIDs adds the "tests" edge to the Test entity by IDs.
-func (uc *UserCreate) AddTestIDs(ids ...int) *UserCreate {
-	uc.mutation.AddTestIDs(ids...)
+// AddQuizIDs adds the "quizs" edge to the Quiz entity by IDs.
+func (uc *UserCreate) AddQuizIDs(ids ...int) *UserCreate {
+	uc.mutation.AddQuizIDs(ids...)
 	return uc
 }
 
-// AddTests adds the "tests" edges to the Test entity.
-func (uc *UserCreate) AddTests(t ...*Test) *UserCreate {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// AddQuizs adds the "quizs" edges to the Quiz entity.
+func (uc *UserCreate) AddQuizs(q ...*Quiz) *UserCreate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
 	}
-	return uc.AddTestIDs(ids...)
+	return uc.AddQuizIDs(ids...)
+}
+
+// SetUserConfigID sets the "user_config" edge to the UserConfig entity by ID.
+func (uc *UserCreate) SetUserConfigID(id int) *UserCreate {
+	uc.mutation.SetUserConfigID(id)
+	return uc
+}
+
+// SetNillableUserConfigID sets the "user_config" edge to the UserConfig entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableUserConfigID(id *int) *UserCreate {
+	if id != nil {
+		uc = uc.SetUserConfigID(*id)
+	}
+	return uc
+}
+
+// SetUserConfig sets the "user_config" edge to the UserConfig entity.
+func (uc *UserCreate) SetUserConfig(u *UserConfig) *UserCreate {
+	return uc.SetUserConfigID(u.ID)
 }
 
 // SetUserConfigID sets the "user_config" edge to the UserConfig entity by ID.
@@ -322,15 +341,31 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.mutation.TestsIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.QuizsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TestsTable,
-			Columns: []string{user.TestsColumn},
+			Table:   user.QuizsTable,
+			Columns: []string{user.QuizsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(test.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.UserConfigIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.UserConfigTable,
+			Columns: []string{user.UserConfigColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userconfig.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

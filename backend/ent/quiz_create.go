@@ -36,6 +36,20 @@ func (qc *QuizCreate) SetQuizNumber(i int) *QuizCreate {
 	return qc
 }
 
+// SetIsRunning sets the "is_running" field.
+func (qc *QuizCreate) SetIsRunning(b bool) *QuizCreate {
+	qc.mutation.SetIsRunning(b)
+	return qc
+}
+
+// SetNillableIsRunning sets the "is_running" field if the given value is not nil.
+func (qc *QuizCreate) SetNillableIsRunning(b *bool) *QuizCreate {
+	if b != nil {
+		qc.SetIsRunning(*b)
+	}
+	return qc
+}
+
 // SetTotalQuestionsCount sets the "total_questions_count" field.
 func (qc *QuizCreate) SetTotalQuestionsCount(i int) *QuizCreate {
 	qc.mutation.SetTotalQuestionsCount(i)
@@ -64,30 +78,30 @@ func (qc *QuizCreate) SetNillableCorrectCount(i *int) *QuizCreate {
 	return qc
 }
 
-// SetCorrectRate sets the "correct_rate" field.
-func (qc *QuizCreate) SetCorrectRate(i int) *QuizCreate {
-	qc.mutation.SetCorrectRate(i)
+// SetResultCorrectRate sets the "result_correct_rate" field.
+func (qc *QuizCreate) SetResultCorrectRate(f float64) *QuizCreate {
+	qc.mutation.SetResultCorrectRate(f)
 	return qc
 }
 
-// SetNillableCorrectRate sets the "correct_rate" field if the given value is not nil.
-func (qc *QuizCreate) SetNillableCorrectRate(i *int) *QuizCreate {
-	if i != nil {
-		qc.SetCorrectRate(*i)
+// SetNillableResultCorrectRate sets the "result_correct_rate" field if the given value is not nil.
+func (qc *QuizCreate) SetNillableResultCorrectRate(f *float64) *QuizCreate {
+	if f != nil {
+		qc.SetResultCorrectRate(*f)
 	}
 	return qc
 }
 
-// SetIsRunning sets the "is_running" field.
-func (qc *QuizCreate) SetIsRunning(b bool) *QuizCreate {
-	qc.mutation.SetIsRunning(b)
+// SetIsSaveResult sets the "is_save_result" field.
+func (qc *QuizCreate) SetIsSaveResult(b bool) *QuizCreate {
+	qc.mutation.SetIsSaveResult(b)
 	return qc
 }
 
-// SetNillableIsRunning sets the "is_running" field if the given value is not nil.
-func (qc *QuizCreate) SetNillableIsRunning(b *bool) *QuizCreate {
+// SetNillableIsSaveResult sets the "is_save_result" field if the given value is not nil.
+func (qc *QuizCreate) SetNillableIsSaveResult(b *bool) *QuizCreate {
 	if b != nil {
-		qc.SetIsRunning(*b)
+		qc.SetIsSaveResult(*b)
 	}
 	return qc
 }
@@ -102,6 +116,20 @@ func (qc *QuizCreate) SetIsRegisteredWords(i int) *QuizCreate {
 func (qc *QuizCreate) SetNillableIsRegisteredWords(i *int) *QuizCreate {
 	if i != nil {
 		qc.SetIsRegisteredWords(*i)
+	}
+	return qc
+}
+
+// SetSettingCorrectRate sets the "setting_correct_rate" field.
+func (qc *QuizCreate) SetSettingCorrectRate(i int) *QuizCreate {
+	qc.mutation.SetSettingCorrectRate(i)
+	return qc
+}
+
+// SetNillableSettingCorrectRate sets the "setting_correct_rate" field if the given value is not nil.
+func (qc *QuizCreate) SetNillableSettingCorrectRate(i *int) *QuizCreate {
+	if i != nil {
+		qc.SetSettingCorrectRate(*i)
 	}
 	return qc
 }
@@ -134,9 +162,9 @@ func (qc *QuizCreate) SetNillableIsSpecialCharacters(i *int) *QuizCreate {
 	return qc
 }
 
-// SetTargetWordTypes sets the "target_word_types" field.
-func (qc *QuizCreate) SetTargetWordTypes(s string) *QuizCreate {
-	qc.mutation.SetTargetWordTypes(s)
+// SetAttentionLevelList sets the "attention_level_list" field.
+func (qc *QuizCreate) SetAttentionLevelList(i []int) *QuizCreate {
+	qc.mutation.SetAttentionLevelList(i)
 	return qc
 }
 
@@ -229,6 +257,10 @@ func (qc *QuizCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (qc *QuizCreate) defaults() {
+	if _, ok := qc.mutation.IsRunning(); !ok {
+		v := quiz.DefaultIsRunning
+		qc.mutation.SetIsRunning(v)
+	}
 	if _, ok := qc.mutation.TotalQuestionsCount(); !ok {
 		v := quiz.DefaultTotalQuestionsCount
 		qc.mutation.SetTotalQuestionsCount(v)
@@ -237,17 +269,21 @@ func (qc *QuizCreate) defaults() {
 		v := quiz.DefaultCorrectCount
 		qc.mutation.SetCorrectCount(v)
 	}
-	if _, ok := qc.mutation.CorrectRate(); !ok {
-		v := quiz.DefaultCorrectRate
-		qc.mutation.SetCorrectRate(v)
+	if _, ok := qc.mutation.ResultCorrectRate(); !ok {
+		v := quiz.DefaultResultCorrectRate
+		qc.mutation.SetResultCorrectRate(v)
 	}
-	if _, ok := qc.mutation.IsRunning(); !ok {
-		v := quiz.DefaultIsRunning
-		qc.mutation.SetIsRunning(v)
+	if _, ok := qc.mutation.IsSaveResult(); !ok {
+		v := quiz.DefaultIsSaveResult
+		qc.mutation.SetIsSaveResult(v)
 	}
 	if _, ok := qc.mutation.IsRegisteredWords(); !ok {
 		v := quiz.DefaultIsRegisteredWords
 		qc.mutation.SetIsRegisteredWords(v)
+	}
+	if _, ok := qc.mutation.SettingCorrectRate(); !ok {
+		v := quiz.DefaultSettingCorrectRate
+		qc.mutation.SetSettingCorrectRate(v)
 	}
 	if _, ok := qc.mutation.IsIdioms(); !ok {
 		v := quiz.DefaultIsIdioms
@@ -271,17 +307,20 @@ func (qc *QuizCreate) check() error {
 	if _, ok := qc.mutation.QuizNumber(); !ok {
 		return &ValidationError{Name: "quiz_number", err: errors.New(`ent: missing required field "Quiz.quiz_number"`)}
 	}
+	if _, ok := qc.mutation.IsRunning(); !ok {
+		return &ValidationError{Name: "is_running", err: errors.New(`ent: missing required field "Quiz.is_running"`)}
+	}
 	if _, ok := qc.mutation.TotalQuestionsCount(); !ok {
 		return &ValidationError{Name: "total_questions_count", err: errors.New(`ent: missing required field "Quiz.total_questions_count"`)}
 	}
 	if _, ok := qc.mutation.CorrectCount(); !ok {
 		return &ValidationError{Name: "correct_count", err: errors.New(`ent: missing required field "Quiz.correct_count"`)}
 	}
-	if _, ok := qc.mutation.CorrectRate(); !ok {
-		return &ValidationError{Name: "correct_rate", err: errors.New(`ent: missing required field "Quiz.correct_rate"`)}
+	if _, ok := qc.mutation.ResultCorrectRate(); !ok {
+		return &ValidationError{Name: "result_correct_rate", err: errors.New(`ent: missing required field "Quiz.result_correct_rate"`)}
 	}
-	if _, ok := qc.mutation.IsRunning(); !ok {
-		return &ValidationError{Name: "is_running", err: errors.New(`ent: missing required field "Quiz.is_running"`)}
+	if _, ok := qc.mutation.IsSaveResult(); !ok {
+		return &ValidationError{Name: "is_save_result", err: errors.New(`ent: missing required field "Quiz.is_save_result"`)}
 	}
 	if _, ok := qc.mutation.IsRegisteredWords(); !ok {
 		return &ValidationError{Name: "is_registered_words", err: errors.New(`ent: missing required field "Quiz.is_registered_words"`)}
@@ -290,6 +329,9 @@ func (qc *QuizCreate) check() error {
 		if err := quiz.IsRegisteredWordsValidator(v); err != nil {
 			return &ValidationError{Name: "is_registered_words", err: fmt.Errorf(`ent: validator failed for field "Quiz.is_registered_words": %w`, err)}
 		}
+	}
+	if _, ok := qc.mutation.SettingCorrectRate(); !ok {
+		return &ValidationError{Name: "setting_correct_rate", err: errors.New(`ent: missing required field "Quiz.setting_correct_rate"`)}
 	}
 	if _, ok := qc.mutation.IsIdioms(); !ok {
 		return &ValidationError{Name: "is_idioms", err: errors.New(`ent: missing required field "Quiz.is_idioms"`)}
@@ -307,13 +349,8 @@ func (qc *QuizCreate) check() error {
 			return &ValidationError{Name: "is_special_characters", err: fmt.Errorf(`ent: validator failed for field "Quiz.is_special_characters": %w`, err)}
 		}
 	}
-	if _, ok := qc.mutation.TargetWordTypes(); !ok {
-		return &ValidationError{Name: "target_word_types", err: errors.New(`ent: missing required field "Quiz.target_word_types"`)}
-	}
-	if v, ok := qc.mutation.TargetWordTypes(); ok {
-		if err := quiz.TargetWordTypesValidator(v); err != nil {
-			return &ValidationError{Name: "target_word_types", err: fmt.Errorf(`ent: validator failed for field "Quiz.target_word_types": %w`, err)}
-		}
+	if _, ok := qc.mutation.AttentionLevelList(); !ok {
+		return &ValidationError{Name: "attention_level_list", err: errors.New(`ent: missing required field "Quiz.attention_level_list"`)}
 	}
 	if _, ok := qc.mutation.ChoicesPosIds(); !ok {
 		return &ValidationError{Name: "choices_pos_ids", err: errors.New(`ent: missing required field "Quiz.choices_pos_ids"`)}
@@ -355,6 +392,10 @@ func (qc *QuizCreate) createSpec() (*Quiz, *sqlgraph.CreateSpec) {
 		_spec.SetField(quiz.FieldQuizNumber, field.TypeInt, value)
 		_node.QuizNumber = value
 	}
+	if value, ok := qc.mutation.IsRunning(); ok {
+		_spec.SetField(quiz.FieldIsRunning, field.TypeBool, value)
+		_node.IsRunning = value
+	}
 	if value, ok := qc.mutation.TotalQuestionsCount(); ok {
 		_spec.SetField(quiz.FieldTotalQuestionsCount, field.TypeInt, value)
 		_node.TotalQuestionsCount = value
@@ -363,17 +404,21 @@ func (qc *QuizCreate) createSpec() (*Quiz, *sqlgraph.CreateSpec) {
 		_spec.SetField(quiz.FieldCorrectCount, field.TypeInt, value)
 		_node.CorrectCount = value
 	}
-	if value, ok := qc.mutation.CorrectRate(); ok {
-		_spec.SetField(quiz.FieldCorrectRate, field.TypeInt, value)
-		_node.CorrectRate = value
+	if value, ok := qc.mutation.ResultCorrectRate(); ok {
+		_spec.SetField(quiz.FieldResultCorrectRate, field.TypeFloat64, value)
+		_node.ResultCorrectRate = value
 	}
-	if value, ok := qc.mutation.IsRunning(); ok {
-		_spec.SetField(quiz.FieldIsRunning, field.TypeBool, value)
-		_node.IsRunning = value
+	if value, ok := qc.mutation.IsSaveResult(); ok {
+		_spec.SetField(quiz.FieldIsSaveResult, field.TypeBool, value)
+		_node.IsSaveResult = value
 	}
 	if value, ok := qc.mutation.IsRegisteredWords(); ok {
 		_spec.SetField(quiz.FieldIsRegisteredWords, field.TypeInt, value)
 		_node.IsRegisteredWords = value
+	}
+	if value, ok := qc.mutation.SettingCorrectRate(); ok {
+		_spec.SetField(quiz.FieldSettingCorrectRate, field.TypeInt, value)
+		_node.SettingCorrectRate = value
 	}
 	if value, ok := qc.mutation.IsIdioms(); ok {
 		_spec.SetField(quiz.FieldIsIdioms, field.TypeInt, value)
@@ -383,9 +428,9 @@ func (qc *QuizCreate) createSpec() (*Quiz, *sqlgraph.CreateSpec) {
 		_spec.SetField(quiz.FieldIsSpecialCharacters, field.TypeInt, value)
 		_node.IsSpecialCharacters = value
 	}
-	if value, ok := qc.mutation.TargetWordTypes(); ok {
-		_spec.SetField(quiz.FieldTargetWordTypes, field.TypeString, value)
-		_node.TargetWordTypes = value
+	if value, ok := qc.mutation.AttentionLevelList(); ok {
+		_spec.SetField(quiz.FieldAttentionLevelList, field.TypeJSON, value)
+		_node.AttentionLevelList = value
 	}
 	if value, ok := qc.mutation.ChoicesPosIds(); ok {
 		_spec.SetField(quiz.FieldChoicesPosIds, field.TypeJSON, value)
@@ -514,6 +559,18 @@ func (u *QuizUpsert) AddQuizNumber(v int) *QuizUpsert {
 	return u
 }
 
+// SetIsRunning sets the "is_running" field.
+func (u *QuizUpsert) SetIsRunning(v bool) *QuizUpsert {
+	u.Set(quiz.FieldIsRunning, v)
+	return u
+}
+
+// UpdateIsRunning sets the "is_running" field to the value that was provided on create.
+func (u *QuizUpsert) UpdateIsRunning() *QuizUpsert {
+	u.SetExcluded(quiz.FieldIsRunning)
+	return u
+}
+
 // SetTotalQuestionsCount sets the "total_questions_count" field.
 func (u *QuizUpsert) SetTotalQuestionsCount(v int) *QuizUpsert {
 	u.Set(quiz.FieldTotalQuestionsCount, v)
@@ -550,33 +607,33 @@ func (u *QuizUpsert) AddCorrectCount(v int) *QuizUpsert {
 	return u
 }
 
-// SetCorrectRate sets the "correct_rate" field.
-func (u *QuizUpsert) SetCorrectRate(v int) *QuizUpsert {
-	u.Set(quiz.FieldCorrectRate, v)
+// SetResultCorrectRate sets the "result_correct_rate" field.
+func (u *QuizUpsert) SetResultCorrectRate(v float64) *QuizUpsert {
+	u.Set(quiz.FieldResultCorrectRate, v)
 	return u
 }
 
-// UpdateCorrectRate sets the "correct_rate" field to the value that was provided on create.
-func (u *QuizUpsert) UpdateCorrectRate() *QuizUpsert {
-	u.SetExcluded(quiz.FieldCorrectRate)
+// UpdateResultCorrectRate sets the "result_correct_rate" field to the value that was provided on create.
+func (u *QuizUpsert) UpdateResultCorrectRate() *QuizUpsert {
+	u.SetExcluded(quiz.FieldResultCorrectRate)
 	return u
 }
 
-// AddCorrectRate adds v to the "correct_rate" field.
-func (u *QuizUpsert) AddCorrectRate(v int) *QuizUpsert {
-	u.Add(quiz.FieldCorrectRate, v)
+// AddResultCorrectRate adds v to the "result_correct_rate" field.
+func (u *QuizUpsert) AddResultCorrectRate(v float64) *QuizUpsert {
+	u.Add(quiz.FieldResultCorrectRate, v)
 	return u
 }
 
-// SetIsRunning sets the "is_running" field.
-func (u *QuizUpsert) SetIsRunning(v bool) *QuizUpsert {
-	u.Set(quiz.FieldIsRunning, v)
+// SetIsSaveResult sets the "is_save_result" field.
+func (u *QuizUpsert) SetIsSaveResult(v bool) *QuizUpsert {
+	u.Set(quiz.FieldIsSaveResult, v)
 	return u
 }
 
-// UpdateIsRunning sets the "is_running" field to the value that was provided on create.
-func (u *QuizUpsert) UpdateIsRunning() *QuizUpsert {
-	u.SetExcluded(quiz.FieldIsRunning)
+// UpdateIsSaveResult sets the "is_save_result" field to the value that was provided on create.
+func (u *QuizUpsert) UpdateIsSaveResult() *QuizUpsert {
+	u.SetExcluded(quiz.FieldIsSaveResult)
 	return u
 }
 
@@ -595,6 +652,24 @@ func (u *QuizUpsert) UpdateIsRegisteredWords() *QuizUpsert {
 // AddIsRegisteredWords adds v to the "is_registered_words" field.
 func (u *QuizUpsert) AddIsRegisteredWords(v int) *QuizUpsert {
 	u.Add(quiz.FieldIsRegisteredWords, v)
+	return u
+}
+
+// SetSettingCorrectRate sets the "setting_correct_rate" field.
+func (u *QuizUpsert) SetSettingCorrectRate(v int) *QuizUpsert {
+	u.Set(quiz.FieldSettingCorrectRate, v)
+	return u
+}
+
+// UpdateSettingCorrectRate sets the "setting_correct_rate" field to the value that was provided on create.
+func (u *QuizUpsert) UpdateSettingCorrectRate() *QuizUpsert {
+	u.SetExcluded(quiz.FieldSettingCorrectRate)
+	return u
+}
+
+// AddSettingCorrectRate adds v to the "setting_correct_rate" field.
+func (u *QuizUpsert) AddSettingCorrectRate(v int) *QuizUpsert {
+	u.Add(quiz.FieldSettingCorrectRate, v)
 	return u
 }
 
@@ -634,15 +709,15 @@ func (u *QuizUpsert) AddIsSpecialCharacters(v int) *QuizUpsert {
 	return u
 }
 
-// SetTargetWordTypes sets the "target_word_types" field.
-func (u *QuizUpsert) SetTargetWordTypes(v string) *QuizUpsert {
-	u.Set(quiz.FieldTargetWordTypes, v)
+// SetAttentionLevelList sets the "attention_level_list" field.
+func (u *QuizUpsert) SetAttentionLevelList(v []int) *QuizUpsert {
+	u.Set(quiz.FieldAttentionLevelList, v)
 	return u
 }
 
-// UpdateTargetWordTypes sets the "target_word_types" field to the value that was provided on create.
-func (u *QuizUpsert) UpdateTargetWordTypes() *QuizUpsert {
-	u.SetExcluded(quiz.FieldTargetWordTypes)
+// UpdateAttentionLevelList sets the "attention_level_list" field to the value that was provided on create.
+func (u *QuizUpsert) UpdateAttentionLevelList() *QuizUpsert {
+	u.SetExcluded(quiz.FieldAttentionLevelList)
 	return u
 }
 
@@ -763,6 +838,20 @@ func (u *QuizUpsertOne) UpdateQuizNumber() *QuizUpsertOne {
 	})
 }
 
+// SetIsRunning sets the "is_running" field.
+func (u *QuizUpsertOne) SetIsRunning(v bool) *QuizUpsertOne {
+	return u.Update(func(s *QuizUpsert) {
+		s.SetIsRunning(v)
+	})
+}
+
+// UpdateIsRunning sets the "is_running" field to the value that was provided on create.
+func (u *QuizUpsertOne) UpdateIsRunning() *QuizUpsertOne {
+	return u.Update(func(s *QuizUpsert) {
+		s.UpdateIsRunning()
+	})
+}
+
 // SetTotalQuestionsCount sets the "total_questions_count" field.
 func (u *QuizUpsertOne) SetTotalQuestionsCount(v int) *QuizUpsertOne {
 	return u.Update(func(s *QuizUpsert) {
@@ -805,38 +894,38 @@ func (u *QuizUpsertOne) UpdateCorrectCount() *QuizUpsertOne {
 	})
 }
 
-// SetCorrectRate sets the "correct_rate" field.
-func (u *QuizUpsertOne) SetCorrectRate(v int) *QuizUpsertOne {
+// SetResultCorrectRate sets the "result_correct_rate" field.
+func (u *QuizUpsertOne) SetResultCorrectRate(v float64) *QuizUpsertOne {
 	return u.Update(func(s *QuizUpsert) {
-		s.SetCorrectRate(v)
+		s.SetResultCorrectRate(v)
 	})
 }
 
-// AddCorrectRate adds v to the "correct_rate" field.
-func (u *QuizUpsertOne) AddCorrectRate(v int) *QuizUpsertOne {
+// AddResultCorrectRate adds v to the "result_correct_rate" field.
+func (u *QuizUpsertOne) AddResultCorrectRate(v float64) *QuizUpsertOne {
 	return u.Update(func(s *QuizUpsert) {
-		s.AddCorrectRate(v)
+		s.AddResultCorrectRate(v)
 	})
 }
 
-// UpdateCorrectRate sets the "correct_rate" field to the value that was provided on create.
-func (u *QuizUpsertOne) UpdateCorrectRate() *QuizUpsertOne {
+// UpdateResultCorrectRate sets the "result_correct_rate" field to the value that was provided on create.
+func (u *QuizUpsertOne) UpdateResultCorrectRate() *QuizUpsertOne {
 	return u.Update(func(s *QuizUpsert) {
-		s.UpdateCorrectRate()
+		s.UpdateResultCorrectRate()
 	})
 }
 
-// SetIsRunning sets the "is_running" field.
-func (u *QuizUpsertOne) SetIsRunning(v bool) *QuizUpsertOne {
+// SetIsSaveResult sets the "is_save_result" field.
+func (u *QuizUpsertOne) SetIsSaveResult(v bool) *QuizUpsertOne {
 	return u.Update(func(s *QuizUpsert) {
-		s.SetIsRunning(v)
+		s.SetIsSaveResult(v)
 	})
 }
 
-// UpdateIsRunning sets the "is_running" field to the value that was provided on create.
-func (u *QuizUpsertOne) UpdateIsRunning() *QuizUpsertOne {
+// UpdateIsSaveResult sets the "is_save_result" field to the value that was provided on create.
+func (u *QuizUpsertOne) UpdateIsSaveResult() *QuizUpsertOne {
 	return u.Update(func(s *QuizUpsert) {
-		s.UpdateIsRunning()
+		s.UpdateIsSaveResult()
 	})
 }
 
@@ -858,6 +947,27 @@ func (u *QuizUpsertOne) AddIsRegisteredWords(v int) *QuizUpsertOne {
 func (u *QuizUpsertOne) UpdateIsRegisteredWords() *QuizUpsertOne {
 	return u.Update(func(s *QuizUpsert) {
 		s.UpdateIsRegisteredWords()
+	})
+}
+
+// SetSettingCorrectRate sets the "setting_correct_rate" field.
+func (u *QuizUpsertOne) SetSettingCorrectRate(v int) *QuizUpsertOne {
+	return u.Update(func(s *QuizUpsert) {
+		s.SetSettingCorrectRate(v)
+	})
+}
+
+// AddSettingCorrectRate adds v to the "setting_correct_rate" field.
+func (u *QuizUpsertOne) AddSettingCorrectRate(v int) *QuizUpsertOne {
+	return u.Update(func(s *QuizUpsert) {
+		s.AddSettingCorrectRate(v)
+	})
+}
+
+// UpdateSettingCorrectRate sets the "setting_correct_rate" field to the value that was provided on create.
+func (u *QuizUpsertOne) UpdateSettingCorrectRate() *QuizUpsertOne {
+	return u.Update(func(s *QuizUpsert) {
+		s.UpdateSettingCorrectRate()
 	})
 }
 
@@ -903,17 +1013,17 @@ func (u *QuizUpsertOne) UpdateIsSpecialCharacters() *QuizUpsertOne {
 	})
 }
 
-// SetTargetWordTypes sets the "target_word_types" field.
-func (u *QuizUpsertOne) SetTargetWordTypes(v string) *QuizUpsertOne {
+// SetAttentionLevelList sets the "attention_level_list" field.
+func (u *QuizUpsertOne) SetAttentionLevelList(v []int) *QuizUpsertOne {
 	return u.Update(func(s *QuizUpsert) {
-		s.SetTargetWordTypes(v)
+		s.SetAttentionLevelList(v)
 	})
 }
 
-// UpdateTargetWordTypes sets the "target_word_types" field to the value that was provided on create.
-func (u *QuizUpsertOne) UpdateTargetWordTypes() *QuizUpsertOne {
+// UpdateAttentionLevelList sets the "attention_level_list" field to the value that was provided on create.
+func (u *QuizUpsertOne) UpdateAttentionLevelList() *QuizUpsertOne {
 	return u.Update(func(s *QuizUpsert) {
-		s.UpdateTargetWordTypes()
+		s.UpdateAttentionLevelList()
 	})
 }
 
@@ -1205,6 +1315,20 @@ func (u *QuizUpsertBulk) UpdateQuizNumber() *QuizUpsertBulk {
 	})
 }
 
+// SetIsRunning sets the "is_running" field.
+func (u *QuizUpsertBulk) SetIsRunning(v bool) *QuizUpsertBulk {
+	return u.Update(func(s *QuizUpsert) {
+		s.SetIsRunning(v)
+	})
+}
+
+// UpdateIsRunning sets the "is_running" field to the value that was provided on create.
+func (u *QuizUpsertBulk) UpdateIsRunning() *QuizUpsertBulk {
+	return u.Update(func(s *QuizUpsert) {
+		s.UpdateIsRunning()
+	})
+}
+
 // SetTotalQuestionsCount sets the "total_questions_count" field.
 func (u *QuizUpsertBulk) SetTotalQuestionsCount(v int) *QuizUpsertBulk {
 	return u.Update(func(s *QuizUpsert) {
@@ -1247,38 +1371,38 @@ func (u *QuizUpsertBulk) UpdateCorrectCount() *QuizUpsertBulk {
 	})
 }
 
-// SetCorrectRate sets the "correct_rate" field.
-func (u *QuizUpsertBulk) SetCorrectRate(v int) *QuizUpsertBulk {
+// SetResultCorrectRate sets the "result_correct_rate" field.
+func (u *QuizUpsertBulk) SetResultCorrectRate(v float64) *QuizUpsertBulk {
 	return u.Update(func(s *QuizUpsert) {
-		s.SetCorrectRate(v)
+		s.SetResultCorrectRate(v)
 	})
 }
 
-// AddCorrectRate adds v to the "correct_rate" field.
-func (u *QuizUpsertBulk) AddCorrectRate(v int) *QuizUpsertBulk {
+// AddResultCorrectRate adds v to the "result_correct_rate" field.
+func (u *QuizUpsertBulk) AddResultCorrectRate(v float64) *QuizUpsertBulk {
 	return u.Update(func(s *QuizUpsert) {
-		s.AddCorrectRate(v)
+		s.AddResultCorrectRate(v)
 	})
 }
 
-// UpdateCorrectRate sets the "correct_rate" field to the value that was provided on create.
-func (u *QuizUpsertBulk) UpdateCorrectRate() *QuizUpsertBulk {
+// UpdateResultCorrectRate sets the "result_correct_rate" field to the value that was provided on create.
+func (u *QuizUpsertBulk) UpdateResultCorrectRate() *QuizUpsertBulk {
 	return u.Update(func(s *QuizUpsert) {
-		s.UpdateCorrectRate()
+		s.UpdateResultCorrectRate()
 	})
 }
 
-// SetIsRunning sets the "is_running" field.
-func (u *QuizUpsertBulk) SetIsRunning(v bool) *QuizUpsertBulk {
+// SetIsSaveResult sets the "is_save_result" field.
+func (u *QuizUpsertBulk) SetIsSaveResult(v bool) *QuizUpsertBulk {
 	return u.Update(func(s *QuizUpsert) {
-		s.SetIsRunning(v)
+		s.SetIsSaveResult(v)
 	})
 }
 
-// UpdateIsRunning sets the "is_running" field to the value that was provided on create.
-func (u *QuizUpsertBulk) UpdateIsRunning() *QuizUpsertBulk {
+// UpdateIsSaveResult sets the "is_save_result" field to the value that was provided on create.
+func (u *QuizUpsertBulk) UpdateIsSaveResult() *QuizUpsertBulk {
 	return u.Update(func(s *QuizUpsert) {
-		s.UpdateIsRunning()
+		s.UpdateIsSaveResult()
 	})
 }
 
@@ -1300,6 +1424,27 @@ func (u *QuizUpsertBulk) AddIsRegisteredWords(v int) *QuizUpsertBulk {
 func (u *QuizUpsertBulk) UpdateIsRegisteredWords() *QuizUpsertBulk {
 	return u.Update(func(s *QuizUpsert) {
 		s.UpdateIsRegisteredWords()
+	})
+}
+
+// SetSettingCorrectRate sets the "setting_correct_rate" field.
+func (u *QuizUpsertBulk) SetSettingCorrectRate(v int) *QuizUpsertBulk {
+	return u.Update(func(s *QuizUpsert) {
+		s.SetSettingCorrectRate(v)
+	})
+}
+
+// AddSettingCorrectRate adds v to the "setting_correct_rate" field.
+func (u *QuizUpsertBulk) AddSettingCorrectRate(v int) *QuizUpsertBulk {
+	return u.Update(func(s *QuizUpsert) {
+		s.AddSettingCorrectRate(v)
+	})
+}
+
+// UpdateSettingCorrectRate sets the "setting_correct_rate" field to the value that was provided on create.
+func (u *QuizUpsertBulk) UpdateSettingCorrectRate() *QuizUpsertBulk {
+	return u.Update(func(s *QuizUpsert) {
+		s.UpdateSettingCorrectRate()
 	})
 }
 
@@ -1345,17 +1490,17 @@ func (u *QuizUpsertBulk) UpdateIsSpecialCharacters() *QuizUpsertBulk {
 	})
 }
 
-// SetTargetWordTypes sets the "target_word_types" field.
-func (u *QuizUpsertBulk) SetTargetWordTypes(v string) *QuizUpsertBulk {
+// SetAttentionLevelList sets the "attention_level_list" field.
+func (u *QuizUpsertBulk) SetAttentionLevelList(v []int) *QuizUpsertBulk {
 	return u.Update(func(s *QuizUpsert) {
-		s.SetTargetWordTypes(v)
+		s.SetAttentionLevelList(v)
 	})
 }
 
-// UpdateTargetWordTypes sets the "target_word_types" field to the value that was provided on create.
-func (u *QuizUpsertBulk) UpdateTargetWordTypes() *QuizUpsertBulk {
+// UpdateAttentionLevelList sets the "attention_level_list" field to the value that was provided on create.
+func (u *QuizUpsertBulk) UpdateAttentionLevelList() *QuizUpsertBulk {
 	return u.Update(func(s *QuizUpsert) {
-		s.UpdateTargetWordTypes()
+		s.UpdateAttentionLevelList()
 	})
 }
 

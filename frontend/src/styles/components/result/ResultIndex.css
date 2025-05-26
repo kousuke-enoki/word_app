@@ -1,0 +1,9 @@
+/* 今回は見出しと行ホバー色の差分だけ */
+.ri-title{ @apply text-center text-2xl font-bold; }
+
+.ri-table tbody tr:hover{
+  background:#eff6ff;            /* blue-50 */
+}
+.dark .ri-table tbody tr:hover{
+  background:#475569;            /* slate-600 */
+}

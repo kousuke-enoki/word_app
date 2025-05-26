@@ -73,6 +73,12 @@ const MyPage: React.FC = () => {
         </p>
       ) : null}
       <p>
+         <Link to="/quizs">単語クイズ</Link>
+      </p>
+      <p>
+         <Link to="/results">クイズ成績一覧</Link>
+      </p>
+      <p>
         <Link to="/user/userSetting">ユーザー設定画面</Link>
       </p>
       {user?.root ? (

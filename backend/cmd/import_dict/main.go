@@ -12,12 +12,9 @@ import (
 	"word_app/backend/database"
 	"word_app/backend/internal/dictimport" // ← 取込ロジック（別途実装）
 	"word_app/backend/logger"
-
-	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	logrus.Info("JMdict import start")
 	log.Println("JMdict import start")
 	// -------- CLI フラグ --------
 	var (

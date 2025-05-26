@@ -77,8 +77,8 @@ func TestGetRegisteredWords_Success(t *testing.T) {
 		SetUserID(userID).
 		SetIsActive(true).
 		SetAttentionLevel(2).
-		SetTestCount(10).
-		SetCheckCount(5).
+		SetQuizCount(10).
+		SetCorrectCount(5).
 		SaveX(ctx)
 
 	client.RegisteredWord.Create().
@@ -86,8 +86,8 @@ func TestGetRegisteredWords_Success(t *testing.T) {
 		SetUserID(userID).
 		SetIsActive(true).
 		SetAttentionLevel(1).
-		SetTestCount(3).
-		SetCheckCount(1).
+		SetQuizCount(3).
+		SetCorrectCount(1).
 		SaveX(ctx)
 
 	// Create request
@@ -114,13 +114,13 @@ func TestGetRegisteredWords_Success(t *testing.T) {
 		// Verify RegisteredWord data
 		assert.True(t, resp.Words[0].IsRegistered)
 		assert.Equal(t, 2, resp.Words[0].AttentionLevel)
-		assert.Equal(t, 10, resp.Words[0].TestCount)
-		assert.Equal(t, 5, resp.Words[0].CheckCount)
+		assert.Equal(t, 10, resp.Words[0].QuizCount)
+		assert.Equal(t, 5, resp.Words[0].CorrectCount)
 
 		assert.True(t, resp.Words[1].IsRegistered)
 		assert.Equal(t, 1, resp.Words[1].AttentionLevel)
-		assert.Equal(t, 3, resp.Words[1].TestCount)
-		assert.Equal(t, 1, resp.Words[1].CheckCount)
+		assert.Equal(t, 3, resp.Words[1].QuizCount)
+		assert.Equal(t, 1, resp.Words[1].CorrectCount)
 	})
 	t.Run("NoResults", func(t *testing.T) {
 		req := &models.WordListRequest{
@@ -217,8 +217,8 @@ func TestGetRegisteredWords_Success(t *testing.T) {
 			SetUserID(otherUserID).
 			SetIsActive(true).
 			SetAttentionLevel(3).
-			SetTestCount(7).
-			SetCheckCount(4).
+			SetQuizCount(7).
+			SetCorrectCount(4).
 			SaveX(ctx)
 
 		req := &models.WordListRequest{

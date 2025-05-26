@@ -22,10 +22,12 @@ const (
 	FieldIsActive = "is_active"
 	// FieldAttentionLevel holds the string denoting the attention_level field in the database.
 	FieldAttentionLevel = "attention_level"
-	// FieldTestCount holds the string denoting the test_count field in the database.
-	FieldTestCount = "test_count"
-	// FieldCheckCount holds the string denoting the check_count field in the database.
-	FieldCheckCount = "check_count"
+	// FieldQuizCount holds the string denoting the quiz_count field in the database.
+	FieldQuizCount = "quiz_count"
+	// FieldCorrectCount holds the string denoting the correct_count field in the database.
+	FieldCorrectCount = "correct_count"
+	// FieldCorrectRate holds the string denoting the correct_rate field in the database.
+	FieldCorrectRate = "correct_rate"
 	// FieldMemo holds the string denoting the memo field in the database.
 	FieldMemo = "memo"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -36,8 +38,8 @@ const (
 	EdgeUser = "user"
 	// EdgeWord holds the string denoting the word edge name in mutations.
 	EdgeWord = "word"
-	// EdgeTestQuestions holds the string denoting the test_questions edge name in mutations.
-	EdgeTestQuestions = "test_questions"
+	// EdgeQuizQuestions holds the string denoting the quiz_questions edge name in mutations.
+	EdgeQuizQuestions = "quiz_questions"
 	// Table holds the table name of the registeredword in the database.
 	Table = "registered_words"
 	// UserTable is the table that holds the user relation/edge.
@@ -54,13 +56,13 @@ const (
 	WordInverseTable = "words"
 	// WordColumn is the table column denoting the word relation/edge.
 	WordColumn = "word_id"
-	// TestQuestionsTable is the table that holds the test_questions relation/edge.
-	TestQuestionsTable = "test_questions"
-	// TestQuestionsInverseTable is the table name for the TestQuestion entity.
-	// It exists in this package in order to avoid circular dependency with the "testquestion" package.
-	TestQuestionsInverseTable = "test_questions"
-	// TestQuestionsColumn is the table column denoting the test_questions relation/edge.
-	TestQuestionsColumn = "registered_word_id"
+	// QuizQuestionsTable is the table that holds the quiz_questions relation/edge.
+	QuizQuestionsTable = "quiz_questions"
+	// QuizQuestionsInverseTable is the table name for the QuizQuestion entity.
+	// It exists in this package in order to avoid circular dependency with the "quizquestion" package.
+	QuizQuestionsInverseTable = "quiz_questions"
+	// QuizQuestionsColumn is the table column denoting the quiz_questions relation/edge.
+	QuizQuestionsColumn = "registered_word_quiz_questions"
 )
 
 // Columns holds all SQL columns for registeredword fields.
@@ -70,8 +72,9 @@ var Columns = []string{
 	FieldWordID,
 	FieldIsActive,
 	FieldAttentionLevel,
-	FieldTestCount,
-	FieldCheckCount,
+	FieldQuizCount,
+	FieldCorrectCount,
+	FieldCorrectRate,
 	FieldMemo,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -96,10 +99,12 @@ var (
 	DefaultAttentionLevel int
 	// AttentionLevelValidator is a validator for the "attention_level" field. It is called by the builders before save.
 	AttentionLevelValidator func(int) error
-	// DefaultTestCount holds the default value on creation for the "test_count" field.
-	DefaultTestCount int
-	// DefaultCheckCount holds the default value on creation for the "check_count" field.
-	DefaultCheckCount int
+	// DefaultQuizCount holds the default value on creation for the "quiz_count" field.
+	DefaultQuizCount int
+	// DefaultCorrectCount holds the default value on creation for the "correct_count" field.
+	DefaultCorrectCount int
+	// DefaultCorrectRate holds the default value on creation for the "correct_rate" field.
+	DefaultCorrectRate int
 	// MemoValidator is a validator for the "memo" field. It is called by the builders before save.
 	MemoValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
@@ -138,14 +143,19 @@ func ByAttentionLevel(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAttentionLevel, opts...).ToFunc()
 }
 
-// ByTestCount orders the results by the test_count field.
-func ByTestCount(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTestCount, opts...).ToFunc()
+// ByQuizCount orders the results by the quiz_count field.
+func ByQuizCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldQuizCount, opts...).ToFunc()
 }
 
-// ByCheckCount orders the results by the check_count field.
-func ByCheckCount(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCheckCount, opts...).ToFunc()
+// ByCorrectCount orders the results by the correct_count field.
+func ByCorrectCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCorrectCount, opts...).ToFunc()
+}
+
+// ByCorrectRate orders the results by the correct_rate field.
+func ByCorrectRate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCorrectRate, opts...).ToFunc()
 }
 
 // ByMemo orders the results by the memo field.
@@ -177,17 +187,17 @@ func ByWordField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
-// ByTestQuestionsCount orders the results by test_questions count.
-func ByTestQuestionsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByQuizQuestionsCount orders the results by quiz_questions count.
+func ByQuizQuestionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newTestQuestionsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newQuizQuestionsStep(), opts...)
 	}
 }
 
-// ByTestQuestions orders the results by test_questions terms.
-func ByTestQuestions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByQuizQuestions orders the results by quiz_questions terms.
+func ByQuizQuestions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newTestQuestionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newQuizQuestionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newUserStep() *sqlgraph.Step {
@@ -204,10 +214,10 @@ func newWordStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, WordTable, WordColumn),
 	)
 }
-func newTestQuestionsStep() *sqlgraph.Step {
+func newQuizQuestionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(TestQuestionsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, TestQuestionsTable, TestQuestionsColumn),
+		sqlgraph.To(QuizQuestionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, QuizQuestionsTable, QuizQuestionsColumn),
 	)
 }

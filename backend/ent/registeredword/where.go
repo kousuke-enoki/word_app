@@ -75,14 +75,19 @@ func AttentionLevel(v int) predicate.RegisteredWord {
 	return predicate.RegisteredWord(sql.FieldEQ(FieldAttentionLevel, v))
 }
 
-// TestCount applies equality check predicate on the "test_count" field. It's identical to TestCountEQ.
-func TestCount(v int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldEQ(FieldTestCount, v))
+// QuizCount applies equality check predicate on the "quiz_count" field. It's identical to QuizCountEQ.
+func QuizCount(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldEQ(FieldQuizCount, v))
 }
 
-// CheckCount applies equality check predicate on the "check_count" field. It's identical to CheckCountEQ.
-func CheckCount(v int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldEQ(FieldCheckCount, v))
+// CorrectCount applies equality check predicate on the "correct_count" field. It's identical to CorrectCountEQ.
+func CorrectCount(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldEQ(FieldCorrectCount, v))
+}
+
+// CorrectRate applies equality check predicate on the "correct_rate" field. It's identical to CorrectRateEQ.
+func CorrectRate(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldEQ(FieldCorrectRate, v))
 }
 
 // Memo applies equality check predicate on the "memo" field. It's identical to MemoEQ.
@@ -190,84 +195,124 @@ func AttentionLevelLTE(v int) predicate.RegisteredWord {
 	return predicate.RegisteredWord(sql.FieldLTE(FieldAttentionLevel, v))
 }
 
-// TestCountEQ applies the EQ predicate on the "test_count" field.
-func TestCountEQ(v int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldEQ(FieldTestCount, v))
+// QuizCountEQ applies the EQ predicate on the "quiz_count" field.
+func QuizCountEQ(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldEQ(FieldQuizCount, v))
 }
 
-// TestCountNEQ applies the NEQ predicate on the "test_count" field.
-func TestCountNEQ(v int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldNEQ(FieldTestCount, v))
+// QuizCountNEQ applies the NEQ predicate on the "quiz_count" field.
+func QuizCountNEQ(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldNEQ(FieldQuizCount, v))
 }
 
-// TestCountIn applies the In predicate on the "test_count" field.
-func TestCountIn(vs ...int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldIn(FieldTestCount, vs...))
+// QuizCountIn applies the In predicate on the "quiz_count" field.
+func QuizCountIn(vs ...int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldIn(FieldQuizCount, vs...))
 }
 
-// TestCountNotIn applies the NotIn predicate on the "test_count" field.
-func TestCountNotIn(vs ...int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldNotIn(FieldTestCount, vs...))
+// QuizCountNotIn applies the NotIn predicate on the "quiz_count" field.
+func QuizCountNotIn(vs ...int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldNotIn(FieldQuizCount, vs...))
 }
 
-// TestCountGT applies the GT predicate on the "test_count" field.
-func TestCountGT(v int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldGT(FieldTestCount, v))
+// QuizCountGT applies the GT predicate on the "quiz_count" field.
+func QuizCountGT(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldGT(FieldQuizCount, v))
 }
 
-// TestCountGTE applies the GTE predicate on the "test_count" field.
-func TestCountGTE(v int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldGTE(FieldTestCount, v))
+// QuizCountGTE applies the GTE predicate on the "quiz_count" field.
+func QuizCountGTE(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldGTE(FieldQuizCount, v))
 }
 
-// TestCountLT applies the LT predicate on the "test_count" field.
-func TestCountLT(v int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldLT(FieldTestCount, v))
+// QuizCountLT applies the LT predicate on the "quiz_count" field.
+func QuizCountLT(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldLT(FieldQuizCount, v))
 }
 
-// TestCountLTE applies the LTE predicate on the "test_count" field.
-func TestCountLTE(v int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldLTE(FieldTestCount, v))
+// QuizCountLTE applies the LTE predicate on the "quiz_count" field.
+func QuizCountLTE(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldLTE(FieldQuizCount, v))
 }
 
-// CheckCountEQ applies the EQ predicate on the "check_count" field.
-func CheckCountEQ(v int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldEQ(FieldCheckCount, v))
+// CorrectCountEQ applies the EQ predicate on the "correct_count" field.
+func CorrectCountEQ(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldEQ(FieldCorrectCount, v))
 }
 
-// CheckCountNEQ applies the NEQ predicate on the "check_count" field.
-func CheckCountNEQ(v int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldNEQ(FieldCheckCount, v))
+// CorrectCountNEQ applies the NEQ predicate on the "correct_count" field.
+func CorrectCountNEQ(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldNEQ(FieldCorrectCount, v))
 }
 
-// CheckCountIn applies the In predicate on the "check_count" field.
-func CheckCountIn(vs ...int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldIn(FieldCheckCount, vs...))
+// CorrectCountIn applies the In predicate on the "correct_count" field.
+func CorrectCountIn(vs ...int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldIn(FieldCorrectCount, vs...))
 }
 
-// CheckCountNotIn applies the NotIn predicate on the "check_count" field.
-func CheckCountNotIn(vs ...int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldNotIn(FieldCheckCount, vs...))
+// CorrectCountNotIn applies the NotIn predicate on the "correct_count" field.
+func CorrectCountNotIn(vs ...int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldNotIn(FieldCorrectCount, vs...))
 }
 
-// CheckCountGT applies the GT predicate on the "check_count" field.
-func CheckCountGT(v int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldGT(FieldCheckCount, v))
+// CorrectCountGT applies the GT predicate on the "correct_count" field.
+func CorrectCountGT(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldGT(FieldCorrectCount, v))
 }
 
-// CheckCountGTE applies the GTE predicate on the "check_count" field.
-func CheckCountGTE(v int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldGTE(FieldCheckCount, v))
+// CorrectCountGTE applies the GTE predicate on the "correct_count" field.
+func CorrectCountGTE(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldGTE(FieldCorrectCount, v))
 }
 
-// CheckCountLT applies the LT predicate on the "check_count" field.
-func CheckCountLT(v int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldLT(FieldCheckCount, v))
+// CorrectCountLT applies the LT predicate on the "correct_count" field.
+func CorrectCountLT(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldLT(FieldCorrectCount, v))
 }
 
-// CheckCountLTE applies the LTE predicate on the "check_count" field.
-func CheckCountLTE(v int) predicate.RegisteredWord {
-	return predicate.RegisteredWord(sql.FieldLTE(FieldCheckCount, v))
+// CorrectCountLTE applies the LTE predicate on the "correct_count" field.
+func CorrectCountLTE(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldLTE(FieldCorrectCount, v))
+}
+
+// CorrectRateEQ applies the EQ predicate on the "correct_rate" field.
+func CorrectRateEQ(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldEQ(FieldCorrectRate, v))
+}
+
+// CorrectRateNEQ applies the NEQ predicate on the "correct_rate" field.
+func CorrectRateNEQ(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldNEQ(FieldCorrectRate, v))
+}
+
+// CorrectRateIn applies the In predicate on the "correct_rate" field.
+func CorrectRateIn(vs ...int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldIn(FieldCorrectRate, vs...))
+}
+
+// CorrectRateNotIn applies the NotIn predicate on the "correct_rate" field.
+func CorrectRateNotIn(vs ...int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldNotIn(FieldCorrectRate, vs...))
+}
+
+// CorrectRateGT applies the GT predicate on the "correct_rate" field.
+func CorrectRateGT(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldGT(FieldCorrectRate, v))
+}
+
+// CorrectRateGTE applies the GTE predicate on the "correct_rate" field.
+func CorrectRateGTE(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldGTE(FieldCorrectRate, v))
+}
+
+// CorrectRateLT applies the LT predicate on the "correct_rate" field.
+func CorrectRateLT(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldLT(FieldCorrectRate, v))
+}
+
+// CorrectRateLTE applies the LTE predicate on the "correct_rate" field.
+func CorrectRateLTE(v int) predicate.RegisteredWord {
+	return predicate.RegisteredWord(sql.FieldLTE(FieldCorrectRate, v))
 }
 
 // MemoEQ applies the EQ predicate on the "memo" field.
@@ -471,21 +516,21 @@ func HasWordWith(preds ...predicate.Word) predicate.RegisteredWord {
 	})
 }
 
-// HasTestQuestions applies the HasEdge predicate on the "test_questions" edge.
-func HasTestQuestions() predicate.RegisteredWord {
+// HasQuizQuestions applies the HasEdge predicate on the "quiz_questions" edge.
+func HasQuizQuestions() predicate.RegisteredWord {
 	return predicate.RegisteredWord(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, TestQuestionsTable, TestQuestionsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, QuizQuestionsTable, QuizQuestionsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasTestQuestionsWith applies the HasEdge predicate on the "test_questions" edge with a given conditions (other predicates).
-func HasTestQuestionsWith(preds ...predicate.TestQuestion) predicate.RegisteredWord {
+// HasQuizQuestionsWith applies the HasEdge predicate on the "quiz_questions" edge with a given conditions (other predicates).
+func HasQuizQuestionsWith(preds ...predicate.QuizQuestion) predicate.RegisteredWord {
 	return predicate.RegisteredWord(func(s *sql.Selector) {
-		step := newTestQuestionsStep()
+		step := newQuizQuestionsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -1,8 +1,10 @@
 # ---------- base build stage ----------
 FROM golang:1.23.3 AS build-base
 WORKDIR /src
+
 COPY go.mod go.sum ./
 RUN go mod download
+
 COPY . .
 
 # ---------- production build ----------

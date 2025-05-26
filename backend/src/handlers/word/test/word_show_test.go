@@ -33,7 +33,7 @@ func TestWordShowHandler(t *testing.T) {
 		mockService := new(mocks.WordService)
 		mockService.On("GetWordDetails", mock.Anything, mock.Anything).Return(&models.WordShowResponse{
 			Name: "test", RegistrationCount: 3, IsRegistered: true, AttentionLevel: 1,
-			TestCount: 4, CheckCount: 5, Memo: "",
+			QuizCount: 4, CorrectCount: 5, Memo: "",
 			WordInfos: []models.WordInfo{
 				{ID: 1, PartOfSpeechID: 1,
 					JapaneseMeans: []models.JapaneseMean{

@@ -120,13 +120,13 @@ func convertEntWordsToResponse(entWords []*ent.Word) []models.Word {
 
 		// RegisteredWordのデータを設定
 		isRegistered := false
-		attentionLevel, testCount, checkCount := 0, 0, 0
+		attentionLevel, QuizCount, CorrectCount := 0, 0, 0
 		if len(entWord.Edges.RegisteredWords) == 1 {
 			registeredWord := entWord.Edges.RegisteredWords[0]
 			isRegistered = registeredWord.IsActive
 			attentionLevel = registeredWord.AttentionLevel
-			testCount = registeredWord.TestCount
-			checkCount = registeredWord.CheckCount
+			QuizCount = registeredWord.QuizCount
+			CorrectCount = registeredWord.CorrectCount
 		}
 
 		words[i] = models.Word{
@@ -136,8 +136,8 @@ func convertEntWordsToResponse(entWords []*ent.Word) []models.Word {
 			WordInfos:         wordInfos,
 			IsRegistered:      isRegistered,
 			AttentionLevel:    attentionLevel,
-			TestCount:         testCount,
-			CheckCount:        checkCount,
+			QuizCount:         QuizCount,
+			CorrectCount:      CorrectCount,
 		}
 	}
 

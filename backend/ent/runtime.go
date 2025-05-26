@@ -6,11 +6,11 @@ import (
 	"time"
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/partofspeech"
+	"word_app/backend/ent/quiz"
+	"word_app/backend/ent/quizquestion"
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/rootconfig"
 	"word_app/backend/ent/schema"
-	"word_app/backend/ent/test"
-	"word_app/backend/ent/testquestion"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
 	"word_app/backend/ent/word"
@@ -71,6 +71,72 @@ func init() {
 	partofspeech.DefaultUpdatedAt = partofspeechDescUpdatedAt.Default.(func() time.Time)
 	// partofspeech.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	partofspeech.UpdateDefaultUpdatedAt = partofspeechDescUpdatedAt.UpdateDefault.(func() time.Time)
+	quizFields := schema.Quiz{}.Fields()
+	_ = quizFields
+	// quizDescIsRunning is the schema descriptor for is_running field.
+	quizDescIsRunning := quizFields[2].Descriptor()
+	// quiz.DefaultIsRunning holds the default value on creation for the is_running field.
+	quiz.DefaultIsRunning = quizDescIsRunning.Default.(bool)
+	// quizDescTotalQuestionsCount is the schema descriptor for total_questions_count field.
+	quizDescTotalQuestionsCount := quizFields[3].Descriptor()
+	// quiz.DefaultTotalQuestionsCount holds the default value on creation for the total_questions_count field.
+	quiz.DefaultTotalQuestionsCount = quizDescTotalQuestionsCount.Default.(int)
+	// quizDescCorrectCount is the schema descriptor for correct_count field.
+	quizDescCorrectCount := quizFields[4].Descriptor()
+	// quiz.DefaultCorrectCount holds the default value on creation for the correct_count field.
+	quiz.DefaultCorrectCount = quizDescCorrectCount.Default.(int)
+	// quizDescResultCorrectRate is the schema descriptor for result_correct_rate field.
+	quizDescResultCorrectRate := quizFields[5].Descriptor()
+	// quiz.DefaultResultCorrectRate holds the default value on creation for the result_correct_rate field.
+	quiz.DefaultResultCorrectRate = quizDescResultCorrectRate.Default.(float64)
+	// quizDescIsSaveResult is the schema descriptor for is_save_result field.
+	quizDescIsSaveResult := quizFields[6].Descriptor()
+	// quiz.DefaultIsSaveResult holds the default value on creation for the is_save_result field.
+	quiz.DefaultIsSaveResult = quizDescIsSaveResult.Default.(bool)
+	// quizDescIsRegisteredWords is the schema descriptor for is_registered_words field.
+	quizDescIsRegisteredWords := quizFields[7].Descriptor()
+	// quiz.DefaultIsRegisteredWords holds the default value on creation for the is_registered_words field.
+	quiz.DefaultIsRegisteredWords = quizDescIsRegisteredWords.Default.(int)
+	// quiz.IsRegisteredWordsValidator is a validator for the "is_registered_words" field. It is called by the builders before save.
+	quiz.IsRegisteredWordsValidator = quizDescIsRegisteredWords.Validators[0].(func(int) error)
+	// quizDescSettingCorrectRate is the schema descriptor for setting_correct_rate field.
+	quizDescSettingCorrectRate := quizFields[8].Descriptor()
+	// quiz.DefaultSettingCorrectRate holds the default value on creation for the setting_correct_rate field.
+	quiz.DefaultSettingCorrectRate = quizDescSettingCorrectRate.Default.(int)
+	// quizDescIsIdioms is the schema descriptor for is_idioms field.
+	quizDescIsIdioms := quizFields[9].Descriptor()
+	// quiz.DefaultIsIdioms holds the default value on creation for the is_idioms field.
+	quiz.DefaultIsIdioms = quizDescIsIdioms.Default.(int)
+	// quiz.IsIdiomsValidator is a validator for the "is_idioms" field. It is called by the builders before save.
+	quiz.IsIdiomsValidator = quizDescIsIdioms.Validators[0].(func(int) error)
+	// quizDescIsSpecialCharacters is the schema descriptor for is_special_characters field.
+	quizDescIsSpecialCharacters := quizFields[10].Descriptor()
+	// quiz.DefaultIsSpecialCharacters holds the default value on creation for the is_special_characters field.
+	quiz.DefaultIsSpecialCharacters = quizDescIsSpecialCharacters.Default.(int)
+	// quiz.IsSpecialCharactersValidator is a validator for the "is_special_characters" field. It is called by the builders before save.
+	quiz.IsSpecialCharactersValidator = quizDescIsSpecialCharacters.Validators[0].(func(int) error)
+	// quizDescCreatedAt is the schema descriptor for created_at field.
+	quizDescCreatedAt := quizFields[13].Descriptor()
+	// quiz.DefaultCreatedAt holds the default value on creation for the created_at field.
+	quiz.DefaultCreatedAt = quizDescCreatedAt.Default.(func() time.Time)
+	quizquestionFields := schema.QuizQuestion{}.Fields()
+	_ = quizquestionFields
+	// quizquestionDescWordID is the schema descriptor for word_id field.
+	quizquestionDescWordID := quizquestionFields[2].Descriptor()
+	// quizquestion.WordIDValidator is a validator for the "word_id" field. It is called by the builders before save.
+	quizquestion.WordIDValidator = quizquestionDescWordID.Validators[0].(func(int) error)
+	// quizquestionDescWordName is the schema descriptor for wordName field.
+	quizquestionDescWordName := quizquestionFields[3].Descriptor()
+	// quizquestion.WordNameValidator is a validator for the "wordName" field. It is called by the builders before save.
+	quizquestion.WordNameValidator = quizquestionDescWordName.Validators[0].(func(string) error)
+	// quizquestionDescPosID is the schema descriptor for pos_id field.
+	quizquestionDescPosID := quizquestionFields[4].Descriptor()
+	// quizquestion.PosIDValidator is a validator for the "pos_id" field. It is called by the builders before save.
+	quizquestion.PosIDValidator = quizquestionDescPosID.Validators[0].(func(int) error)
+	// quizquestionDescCreatedAt is the schema descriptor for created_at field.
+	quizquestionDescCreatedAt := quizquestionFields[11].Descriptor()
+	// quizquestion.DefaultCreatedAt holds the default value on creation for the created_at field.
+	quizquestion.DefaultCreatedAt = quizquestionDescCreatedAt.Default.(func() time.Time)
 	registeredwordFields := schema.RegisteredWord{}.Fields()
 	_ = registeredwordFields
 	// registeredwordDescUserID is the schema descriptor for user_id field.
@@ -87,24 +153,28 @@ func init() {
 	registeredword.DefaultAttentionLevel = registeredwordDescAttentionLevel.Default.(int)
 	// registeredword.AttentionLevelValidator is a validator for the "attention_level" field. It is called by the builders before save.
 	registeredword.AttentionLevelValidator = registeredwordDescAttentionLevel.Validators[0].(func(int) error)
-	// registeredwordDescTestCount is the schema descriptor for test_count field.
-	registeredwordDescTestCount := registeredwordFields[4].Descriptor()
-	// registeredword.DefaultTestCount holds the default value on creation for the test_count field.
-	registeredword.DefaultTestCount = registeredwordDescTestCount.Default.(int)
-	// registeredwordDescCheckCount is the schema descriptor for check_count field.
-	registeredwordDescCheckCount := registeredwordFields[5].Descriptor()
-	// registeredword.DefaultCheckCount holds the default value on creation for the check_count field.
-	registeredword.DefaultCheckCount = registeredwordDescCheckCount.Default.(int)
+	// registeredwordDescQuizCount is the schema descriptor for quiz_count field.
+	registeredwordDescQuizCount := registeredwordFields[4].Descriptor()
+	// registeredword.DefaultQuizCount holds the default value on creation for the quiz_count field.
+	registeredword.DefaultQuizCount = registeredwordDescQuizCount.Default.(int)
+	// registeredwordDescCorrectCount is the schema descriptor for correct_count field.
+	registeredwordDescCorrectCount := registeredwordFields[5].Descriptor()
+	// registeredword.DefaultCorrectCount holds the default value on creation for the correct_count field.
+	registeredword.DefaultCorrectCount = registeredwordDescCorrectCount.Default.(int)
+	// registeredwordDescCorrectRate is the schema descriptor for correct_rate field.
+	registeredwordDescCorrectRate := registeredwordFields[6].Descriptor()
+	// registeredword.DefaultCorrectRate holds the default value on creation for the correct_rate field.
+	registeredword.DefaultCorrectRate = registeredwordDescCorrectRate.Default.(int)
 	// registeredwordDescMemo is the schema descriptor for memo field.
-	registeredwordDescMemo := registeredwordFields[6].Descriptor()
+	registeredwordDescMemo := registeredwordFields[7].Descriptor()
 	// registeredword.MemoValidator is a validator for the "memo" field. It is called by the builders before save.
 	registeredword.MemoValidator = registeredwordDescMemo.Validators[0].(func(string) error)
 	// registeredwordDescCreatedAt is the schema descriptor for created_at field.
-	registeredwordDescCreatedAt := registeredwordFields[7].Descriptor()
+	registeredwordDescCreatedAt := registeredwordFields[8].Descriptor()
 	// registeredword.DefaultCreatedAt holds the default value on creation for the created_at field.
 	registeredword.DefaultCreatedAt = registeredwordDescCreatedAt.Default.(func() time.Time)
 	// registeredwordDescUpdatedAt is the schema descriptor for updated_at field.
-	registeredwordDescUpdatedAt := registeredwordFields[8].Descriptor()
+	registeredwordDescUpdatedAt := registeredwordFields[9].Descriptor()
 	// registeredword.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	registeredword.DefaultUpdatedAt = registeredwordDescUpdatedAt.Default.(func() time.Time)
 	// registeredword.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -121,38 +191,10 @@ func init() {
 	rootconfigDescIsTestUserMode := rootconfigFields[1].Descriptor()
 	// rootconfig.DefaultIsTestUserMode holds the default value on creation for the is_test_user_mode field.
 	rootconfig.DefaultIsTestUserMode = rootconfigDescIsTestUserMode.Default.(bool)
-	// rootconfigDescIsEmailAuthenticationCheck is the schema descriptor for is_email_authentication_check field.
-	rootconfigDescIsEmailAuthenticationCheck := rootconfigFields[2].Descriptor()
-	// rootconfig.DefaultIsEmailAuthenticationCheck holds the default value on creation for the is_email_authentication_check field.
-	rootconfig.DefaultIsEmailAuthenticationCheck = rootconfigDescIsEmailAuthenticationCheck.Default.(bool)
-	// rootconfigDescIsLineAuthentication is the schema descriptor for is_line_authentication field.
-	rootconfigDescIsLineAuthentication := rootconfigFields[3].Descriptor()
-	// rootconfig.DefaultIsLineAuthentication holds the default value on creation for the is_line_authentication field.
-	rootconfig.DefaultIsLineAuthentication = rootconfigDescIsLineAuthentication.Default.(bool)
-	testFields := schema.Test{}.Fields()
-	_ = testFields
-	// testDescTotalQuestions is the schema descriptor for total_questions field.
-	testDescTotalQuestions := testFields[1].Descriptor()
-	// test.DefaultTotalQuestions holds the default value on creation for the total_questions field.
-	test.DefaultTotalQuestions = testDescTotalQuestions.Default.(int)
-	// testDescCorrectCount is the schema descriptor for correct_count field.
-	testDescCorrectCount := testFields[2].Descriptor()
-	// test.DefaultCorrectCount holds the default value on creation for the correct_count field.
-	test.DefaultCorrectCount = testDescCorrectCount.Default.(int)
-	// testDescCreatedAt is the schema descriptor for created_at field.
-	testDescCreatedAt := testFields[3].Descriptor()
-	// test.DefaultCreatedAt holds the default value on creation for the created_at field.
-	test.DefaultCreatedAt = testDescCreatedAt.Default.(func() time.Time)
-	testquestionFields := schema.TestQuestion{}.Fields()
-	_ = testquestionFields
-	// testquestionDescIsCorrect is the schema descriptor for is_correct field.
-	testquestionDescIsCorrect := testquestionFields[2].Descriptor()
-	// testquestion.DefaultIsCorrect holds the default value on creation for the is_correct field.
-	testquestion.DefaultIsCorrect = testquestionDescIsCorrect.Default.(bool)
-	// testquestionDescCreatedAt is the schema descriptor for created_at field.
-	testquestionDescCreatedAt := testquestionFields[3].Descriptor()
-	// testquestion.DefaultCreatedAt holds the default value on creation for the created_at field.
-	testquestion.DefaultCreatedAt = testquestionDescCreatedAt.Default.(func() time.Time)
+	// rootconfigDescIsEmailAuthentication is the schema descriptor for is_email_authentication field.
+	rootconfigDescIsEmailAuthentication := rootconfigFields[2].Descriptor()
+	// rootconfig.DefaultIsEmailAuthentication holds the default value on creation for the is_email_authentication field.
+	rootconfig.DefaultIsEmailAuthentication = rootconfigDescIsEmailAuthentication.Default.(bool)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescEmail is the schema descriptor for email field.

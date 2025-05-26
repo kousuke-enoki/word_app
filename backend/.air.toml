@@ -1,5 +1,3 @@
-# .air.toml (backend/.air.toml)
-
 # 変更を監視するディレクトリ
 root = "."
 tmp_dir = "tmp"

@@ -17,6 +17,8 @@ type RouterImplementation struct {
 	UserHandler    interfaces.UserHandler
 	SettingHandler interfaces.SettingHandler
 	WordHandler    interfaces.WordHandler
+	QuizHandler    interfaces.QuizHandler
+	ResultHandler  interfaces.ResultHandler
 	JWTSecret      string
 }
 
@@ -25,6 +27,8 @@ func NewRouter(
 	userHandler interfaces.UserHandler,
 	settingHandler interfaces.SettingHandler,
 	wordHandler interfaces.WordHandler,
+	quizHandler interfaces.QuizHandler,
+	resultHandler interfaces.ResultHandler,
 ) *RouterImplementation {
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
@@ -36,6 +40,8 @@ func NewRouter(
 		UserHandler:    userHandler,
 		SettingHandler: settingHandler,
 		WordHandler:    wordHandler,
+		QuizHandler:    quizHandler,
+		ResultHandler:  resultHandler,
 		JWTSecret:      jwtSecret,
 	}
 }
@@ -74,6 +80,13 @@ func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
 		protectedRoutes.DELETE("/words/:id", r.WordHandler.DeleteWordHandler())
 		protectedRoutes.POST("/words/bulk_tokenize", r.WordHandler.BulkTokenizeHandler())
 		protectedRoutes.POST("/words/bulk_register", r.WordHandler.BulkRegisterHandler())
+
+		protectedRoutes.POST("/quizzes/new", r.QuizHandler.CreateQuizHandler())
+		protectedRoutes.POST("/quizzes/answers/:id", r.QuizHandler.PostAnswerAndRouteHandler())
+		protectedRoutes.GET("/quizzes", r.QuizHandler.GetQuizHandler())
+
+		protectedRoutes.GET("/results", r.ResultHandler.GetResultsIndexHandler())
+		protectedRoutes.GET("/results/:quizNo", r.ResultHandler.GetResultHandler())
 	}
 }
 

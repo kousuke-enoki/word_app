@@ -30,9 +30,11 @@ func (RegisteredWord) Fields() []ent.Field {
 				}
 				return nil
 			}),
-		field.Int("test_count").
+		field.Int("quiz_count").
 			Default(0),
-		field.Int("check_count").
+		field.Int("correct_count").
+			Default(0),
+		field.Int("correct_rate").
 			Default(0),
 		field.String("memo").
 			Optional().
@@ -64,6 +66,6 @@ func (RegisteredWord) Edges() []ent.Edge {
 			Unique().
 			Field("word_id").
 			Required(),
-		edge.To("test_questions", TestQuestion.Type),
+		edge.To("quiz_questions", QuizQuestion.Type),
 	}
 }

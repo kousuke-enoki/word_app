@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"math"
 	"word_app/backend/ent/predicate"
+	"word_app/backend/ent/quiz"
 	"word_app/backend/ent/registeredword"
-	"word_app/backend/ent/test"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
 
@@ -27,7 +27,7 @@ type UserQuery struct {
 	inters              []Interceptor
 	predicates          []predicate.User
 	withRegisteredWords *RegisteredWordQuery
-	withTests           *TestQuery
+	withQuizs           *QuizQuery
 	withUserConfig      *UserConfigQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -87,9 +87,9 @@ func (uq *UserQuery) QueryRegisteredWords() *RegisteredWordQuery {
 	return query
 }
 
-// QueryTests chains the current query on the "tests" edge.
-func (uq *UserQuery) QueryTests() *TestQuery {
-	query := (&TestClient{config: uq.config}).Query()
+// QueryQuizs chains the current query on the "quizs" edge.
+func (uq *UserQuery) QueryQuizs() *QuizQuery {
+	query := (&QuizClient{config: uq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -100,8 +100,8 @@ func (uq *UserQuery) QueryTests() *TestQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(test.Table, test.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.TestsTable, user.TestsColumn),
+			sqlgraph.To(quiz.Table, quiz.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.QuizsTable, user.QuizsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -324,7 +324,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		inters:              append([]Interceptor{}, uq.inters...),
 		predicates:          append([]predicate.User{}, uq.predicates...),
 		withRegisteredWords: uq.withRegisteredWords.Clone(),
-		withTests:           uq.withTests.Clone(),
+		withQuizs:           uq.withQuizs.Clone(),
 		withUserConfig:      uq.withUserConfig.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
@@ -343,14 +343,14 @@ func (uq *UserQuery) WithRegisteredWords(opts ...func(*RegisteredWordQuery)) *Us
 	return uq
 }
 
-// WithTests tells the query-builder to eager-load the nodes that are connected to
-// the "tests" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithTests(opts ...func(*TestQuery)) *UserQuery {
-	query := (&TestClient{config: uq.config}).Query()
+// WithQuizs tells the query-builder to eager-load the nodes that are connected to
+// the "quizs" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithQuizs(opts ...func(*QuizQuery)) *UserQuery {
+	query := (&QuizClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withTests = query
+	uq.withQuizs = query
 	return uq
 }
 
@@ -445,7 +445,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		_spec       = uq.querySpec()
 		loadedTypes = [3]bool{
 			uq.withRegisteredWords != nil,
-			uq.withTests != nil,
+			uq.withQuizs != nil,
 			uq.withUserConfig != nil,
 		}
 	)
@@ -474,10 +474,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
-	if query := uq.withTests; query != nil {
-		if err := uq.loadTests(ctx, query, nodes,
-			func(n *User) { n.Edges.Tests = []*Test{} },
-			func(n *User, e *Test) { n.Edges.Tests = append(n.Edges.Tests, e) }); err != nil {
+	if query := uq.withQuizs; query != nil {
+		if err := uq.loadQuizs(ctx, query, nodes,
+			func(n *User) { n.Edges.Quizs = []*Quiz{} },
+			func(n *User, e *Quiz) { n.Edges.Quizs = append(n.Edges.Quizs, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -520,7 +520,7 @@ func (uq *UserQuery) loadRegisteredWords(ctx context.Context, query *RegisteredW
 	}
 	return nil
 }
-func (uq *UserQuery) loadTests(ctx context.Context, query *TestQuery, nodes []*User, init func(*User), assign func(*User, *Test)) error {
+func (uq *UserQuery) loadQuizs(ctx context.Context, query *QuizQuery, nodes []*User, init func(*User), assign func(*User, *Quiz)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*User)
 	for i := range nodes {
@@ -531,10 +531,10 @@ func (uq *UserQuery) loadTests(ctx context.Context, query *TestQuery, nodes []*U
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(test.FieldUserID)
+		query.ctx.AppendFieldOnce(quiz.FieldUserID)
 	}
-	query.Where(predicate.Test(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.TestsColumn), fks...))
+	query.Where(predicate.Quiz(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.QuizsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:17
-    ports: ["5432:5432"]
+    ports: ["5433:5432"]
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -38,9 +38,12 @@ services:
 
   dict-import:
     profiles: ["import"]
-    image: wordapp-backend:latest
+    build:
+      context: ./backend
+      dockerfile: dockerfile
+      target: prod
     entrypoint: ["/usr/local/bin/import_dict"]
-    command: ["-file=/data/jmdict_sample.json", "-workers=4"]
+    command: ["-file=/data/jmdict.json", "-workers=4"]
     volumes:
       - ./backend/assets:/data
     environment:

@@ -1,4 +1,3 @@
-// interfaces/client.go
 package interfaces
 
 import (

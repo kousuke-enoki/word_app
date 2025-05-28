@@ -24,6 +24,7 @@ import (
 	settingService "word_app/backend/src/service/setting"
 	userService "word_app/backend/src/service/user"
 	wordService "word_app/backend/src/service/word"
+	"word_app/backend/src/usecase/auth"
 	"word_app/backend/src/utils"
 	"word_app/backend/src/validators"
 
@@ -121,6 +122,23 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 	quizHandler := quiz.NewQuizHandler(quizClient)
 	resultHandler := result.NewResultHandler(resultClient)
 	JwtMiddleware := JwtMiddlewarePackage.NewJwtMiddleware(authClient)
+
+	lineProvider := line.NewProvider(cfg.Line)          // AuthProvider 実装
+	appClient := infrastructure.NewAppClient(entClient) // Ent クライアント実装
+
+	userRepo := repository.NewEntUserRepo(appClient)       // UserRepository
+	extAuthRepo := repository.NewEntExtAuthRepo(appClient) // ExternalAuthRepository
+
+	jwtGen := utils.NewMyJWTGenerator(os.Getenv("JWT_SECRET"))
+	tempJwt := infra_auth.New(os.Getenv("TEMP_JWT_SECRET"))
+	authUC := auth.NewAuthUsecase(
+		lineProvider,
+		userRepo,
+		extAuthRepo,
+		jwtGen,
+		tempJwt,
+	)
+	authHandler := handler.NewAuthHandler(authUC)
 
 	routerImpl := routerConfig.NewRouter(JwtMiddleware, userHandler, settingHandler, wordHandler, quizHandler, resultHandler)
 	routerImpl.SetupRouter(router)

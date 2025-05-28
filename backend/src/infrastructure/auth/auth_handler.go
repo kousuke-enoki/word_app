@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 	"word_app/backend/src/interfaces"
+	"word_app/backend/src/usecase/auth"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,6 +11,7 @@ import (
 type AuthHandler struct {
 	AuthClient   interfaces.AuthClient
 	jwtGenerator interfaces.JWTGenerator
+	AuthUsecase  auth.AuthUsecase
 }
 
 func NewAuthHandler(client interfaces.AuthClient, jwtGen interfaces.JWTGenerator) *AuthHandler {

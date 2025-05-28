@@ -8,6 +8,18 @@ import (
 	"word_app/backend/ent"
 )
 
+// The ExternalAuthFunc type is an adapter to allow the use of ordinary
+// function as ExternalAuth mutator.
+type ExternalAuthFunc func(context.Context, *ent.ExternalAuthMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ExternalAuthFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ExternalAuthMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ExternalAuthMutation", m)
+}
+
 // The JapaneseMeanFunc type is an adapter to allow the use of ordinary
 // function as JapaneseMean mutator.
 type JapaneseMeanFunc func(context.Context, *ent.JapaneseMeanMutation) (ent.Value, error)

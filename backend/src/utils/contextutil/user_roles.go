@@ -1,4 +1,5 @@
-package middleware
+// interface/contextutil/userroles.go
+package contextutil
 
 import (
 	"errors"
@@ -12,18 +13,16 @@ type UserRoles struct {
 	IsRoot  bool
 }
 
-// ユーザーのロールでハンドラーごとのアクセス制限をする
 func GetUserRoles(c *gin.Context) (*UserRoles, error) {
-	userID, exists := c.Get("userID")
-	if !exists {
-		return nil, errors.New("user ID not found in context")
+	id, ok := c.Get("userID")
+	if !ok {
+		return nil, errors.New("userID not found in context")
 	}
-
 	isAdmin, _ := c.Get("isAdmin")
 	isRoot, _ := c.Get("isRoot")
 
 	return &UserRoles{
-		UserID:  userID.(int),
+		UserID:  id.(int),
 		IsAdmin: isAdmin.(bool),
 		IsRoot:  isRoot.(bool),
 	}, nil

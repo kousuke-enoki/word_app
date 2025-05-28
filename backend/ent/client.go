@@ -11,6 +11,7 @@ import (
 
 	"word_app/backend/ent/migrate"
 
+	"word_app/backend/ent/externalauth"
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/partofspeech"
 	"word_app/backend/ent/quiz"
@@ -33,6 +34,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// ExternalAuth is the client for interacting with the ExternalAuth builders.
+	ExternalAuth *ExternalAuthClient
 	// JapaneseMean is the client for interacting with the JapaneseMean builders.
 	JapaneseMean *JapaneseMeanClient
 	// PartOfSpeech is the client for interacting with the PartOfSpeech builders.
@@ -64,6 +67,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.ExternalAuth = NewExternalAuthClient(c.config)
 	c.JapaneseMean = NewJapaneseMeanClient(c.config)
 	c.PartOfSpeech = NewPartOfSpeechClient(c.config)
 	c.Quiz = NewQuizClient(c.config)
@@ -166,6 +170,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:            ctx,
 		config:         cfg,
+		ExternalAuth:   NewExternalAuthClient(cfg),
 		JapaneseMean:   NewJapaneseMeanClient(cfg),
 		PartOfSpeech:   NewPartOfSpeechClient(cfg),
 		Quiz:           NewQuizClient(cfg),
@@ -195,6 +200,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:            ctx,
 		config:         cfg,
+		ExternalAuth:   NewExternalAuthClient(cfg),
 		JapaneseMean:   NewJapaneseMeanClient(cfg),
 		PartOfSpeech:   NewPartOfSpeechClient(cfg),
 		Quiz:           NewQuizClient(cfg),
@@ -211,7 +217,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		JapaneseMean.
+//		ExternalAuth.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -234,8 +240,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.JapaneseMean, c.PartOfSpeech, c.Quiz, c.QuizQuestion, c.RegisteredWord,
-		c.RootConfig, c.User, c.UserConfig, c.Word, c.WordInfo,
+		c.ExternalAuth, c.JapaneseMean, c.PartOfSpeech, c.Quiz, c.QuizQuestion,
+		c.RegisteredWord, c.RootConfig, c.User, c.UserConfig, c.Word, c.WordInfo,
 	} {
 		n.Use(hooks...)
 	}
@@ -245,8 +251,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.JapaneseMean, c.PartOfSpeech, c.Quiz, c.QuizQuestion, c.RegisteredWord,
-		c.RootConfig, c.User, c.UserConfig, c.Word, c.WordInfo,
+		c.ExternalAuth, c.JapaneseMean, c.PartOfSpeech, c.Quiz, c.QuizQuestion,
+		c.RegisteredWord, c.RootConfig, c.User, c.UserConfig, c.Word, c.WordInfo,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -255,6 +261,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *ExternalAuthMutation:
+		return c.ExternalAuth.mutate(ctx, m)
 	case *JapaneseMeanMutation:
 		return c.JapaneseMean.mutate(ctx, m)
 	case *PartOfSpeechMutation:
@@ -277,6 +285,155 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.WordInfo.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// ExternalAuthClient is a client for the ExternalAuth schema.
+type ExternalAuthClient struct {
+	config
+}
+
+// NewExternalAuthClient returns a client for the ExternalAuth from the given config.
+func NewExternalAuthClient(c config) *ExternalAuthClient {
+	return &ExternalAuthClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `externalauth.Hooks(f(g(h())))`.
+func (c *ExternalAuthClient) Use(hooks ...Hook) {
+	c.hooks.ExternalAuth = append(c.hooks.ExternalAuth, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `externalauth.Intercept(f(g(h())))`.
+func (c *ExternalAuthClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ExternalAuth = append(c.inters.ExternalAuth, interceptors...)
+}
+
+// Create returns a builder for creating a ExternalAuth entity.
+func (c *ExternalAuthClient) Create() *ExternalAuthCreate {
+	mutation := newExternalAuthMutation(c.config, OpCreate)
+	return &ExternalAuthCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ExternalAuth entities.
+func (c *ExternalAuthClient) CreateBulk(builders ...*ExternalAuthCreate) *ExternalAuthCreateBulk {
+	return &ExternalAuthCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ExternalAuthClient) MapCreateBulk(slice any, setFunc func(*ExternalAuthCreate, int)) *ExternalAuthCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ExternalAuthCreateBulk{err: fmt.Errorf("calling to ExternalAuthClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ExternalAuthCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ExternalAuthCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ExternalAuth.
+func (c *ExternalAuthClient) Update() *ExternalAuthUpdate {
+	mutation := newExternalAuthMutation(c.config, OpUpdate)
+	return &ExternalAuthUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ExternalAuthClient) UpdateOne(ea *ExternalAuth) *ExternalAuthUpdateOne {
+	mutation := newExternalAuthMutation(c.config, OpUpdateOne, withExternalAuth(ea))
+	return &ExternalAuthUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ExternalAuthClient) UpdateOneID(id int) *ExternalAuthUpdateOne {
+	mutation := newExternalAuthMutation(c.config, OpUpdateOne, withExternalAuthID(id))
+	return &ExternalAuthUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ExternalAuth.
+func (c *ExternalAuthClient) Delete() *ExternalAuthDelete {
+	mutation := newExternalAuthMutation(c.config, OpDelete)
+	return &ExternalAuthDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ExternalAuthClient) DeleteOne(ea *ExternalAuth) *ExternalAuthDeleteOne {
+	return c.DeleteOneID(ea.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ExternalAuthClient) DeleteOneID(id int) *ExternalAuthDeleteOne {
+	builder := c.Delete().Where(externalauth.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ExternalAuthDeleteOne{builder}
+}
+
+// Query returns a query builder for ExternalAuth.
+func (c *ExternalAuthClient) Query() *ExternalAuthQuery {
+	return &ExternalAuthQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeExternalAuth},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ExternalAuth entity by its id.
+func (c *ExternalAuthClient) Get(ctx context.Context, id int) (*ExternalAuth, error) {
+	return c.Query().Where(externalauth.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ExternalAuthClient) GetX(ctx context.Context, id int) *ExternalAuth {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a ExternalAuth.
+func (c *ExternalAuthClient) QueryUser(ea *ExternalAuth) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ea.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(externalauth.Table, externalauth.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, externalauth.UserTable, externalauth.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(ea.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ExternalAuthClient) Hooks() []Hook {
+	return c.hooks.ExternalAuth
+}
+
+// Interceptors returns the client interceptors.
+func (c *ExternalAuthClient) Interceptors() []Interceptor {
+	return c.inters.ExternalAuth
+}
+
+func (c *ExternalAuthClient) mutate(ctx context.Context, m *ExternalAuthMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ExternalAuthCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ExternalAuthUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ExternalAuthUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ExternalAuthDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ExternalAuth mutation op: %q", m.Op())
 	}
 }
 
@@ -1410,6 +1567,22 @@ func (c *UserClient) QueryUserConfig(u *User) *UserConfigQuery {
 	return query
 }
 
+// QueryExternalAuths queries the external_auths edge of a User.
+func (c *UserClient) QueryExternalAuths(u *User) *ExternalAuthQuery {
+	query := (&ExternalAuthClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(externalauth.Table, externalauth.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ExternalAuthsTable, user.ExternalAuthsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -1949,11 +2122,11 @@ func (c *WordInfoClient) mutate(ctx context.Context, m *WordInfoMutation) (Value
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		JapaneseMean, PartOfSpeech, Quiz, QuizQuestion, RegisteredWord, RootConfig,
-		User, UserConfig, Word, WordInfo []ent.Hook
+		ExternalAuth, JapaneseMean, PartOfSpeech, Quiz, QuizQuestion, RegisteredWord,
+		RootConfig, User, UserConfig, Word, WordInfo []ent.Hook
 	}
 	inters struct {
-		JapaneseMean, PartOfSpeech, Quiz, QuizQuestion, RegisteredWord, RootConfig,
-		User, UserConfig, Word, WordInfo []ent.Interceptor
+		ExternalAuth, JapaneseMean, PartOfSpeech, Quiz, QuizQuestion, RegisteredWord,
+		RootConfig, User, UserConfig, Word, WordInfo []ent.Interceptor
 	}
 )

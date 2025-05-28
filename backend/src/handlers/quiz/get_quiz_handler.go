@@ -3,8 +3,8 @@ package quiz
 import (
 	"net/http"
 
-	"word_app/backend/src/handlers/middleware"
 	"word_app/backend/src/models"
+	"word_app/backend/src/utils/contextutil"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -13,7 +13,7 @@ import (
 func (h *QuizHandler) GetQuizHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// ユーザーIDをコンテキストから取得
-		userID, err := middleware.MustUserID(c)
+		userID, err := contextutil.MustUserID(c)
 		if err != nil {
 			logrus.Error(err)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})

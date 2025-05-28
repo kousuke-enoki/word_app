@@ -5,15 +5,18 @@ import (
 	"os"
 	"time"
 
-	"word_app/backend/src/handlers/middleware"
+	"word_app/backend/database"
+	"word_app/backend/src/infrastructure"
+	"word_app/backend/src/infrastructure/jwt"
 	"word_app/backend/src/interfaces"
+	"word_app/backend/src/interfaces/http/middleware"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
 type RouterImplementation struct {
-	AuthHandler    interfaces.AuthHandler
+	JwtMiddleware  interfaces.JwtMiddleware
 	UserHandler    interfaces.UserHandler
 	SettingHandler interfaces.SettingHandler
 	WordHandler    interfaces.WordHandler
@@ -23,7 +26,7 @@ type RouterImplementation struct {
 }
 
 func NewRouter(
-	authHandler interfaces.AuthHandler,
+	jwtMiddleware interfaces.JwtMiddleware,
 	userHandler interfaces.UserHandler,
 	settingHandler interfaces.SettingHandler,
 	wordHandler interfaces.WordHandler,
@@ -36,7 +39,7 @@ func NewRouter(
 	}
 
 	return &RouterImplementation{
-		AuthHandler:    authHandler,
+		JwtMiddleware:  jwtMiddleware,
 		UserHandler:    userHandler,
 		SettingHandler: settingHandler,
 		WordHandler:    wordHandler,
@@ -49,6 +52,9 @@ func NewRouter(
 func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
 	router.Use(requestLoggerMiddleware())
 	router.Use(CORSMiddleware())
+	entClient := database.GetEntClient()
+	client := infrastructure.NewAppClient(entClient)
+	validator := jwt.NewJWTValidator(os.Getenv("JWT_SECRET"), client)
 
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "healthy"})
@@ -58,12 +64,15 @@ func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
 	{
 		userRoutes.POST("/sign_up", r.UserHandler.SignUpHandler())
 		userRoutes.POST("/sign_in", r.UserHandler.SignInHandler())
+		userRoutes.GET("/auth/line/login", uh.LineLogin())
+		userRoutes.GET("/auth/line/callback", uh.LineCallback())
+		userRoutes.POST("/auth/line/complete", uh.LineComplete())
 	}
 
 	protectedRoutes := router.Group("/")
-	protectedRoutes.Use(middleware.AuthMiddleware())
+	protectedRoutes.Use(middleware.NewAuthMiddleware(validator))
 	{
-		protectedRoutes.GET("/auth/check", r.AuthHandler.AuthCheckHandler())
+		protectedRoutes.GET("/auth/check", r.JwtMiddleware.JwtCheckMiddleware())
 
 		protectedRoutes.GET("/users/my_page", r.UserHandler.MyPageHandler())
 		protectedRoutes.GET("/setting/user_config", r.SettingHandler.GetUserSettingHandler())

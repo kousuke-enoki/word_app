@@ -8,10 +8,16 @@ import (
 	"word_app/backend/ent/user"
 	"word_app/backend/src/interfaces"
 	"word_app/backend/src/models"
+	"word_app/backend/src/utils/contextutil"
 )
 
 type appClient struct {
 	entClient *ent.Client
+}
+
+// GetResultSummaries implements interfaces.ClientInterface.
+func (w *appClient) Validate(ctx context.Context, tokenStr string) (contextutil.UserRoles, error) {
+	panic("unimplemented")
 }
 
 // GetResultSummaries implements interfaces.ClientInterface.
@@ -202,4 +208,9 @@ func (c *appClient) Quiz() *ent.QuizClient {
 // QuizQuestion は QuizQuestionClient を返します。
 func (c *appClient) QuizQuestion() *ent.QuizQuestionClient {
 	return c.entClient.QuizQuestion
+}
+
+// ExternalAuth は ExternalAuth を返します。
+func (c *appClient) ExternalAuth() *ent.ExternalAuthClient {
+	return c.entClient.ExternalAuth
 }

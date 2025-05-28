@@ -16,5 +16,6 @@ type EntClientInterface interface {
 	JapaneseMean() *ent.JapaneseMeanClient
 	Quiz() *ent.QuizClient
 	QuizQuestion() *ent.QuizQuestionClient
+	ExternalAuth() *ent.ExternalAuthClient
 	EntClient() *ent.Client
 }

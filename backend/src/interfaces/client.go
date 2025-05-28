@@ -12,6 +12,7 @@ type ClientInterface interface {
 	SettingClient
 	WordService
 	QuizService
+	TokenValidator
 	EntClient() *ent.Client
 	service_interfaces.EntClientInterface
 }

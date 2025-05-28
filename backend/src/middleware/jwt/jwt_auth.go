@@ -1,4 +1,4 @@
-package middleware
+package jwt
 
 import (
 	"fmt"
@@ -11,15 +11,14 @@ import (
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v4"
 
-	"word_app/backend/database" // あなたのDB接続用パッケージ
+	"word_app/backend/database"
 	"word_app/backend/ent/user"
 	entUser "word_app/backend/ent/user"
-	"word_app/backend/src/utils" // 生成された ent パッケージ
+	"word_app/backend/src/infrastructure/auth"
 )
 
-// AuthMiddleware : JWT検証 & ユーザー情報(ロール)取得
-func AuthMiddleware() gin.HandlerFunc {
-	// entClient := database.GetEntClient()
+// JwtAuth : JWT検証 & ユーザー情報(ロール)取得
+func (m *JwtMiddleware) JwtCheckMiddleware() gin.HandlerFunc {
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		log.Fatal("JWT_SECRET environment variable is required")
@@ -36,7 +35,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
 		// JWTトークンを解析
-		token, err := jwt.ParseWithClaims(tokenString, &utils.Claims{}, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(tokenString, &auth.Claims{}, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method")
 			}
@@ -49,7 +48,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// トークンが有効かつ claims に userID があるかを確認
-		if claims, ok := token.Claims.(*utils.Claims); ok && token.Valid {
+		if claims, ok := token.Claims.(*auth.Claims); ok && token.Valid {
 			userID := claims.UserID
 			if userID == "" {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token: userID not found"})

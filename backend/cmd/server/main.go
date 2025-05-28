@@ -10,14 +10,15 @@ import (
 	"word_app/backend/logger"
 	routerConfig "word_app/backend/router"
 	"word_app/backend/seeder"
-	auth "word_app/backend/src/handlers/middleware"
 	"word_app/backend/src/handlers/quiz"
 	"word_app/backend/src/handlers/result"
 	settingHandler "word_app/backend/src/handlers/setting"
 	userHandler "word_app/backend/src/handlers/user"
 	"word_app/backend/src/handlers/word"
 	"word_app/backend/src/infrastructure"
+	"word_app/backend/src/infrastructure/jwt"
 	"word_app/backend/src/interfaces"
+	JwtMiddlewarePackage "word_app/backend/src/middleware/jwt"
 	quizService "word_app/backend/src/service/quiz"
 	resultService "word_app/backend/src/service/result"
 	settingService "word_app/backend/src/service/setting"
@@ -111,15 +112,17 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 	wordClient := wordService.NewWordService(client)
 	quizClient := quizService.NewQuizService(client)
 	resultClient := resultService.NewResultService(client)
+	authClient := jwt.NewJWTValidator(jwtSecret, client)
+
 	userHandler := userHandler.NewUserHandler(entUserClient, jwtGenerator)
 	settingHandler := settingHandler.NewSettingHandler(entSettingClient)
 
 	wordHandler := word.NewWordHandler(wordClient)
 	quizHandler := quiz.NewQuizHandler(quizClient)
 	resultHandler := result.NewResultHandler(resultClient)
-	authHandler := auth.NewAuthHandler()
+	JwtMiddleware := JwtMiddlewarePackage.NewJwtMiddleware(authClient)
 
-	routerImpl := routerConfig.NewRouter(authHandler, userHandler, settingHandler, wordHandler, quizHandler, resultHandler)
+	routerImpl := routerConfig.NewRouter(JwtMiddleware, userHandler, settingHandler, wordHandler, quizHandler, resultHandler)
 	routerImpl.SetupRouter(router)
 	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
 		logrus.Fatalf("Failed to set trusted proxies: %v", err)

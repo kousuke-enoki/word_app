@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"word_app/backend/ent/externalauth"
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/partofspeech"
 	"word_app/backend/ent/quiz"
@@ -82,6 +83,7 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			externalauth.Table:   externalauth.ValidColumn,
 			japanesemean.Table:   japanesemean.ValidColumn,
 			partofspeech.Table:   partofspeech.ValidColumn,
 			quiz.Table:           quiz.ValidColumn,

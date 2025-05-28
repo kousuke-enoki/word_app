@@ -2,34 +2,22 @@ package auth
 
 import (
 	"time"
-
-	jwt "github.com/golang-jwt/jwt/v4"
+	"word_app/backend/src/usecase/port/auth"
+	"word_app/backend/src/utils/tempjwt"
 )
 
-type TempJWT struct {
-	secret []byte
+type TempJWTAdapter struct {
+	inner *tempjwt.TempJWT
 }
 
-func New(secret string) *TempJWT { return &TempJWT{secret: []byte(secret)} }
-
-type Identity struct {
-	Provider string `json:"provider"`
-	Sub      string `json:"sub"`
-	Email    string `json:"email"`
-	Name     string `json:"name"`
-	jwt.RegisteredClaims
+func New(secret string) auth.TempTokenGenerator {
+	return &TempJWTAdapter{inner: tempjwt.New(secret)}
 }
 
-func (t *TempJWT) GenerateTemp(id *Identity, ttl time.Duration) (string, error) {
-	id.ExpiresAt = jwt.NewNumericDate(time.Now().Add(ttl))
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, id)
-	return token.SignedString(t.secret)
+func (t *TempJWTAdapter) GenerateTemp(id *auth.Identity, ttl time.Duration) (string, error) {
+	return t.inner.GenerateTemp((*auth.Identity)(id), ttl)
 }
-
-func (t *TempJWT) ParseTemp(tok string) (*Identity, error) {
-	var id Identity
-	_, err := jwt.ParseWithClaims(tok, &id, func(token *jwt.Token) (interface{}, error) {
-		return t.secret, nil
-	})
-	return &id, err
+func (t *TempJWTAdapter) ParseTemp(tok string) (*auth.Identity, error) {
+	x, err := t.inner.ParseTemp(tok)
+	return (*auth.Identity)(x), err
 }

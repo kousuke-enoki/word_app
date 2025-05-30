@@ -1,5 +1,5 @@
 // infrastructure/repository/user_ent.go
-package repository
+package user
 
 import (
 	"context"

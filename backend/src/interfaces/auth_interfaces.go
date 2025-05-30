@@ -25,8 +25,8 @@ type JWTGenerator interface {
 	GenerateJWT(userID string) (string, error)
 }
 
-type AuthClient interface {
-	GenerateJWT(userID string) (string, error)
+type AuthUsecase interface {
+	// GenerateJWT(userID string) (string, error)
 	StartLogin(ctx context.Context, state, nonce string) string
 	HandleCallback(ctx context.Context, code, state, nonce string) (*CallbackResult, error)
 	CompleteSignUp(ctx context.Context, tempToken, pass string) (string, error)

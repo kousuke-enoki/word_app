@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
 
 	"word_app/backend/config"
@@ -16,7 +17,11 @@ import (
 	userHandler "word_app/backend/src/handlers/user"
 	"word_app/backend/src/handlers/word"
 	"word_app/backend/src/infrastructure"
+	AuthHandler "word_app/backend/src/infrastructure/auth"
+	"word_app/backend/src/infrastructure/auth/line"
 	"word_app/backend/src/infrastructure/jwt"
+	authRepository "word_app/backend/src/infrastructure/repository/auth"
+	userRepository "word_app/backend/src/infrastructure/repository/user"
 	"word_app/backend/src/interfaces"
 	JwtMiddlewarePackage "word_app/backend/src/middleware/jwt"
 	quizService "word_app/backend/src/service/quiz"
@@ -25,7 +30,6 @@ import (
 	userService "word_app/backend/src/service/user"
 	wordService "word_app/backend/src/service/word"
 	"word_app/backend/src/usecase/auth"
-	"word_app/backend/src/utils"
 	"word_app/backend/src/validators"
 
 	"github.com/gin-contrib/cors"
@@ -107,7 +111,8 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 	if jwtSecret == "" {
 		logrus.Fatal("JWT_SECRET environment variable is required")
 	}
-	jwtGenerator := utils.NewMyJWTGenerator(jwtSecret)
+	// jwtGenerator := utils.NewMyJWTGenerator(jwtSecret)
+	jwtGen := AuthHandler.NewMyJWTGenerator(jwtSecret)
 	entUserClient := userService.NewEntUserClient(client)
 	entSettingClient := settingService.NewEntSettingClient(client)
 	wordClient := wordService.NewWordService(client)
@@ -115,7 +120,7 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 	resultClient := resultService.NewResultService(client)
 	authClient := jwt.NewJWTValidator(jwtSecret, client)
 
-	userHandler := userHandler.NewUserHandler(entUserClient, jwtGenerator)
+	userHandler := userHandler.NewUserHandler(entUserClient, jwtGen)
 	settingHandler := settingHandler.NewSettingHandler(entSettingClient)
 
 	wordHandler := word.NewWordHandler(wordClient)
@@ -123,14 +128,17 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 	resultHandler := result.NewResultHandler(resultClient)
 	JwtMiddleware := JwtMiddlewarePackage.NewJwtMiddleware(authClient)
 
-	lineProvider := line.NewProvider(cfg.Line)          // AuthProvider 実装
-	appClient := infrastructure.NewAppClient(entClient) // Ent クライアント実装
+	lineCfg := config.LoadLineConfig()
+	// appClient := infrastructure.NewAppClient(entClient) // Ent クライアント実装
+	lineProvider, err := line.NewProvider(lineCfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+	userRepo := userRepository.NewEntUserRepo(client)       // UserRepository
+	extAuthRepo := authRepository.NewEntExtAuthRepo(client) // ExternalAuthRepository
 
-	userRepo := repository.NewEntUserRepo(appClient)       // UserRepository
-	extAuthRepo := repository.NewEntExtAuthRepo(appClient) // ExternalAuthRepository
-
-	jwtGen := utils.NewMyJWTGenerator(os.Getenv("JWT_SECRET"))
-	tempJwt := infra_auth.New(os.Getenv("TEMP_JWT_SECRET"))
+	// jwtGen := AuthHandler.NewMyJWTGenerator(os.Getenv("JWT_SECRET"))
+	tempJwt := AuthHandler.New(os.Getenv("TEMP_JWT_SECRET"))
 	authUC := auth.NewAuthUsecase(
 		lineProvider,
 		userRepo,
@@ -138,9 +146,9 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 		jwtGen,
 		tempJwt,
 	)
-	authHandler := handler.NewAuthHandler(authUC)
+	authHandler := AuthHandler.NewAuthHandler(jwtGen, authUC)
 
-	routerImpl := routerConfig.NewRouter(JwtMiddleware, userHandler, settingHandler, wordHandler, quizHandler, resultHandler)
+	routerImpl := routerConfig.NewRouter(JwtMiddleware, authHandler, userHandler, settingHandler, wordHandler, quizHandler, resultHandler)
 	routerImpl.SetupRouter(router)
 	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
 		logrus.Fatalf("Failed to set trusted proxies: %v", err)

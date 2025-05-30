@@ -1,20 +1,16 @@
 package auth
 
-import (
-	"word_app/backend/src/interfaces"
-)
+// type AuthHandler struct {
+// 	AuthClient   interfaces.AuthClient
+// 	jwtGenerator interfaces.JWTGenerator
+// }
 
-type AuthHandler struct {
-	AuthClient   interfaces.AuthClient
-	jwtGenerator interfaces.JWTGenerator
-}
-
-func NewAuthHandler(client interfaces.AuthClient, jwtGen interfaces.JWTGenerator) *AuthHandler {
-	return &AuthHandler{
-		AuthClient:   client,
-		jwtGenerator: jwtGen,
-	}
-}
+// func NewAuthHandler(client interfaces.AuthClient, jwtGen interfaces.JWTGenerator) *AuthHandler {
+// 	return &AuthHandler{
+// 		AuthClient:   client,
+// 		jwtGenerator: jwtGen,
+// 	}
+// }
 
 // func (h *AuthHandler) LineLogin(c *gin.Context) {
 // 	state, nonce := newState(), newNonce()

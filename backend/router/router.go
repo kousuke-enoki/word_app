@@ -17,6 +17,7 @@ import (
 
 type RouterImplementation struct {
 	JwtMiddleware  interfaces.JwtMiddleware
+	AuthHandler    interfaces.AuthHandler
 	UserHandler    interfaces.UserHandler
 	SettingHandler interfaces.SettingHandler
 	WordHandler    interfaces.WordHandler
@@ -27,6 +28,7 @@ type RouterImplementation struct {
 
 func NewRouter(
 	jwtMiddleware interfaces.JwtMiddleware,
+	authHandler interfaces.AuthHandler,
 	userHandler interfaces.UserHandler,
 	settingHandler interfaces.SettingHandler,
 	wordHandler interfaces.WordHandler,
@@ -64,9 +66,9 @@ func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
 	{
 		userRoutes.POST("/sign_up", r.UserHandler.SignUpHandler())
 		userRoutes.POST("/sign_in", r.UserHandler.SignInHandler())
-		userRoutes.GET("/auth/line/login", uh.LineLogin())
-		userRoutes.GET("/auth/line/callback", uh.LineCallback())
-		userRoutes.POST("/auth/line/complete", uh.LineComplete())
+		userRoutes.GET("/auth/line/login", r.AuthHandler.LineLogin())
+		userRoutes.GET("/auth/line/callback", r.AuthHandler.LineCallback())
+		userRoutes.POST("/auth/line/complete", r.AuthHandler.LineComplete())
 	}
 
 	protectedRoutes := router.Group("/")

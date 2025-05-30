@@ -3,50 +3,69 @@ package auth
 import (
 	"net/http"
 	"word_app/backend/src/interfaces"
-	"word_app/backend/src/usecase/auth"
+	"word_app/backend/src/utils/oauthutil"
 
 	"github.com/gin-gonic/gin"
 )
 
 type AuthHandler struct {
-	AuthClient   interfaces.AuthClient
+	// AuthClient   interfaces.AuthClient
 	jwtGenerator interfaces.JWTGenerator
-	AuthUsecase  auth.AuthUsecase
+	AuthUsecase  interfaces.AuthUsecase
 }
 
-func NewAuthHandler(client interfaces.AuthClient, jwtGen interfaces.JWTGenerator) *AuthHandler {
+func NewAuthHandler(
+	// client interfaces.AuthClient,
+	jwtGen interfaces.JWTGenerator,
+	authUsecase interfaces.AuthUsecase,
+) *AuthHandler {
 	return &AuthHandler{
-		AuthClient:   client,
+		// AuthClient:   client,
 		jwtGenerator: jwtGen,
+		AuthUsecase:  authUsecase,
 	}
 }
 
-func (h *AuthHandler) LineLogin(c *gin.Context) {
-	state, nonce := newState(), newNonce()
-	url := h.AuthUsecase.StartLogin(c, state, nonce)
-	c.Redirect(http.StatusFound, url)
-}
+func (h *AuthHandler) LineLogin() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		state, _ := oauthutil.NewState(c)
+		nonce, _ := oauthutil.NewNonce(c)
 
-func (h *AuthHandler) LineCallback(c *gin.Context) {
-	code := c.Query("code")
-	res, err := h.uc.HandleCallback(c, code, c.Query("state"), loadNonce(c))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, err) // temp_token など
-	}
-
-	if res.NeedPassword {
-		c.JSON(200, res) // temp_token など
-	} else {
-		c.JSON(200, gin.H{"token": res.Token})
+		url := h.AuthUsecase.StartLogin(c, state, nonce)
+		c.Redirect(http.StatusFound, url)
 	}
 }
 
-func (h *AuthHandler) LineComplete(c *gin.Context) {
-	var req struct{ TempToken, Password string }
-	_ = c.ShouldBindJSON(&req)
-	jwt, err := h.uc.CompleteSignUp(c, req.TempToken, req.Password)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, err) // temp_token など
+func (h *AuthHandler) LineCallback() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		code := c.Query("code")
+		state := c.Query("state")
+		nonce := oauthutil.LoadNonce(c)
+
+		res, err := h.AuthUsecase.HandleCallback(c, code, state, nonce)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, res)
 	}
-	c.JSON(200, gin.H{"token": jwt})
+}
+
+func (h *AuthHandler) LineComplete() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req struct {
+			TempToken string `json:"temp_token"`
+			Password  string `json:"password"`
+		}
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		jwt, err := h.AuthUsecase.CompleteSignUp(c, req.TempToken, req.Password)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"token": jwt})
+	}
 }

@@ -1,5 +1,5 @@
 // infrastructure/repository/external_auth_ent.go
-package repository
+package auth
 
 import (
 	"context"

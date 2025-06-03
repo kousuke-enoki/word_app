@@ -4,10 +4,16 @@ import (
 	"context"
 	"word_app/backend/ent"
 	"word_app/backend/src/models"
+	"word_app/backend/src/utils/contextutil"
 )
 
 type TestClientWrapper struct {
 	entClient *ent.Client
+}
+
+// GetResultSummaries implements ClientInterface.
+func (w *TestClientWrapper) Validate(ctx context.Context, tokenStr string) (contextutil.UserRoles, error) {
+	panic("unimplemented")
 }
 
 // GetResultSummaries implements ClientInterface.
@@ -185,5 +191,10 @@ func (w *TestClientWrapper) Quiz() *ent.QuizClient {
 
 // QuizQuestion は QuizQuestionClient を返します。
 func (w *TestClientWrapper) QuizQuestion() *ent.QuizQuestionClient {
+	panic("unimplemented")
+}
+
+// ExternalAuth は ExternalAuthClient を返します。
+func (w *TestClientWrapper) ExternalAuth() *ent.ExternalAuthClient {
 	panic("unimplemented")
 }

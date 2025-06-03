@@ -9,6 +9,7 @@ import (
 	"word_app/backend/src/validators/user"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -32,13 +33,15 @@ func (h *UserHandler) SignInHandler() gin.HandlerFunc {
 			c.JSON(400, gin.H{"error": "Invalid request"})
 			return
 		}
-
+		logrus.Info("signInUser")
+		logrus.Info(signInUser)
 		token, err := h.jwtGenerator.GenerateJWT(fmt.Sprintf("%d", signInUser.ID))
 		if err != nil {
 			c.JSON(500, gin.H{"error": "Failed to generate token"})
 			return
 		}
 
+		logrus.Info(token)
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Authentication successful", "token": token})
 	}

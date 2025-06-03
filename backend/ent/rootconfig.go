@@ -17,13 +17,13 @@ type RootConfig struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// EditingPermission holds the value of the "editing_permission" field.
-	EditingPermission string `json:"editing_permission"`
+	EditingPermission string `json:"editing_permission,omitempty"`
 	// IsTestUserMode holds the value of the "is_test_user_mode" field.
-	IsTestUserMode bool `json:"is_test_user_mode"`
+	IsTestUserMode bool `json:"is_test_user_mode,omitempty"`
 	// IsEmailAuthenticationCheck holds the value of the "is_email_authentication_check" field.
-	IsEmailAuthenticationCheck bool `json:"is_email_authentication_check"`
+	IsEmailAuthenticationCheck bool `json:"is_email_authentication_check,omitempty"`
 	// IsLineAuthentication holds the value of the "is_line_authentication" field.
-	IsLineAuthentication bool `json:"is_line_authentication"`
+	IsLineAuthentication bool `json:"is_line_authentication,omitempty"`
 	selectValues         sql.SelectValues
 }
 

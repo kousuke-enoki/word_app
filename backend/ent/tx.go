@@ -12,6 +12,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// ExternalAuth is the client for interacting with the ExternalAuth builders.
+	ExternalAuth *ExternalAuthClient
 	// JapaneseMean is the client for interacting with the JapaneseMean builders.
 	JapaneseMean *JapaneseMeanClient
 	// PartOfSpeech is the client for interacting with the PartOfSpeech builders.
@@ -163,6 +165,7 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.ExternalAuth = NewExternalAuthClient(tx.config)
 	tx.JapaneseMean = NewJapaneseMeanClient(tx.config)
 	tx.PartOfSpeech = NewPartOfSpeechClient(tx.config)
 	tx.Quiz = NewQuizClient(tx.config)
@@ -182,7 +185,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: JapaneseMean.QueryXXX(), the query will be executed
+// applies a query, for example: ExternalAuth.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

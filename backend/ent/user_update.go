@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"word_app/backend/ent/externalauth"
 	"word_app/backend/ent/predicate"
 	"word_app/backend/ent/quiz"
 	"word_app/backend/ent/registeredword"
@@ -170,6 +171,21 @@ func (uu *UserUpdate) SetUserConfig(u *UserConfig) *UserUpdate {
 	return uu.SetUserConfigID(u.ID)
 }
 
+// AddExternalAuthIDs adds the "external_auths" edge to the ExternalAuth entity by IDs.
+func (uu *UserUpdate) AddExternalAuthIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddExternalAuthIDs(ids...)
+	return uu
+}
+
+// AddExternalAuths adds the "external_auths" edges to the ExternalAuth entity.
+func (uu *UserUpdate) AddExternalAuths(e ...*ExternalAuth) *UserUpdate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return uu.AddExternalAuthIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -221,6 +237,27 @@ func (uu *UserUpdate) RemoveQuizs(q ...*Quiz) *UserUpdate {
 func (uu *UserUpdate) ClearUserConfig() *UserUpdate {
 	uu.mutation.ClearUserConfig()
 	return uu
+}
+
+// ClearExternalAuths clears all "external_auths" edges to the ExternalAuth entity.
+func (uu *UserUpdate) ClearExternalAuths() *UserUpdate {
+	uu.mutation.ClearExternalAuths()
+	return uu
+}
+
+// RemoveExternalAuthIDs removes the "external_auths" edge to ExternalAuth entities by IDs.
+func (uu *UserUpdate) RemoveExternalAuthIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveExternalAuthIDs(ids...)
+	return uu
+}
+
+// RemoveExternalAuths removes "external_auths" edges to ExternalAuth entities.
+func (uu *UserUpdate) RemoveExternalAuths(e ...*ExternalAuth) *UserUpdate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return uu.RemoveExternalAuthIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -431,6 +468,51 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.ExternalAuthsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ExternalAuthsTable,
+			Columns: []string{user.ExternalAuthsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(externalauth.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedExternalAuthsIDs(); len(nodes) > 0 && !uu.mutation.ExternalAuthsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ExternalAuthsTable,
+			Columns: []string{user.ExternalAuthsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(externalauth.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.ExternalAuthsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ExternalAuthsTable,
+			Columns: []string{user.ExternalAuthsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(externalauth.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -590,6 +672,21 @@ func (uuo *UserUpdateOne) SetUserConfig(u *UserConfig) *UserUpdateOne {
 	return uuo.SetUserConfigID(u.ID)
 }
 
+// AddExternalAuthIDs adds the "external_auths" edge to the ExternalAuth entity by IDs.
+func (uuo *UserUpdateOne) AddExternalAuthIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddExternalAuthIDs(ids...)
+	return uuo
+}
+
+// AddExternalAuths adds the "external_auths" edges to the ExternalAuth entity.
+func (uuo *UserUpdateOne) AddExternalAuths(e ...*ExternalAuth) *UserUpdateOne {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return uuo.AddExternalAuthIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -641,6 +738,27 @@ func (uuo *UserUpdateOne) RemoveQuizs(q ...*Quiz) *UserUpdateOne {
 func (uuo *UserUpdateOne) ClearUserConfig() *UserUpdateOne {
 	uuo.mutation.ClearUserConfig()
 	return uuo
+}
+
+// ClearExternalAuths clears all "external_auths" edges to the ExternalAuth entity.
+func (uuo *UserUpdateOne) ClearExternalAuths() *UserUpdateOne {
+	uuo.mutation.ClearExternalAuths()
+	return uuo
+}
+
+// RemoveExternalAuthIDs removes the "external_auths" edge to ExternalAuth entities by IDs.
+func (uuo *UserUpdateOne) RemoveExternalAuthIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveExternalAuthIDs(ids...)
+	return uuo
+}
+
+// RemoveExternalAuths removes "external_auths" edges to ExternalAuth entities.
+func (uuo *UserUpdateOne) RemoveExternalAuths(e ...*ExternalAuth) *UserUpdateOne {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return uuo.RemoveExternalAuthIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -874,6 +992,51 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(userconfig.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.ExternalAuthsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ExternalAuthsTable,
+			Columns: []string{user.ExternalAuthsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(externalauth.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedExternalAuthsIDs(); len(nodes) > 0 && !uuo.mutation.ExternalAuthsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ExternalAuthsTable,
+			Columns: []string{user.ExternalAuthsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(externalauth.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.ExternalAuthsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ExternalAuthsTable,
+			Columns: []string{user.ExternalAuthsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(externalauth.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

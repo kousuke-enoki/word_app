@@ -8,9 +8,9 @@ import (
 	"os"
 	"testing"
 	"word_app/backend/src/handlers/word"
+	"word_app/backend/src/infrastructure/jwt"
 	"word_app/backend/src/mocks"
 	"word_app/backend/src/models"
-	"word_app/backend/src/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -29,7 +29,7 @@ func TestWordList(t *testing.T) {
 	assert.NoError(t, err)
 
 	// テスト用 JWT トークン作成
-	jwtGen := &utils.DefaultJWTGenerator{}
+	jwtGen := jwt.MyJWTGenerator{}
 	token, _ := jwtGen.GenerateJWT("1") // userID=1 を設定
 
 	t.Run("GetRegisteredWords_success", func(t *testing.T) {

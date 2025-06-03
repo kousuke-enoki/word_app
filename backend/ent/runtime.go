@@ -4,6 +4,7 @@ package ent
 
 import (
 	"time"
+	"word_app/backend/ent/externalauth"
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/partofspeech"
 	"word_app/backend/ent/quiz"
@@ -21,6 +22,16 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	externalauthFields := schema.ExternalAuth{}.Fields()
+	_ = externalauthFields
+	// externalauthDescProvider is the schema descriptor for provider field.
+	externalauthDescProvider := externalauthFields[0].Descriptor()
+	// externalauth.ProviderValidator is a validator for the "provider" field. It is called by the builders before save.
+	externalauth.ProviderValidator = externalauthDescProvider.Validators[0].(func(string) error)
+	// externalauthDescProviderUserID is the schema descriptor for provider_user_id field.
+	externalauthDescProviderUserID := externalauthFields[1].Descriptor()
+	// externalauth.ProviderUserIDValidator is a validator for the "provider_user_id" field. It is called by the builders before save.
+	externalauth.ProviderUserIDValidator = externalauthDescProviderUserID.Validators[0].(func(string) error)
 	japanesemeanFields := schema.JapaneseMean{}.Fields()
 	_ = japanesemeanFields
 	// japanesemeanDescName is the schema descriptor for name field.
@@ -191,10 +202,14 @@ func init() {
 	rootconfigDescIsTestUserMode := rootconfigFields[1].Descriptor()
 	// rootconfig.DefaultIsTestUserMode holds the default value on creation for the is_test_user_mode field.
 	rootconfig.DefaultIsTestUserMode = rootconfigDescIsTestUserMode.Default.(bool)
-	// rootconfigDescIsEmailAuthentication is the schema descriptor for is_email_authentication field.
-	rootconfigDescIsEmailAuthentication := rootconfigFields[2].Descriptor()
-	// rootconfig.DefaultIsEmailAuthentication holds the default value on creation for the is_email_authentication field.
-	rootconfig.DefaultIsEmailAuthentication = rootconfigDescIsEmailAuthentication.Default.(bool)
+	// rootconfigDescIsEmailAuthenticationCheck is the schema descriptor for is_email_authentication_check field.
+	rootconfigDescIsEmailAuthenticationCheck := rootconfigFields[2].Descriptor()
+	// rootconfig.DefaultIsEmailAuthenticationCheck holds the default value on creation for the is_email_authentication_check field.
+	rootconfig.DefaultIsEmailAuthenticationCheck = rootconfigDescIsEmailAuthenticationCheck.Default.(bool)
+	// rootconfigDescIsLineAuthentication is the schema descriptor for is_line_authentication field.
+	rootconfigDescIsLineAuthentication := rootconfigFields[3].Descriptor()
+	// rootconfig.DefaultIsLineAuthentication holds the default value on creation for the is_line_authentication field.
+	rootconfig.DefaultIsLineAuthentication = rootconfigDescIsLineAuthentication.Default.(bool)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescEmail is the schema descriptor for email field.

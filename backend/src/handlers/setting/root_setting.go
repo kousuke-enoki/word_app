@@ -3,8 +3,8 @@ package setting
 import (
 	"errors"
 	"net/http"
-	"word_app/backend/src/handlers/middleware"
 	"word_app/backend/src/models"
+	"word_app/backend/src/utils/contextutil"
 	"word_app/backend/src/validators/setting"
 
 	"github.com/gin-gonic/gin"
@@ -17,7 +17,7 @@ func (h *SettingHandler) GetRootSettingHandler() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "userID not found"})
 			return
 		}
-		userRoles, err := middleware.GetUserRoles(c)
+		userRoles, err := contextutil.GetUserRoles(c)
 		if err != nil || userRoles == nil || !userRoles.IsRoot {
 			if err == nil {
 				err = errors.New("unauthorized: root access required")
@@ -41,7 +41,7 @@ func (h *SettingHandler) SaveRootSettingHandler() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "userID not found"})
 			return
 		}
-		userRoles, err := middleware.GetUserRoles(c)
+		userRoles, err := contextutil.GetUserRoles(c)
 		if err != nil || userRoles == nil || !userRoles.IsRoot {
 			if err == nil {
 				err = errors.New("unauthorized: root access required")

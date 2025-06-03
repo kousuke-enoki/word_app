@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"math"
+	"word_app/backend/ent/externalauth"
 	"word_app/backend/ent/predicate"
 	"word_app/backend/ent/quiz"
 	"word_app/backend/ent/registeredword"
@@ -29,6 +30,7 @@ type UserQuery struct {
 	withRegisteredWords *RegisteredWordQuery
 	withQuizs           *QuizQuery
 	withUserConfig      *UserConfigQuery
+	withExternalAuths   *ExternalAuthQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -124,6 +126,28 @@ func (uq *UserQuery) QueryUserConfig() *UserConfigQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(userconfig.Table, userconfig.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, user.UserConfigTable, user.UserConfigColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryExternalAuths chains the current query on the "external_auths" edge.
+func (uq *UserQuery) QueryExternalAuths() *ExternalAuthQuery {
+	query := (&ExternalAuthClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(externalauth.Table, externalauth.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ExternalAuthsTable, user.ExternalAuthsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -326,6 +350,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		withRegisteredWords: uq.withRegisteredWords.Clone(),
 		withQuizs:           uq.withQuizs.Clone(),
 		withUserConfig:      uq.withUserConfig.Clone(),
+		withExternalAuths:   uq.withExternalAuths.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -362,6 +387,17 @@ func (uq *UserQuery) WithUserConfig(opts ...func(*UserConfigQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withUserConfig = query
+	return uq
+}
+
+// WithExternalAuths tells the query-builder to eager-load the nodes that are connected to
+// the "external_auths" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithExternalAuths(opts ...func(*ExternalAuthQuery)) *UserQuery {
+	query := (&ExternalAuthClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withExternalAuths = query
 	return uq
 }
 
@@ -443,10 +479,11 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			uq.withRegisteredWords != nil,
 			uq.withQuizs != nil,
 			uq.withUserConfig != nil,
+			uq.withExternalAuths != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -484,6 +521,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	if query := uq.withUserConfig; query != nil {
 		if err := uq.loadUserConfig(ctx, query, nodes, nil,
 			func(n *User, e *UserConfig) { n.Edges.UserConfig = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withExternalAuths; query != nil {
+		if err := uq.loadExternalAuths(ctx, query, nodes,
+			func(n *User) { n.Edges.ExternalAuths = []*ExternalAuth{} },
+			func(n *User, e *ExternalAuth) { n.Edges.ExternalAuths = append(n.Edges.ExternalAuths, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -572,6 +616,37 @@ func (uq *UserQuery) loadUserConfig(ctx context.Context, query *UserConfigQuery,
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadExternalAuths(ctx context.Context, query *ExternalAuthQuery, nodes []*User, init func(*User), assign func(*User, *ExternalAuth)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.ExternalAuth(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ExternalAuthsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_external_auths
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_external_auths" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_external_auths" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

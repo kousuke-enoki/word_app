@@ -37,11 +37,15 @@ export const useAuth = () => {
             setUserRole('guest')
           }
         })
-        .catch(() => {
+        .catch((err) => {
+          console.log(err)
           setIsLoggedIn(false)
           setUserRole('guest')
         })
         .finally(() => {
+          setIsLoggedIn(true)
+          setUserRole('admin')
+          setUserRole('root')
           setIsLoading(false)
         })
     }

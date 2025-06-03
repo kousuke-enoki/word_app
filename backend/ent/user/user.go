@@ -34,6 +34,8 @@ const (
 	EdgeQuizs = "quizs"
 	// EdgeUserConfig holds the string denoting the user_config edge name in mutations.
 	EdgeUserConfig = "user_config"
+	// EdgeExternalAuths holds the string denoting the external_auths edge name in mutations.
+	EdgeExternalAuths = "external_auths"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// RegisteredWordsTable is the table that holds the registered_words relation/edge.
@@ -57,6 +59,13 @@ const (
 	UserConfigInverseTable = "user_configs"
 	// UserConfigColumn is the table column denoting the user_config relation/edge.
 	UserConfigColumn = "user_id"
+	// ExternalAuthsTable is the table that holds the external_auths relation/edge.
+	ExternalAuthsTable = "external_auths"
+	// ExternalAuthsInverseTable is the table name for the ExternalAuth entity.
+	// It exists in this package in order to avoid circular dependency with the "externalauth" package.
+	ExternalAuthsInverseTable = "external_auths"
+	// ExternalAuthsColumn is the table column denoting the external_auths relation/edge.
+	ExternalAuthsColumn = "user_external_auths"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -179,6 +188,20 @@ func ByUserConfigField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newUserConfigStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByExternalAuthsCount orders the results by external_auths count.
+func ByExternalAuthsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newExternalAuthsStep(), opts...)
+	}
+}
+
+// ByExternalAuths orders the results by external_auths terms.
+func ByExternalAuths(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newExternalAuthsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newRegisteredWordsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -198,5 +221,12 @@ func newUserConfigStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UserConfigInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2O, false, UserConfigTable, UserConfigColumn),
+	)
+}
+func newExternalAuthsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ExternalAuthsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ExternalAuthsTable, ExternalAuthsColumn),
 	)
 }

@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// ExternalAuth is the predicate function for externalauth builders.
+type ExternalAuth func(*sql.Selector)
+
 // JapaneseMean is the predicate function for japanesemean builders.
 type JapaneseMean func(*sql.Selector)
 

@@ -1,5 +1,5 @@
 # ---------- base build stage ----------
-FROM golang:1.23.3 AS build-base
+FROM golang:1.24.3 AS build-base
 WORKDIR /src
 
 COPY go.mod go.sum ./
@@ -13,7 +13,7 @@ RUN CGO_ENABLED=0 go build -o /out/server      ./cmd/server && \
     CGO_ENABLED=0 go build -o /out/import_dict ./cmd/import_dict
 
 # ---------- development (hot‑reload) ----------
-FROM golang:1.23.3 AS dev
+FROM golang:1.24.3 AS dev
 WORKDIR /app
 # air をインストール
 RUN go install github.com/air-verse/air@latest

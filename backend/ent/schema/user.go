@@ -61,5 +61,6 @@ func (User) Edges() []ent.Edge {
 		edge.To("quizs", Quiz.Type),
 		edge.To("user_config", UserConfig.Type).
 			Unique(),
+		edge.To("external_auths", ExternalAuth.Type),
 	}
 }

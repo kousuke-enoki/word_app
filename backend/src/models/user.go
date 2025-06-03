@@ -12,6 +12,7 @@ type SignUpRequest struct {
 }
 
 type User struct {
+	ID    int    `json:"id" binding:"required"`
 	Name  string `json:"name" binding:"required"`
 	Admin bool   `json:"admin"`
 	Root  bool   `json:"root"`

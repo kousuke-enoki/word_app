@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"word_app/backend/src/handlers/middleware"
 	"word_app/backend/src/models"
+	"word_app/backend/src/utils/contextutil"
 	"word_app/backend/src/validators/word"
 
 	"github.com/gin-gonic/gin"
@@ -15,7 +15,7 @@ import (
 func (h *WordHandler) UpdateWordHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
-		userRoles, err := middleware.GetUserRoles(c)
+		userRoles, err := contextutil.GetUserRoles(c)
 		if err != nil || userRoles == nil || !userRoles.IsAdmin {
 			if err == nil {
 				err = errors.New("unauthorized: admin access required")

@@ -13,6 +13,7 @@ import UserSetting from '../components/setting/UserSetting'
 import RootSetting from '../components/setting/RootSetting'
 import SignIn from '../components/user/SignIn'
 import SignUp from '../components/user/SignUp'
+import LineCallback from '../components/user/LineCallback'
 import WordNew from '../components/word/WordNew'
 import WordEdit from '../components/word/WordEdit'
 import WordList from '../components/word/WordList'
@@ -53,6 +54,14 @@ const AppRouter: React.FC = () => {
           element={
             <PublicRoute>
               <SignUp />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/line/callback"
+          element={
+            <PublicRoute>
+              <LineCallback />
             </PublicRoute>
           }
         />

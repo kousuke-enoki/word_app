@@ -32,6 +32,11 @@ const SignIn: React.FC = () => {
     }
   }
 
+  const handleLineLogin = () => {
+    console.log(`${import.meta.env.VITE_API_URL}/users/auth/line/login`)
+    window.location.href = `${import.meta.env.VITE_API_URL}/users/auth/line/login`;
+  };
+
   return (
     <div>
       <h1>サインイン</h1>
@@ -57,6 +62,10 @@ const SignIn: React.FC = () => {
           />
         </div>
         <button type="submit">サインイン</button>
+
+        <button type="button" onClick={handleLineLogin}>
+          LINEでログイン
+        </button>
       </form>
       {message && <p>{message}</p>}
     </div>

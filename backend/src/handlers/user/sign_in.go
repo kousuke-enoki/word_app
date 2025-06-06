@@ -15,6 +15,7 @@ import (
 
 func (h *UserHandler) SignInHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		logrus.Info("SignInHandler")
 		var req models.SignInRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(400, gin.H{"error": "Invalid request"})

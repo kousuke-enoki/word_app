@@ -31,10 +31,9 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/health"]
       interval: 10s
-      timeout: 5s
-      retries: 5
+      retries: 10
 
   dict-import:
     profiles: ["import"]
@@ -62,7 +61,8 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    command: npm run dev
+    # command: npm run dev
+    command: sh -c "DEBUG=vite:proxy npm run dev"
     environment:
       - CHOKIDAR_USEPOLLING=true
 

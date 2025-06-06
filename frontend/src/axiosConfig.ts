@@ -5,7 +5,9 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 
 // axiosのインスタンスを作成
 const axiosInstance = axios.create({
-  baseURL: API_BASE_URL, // APIのベースURL
+  baseURL: '/api',      // 相対パスにする
+  withCredentials: false,
+  // baseURL: API_BASE_URL, // APIのベースURL
   timeout: 5000, // タイムアウト設定 (ミリ秒)
   headers: {
     'Content-Type': 'application/json', // リクエストのContent-TypeをJSONに設定

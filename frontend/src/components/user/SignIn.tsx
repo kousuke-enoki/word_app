@@ -28,6 +28,7 @@ const SignIn: React.FC = () => {
         navigate('/mypage')
       })
     } catch (error) {
+      console.log(error)
       setMessage('Sign in failed. Please try again.')
     }
   }

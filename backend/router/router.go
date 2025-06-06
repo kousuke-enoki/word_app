@@ -56,17 +56,19 @@ func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "healthy"})
 	})
+	router.POST("/api/users/sign_in", r.UserHandler.SignInHandler())
+	router.POST("/api/users/sign_up", r.UserHandler.SignUpHandler())
 
-	userRoutes := router.Group("/users")
+	userRoutes := router.Group("/api/users")
 	{
-		userRoutes.POST("/sign_up", r.UserHandler.SignUpHandler())
-		userRoutes.POST("/sign_in", r.UserHandler.SignInHandler())
+		// userRoutes.POST("/sign_up", r.UserHandler.SignUpHandler())
+		// userRoutes.POST("/sign_in", r.UserHandler.SignInHandler())
 		userRoutes.GET("/auth/line/login", r.AuthHandler.LineLogin())
 		userRoutes.GET("/auth/line/callback", r.AuthHandler.LineCallback())
 		userRoutes.POST("/auth/line/complete", r.AuthHandler.LineComplete())
 	}
 
-	protectedRoutes := router.Group("/")
+	protectedRoutes := router.Group("/api")
 	protectedRoutes.Use(r.JwtMiddleware.AuthMiddleware())
 	{
 		protectedRoutes.GET("/auth/check", r.JwtMiddleware.AuthMiddleware())
@@ -98,10 +100,17 @@ func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
 
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		// allowOrigin := os.Getenv("CORS_URL") // ← ngrok URL を入れる
+		// logrus.Info(allowOrigin)
+		// if allowOrigin == "" {
+		allowOrigin := c.GetHeader("Origin") // fallback
+		// }
+		logrus.Info("allowOrigin")
+		logrus.Info(allowOrigin)
+		// c.Writer.Header().Set("Access-Control-Allow-Origin", allowOrigin)
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "*")
 
 		// OPTIONSリクエスト（プリフライトリクエスト）の処理
 		if c.Request.Method == "OPTIONS" {

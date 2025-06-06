@@ -12,8 +12,8 @@ func (m *JwtMiddleware) AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := strings.TrimPrefix(c.GetHeader("Authorization"), "Bearer ")
 		if token == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized,
-				gin.H{"error": "authorization header required"})
+			logrus.Warn("AuthMiddleware: empty token for", c.FullPath())
+			c.AbortWithStatus(403)
 			return
 		}
 		logrus.Info(token)

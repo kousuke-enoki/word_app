@@ -49,8 +49,8 @@ describe('MyPage Component', () => {
     )
 
     // 管理/ルート用メッセージは出ない
-    expect(screen.queryByText('管理ユーザーでログインしています。')).not.toBeNull()
-    expect(screen.queryByText('ルートユーザーでログインしています。')).not.toBeNull()
+    expect(screen.queryByText('管理ユーザーでログインしています。')).toBeNull()
+    expect(screen.queryByText('ルートユーザーでログインしています。')).toBeNull()
   })
 
   it('管理ユーザーには管理メッセージとリンクが表示される', async () => {

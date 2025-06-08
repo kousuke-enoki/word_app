@@ -6,3 +6,7 @@ type RootConfig struct {
 	IsEmailAuthCheck  bool   `json:"is_email_authentication_check"`
 	IsLineAuth        bool   `json:"is_line_authentication"`
 }
+
+type AuthSettingResponse struct {
+	IsLineAuth bool `json:"isLineAuth" binding:"required"`
+}

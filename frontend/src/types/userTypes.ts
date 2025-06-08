@@ -1,5 +1,5 @@
 export interface User {
   name: string
-  admin: boolean
-  root: boolean
+  isAdmin: boolean
+  isRoot: boolean
 }

@@ -18,7 +18,7 @@ const MyPage: React.FC = () => {
         if (message) {
           localStorage.removeItem('logoutMessage')
         }
-      } catch (error) {
+      } catch {
         localStorage.removeItem('token')
         localStorage.setItem('logoutMessage', 'ログインしてください')
         setTimeout(() => {
@@ -34,9 +34,9 @@ const MyPage: React.FC = () => {
   const today = new Date().toLocaleDateString()
 
   let showRole = <></>
-  if (user?.root) {
+  if (user?.isRoot) {
     showRole = <p>ルートユーザーでログインしています。</p>
-  } else if (user?.admin) {
+  } else if (user?.isAdmin) {
     showRole = <p>管理ユーザーでログインしています。</p>
   }
 
@@ -67,7 +67,7 @@ const MyPage: React.FC = () => {
       <p>
         まとめて登録: <Link to="/Words/BulkRegister">単語まとめて登録</Link>
       </p>
-      {user?.admin ? (
+      {user?.isAdmin ? (
         <p>
           <Link to="/words/new">単語登録画面</Link>
         </p>
@@ -81,7 +81,7 @@ const MyPage: React.FC = () => {
       <p>
         <Link to="/user/userSetting">ユーザー設定画面</Link>
       </p>
-      {user?.root ? (
+      {user?.isRoot ? (
         <p>
           <Link to="/user/rootSetting">管理設定画面</Link>
         </p>

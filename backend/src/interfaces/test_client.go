@@ -11,6 +11,11 @@ type TestClientWrapper struct {
 	entClient *ent.Client
 }
 
+// GetAuthConfig implements interfaces.ClientInterface.
+func (w *TestClientWrapper) GetAuthConfig(ctx context.Context) (*models.AuthSettingResponse, error) {
+	panic("unimplemented")
+}
+
 // GetResultSummaries implements ClientInterface.
 func (w *TestClientWrapper) Validate(ctx context.Context, tokenStr string) (contextutil.UserRoles, error) {
 	panic("unimplemented")

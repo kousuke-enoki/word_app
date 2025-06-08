@@ -9,14 +9,15 @@ import (
 
 type JwtMiddleware interface {
 	AuthMiddleware() gin.HandlerFunc
+	JwtCheckMiddleware() gin.HandlerFunc
 }
 type TokenValidator interface {
 	// raw JWT を検証してユーザ権限を返す
 	Validate(ctx context.Context, token string) (contextutil.UserRoles, error)
 }
 
-type UserRoles struct {
-	UserID  int
-	IsAdmin bool
-	IsRoot  bool
-}
+// type UserRoles struct {
+// 	UserID  int
+// 	IsAdmin bool
+// 	IsRoot  bool
+// }

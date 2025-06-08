@@ -22,14 +22,13 @@ export const useAuth = () => {
       axiosInstance
         .get('/auth/check')
         .then((response) => {
-          const data = response.data
-          if (data.isLogin) {
+          const user = response.data.user
+          if (user.id) {
             setIsLoggedIn(true)
-            // setUserRole(data.userRole)
-            if (data.isAdmin) {
+            if (user.isAdmin) {
               setUserRole('admin')
             }
-            if (data.isRoot) {
+            if (user.isRoot) {
               setUserRole('root')
             }
           } else {
@@ -43,9 +42,6 @@ export const useAuth = () => {
           setUserRole('guest')
         })
         .finally(() => {
-          setIsLoggedIn(true)
-          setUserRole('admin')
-          setUserRole('root')
           setIsLoading(false)
         })
     }

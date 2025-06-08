@@ -66,10 +66,15 @@ func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
 		userRoutes.POST("/auth/line/complete", r.AuthHandler.LineComplete())
 	}
 
+	SettingRoutes := router.Group("/setting")
+	{
+		SettingRoutes.GET("/auth", r.SettingHandler.GetAuthSettingHandler())
+	}
+
 	protectedRoutes := router.Group("/")
 	protectedRoutes.Use(r.JwtMiddleware.AuthMiddleware())
 	{
-		protectedRoutes.GET("/auth/check", r.JwtMiddleware.AuthMiddleware())
+		protectedRoutes.GET("/auth/check", r.JwtMiddleware.JwtCheckMiddleware())
 
 		protectedRoutes.GET("/users/my_page", r.UserHandler.MyPageHandler())
 		protectedRoutes.GET("/setting/user_config", r.SettingHandler.GetUserSettingHandler())

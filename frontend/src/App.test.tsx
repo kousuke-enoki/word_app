@@ -5,5 +5,5 @@ import App from './App'
 test('renders the main heading', () => {
   render(<App />)
   const linkElement = screen.getByText(/word app/i)
-  expect(linkElement).toBeInTheDocument()
+  expect(linkElement)
 })

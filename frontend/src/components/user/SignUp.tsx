@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react'
 import axiosInstance from '../../axiosConfig'
 import { useNavigate } from 'react-router-dom'
@@ -28,6 +29,7 @@ const SignUp: React.FC = () => {
       const token = response.data.token
       localStorage.setItem('token', token)
       localStorage.setItem('logoutMessage', 'サインアップしました。')
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       handleGetDarkMode
       setMessage('Sign up successful!')
       setErrors([])

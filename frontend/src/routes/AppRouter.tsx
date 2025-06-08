@@ -26,9 +26,14 @@ import ResultIndex  from '../components/result/ResultIndex';
 // import Dashboard from '../components/Dashboard';
 // import Footer from '../components/Footer';
 
+const routerFutureFlags = {
+  v7_startTransition : true,
+  v7_relativeSplatPath: true,
+}
+
 const AppRouter: React.FC = () => {
   return (
-    <Router>
+    <Router future={routerFutureFlags}>
       <Header />
       <Routes>
         {/* 未ログインのみアクセス可 */}

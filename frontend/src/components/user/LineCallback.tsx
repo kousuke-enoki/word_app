@@ -14,11 +14,11 @@ const LineCallback: React.FC = () => {
         });
         localStorage.setItem('token', data.token);
         nav('/mypage');
-      } catch (_) {
+      } catch {
         nav('/signin?err=line');
       }
     })();
-  }, []);
+  }, [nav]);
 
   return <p>LINE 認証処理中...</p>;
 };

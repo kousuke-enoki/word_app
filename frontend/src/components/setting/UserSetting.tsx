@@ -25,6 +25,7 @@ const UserSetting: React.FC = () => {
           isDarkMode: response.data.is_dark_mode,
         })
       } catch (error) {
+        console.error(error)
         alert('ユーザー設定の取得中にエラーが発生しました。')
       }
     }

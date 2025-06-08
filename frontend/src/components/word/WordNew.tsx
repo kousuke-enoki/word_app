@@ -226,7 +226,11 @@ const WordNew: React.FC = () => {
       <h1>単語登録フォーム</h1>
       {/* エラーメッセージ */}
       {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
-      <form className="word-create-form" onSubmit={handleSubmit}>
+      <form 
+        aria-label="word-create-form"
+        className="word-create-form"
+        onSubmit={handleSubmit}
+      >
         <div>
           <label>
             単語名:

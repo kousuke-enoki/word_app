@@ -15,6 +15,11 @@ type appClient struct {
 	entClient *ent.Client
 }
 
+// GetAuthConfig implements interfaces.ClientInterface.
+func (w *appClient) GetAuthConfig(ctx context.Context) (*models.AuthSettingResponse, error) {
+	panic("unimplemented")
+}
+
 // GetResultSummaries implements interfaces.ClientInterface.
 func (w *appClient) Validate(ctx context.Context, tokenStr string) (contextutil.UserRoles, error) {
 	panic("unimplemented")

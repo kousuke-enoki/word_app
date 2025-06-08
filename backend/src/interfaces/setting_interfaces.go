@@ -15,6 +15,7 @@ type SettingHandler interface {
 	SaveUserSettingHandler() gin.HandlerFunc
 	GetRootSettingHandler() gin.HandlerFunc
 	SaveRootSettingHandler() gin.HandlerFunc
+	GetAuthSettingHandler() gin.HandlerFunc
 }
 
 // 他の箇所はmodelsを定義してレスポンスを返すが、ここではentの型をそのまま使用してレスポンスを生成する。
@@ -31,6 +32,7 @@ type SettingClient interface {
 		isEmailAuthCheck bool,
 		isLineAuth bool,
 	) (*ent.RootConfig, error)
+	GetAuthConfig(ctx context.Context) (*models.AuthSettingResponse, error)
 }
 
 type SettingValidator interface {

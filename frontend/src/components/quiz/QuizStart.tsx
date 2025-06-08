@@ -31,7 +31,7 @@ const QuizStart: React.FC<Props> = ({ settings, onSuccess, onFail }) => {
     axiosInstance
       .post<CreateQuizResponse>('/quizzes/new', payload)
       .then((res) => {
-        const { quizID, totalCreateQuestion, nextQuestion } = res.data;
+        const { quizID, nextQuestion } = res.data;
         /** フロント内部型に合わせて詰め替え */
         const first: QuizQuestion = {
           quizID: nextQuestion.quizID,

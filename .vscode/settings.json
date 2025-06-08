@@ -1,0 +1,13 @@
+{
+  "eslint.experimental.useFlatConfig": true,    // Flat-config を使う場合必須
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "editor.formatOnSave": false                 // Prettier と二重実行を防ぐ
+}

@@ -9,7 +9,7 @@ export default defineConfig({
     checker({
       typescript: true,
       eslint: {
-        lintCommand: 'npm run lint -- --cache',
+        lintCommand: ' "./src/**/*.{js,jsx,ts,tsx}"',
       },
     }),
   ],

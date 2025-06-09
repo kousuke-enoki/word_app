@@ -1,10 +1,9 @@
-# eng_backend
+# 初回
 docker compose build
 
-bash start.sh development
+bash docker.sh up dev
 
-docker compose exec backend bash
-
+bash docker.sh import dev
 
 ## 環境起動コマンド
  docker.shで振り分け
@@ -25,11 +24,10 @@ bash docker.sh exec frontend prod
 bash docker.sh import prod
 
 
-## dockerキャッシュ削除
+## dockerキャッシュ削除して起動
 docker compose --env-file backend/.env.development down --volumes --rmi all
 docker compose build --no-cache
 bash docker.sh up dev
-<!-- bash docker.sh up dev -->
 
 # 実行中のコンテナを確認
 docker ps
@@ -76,6 +74,7 @@ golangci-lint run --verbose
 ## フロント
 
 #  eslint
+cd frontend
 npm run eslint
 
 # フロントエンドライブラリインストール

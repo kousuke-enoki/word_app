@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import axiosInstance from '../../axiosConfig'
 import '../../styles/components/setting/UserSetting.css'
-import { useTheme } from '../../context/themeContext'
+import { useTheme } from '../../context/ThemeContext'
 
 const UserSetting: React.FC = () => {
   const [initial, setInitial] = useState<{
@@ -21,7 +21,7 @@ const UserSetting: React.FC = () => {
         const response = await axiosInstance.get('/setting/user_config')
         SetIsDarkMode(response.data.is_dark_mode)
         // 初期値を保持
-        setInitial({          
+        setInitial({
           isDarkMode: response.data.is_dark_mode,
         })
       } catch (error) {

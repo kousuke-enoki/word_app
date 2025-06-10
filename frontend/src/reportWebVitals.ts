@@ -1,15 +1,13 @@
-type ReportHandler = (metric: any) => void;
+import type { ReportHandler } from 'web-vitals'    // 型だけなら OK
 
-const reportWebVitals = (onPerfEntry?: ReportHandler) => {
-  if (onPerfEntry && onPerfEntry instanceof Function) {
-    import('web-vitals').then(({ onCLS, onFCP, onLCP, onTTFB, onINP }) => {
-      onCLS(onPerfEntry)
-      if (onINP) onINP(onPerfEntry)
-      onFCP(onPerfEntry)
-      onLCP(onPerfEntry)
-      onTTFB(onPerfEntry)
-    })
-  }
+export const reportWebVitals = (onPerfEntry?: ReportHandler) => {
+  if (!onPerfEntry) return
+
+  import('web-vitals').then(({ onCLS, onFCP, onLCP, onTTFB, onINP }) => {
+    onCLS(onPerfEntry)
+    onFCP(onPerfEntry)
+    onLCP(onPerfEntry)
+    onTTFB(onPerfEntry)
+    onINP?.(onPerfEntry)
+  })
 }
-
-export default reportWebVitals

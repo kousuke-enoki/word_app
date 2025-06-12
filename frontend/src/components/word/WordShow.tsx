@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import axiosInstance from '../../axiosConfig'
+import axiosInstance from '@/axiosConfig'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { Word, WordInfo, JapaneseMean } from '../../types/wordTypes'
-import { registerWord } from '../../service/word/RegisterWord'
-import { saveMemo } from '../../service/word/SaveMemo'
-import { deleteWord } from '../../service/word/DeleteWord'
-import { getPartOfSpeech } from '../../service/word/GetPartOfSpeech'
-import '../../styles/components/word/WordShow.css'
+import { Word, WordInfo, JapaneseMean } from '@/types/wordTypes'
+import { registerWord } from '@/service/word/RegisterWord'
+import { saveMemo } from '@/service/word/SaveMemo'
+import { deleteWord } from '@/service/word/DeleteWord'
+import { getPartOfSpeech } from '@/service/word/GetPartOfSpeech'
+import '@/styles/components/word/WordShow.css'
 
 const WordShow: React.FC = () => {
   const { id } = useParams()

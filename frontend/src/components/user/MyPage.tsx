@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import axiosInstance from '../../axiosConfig'
+import axiosInstance from '@/axiosConfig'
 import { Link, useNavigate } from 'react-router-dom'
 import { User } from '../../types/userTypes'
 

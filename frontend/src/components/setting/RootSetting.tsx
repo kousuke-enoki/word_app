@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import axiosInstance from '../../axiosConfig'
-import { EditingPermission } from '../../types/settingTypes'
-import '../../styles/components/setting/RootSetting.css'
+import axiosInstance from '@/axiosConfig'
+import { EditingPermission } from '@/types/settingTypes'
+import '@/styles/components/setting/RootSetting.css'
 
 const RootSetting: React.FC = () => {
   /** 取得した初期値を保持しておく */

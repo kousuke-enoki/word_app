@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import axiosInstance from '../../axiosConfig'
+import axiosInstance from '@/axiosConfig'
 import {
   getPartOfSpeech,
   PartOfSpeechOption,
-} from '../../service/word/GetPartOfSpeech'
+} from '@/service/word/GetPartOfSpeech'
 
 // 型定義
 export type WordForUpdate = {

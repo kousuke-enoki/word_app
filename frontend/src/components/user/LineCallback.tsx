@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from '../../axiosConfig';
+import axios from '@/axiosConfig';
 
 const LineCallback: React.FC = () => {
   const nav = useNavigate();

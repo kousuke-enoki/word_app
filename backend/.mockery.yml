@@ -1,0 +1,32 @@
+dir: '{{.InterfaceDir}}'
+filename: '{{.SrcPackageName}}_mock.go'
+force-file-write: true
+formatter: goimports
+log-level: info
+structname: '{{.Mock}}{{.InterfaceName}}'
+pkgname: '{{.SrcPackageName}}'
+recursive: false
+template: testify
+template-schema: '{{.Template}}.schema.json'
+all: true                            # パッケージ内すべての interface
+packages:
+
+  word_app/backend/src/interfaces/http/auth:       # ← Key は ImportPath
+    config:
+      dir: src/mocks/http/auth
+      recursive: false
+
+  word_app/backend/src/interfaces/http/middleware:       # ← Key は ImportPath
+    config:
+      dir: src/mocks/http/middleware
+      recursive: false
+
+  word_app/backend/src/interfaces/repository/auth:       # ← Key は ImportPath
+    config:
+      dir: src/mocks/repository/auth
+      recursive: false
+
+  word_app/backend/src/interfaces/repository/user:       # ← Key は ImportPath
+    config:
+      dir: src/mocks/repository/user
+      recursive: false

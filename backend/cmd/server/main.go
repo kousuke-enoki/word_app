@@ -117,43 +117,30 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 	if jwtSecret == "" {
 		logrus.Fatal("JWT_SECRET environment variable is required")
 	}
-	logrus.Info("===> creating jwt")
-	// jwtGenerator := utils.NewMyJWTGenerator(jwtSecret)
 	jwtGen := jwt.NewMyJWTGenerator(jwtSecret)
 	entUserClient := userService.NewEntUserClient(client)
 	entSettingClient := settingService.NewEntSettingClient(client)
 	wordClient := wordService.NewWordService(client)
 	quizClient := quizService.NewQuizService(client)
 	resultClient := resultService.NewResultService(client)
-	logrus.Info("===> 1")
 	authClient := jwt.NewJWTValidator(jwtSecret, client)
 
-	logrus.Info("===> 2")
 	userHandler := userHandler.NewUserHandler(entUserClient, jwtGen)
-	logrus.Info("===> 3")
 	settingHandler := settingHandler.NewSettingHandler(entSettingClient)
 
-	logrus.Info("===> 4")
 	wordHandler := word.NewWordHandler(wordClient)
 	quizHandler := quiz.NewQuizHandler(quizClient)
 	resultHandler := result.NewResultHandler(resultClient)
 	JwtMiddleware := JwtMiddlewarePackage.NewJwtMiddleware(authClient)
-	logrus.Info("===> creating LINE config ")
 	lineCfg := config.LoadLineConfig()
-	logrus.Info("===> creating LINE provider")
-	// appClient := infrastructure.NewAppClient(entClient) // Ent クライアント実装
 	lineProvider, err := line.NewProvider(lineCfg)
-	logrus.Info("===> provider created")
 	if err != nil {
 		log.Fatal(err)
 	}
-	userRepo := userRepository.NewEntUserRepo(client)       // UserRepository
-	extAuthRepo := authRepository.NewEntExtAuthRepo(client) // ExternalAuthRepository
+	userRepo := userRepository.NewEntUserRepo(client)
+	extAuthRepo := authRepository.NewEntExtAuthRepo(client)
 
-	// jwtGen := AuthHandler.NewMyJWTGenerator(os.Getenv("JWT_SECRET"))
-	logrus.Info("checkpoint A - before tempjwt")
 	tempJwt := tempjwt.TempJWTNew(os.Getenv("TEMP_JWT_SECRET"))
-	logrus.Info("checkpoint B - after tempjwt")
 	authUC := auth.NewAuthUsecase(
 		lineProvider,
 		userRepo,
@@ -161,18 +148,14 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 		jwtGen,
 		tempJwt,
 	)
-	logrus.Info("a")
 	authHandler := AuthHandler.NewAuthHandler(authUC, jwtGen)
 
-	logrus.Info("b")
 	routerImpl := routerConfig.NewRouter(JwtMiddleware, authHandler, userHandler, settingHandler, wordHandler, quizHandler, resultHandler)
-	logrus.Info("c")
+
 	routerImpl.SetupRouter(router)
-	logrus.Info("d")
 	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
 		logrus.Fatalf("Failed to set trusted proxies: %v", err)
 	}
-	logrus.Info("Router setup completed")
 
 	validators.Init()
 	binding.Validator = &validators.GinValidator{Validate: validators.V}

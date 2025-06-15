@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import axiosInstance from '@/axiosConfig'
 import '@/styles/components/setting/UserSetting.css'
-import { useTheme } from '@/context/themeContext'
+import { useTheme } from '@/contexts/themeContext'
 
 const UserSetting: React.FC = () => {
   const [initial, setInitial] = useState<{

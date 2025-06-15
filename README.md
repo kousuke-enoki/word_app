@@ -55,11 +55,21 @@ ent/schema で作成
 #  generate (スキーマ作ったら)
 go generate ./ent
 
-# モック作成(mockery)
+# モック作成(mockery) (v3推奨、v2は何故か使用できなくなった)
 mockery(コンテナ内で)
+go install github.com/vektra/mockery/v3@v3.4.0
+
 go install github.com/vektra/mockery/v2@v2.43.2
 
-interfacesがあるディレクトリで
+# mockery v3使用方法
+.mockery.ymlに、新規interfaceのパッケージを追加
+
+bash docker.sh exec backend
+
+ルートで
+mockery
+
+# interfacesがあるディレクトリで（v2） 
 mockery --name=UserClient --output=./../mocks
 
 # goimport

@@ -20,7 +20,7 @@ func InitLogger() {
 	logrus.Info("logLevel:", logLevel)
 	level, err := logrus.ParseLevel(strings.ToLower(logLevel))
 	if err != nil {
-		log.Fatalf("Invalid LOG_LEVEL: ", logLevel)
+		log.Fatalf("Invalid LOG_LEVEL: %s", logLevel)
 	}
 
 	logrus.SetLevel(level)

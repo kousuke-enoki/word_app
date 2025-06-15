@@ -16,7 +16,7 @@ import axiosInstance from '@/axiosConfig'
 
 /* ---------------- ThemeContext も最低限だけ ---------------- */
 export const setThemeMock = vi.fn()
-vi.mock('@/context/ThemeContext', () => ({
+vi.mock('@/contexts/ThemeContext', () => ({
   useTheme: () => ({ setTheme: setThemeMock }),
 }))
 

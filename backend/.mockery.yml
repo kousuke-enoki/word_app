@@ -11,22 +11,32 @@ template-schema: '{{.Template}}.schema.json'
 all: true                            # パッケージ内すべての interface
 packages:
 
-  word_app/backend/src/interfaces/http/auth:       # ← Key は ImportPath
+  word_app/backend/src/interfaces/http/auth:
     config:
       dir: src/mocks/http/auth
       recursive: false
 
-  word_app/backend/src/interfaces/http/middleware:       # ← Key は ImportPath
+  word_app/backend/src/interfaces/http/middleware:
     config:
       dir: src/mocks/http/middleware
       recursive: false
 
-  word_app/backend/src/interfaces/repository/auth:       # ← Key は ImportPath
+  word_app/backend/src/interfaces/repository/auth:
     config:
       dir: src/mocks/repository/auth
       recursive: false
 
-  word_app/backend/src/interfaces/repository/user:       # ← Key は ImportPath
+  word_app/backend/src/interfaces/repository/user:
     config:
       dir: src/mocks/repository/user
+      recursive: false
+
+  word_app/backend/src/interfaces/usecase/port/auth:
+    config:
+      dir: src/mocks/usecase/port/auth
+      recursive: false
+
+  word_app/backend/src/interfaces/service_interfaces:
+    config:
+      dir: src/mocks/service_interfaces
       recursive: false

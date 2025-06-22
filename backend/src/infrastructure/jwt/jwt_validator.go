@@ -27,28 +27,20 @@ func NewJWTValidator(secret string, client service_interfaces.EntClientInterface
 }
 
 // Validate は JWT を検証し、DB からロールを取得して返す。
-// エラー種別を細かく返すことでハンドラ側でハンドリングしやすい。
 func (v *TokenValidator) Validate(ctx context.Context, tokenStr string) (contextutil.UserRoles, error) {
 	var zero contextutil.UserRoles
-	logrus.Info("validate")
-	logrus.Info(tokenStr)
 	tok, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(t *jwt.Token) (interface{}, error) {
-		logrus.Info("1")
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			logrus.Info("2")
 			return nil, fmt.Errorf("unexpected signing method")
 		}
-		logrus.Info("3")
 		return v.secret, nil
 	})
 	if err != nil {
 		logrus.Warnf("parse error: %v", err)
-		logrus.Info("parse error")
 		return zero, errors.New("token_invalid parse_error")
 	}
 	if !tok.Valid {
 		logrus.Warn("token not valid")
-		logrus.Info("token not valid")
 		return zero, errors.New("token_invalid token_not_valid")
 	}
 
@@ -70,9 +62,6 @@ func (v *TokenValidator) Validate(ctx context.Context, tokenStr string) (context
 	if err != nil {
 		return zero, errors.New("user_not_found")
 	}
-	logrus.Info(id)
-	logrus.Info(u.IsAdmin)
-	logrus.Info(u.IsRoot)
 	return contextutil.UserRoles{
 		UserID:  id,
 		IsAdmin: u.IsAdmin,

@@ -28,6 +28,13 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "externalauth_provider_provider_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{ExternalAuthsColumns[1], ExternalAuthsColumns[2]},
+			},
+		},
 	}
 	// JapaneseMeansColumns holds the columns for the "japanese_means" table.
 	JapaneseMeansColumns = []*schema.Column{

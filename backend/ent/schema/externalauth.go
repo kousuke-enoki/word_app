@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 type ExternalAuth struct {
@@ -25,5 +26,11 @@ func (ExternalAuth) Edges() []ent.Edge {
 			Ref("external_auths").
 			Unique().
 			Required(),
+	}
+}
+
+func (ExternalAuth) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("provider", "provider_user_id").Unique(),
 	}
 }

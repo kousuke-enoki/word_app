@@ -1,225 +1,390 @@
-// provider_test.go
 package line_test
 
 import (
 	"context"
-	"errors"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha1" // key ID 用
+	"encoding/json"
+	"fmt"
+	"math/big"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
-	"word_app/backend/config"
-	"word_app/backend/src/infrastructure/auth/line"
-	"word_app/backend/src/interfaces/usecase/port/auth"
-
-	"bou.ke/monkey"
 	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/stretchr/testify/assert"
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/oauth2"
+
+	"word_app/backend/src/infrastructure/auth/line" // Provider のパッケージパスに合わせてください
 )
 
-func newTestProvider() *line.Provider {
-	// 実際の verify を呼ばないため clientID だけ適当で OK
-	p, _ := line.NewProvider(config.LineOAuth{
-		ClientID:     "cid",
-		ClientSecret: "cs",
-		RedirectURI:  "https://example.com/callback",
-	})
-	return p.(*line.Provider)
+const (
+	clientID     = "client-id"
+	clientSecret = "client-secret"
+	redirectURI  = "https://example.com/callback"
+)
+
+// --- helper: RSA 鍵と kid 付き JWKS を生成 -----------------------------
+
+type jwkKey struct {
+	Kty string `json:"kty"`
+	E   string `json:"e"`
+	N   string `json:"n"`
+	Alg string `json:"alg"`
+	Use string `json:"use"`
+	Kid string `json:"kid"`
 }
 
-// ----------------------------------------------------------------------
-// AuthURL
-// ----------------------------------------------------------------------
-func TestAuthURL(t *testing.T) {
-	p := newTestProvider()
-	urlStr := p.AuthURL("st", "nn")
-	u, _ := url.Parse(urlStr)
-
-	assert.Equal(t, "st", u.Query().Get("state"))
-	assert.Equal(t, "nn", u.Query().Get("nonce"))
-	assert.Equal(t, "cid", u.Query().Get("client_id"))
+type jwkSet struct {
+	Keys []jwkKey `json:"keys"`
 }
 
-// ----------------------------------------------------------------------
-// Exchange
-// ----------------------------------------------------------------------
-func TestExchange(t *testing.T) {
-	defer monkey.UnpatchAll()
+func newRSAKey(t *testing.T) (*rsa.PrivateKey, jwkSet, string) {
+	t.Helper()
 
-	okTok := oauth2.Token{AccessToken: "at"}
-	okTokPtr := okTok.WithExtra(map[string]interface{}{"id_token": "dummy"})
-	okIdTok := &oidc.IDToken{}
+	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
 
-	type want struct {
-		identity *auth.Identity
-		err      bool
+	// kid は公開鍵の SHA-1 フィンガープリント程度で十分
+	fprint := sha1.Sum(priv.N.Bytes())
+	kid := fmt.Sprintf("%x", fprint[:4])
+
+	pub := priv.Public().(*rsa.PublicKey)
+	jwk := jwkKey{
+		Kty: "RSA",
+		N:   b64(pub.N.Bytes()),
+		E:   b64(big.NewInt(int64(pub.E)).Bytes()),
+		Alg: "RS256",
+		Use: "sig",
+		Kid: kid,
 	}
+	return priv, jwkSet{Keys: []jwkKey{jwk}}, kid
+}
+
+func b64(b []byte) string { return jwt.EncodeSegment(b) }
+
+// --- helper: ID Token を RS256 署名 ------------------------------
+
+func signedIDToken(t *testing.T, priv *rsa.PrivateKey, kid, issuer, nonce string) string {
+	t.Helper()
+	now := time.Now()
+	claims := jwt.MapClaims{
+		"iss":   issuer, // 後で設定
+		"sub":   "line-user-sub",
+		"aud":   clientID,
+		"exp":   now.Add(time.Hour).Unix(),
+		"iat":   now.Unix(),
+		"nonce": nonce,
+		"email": "foo@example.com",
+		"name":  "Foo Bar",
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	token.Header["kid"] = kid
+	s, err := token.SignedString(priv)
+	require.NoError(t, err)
+	return s
+}
+
+// --------------------------- AuthURL ------------------------------
+
+func TestProvider_AuthURL(t *testing.T) {
+	p := line.NewTestProvider(
+		&oauth2.Config{
+			ClientID:     clientID,
+			ClientSecret: clientSecret,
+			RedirectURL:  redirectURI,
+			Scopes:       []string{"openid", "profile", "email"},
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  "https://auth.example/authorize",
+				TokenURL: "https://auth.example/token",
+			},
+		},
+		nil, // verifier not needed for AuthURL test
+	)
+
+	state := "xyz-state"
+	nonce := "abc-nonce"
+	u := p.AuthURL(state, nonce)
+
+	parsed, err := url.Parse(u)
+	require.NoError(t, err)
+	q := parsed.Query()
+
+	require.Equal(t, state, q.Get("state"))
+	require.Equal(t, nonce, q.Get("nonce"))
+	require.Equal(t, clientID, q.Get("client_id"))
+	require.Equal(t, redirectURI, q.Get("redirect_uri"))
+	require.Contains(t, q.Get("scope"), "openid")
+}
+
+// ------------------------ Exchange (table) ------------------------
+
+func TestProvider_Exchange(t *testing.T) {
+	type want struct {
+		ok          bool
+		errContains string
+	}
+
 	tests := []struct {
-		name          string
-		patchExchange func()
-		patchVerify   func()
-		patchClaims   func()
-		want          want
+		name string
+		// setUp returns *line.Provider, fakeServer.CloseFn
+		setUp func(t *testing.T) (*line.Provider, func())
+		want
 	}{
 		{
 			name: "success",
-			patchExchange: func() {
-				monkey.PatchInstanceMethod(
-					(*oauth2.Config)(nil), "Exchange",
-					func(_ *oauth2.Config, _ context.Context, _ string, _ ...oauth2.AuthCodeOption) (*oauth2.Token, error) {
-						return okTokPtr, nil
-					})
+			setUp: func(t *testing.T) (*line.Provider, func()) {
+				priv, jwks, kid := newRSAKey(t)
+				nonce := "nonce123"
+
+				// fake OIDC discovery / jwks / token
+				mux := http.NewServeMux()
+				srv := httptest.NewServer(mux)
+				issuerURL := srv.URL
+
+				confResp, _ := json.Marshal(map[string]interface{}{
+					"issuer":                 issuerURL,
+					"jwks_uri":               issuerURL + "/keys",
+					"authorization_endpoint": issuerURL + "/authorize",
+					"token_endpoint":         issuerURL + "/token",
+				})
+				jwksResp, _ := json.Marshal(jwks)
+
+				mux.HandleFunc("/.well-known/openid-configuration", func(w http.ResponseWriter, r *http.Request) {
+					_, _ = w.Write(confResp)
+				})
+				mux.HandleFunc("/keys", func(w http.ResponseWriter, r *http.Request) {
+					_, _ = w.Write(jwksResp)
+				})
+				mux.HandleFunc("/token", func(w http.ResponseWriter, r *http.Request) {
+					_ = r.ParseForm()
+					idToken := signedIDToken(t, priv, kid, issuerURL, nonce)
+					resp := map[string]interface{}{
+						"access_token": "dummy",
+						"id_token":     idToken,
+						"token_type":   "Bearer",
+						"expires_in":   3600,
+					}
+					w.Header().Set("Content-Type", "application/json")
+					_ = json.NewEncoder(w).Encode(resp)
+				})
+
+				// Provider
+				oidcProvider, err := oidc.NewProvider(context.Background(), issuerURL)
+				require.NoError(t, err)
+				p := line.NewTestProvider(
+					&oauth2.Config{
+						ClientID:     clientID,
+						ClientSecret: clientSecret,
+						RedirectURL:  redirectURI,
+						Endpoint: oauth2.Endpoint{
+							AuthURL:  issuerURL + "/authorize",
+							TokenURL: issuerURL + "/token",
+						},
+					},
+					oidcProvider.Verifier(&oidc.Config{ClientID: clientID}),
+				)
+				return p, srv.Close
 			},
-			patchVerify: func() {
-				monkey.PatchInstanceMethod(
-					(*oidc.IDTokenVerifier)(nil), "Verify",
-					func(_ *oidc.IDTokenVerifier, _ context.Context, _ string) (*oidc.IDToken, error) {
-						return okIdTok, nil
-					})
-			},
-			patchClaims: func() {
-				monkey.PatchInstanceMethod(
-					(*oidc.IDToken)(nil), "Claims",
-					func(_ *oidc.IDToken, v interface{}) error {
-						out := v.(*struct {
-							Sub   string `json:"sub"`
-							Email string `json:"email"`
-							Name  string `json:"name"`
-						})
-						out.Sub = "sub1"
-						out.Email = "a@b.com"
-						out.Name = "Alice"
-						return nil
-					})
-			},
-			want: want{&auth.Identity{
-				Provider: "line", Subject: "sub1", Email: "a@b.com", Name: "Alice",
-			}, false},
+			want: want{ok: true},
 		},
 		{
-			name: "exchange_error",
-			patchExchange: func() {
-				monkey.PatchInstanceMethod(
-					(*oauth2.Config)(nil), "Exchange",
-					func(*oauth2.Config, context.Context, string, ...oauth2.AuthCodeOption) (*oauth2.Token, error) {
-						return nil, errors.New("exch err")
-					})
+			name: "token endpoint 500",
+			setUp: func(t *testing.T) (*line.Provider, func()) {
+				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					http.Error(w, "fail", http.StatusInternalServerError)
+				}))
+				p := line.NewTestProvider(
+					&oauth2.Config{
+						ClientID:     clientID,
+						ClientSecret: clientSecret,
+						RedirectURL:  redirectURI,
+						Endpoint: oauth2.Endpoint{
+							TokenURL: srv.URL,
+						},
+					},
+					&oidc.IDTokenVerifier{}, // never used because Exchange fails first
+				)
+				return p, srv.Close
 			},
-			want: want{nil, true},
+			want: want{ok: false, errContains: "500"},
 		},
 		{
-			name: "id_token_missing",
-			patchExchange: func() {
-				monkey.PatchInstanceMethod(
-					(*oauth2.Config)(nil), "Exchange",
-					func(*oauth2.Config, context.Context, string, ...oauth2.AuthCodeOption) (*oauth2.Token, error) {
-						return &oauth2.Token{AccessToken: "at"}, nil
-					})
+			name: "id_token missing",
+			setUp: func(t *testing.T) (*line.Provider, func()) {
+				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					resp := map[string]interface{}{
+						"access_token": "dummy",
+						"token_type":   "Bearer",
+					}
+					w.Header().Set("Content-Type", "application/json")
+					_ = json.NewEncoder(w).Encode(resp)
+				}))
+				p := line.NewTestProvider(
+					&oauth2.Config{
+						ClientID:     clientID,
+						ClientSecret: clientSecret,
+						RedirectURL:  redirectURI,
+						Endpoint: oauth2.Endpoint{
+							TokenURL: srv.URL,
+						},
+					},
+					&oidc.IDTokenVerifier{},
+				)
+				return p, srv.Close
 			},
-			want: want{nil, true},
+			want: want{ok: false, errContains: "id_token"},
 		},
 		{
-			name: "verify_error",
-			patchExchange: func() {
-				monkey.PatchInstanceMethod(
-					(*oauth2.Config)(nil), "Exchange",
-					func(*oauth2.Config, context.Context, string, ...oauth2.AuthCodeOption) (*oauth2.Token, error) {
-						return okTokPtr, nil
-					})
+			name: "signature invalid",
+			setUp: func(t *testing.T) (*line.Provider, func()) {
+				// 一度正常に構築 → その後 JWK に含まれない鍵で署名
+				_, jwks, _ := newRSAKey(t)
+
+				mux := http.NewServeMux()
+				srv := httptest.NewServer(mux)
+				issuerURL := srv.URL
+
+				confResp, _ := json.Marshal(map[string]interface{}{
+					"issuer":         issuerURL,
+					"jwks_uri":       issuerURL + "/keys",
+					"token_endpoint": issuerURL + "/token",
+				})
+				jwksResp, _ := json.Marshal(jwks)
+
+				mux.HandleFunc("/.well-known/openid-configuration", func(w http.ResponseWriter, r *http.Request) {
+					_, _ = w.Write(confResp)
+				})
+				mux.HandleFunc("/keys", func(w http.ResponseWriter, r *http.Request) {
+					_, _ = w.Write(jwksResp)
+				})
+				// ==== token エンドポイント側だけ *別鍵* で署名 ===
+				privBad, _, kidBad := newRSAKey(t)
+				mux.HandleFunc("/token", func(w http.ResponseWriter, r *http.Request) {
+					idTok := signedIDToken(t, privBad, kidBad, issuerURL, "nonce")
+					resp := map[string]any{
+						"access_token": "x",
+						"token_type":   "Bearer",
+						"expires_in":   3600,
+						"id_token":     idTok,
+					}
+					w.Header().Set("Content-Type", "application/json")
+					_ = json.NewEncoder(w).Encode(resp)
+				})
+
+				oidcProvider, err := oidc.NewProvider(context.Background(), issuerURL)
+				require.NoError(t, err)
+				p := line.NewTestProvider(
+					&oauth2.Config{
+						ClientID:     clientID,
+						ClientSecret: clientSecret,
+						Endpoint: oauth2.Endpoint{
+							TokenURL: issuerURL + "/token",
+						},
+					},
+					oidcProvider.Verifier(&oidc.Config{ClientID: clientID}),
+				)
+				return p, srv.Close
 			},
-			patchVerify: func() {
-				monkey.PatchInstanceMethod(
-					(*oidc.IDTokenVerifier)(nil), "Verify",
-					func(*oidc.IDTokenVerifier, context.Context, string) (*oidc.IDToken, error) {
-						return nil, errors.New("verify err")
-					})
-			},
-			want: want{nil, true},
-		},
-		{
-			name: "claims_error",
-			patchExchange: func() {
-				monkey.PatchInstanceMethod(
-					(*oauth2.Config)(nil), "Exchange",
-					func(*oauth2.Config, context.Context, string, ...oauth2.AuthCodeOption) (*oauth2.Token, error) {
-						return okTokPtr, nil
-					})
-			},
-			patchVerify: func() {
-				monkey.PatchInstanceMethod(
-					(*oidc.IDTokenVerifier)(nil), "Verify",
-					func(*oidc.IDTokenVerifier, context.Context, string) (*oidc.IDToken, error) {
-						return okIdTok, nil
-					})
-			},
-			patchClaims: func() {
-				monkey.PatchInstanceMethod(
-					(*oidc.IDToken)(nil), "Claims",
-					func(*oidc.IDToken, interface{}) error {
-						return errors.New("claims err")
-					})
-			},
-			want: want{nil, true},
+			want: want{ok: false, errContains: "verify missing"}, // Verify が失敗
 		},
 	}
 
-	for _, tc := range tests {
-		monkey.UnpatchAll()
-		if tc.patchExchange != nil {
-			tc.patchExchange()
-		}
-		if tc.patchVerify != nil {
-			tc.patchVerify()
-		}
-		if tc.patchClaims != nil {
-			tc.patchClaims()
-		}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p, closeFn := tt.setUp(t)
+			defer closeFn()
 
-		p := newTestProvider()
-		got, err := p.Exchange(context.Background(), "code123")
-
-		assert.Equal(t, tc.want.identity, got, tc.name)
-		if tc.want.err {
-			assert.Error(t, err, tc.name)
-		} else {
-			assert.NoError(t, err, tc.name)
-		}
+			id, err := p.Exchange(context.Background(), "dummy-code")
+			if tt.ok {
+				require.NoError(t, err)
+				require.NotNil(t, id)
+				require.Equal(t, "line-user-sub", id.Subject)
+			} else {
+				require.ErrorContains(t, err, tt.errContains)
+				require.Nil(t, id)
+			}
+		})
 	}
 }
 
-// ----------------------------------------------------------------------
-// ValidateNonce
-// ----------------------------------------------------------------------
-func TestValidateNonce(t *testing.T) {
-	defer monkey.UnpatchAll()
+// ----------------------- ValidateNonce -----------------------------
 
-	okIdTok := &oidc.IDToken{}
-	badIdTok := &oidc.IDToken{}
+func TestProvider_ValidateNonce(t *testing.T) {
+	p := line.NewTestProvider(nil, nil) // verifier 不要
 
-	// Success: Claims returns expected nonce
-	monkey.PatchInstanceMethod(
-		(*oidc.IDToken)(nil), "Claims",
-		func(tok *oidc.IDToken, v interface{}) error {
-			out := v.(*struct {
-				Nonce string `json:"nonce"`
-			})
-			if tok == okIdTok {
-				out.Nonce = "good"
-			} else {
-				out.Nonce = "bad"
-			}
-			return nil
+	// ===== helper (前回答の buildIDToken を import しても OK) =========
+	buildIDToken := func(t *testing.T, nonce string) *oidc.IDToken {
+		t.Helper()
+		priv, jwks, kid := newRSAKey(t)
+
+		mux := http.NewServeMux()
+		srv := httptest.NewServer(mux)
+		issuer := srv.URL
+
+		discovery, _ := json.Marshal(map[string]any{
+			"issuer":   issuer,
+			"jwks_uri": issuer + "/keys",
+		})
+		jwksJSON, _ := json.Marshal(jwks)
+
+		mux.HandleFunc("/.well-known/openid-configuration", func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write(discovery)
+		})
+		mux.HandleFunc("/keys", func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write(jwksJSON)
 		})
 
-	p := newTestProvider()
+		raw := signedIDToken(t, priv, kid, issuer, nonce)
 
-	assert.NoError(t, p.ValidateNonce(okIdTok, "good"), "nonce match ok")
-	assert.EqualError(t, p.ValidateNonce(badIdTok, "good"), "oidc: nonce mismatch")
-	// Claims error
-	monkey.UnpatchInstanceMethod((*oidc.IDToken)(nil), "Claims")
-	monkey.PatchInstanceMethod(
-		(*oidc.IDToken)(nil), "Claims",
-		func(*oidc.IDToken, interface{}) error { return errors.New("claims err") })
+		prov, err := oidc.NewProvider(context.Background(), issuer)
+		require.NoError(t, err)
 
-	assert.Error(t, p.ValidateNonce(okIdTok, "good"), "claims decode error")
+		idTok, err := prov.Verifier(&oidc.Config{ClientID: clientID}).Verify(context.Background(), raw)
+		require.NoError(t, err)
+
+		srv.Close()
+		return idTok
+	}
+
+	// ====== （オプション）invalid JSON 用の雑なトークン =============
+	// makeBroken := func(raw string) *oidc.IDToken {
+	// 	tok := &oidc.IDToken{}
+	// 	v := reflect.ValueOf(tok).Elem()
+	// 	f := v.FieldByName("raw")
+	// 	if !f.IsValid() { // バージョン差分対策
+	// 		for i := 0; i < v.NumField(); i++ {
+	// 			if strings.Contains(strings.ToLower(v.Type().Field(i).Name), "raw") {
+	// 				f = v.Field(i)
+	// 				break
+	// 			}
+	// 		}
+	// 	}
+	// 	reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem().SetBytes([]byte(raw))
+	// 	return tok
+	// }
+
+	// ======================= テーブル ================================
+	tests := []struct {
+		name      string
+		idTok     *oidc.IDToken
+		expected  string
+		wantError bool
+	}{
+		{"match", buildIDToken(t, "foo"), "foo", false},
+		{"mismatch", buildIDToken(t, "bar"), "baz", true},
+	}
+
+	for _, tt := range tests {
+		err := p.ValidateNonce(tt.idTok, tt.expected)
+		if tt.wantError {
+			require.Error(t, err, tt.name)
+		} else {
+			require.NoError(t, err, tt.name)
+		}
+	}
 }

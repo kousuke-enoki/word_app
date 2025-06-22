@@ -7,7 +7,6 @@ import (
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/sirupsen/logrus"
 )
 
 type MyJWTGenerator struct {
@@ -26,9 +25,6 @@ func NewMyJWTGenerator(secretKey string) *MyJWTGenerator {
 }
 
 func (j *MyJWTGenerator) GenerateJWT(userID string) (string, error) {
-	logrus.Info("GenerateJWT")
-
-	logrus.Info("1")
 	// 有効期限のデフォルト: 1時間
 	expirationTime := time.Now().Add(1 * time.Hour)
 
@@ -52,11 +48,8 @@ func (j *MyJWTGenerator) GenerateJWT(userID string) (string, error) {
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
 	}
-	logrus.Info("claims")
-	logrus.Info(claims)
 	// トークンを生成
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	logrus.Info("NewWithClaims")
-	logrus.Info(token)
+
 	return token.SignedString([]byte(j.secretKey))
 }

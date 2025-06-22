@@ -1,4 +1,3 @@
-// interface/contextutil/userroles.go
 package contextutil
 
 import (

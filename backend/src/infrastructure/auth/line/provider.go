@@ -41,6 +41,14 @@ func NewProvider(c config.LineOAuth) (auth_port.AuthProvider, error) {
 	}, nil
 }
 
+// NewTestProvider creates a Provider for testing purposes
+func NewTestProvider(cfg *oauth2.Config, verifier *oidc.IDTokenVerifier) *Provider {
+	return &Provider{
+		cfg:      cfg,
+		verifier: verifier,
+	}
+}
+
 // ------------------- AuthProvider 実装 -------------------
 
 func (p *Provider) AuthURL(state, nonce string) string {
@@ -58,12 +66,12 @@ func (p *Provider) Exchange(ctx context.Context, code string) (*auth_port.Identi
 
 	rawID, ok := tok.Extra("id_token").(string)
 	if !ok {
-		return nil, err
+		return nil, errors.New("id_token missing")
 	}
 
 	idTok, err := p.verifier.Verify(ctx, rawID)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("verify missing")
 	}
 
 	var cl struct {

@@ -2,9 +2,14 @@ package setting
 
 import (
 	"word_app/backend/src/models"
+	settingUc "word_app/backend/src/usecase/setting"
 )
 
-func ValidateRootConfig(req *models.RootConfig) []*models.FieldError {
+type SettingValidator interface {
+	ValidateRootConfig(SignUpRequest *settingUc.UpdateRootConfigInput) []*models.FieldError
+}
+
+func ValidateRootConfig(req *settingUc.UpdateRootConfigInput) []*models.FieldError {
 	var fieldErrors []*models.FieldError
 
 	// 各フィールドの検証を個別の関数に分割

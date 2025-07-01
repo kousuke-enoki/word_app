@@ -76,3 +76,24 @@ func (r *EntUserRepo) Create(ctx context.Context, u *domain.User, ext *domain.Ex
 	}
 	return nil
 }
+
+func (r *EntUserRepo) FindByID(ctx context.Context, id int) (*domain.User, error) {
+	u, err := r.client.User().
+		Query().
+		Where(user.ID(id)).
+		Select(user.FieldID, user.FieldIsRoot).
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.User{ID: u.ID, IsRoot: u.IsRoot}, nil
+}
+
+func (r *EntUserRepo) IsRoot(ctx context.Context, id int) (bool, error) {
+	u, err := r.client.User().Query().Where(user.ID(id)).Select(user.FieldIsRoot).Only(ctx)
+	if err != nil {
+		return false, err
+	}
+	return u.IsRoot, nil
+}

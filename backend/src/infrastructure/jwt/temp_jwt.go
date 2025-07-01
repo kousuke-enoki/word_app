@@ -2,7 +2,7 @@ package jwt
 
 import (
 	"time"
-	"word_app/backend/src/interfaces/usecase/port/auth"
+	"word_app/backend/src/usecase/auth"
 	"word_app/backend/src/utils/tempjwt"
 )
 
@@ -14,10 +14,11 @@ func New(secret string) auth.TempTokenGenerator {
 	return &TempJWTAdapter{inner: tempjwt.TempJWTNew(secret)}
 }
 
-func (t *TempJWTAdapter) GenerateTemp(id *auth.Identity, ttl time.Duration) (string, error) {
-	return t.inner.GenerateTemp((*auth.Identity)(id), ttl)
+func (t *TempJWTAdapter) GenerateTemp(id *tempjwt.Identity, ttl time.Duration) (string, error) {
+	return t.inner.GenerateTemp((*tempjwt.Identity)(id), ttl)
 }
-func (t *TempJWTAdapter) ParseTemp(tok string) (*auth.Identity, error) {
+
+func (t *TempJWTAdapter) ParseTemp(tok string) (*tempjwt.Identity, error) {
 	x, err := t.inner.ParseTemp(tok)
-	return (*auth.Identity)(x), err
+	return (*tempjwt.Identity)(x), err
 }

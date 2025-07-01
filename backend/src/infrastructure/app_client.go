@@ -6,8 +6,10 @@ import (
 
 	"word_app/backend/ent"
 	"word_app/backend/ent/user"
+	"word_app/backend/src/domain"
 	"word_app/backend/src/interfaces"
 	"word_app/backend/src/models"
+	settingUc "word_app/backend/src/usecase/setting"
 	"word_app/backend/src/utils/contextutil"
 )
 
@@ -15,8 +17,33 @@ type appClient struct {
 	entClient *ent.Client
 }
 
+// GetRootConfigExecute implements interfaces.ClientInterface.
+func (w *appClient) GetRootConfigExecute(ctx context.Context, in settingUc.GetRootConfigInput) (*settingUc.GetRootConfigOutput, error) {
+	panic("unimplemented")
+}
+
+// GetUserConfigExecute implements interfaces.ClientInterface.
+func (w *appClient) GetUserConfigExecute(ctx context.Context, in settingUc.GetUserConfigInput) (*settingUc.GetUserConfigOutput, error) {
+	panic("unimplemented")
+}
+
+// UpdateRootConfigExecute implements interfaces.ClientInterface.
+func (w *appClient) UpdateRootConfigExecute(ctx context.Context, in settingUc.UpdateRootConfigInput) (*domain.RootConfig, error) {
+	panic("unimplemented")
+}
+
+// UpdateUserConfigExecute implements interfaces.ClientInterface.
+func (w *appClient) UpdateUserConfigExecute(ctx context.Context, in settingUc.UpdateUserConfigInput) (*domain.UserConfig, error) {
+	panic("unimplemented")
+}
+
 // GetAuthConfig implements interfaces.ClientInterface.
-func (w *appClient) GetAuthConfig(ctx context.Context) (*models.AuthSettingResponse, error) {
+func (w *appClient) GetAuthConfig(ctx context.Context) (*settingUc.AuthConfigDTO, error) {
+	panic("unimplemented")
+}
+
+// GetAuthConfig implements interfaces.ClientInterface.
+func (w *appClient) GetAuthConfigs(ctx context.Context) (*models.AuthSettingResponse, error) {
 	panic("unimplemented")
 }
 
@@ -60,39 +87,9 @@ func (c *appClient) BulkTokenize(ctx context.Context, userID int, text string) (
 	panic("unimplemented")
 }
 
-// GetRootConfig implements interfaces.ClientInterface.
-func (c *appClient) GetRootConfig(ctx context.Context, userID int) (*ent.RootConfig, error) {
-	panic("unimplemented")
-}
-
-// GetUserConfig implements interfaces.ClientInterface.
-func (c *appClient) GetUserConfig(ctx context.Context, userID int) (*ent.UserConfig, error) {
-	panic("unimplemented")
-}
-
-// GetRootConfigByUserID implements interfaces.ClientInterface.
-func (c *appClient) GetRootConfigByUserID(ctx context.Context, userID int) (*ent.RootConfig, error) {
-	panic("unimplemented")
-}
-
-// GetUserConfigByUserID implements interfaces.ClientInterface.
-func (c *appClient) GetUserConfigByUserID(ctx context.Context, userID int) (*ent.UserConfig, error) {
-	panic("unimplemented")
-}
-
 // RootConfig implements interfaces.ClientInterface.
 func (c *appClient) RootConfig() *ent.RootConfigClient {
 	return c.entClient.RootConfig
-}
-
-// UpdateRootConfig implements interfaces.ClientInterface.
-func (c *appClient) UpdateRootConfig(ctx context.Context, userID int, editingPermissions string, isTestUserMode bool, IsEmailAuthCheck bool, isLineAuth bool) (*ent.RootConfig, error) {
-	panic("unimplemented")
-}
-
-// UpdateUserConfig implements interfaces.ClientInterface.
-func (c *appClient) UpdateUserConfig(ctx context.Context, userID int, isLightMode bool) (*ent.UserConfig, error) {
-	panic("unimplemented")
 }
 
 // UserConfig implements interfaces.ClientInterface.

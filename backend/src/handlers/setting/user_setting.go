@@ -3,19 +3,21 @@ package setting
 import (
 	"errors"
 	"net/http"
-	"word_app/backend/src/models"
+	settingUc "word_app/backend/src/usecase/setting"
 
 	"github.com/gin-gonic/gin"
 )
 
-func (h *SettingHandler) GetUserSettingHandler() gin.HandlerFunc {
+func (h *AuthSettingHandler) GetUserSettingHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, ok := c.Get("userID")
 		if !ok {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": ErrUserNotFound})
 			return
 		}
-		setting, err := h.settingService.GetUserConfig(c, userID.(int))
+		var req settingUc.GetUserConfigInput
+		req.UserID = userID.(int)
+		setting, err := h.settingUsecase.GetUserConfigExecute(c, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -24,17 +26,18 @@ func (h *SettingHandler) GetUserSettingHandler() gin.HandlerFunc {
 	}
 }
 
-func (h *SettingHandler) SaveUserSettingHandler() gin.HandlerFunc {
+func (h *AuthSettingHandler) SaveUserSettingHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, _ := c.Get("userID")
 
-		var req models.UserConfig
+		var req settingUc.UpdateUserConfigInput
+		req.UserID = userID.(int)
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		setting, err := h.settingService.UpdateUserConfig(c, userID.(int), req.IsDarkMode)
+		setting, err := h.settingUsecase.UpdateUserConfigExecute(c, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

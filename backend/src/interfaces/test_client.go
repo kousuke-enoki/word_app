@@ -3,7 +3,9 @@ package interfaces
 import (
 	"context"
 	"word_app/backend/ent"
+	"word_app/backend/src/domain"
 	"word_app/backend/src/models"
+	settingUc "word_app/backend/src/usecase/setting"
 	"word_app/backend/src/utils/contextutil"
 )
 
@@ -11,8 +13,33 @@ type TestClientWrapper struct {
 	entClient *ent.Client
 }
 
+// GetRootConfigExecute implements ClientInterface.
+func (w *TestClientWrapper) GetRootConfigExecute(ctx context.Context, in settingUc.GetRootConfigInput) (*settingUc.GetRootConfigOutput, error) {
+	panic("unimplemented")
+}
+
+// GetUserConfigExecute implements ClientInterface.
+func (w *TestClientWrapper) GetUserConfigExecute(ctx context.Context, in settingUc.GetUserConfigInput) (*settingUc.GetUserConfigOutput, error) {
+	panic("unimplemented")
+}
+
+// UpdateRootConfigExecute implements ClientInterface.
+func (w *TestClientWrapper) UpdateRootConfigExecute(ctx context.Context, in settingUc.UpdateRootConfigInput) (*domain.RootConfig, error) {
+	panic("unimplemented")
+}
+
+// UpdateUserConfigExecute implements ClientInterface.
+func (w *TestClientWrapper) UpdateUserConfigExecute(ctx context.Context, in settingUc.UpdateUserConfigInput) (*domain.UserConfig, error) {
+	panic("unimplemented")
+}
+
 // GetAuthConfig implements interfaces.ClientInterface.
-func (w *TestClientWrapper) GetAuthConfig(ctx context.Context) (*models.AuthSettingResponse, error) {
+func (w *TestClientWrapper) GetAuthConfig(ctx context.Context) (*settingUc.AuthConfigDTO, error) {
+	panic("unimplemented")
+}
+
+// GetAuthConfig implements interfaces.ClientInterface.
+func (w *TestClientWrapper) GetAuthConfigs(ctx context.Context) (*models.AuthSettingResponse, error) {
 	panic("unimplemented")
 }
 

@@ -8,7 +8,8 @@ import (
 	"golang.org/x/oauth2"
 
 	"word_app/backend/config"
-	auth_port "word_app/backend/src/interfaces/usecase/port/auth"
+	auth_port "word_app/backend/src/usecase/auth"
+	"word_app/backend/src/utils/tempjwt"
 )
 
 var endpoint = oauth2.Endpoint{
@@ -41,7 +42,6 @@ func NewProvider(c config.LineOAuth) (auth_port.AuthProvider, error) {
 	}, nil
 }
 
-// NewTestProvider creates a Provider for testing purposes
 func NewTestProvider(cfg *oauth2.Config, verifier *oidc.IDTokenVerifier) *Provider {
 	return &Provider{
 		cfg:      cfg,
@@ -58,7 +58,7 @@ func (p *Provider) AuthURL(state, nonce string) string {
 	)
 }
 
-func (p *Provider) Exchange(ctx context.Context, code string) (*auth_port.Identity, error) {
+func (p *Provider) Exchange(ctx context.Context, code string) (*tempjwt.Identity, error) {
 	tok, err := p.cfg.Exchange(ctx, code)
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func (p *Provider) Exchange(ctx context.Context, code string) (*auth_port.Identi
 		return nil, err
 	}
 
-	return &auth_port.Identity{
+	return &tempjwt.Identity{
 		Provider: "line",
 		Subject:  cl.Sub,
 		Email:    cl.Email,

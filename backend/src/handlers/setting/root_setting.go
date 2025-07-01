@@ -3,14 +3,14 @@ package setting
 import (
 	"errors"
 	"net/http"
-	"word_app/backend/src/models"
+	settingUc "word_app/backend/src/usecase/setting"
 	"word_app/backend/src/utils/contextutil"
 	"word_app/backend/src/validators/setting"
 
 	"github.com/gin-gonic/gin"
 )
 
-func (h *SettingHandler) GetRootSettingHandler() gin.HandlerFunc {
+func (h *AuthSettingHandler) GetRootSettingHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, ok := c.Get("userID")
 		if !ok {
@@ -25,7 +25,9 @@ func (h *SettingHandler) GetRootSettingHandler() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
-		rootConfig, err := h.settingService.GetRootConfig(c, userID.(int))
+		var req settingUc.GetRootConfigInput
+		req.UserID = userID.(int)
+		rootConfig, err := h.settingUsecase.GetRootConfigExecute(c, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -34,7 +36,7 @@ func (h *SettingHandler) GetRootSettingHandler() gin.HandlerFunc {
 	}
 }
 
-func (h *SettingHandler) SaveRootSettingHandler() gin.HandlerFunc {
+func (h *AuthSettingHandler) SaveRootSettingHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, ok := c.Get("userID")
 		if !ok {
@@ -50,7 +52,8 @@ func (h *SettingHandler) SaveRootSettingHandler() gin.HandlerFunc {
 			return
 		}
 
-		var req models.RootConfig
+		var req settingUc.UpdateRootConfigInput
+		req.UserID = userID.(int)
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -62,8 +65,7 @@ func (h *SettingHandler) SaveRootSettingHandler() gin.HandlerFunc {
 			return
 		}
 
-		rootConfig, err := h.settingService.UpdateRootConfig(
-			c, userID.(int), req.EditingPermission, req.IsTestUserMode, req.IsEmailAuthCheck, req.IsLineAuth)
+		rootConfig, err := h.settingUsecase.UpdateRootConfigExecute(c, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

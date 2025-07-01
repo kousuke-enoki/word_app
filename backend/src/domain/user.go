@@ -8,6 +8,8 @@ type User struct {
 	Email    string
 	Name     string
 	Password string
+	IsRoot   bool
+	IsAdmin  bool
 }
 
 func NewUser(email, name, rawPass string) (*User, error) {

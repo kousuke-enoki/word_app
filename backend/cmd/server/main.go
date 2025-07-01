@@ -21,15 +21,16 @@ import (
 	"word_app/backend/src/infrastructure/auth/line"
 	"word_app/backend/src/infrastructure/jwt"
 	authRepository "word_app/backend/src/infrastructure/repository/auth"
+	settingRepo "word_app/backend/src/infrastructure/repository/setting"
 	userRepository "word_app/backend/src/infrastructure/repository/user"
 	"word_app/backend/src/interfaces"
 	JwtMiddlewarePackage "word_app/backend/src/middleware/jwt"
 	quizService "word_app/backend/src/service/quiz"
 	resultService "word_app/backend/src/service/result"
-	settingService "word_app/backend/src/service/setting"
 	userService "word_app/backend/src/service/user"
 	wordService "word_app/backend/src/service/word"
 	"word_app/backend/src/usecase/auth"
+	settingUc "word_app/backend/src/usecase/setting"
 	"word_app/backend/src/utils/tempjwt"
 	"word_app/backend/src/validators"
 
@@ -60,7 +61,6 @@ func initializeServer() {
 	appEnv, appPort, corsOrigin := config.LoadAppConfig()
 	database.InitEntClient()
 	entClient := database.GetEntClient()
-	// entClient := connectToDatabase()
 	defer entClient.Close()
 
 	client := infrastructure.NewAppClient(entClient)
@@ -119,15 +119,12 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 	}
 	jwtGen := jwt.NewMyJWTGenerator(jwtSecret)
 	entUserClient := userService.NewEntUserClient(client)
-	entSettingClient := settingService.NewEntSettingClient(client)
 	wordClient := wordService.NewWordService(client)
 	quizClient := quizService.NewQuizService(client)
 	resultClient := resultService.NewResultService(client)
 	authClient := jwt.NewJWTValidator(jwtSecret, client)
 
 	userHandler := userHandler.NewUserHandler(entUserClient, jwtGen)
-	settingHandler := settingHandler.NewSettingHandler(entSettingClient)
-
 	wordHandler := word.NewWordHandler(wordClient)
 	quizHandler := quiz.NewQuizHandler(quizClient)
 	resultHandler := result.NewResultHandler(resultClient)
@@ -137,9 +134,11 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 	if err != nil {
 		log.Fatal(err)
 	}
+	settingRepoClient := settingRepo.NewEntRootConfigRepo(client)
 	userRepo := userRepository.NewEntUserRepo(client)
 	extAuthRepo := authRepository.NewEntExtAuthRepo(client)
 
+	settingUC := settingUc.NewConfigUsecase(settingRepoClient)
 	tempJwt := tempjwt.TempJWTNew(os.Getenv("TEMP_JWT_SECRET"))
 	authUC := auth.NewAuthUsecase(
 		lineProvider,
@@ -149,6 +148,7 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 		tempJwt,
 	)
 	authHandler := AuthHandler.NewAuthHandler(authUC, jwtGen)
+	settingHandler := settingHandler.NewAuthSettingHandler(settingUC)
 
 	routerImpl := routerConfig.NewRouter(JwtMiddleware, authHandler, userHandler, settingHandler, wordHandler, quizHandler, resultHandler)
 

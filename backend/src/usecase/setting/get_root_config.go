@@ -5,32 +5,36 @@ import (
 	"errors"
 
 	"word_app/backend/src/domain"
-	settingRepo "word_app/backend/src/interfaces/repository/setting"
-	userRepo "word_app/backend/src/interfaces/repository/user"
+	settingRepo "word_app/backend/src/infrastructure/repository/setting"
+	userRepo "word_app/backend/src/infrastructure/repository/user"
 )
 
 var (
 	ErrRootConfigMissing = errors.New("root-config not found")
 )
 
-type GetRootConfigInput struct {
+type InputGetRootConfig struct {
 	UserID int
 }
 
-type GetRootConfigOutput struct {
+type OutputGetRootConfig struct {
 	Config *domain.RootConfig
 }
 
-type GetRootConfigUsecase struct {
-	userRepo userRepo.UserRepository
-	cfgRepo  settingRepo.RootConfigRepository
+type GetRootConfig interface {
+	Execute(ctx context.Context, in InputGetRootConfig) (*OutputGetRootConfig, error)
 }
 
-func NewGetRootConfigUsecase(u userRepo.UserRepository, c settingRepo.RootConfigRepository) *GetRootConfigUsecase {
-	return &GetRootConfigUsecase{userRepo: u, cfgRepo: c}
+type getRootConfigInteractor struct {
+	userRepo       userRepo.UserRepository
+	rootConfigRepo settingRepo.RootConfigRepository
 }
 
-func (uc *GetRootConfigUsecase) GetRootConfigExecute(ctx context.Context, in GetRootConfigInput) (*GetRootConfigOutput, error) {
+func NewGetRootConfig(u userRepo.UserRepository, r settingRepo.RootConfigRepository) *getRootConfigInteractor {
+	return &getRootConfigInteractor{userRepo: u, rootConfigRepo: r}
+}
+
+func (uc *getRootConfigInteractor) Execute(ctx context.Context, in InputGetRootConfig) (*OutputGetRootConfig, error) {
 	user, err := uc.userRepo.FindByID(ctx, in.UserID)
 	if err != nil {
 		return nil, err // ← DB エラーなどはそのまま
@@ -39,9 +43,9 @@ func (uc *GetRootConfigUsecase) GetRootConfigExecute(ctx context.Context, in Get
 		return nil, ErrUnauthorized
 	}
 
-	cfg, err := uc.cfgRepo.Get(ctx)
+	cfg, err := uc.rootConfigRepo.Get(ctx)
 	if err != nil {
 		return nil, ErrRootConfigMissing
 	}
-	return &GetRootConfigOutput{Config: cfg}, nil
+	return &OutputGetRootConfig{Config: cfg}, nil
 }

@@ -8,10 +8,10 @@ import (
 )
 
 type AuthSettingHandler struct {
-	settingUsecase settingUc.ConfigUsecase
+	settingUsecase settingUc.SettingFacade
 }
 
-func NewAuthSettingHandler(client settingUc.ConfigUsecase) *AuthSettingHandler {
+func NewAuthSettingHandler(client settingUc.SettingFacade) *AuthSettingHandler {
 	return &AuthSettingHandler{
 		settingUsecase: client,
 	}

@@ -8,6 +8,7 @@ import (
 	"word_app/backend/src/validators/setting"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func (h *AuthSettingHandler) GetRootSettingHandler() gin.HandlerFunc {
@@ -25,9 +26,9 @@ func (h *AuthSettingHandler) GetRootSettingHandler() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
-		var req settingUc.GetRootConfigInput
+		var req settingUc.InputGetRootConfig
 		req.UserID = userID.(int)
-		rootConfig, err := h.settingUsecase.GetRootConfigExecute(c, req)
+		rootConfig, err := h.settingUsecase.GetRoot(c, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -52,21 +53,26 @@ func (h *AuthSettingHandler) SaveRootSettingHandler() gin.HandlerFunc {
 			return
 		}
 
-		var req settingUc.UpdateRootConfigInput
+		var req settingUc.InputUpdateRootConfig
 		req.UserID = userID.(int)
 		if err := c.ShouldBindJSON(&req); err != nil {
+			logrus.Error(err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
 		validationErrors := setting.ValidateRootConfig(&req)
 		if len(validationErrors) > 0 {
+			for _, err := range validationErrors {
+				logrus.Error(err)
+			}
 			c.JSON(http.StatusBadRequest, gin.H{"errors": validationErrors})
 			return
 		}
 
-		rootConfig, err := h.settingUsecase.UpdateRootConfigExecute(c, req)
+		rootConfig, err := h.settingUsecase.UpdateRoot(c, req)
 		if err != nil {
+			logrus.Error(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

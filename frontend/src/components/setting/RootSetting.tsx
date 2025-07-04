@@ -31,21 +31,23 @@ const RootSetting: React.FC = () => {
   useEffect(() => {
     ;(async () => {
       try {
-        const res = await axiosInstance.get('/setting/root_config')
-        setEditingPermission(res.data.editing_permission)
-        setIsTestUserMode(res.data.is_test_user_mode)
-        setIsEmailAuthCheck(res.data.is_email_authentication_check)
-        setIsLineAuth(res.data.is_line_authentication)
+        const { data } = await axiosInstance.get('/setting/root_config')
+        const config = data.Config
+        setEditingPermission(config.editing_permission)
+        setIsTestUserMode(config.is_test_user_mode)
+        setIsEmailAuthCheck(config.is_email_authentication_check)
+        setIsLineAuth(config.is_line_authentication)
 
         // 初期値を保持
         setInitial({
-          editing: res.data.editing_permission,
-          test: res.data.is_test_user_mode,
-          mail: res.data.is_email_authentication_check,
-          line: res.data.is_line_authentication,
+          editing: config.editing_permission,
+          test: config.is_test_user_mode,
+          mail: config.is_email_authentication_check,
+          line: config.is_line_authentication,
         })
-      } catch {
+      } catch (e){
         alert('ルート設定の取得中にエラーが発生しました。')
+        console.error(e)
       }
     })()
   }, [])

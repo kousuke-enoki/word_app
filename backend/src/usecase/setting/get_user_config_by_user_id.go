@@ -4,29 +4,36 @@ import (
 	"context"
 
 	"word_app/backend/src/domain"
-	settingRepo "word_app/backend/src/interfaces/repository/setting"
+	settingRepo "word_app/backend/src/infrastructure/repository/setting"
+
+	"github.com/sirupsen/logrus"
 )
 
-type GetUserConfigInput struct {
+type InputGetUserConfig struct {
 	UserID int
 }
 
-type GetUserConfigOutput struct {
+type OutputGetUserConfig struct {
 	Config *domain.UserConfig
 }
 
-type GetUserConfigUsecase struct {
+type getUserConfigInteractor struct {
 	repo settingRepo.UserConfigRepository
 }
 
-func NewGetUserConfigUsecase(r settingRepo.UserConfigRepository) *GetUserConfigUsecase {
-	return &GetUserConfigUsecase{repo: r}
+type GetUserConfig interface {
+	Execute(ctx context.Context, in InputGetUserConfig) (*OutputGetUserConfig, error)
 }
 
-func (uc *GetUserConfigUsecase) GetUserConfigExecute(ctx context.Context, in GetUserConfigInput) (*GetUserConfigOutput, error) {
+func NewGetUserConfig(r settingRepo.UserConfigRepository) *getUserConfigInteractor {
+	return &getUserConfigInteractor{repo: r}
+}
+
+func (uc *getUserConfigInteractor) Execute(ctx context.Context, in InputGetUserConfig) (*OutputGetUserConfig, error) {
 	cfg, err := uc.repo.GetByUserID(ctx, in.UserID)
 	if err != nil {
 		return nil, ErrUserConfigNotFound
 	}
-	return &GetUserConfigOutput{Config: cfg}, nil
+	logrus.Info(cfg, " retrieved successfully")
+	return &OutputGetUserConfig{Config: cfg}, nil
 }

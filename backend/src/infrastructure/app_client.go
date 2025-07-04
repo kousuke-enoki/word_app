@@ -17,23 +17,48 @@ type appClient struct {
 	entClient *ent.Client
 }
 
+// GetAuth implements interfaces.ClientInterface.
+func (w *appClient) GetAuth(ctx context.Context) (*settingUc.AuthConfigDTO, error) {
+	panic("unimplemented")
+}
+
+// GetRoot implements interfaces.ClientInterface.
+func (w *appClient) GetRoot(ctx context.Context, in settingUc.InputGetRootConfig) (*settingUc.OutputGetRootConfig, error) {
+	panic("unimplemented")
+}
+
+// GetUser implements interfaces.ClientInterface.
+func (w *appClient) GetUser(ctx context.Context, in settingUc.InputGetUserConfig) (*settingUc.OutputGetUserConfig, error) {
+	panic("unimplemented")
+}
+
+// UpdateRoot implements interfaces.ClientInterface.
+func (w *appClient) UpdateRoot(ctx context.Context, in settingUc.InputUpdateRootConfig) (*domain.RootConfig, error) {
+	panic("unimplemented")
+}
+
+// UpdateUser implements interfaces.ClientInterface.
+func (w *appClient) UpdateUser(ctx context.Context, in settingUc.InputUpdateUserConfig) (*domain.UserConfig, error) {
+	panic("unimplemented")
+}
+
 // GetRootConfigExecute implements interfaces.ClientInterface.
-func (w *appClient) GetRootConfigExecute(ctx context.Context, in settingUc.GetRootConfigInput) (*settingUc.GetRootConfigOutput, error) {
+func (w *appClient) GetRootConfigExecute(ctx context.Context, in settingUc.InputGetRootConfig) (*settingUc.OutputGetRootConfig, error) {
 	panic("unimplemented")
 }
 
 // GetUserConfigExecute implements interfaces.ClientInterface.
-func (w *appClient) GetUserConfigExecute(ctx context.Context, in settingUc.GetUserConfigInput) (*settingUc.GetUserConfigOutput, error) {
+func (w *appClient) GetUserConfigExecute(ctx context.Context, in settingUc.InputGetUserConfig) (*settingUc.OutputGetUserConfig, error) {
 	panic("unimplemented")
 }
 
 // UpdateRootConfigExecute implements interfaces.ClientInterface.
-func (w *appClient) UpdateRootConfigExecute(ctx context.Context, in settingUc.UpdateRootConfigInput) (*domain.RootConfig, error) {
+func (w *appClient) UpdateRootConfigExecute(ctx context.Context, in settingUc.InputUpdateRootConfig) (*domain.RootConfig, error) {
 	panic("unimplemented")
 }
 
 // UpdateUserConfigExecute implements interfaces.ClientInterface.
-func (w *appClient) UpdateUserConfigExecute(ctx context.Context, in settingUc.UpdateUserConfigInput) (*domain.UserConfig, error) {
+func (w *appClient) UpdateUserConfigExecute(ctx context.Context, in settingUc.InputUpdateUserConfig) (*domain.UserConfig, error) {
 	panic("unimplemented")
 }
 

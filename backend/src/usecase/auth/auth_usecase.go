@@ -3,9 +3,9 @@ package auth
 import (
 	"context"
 	"time"
+	auth_repo "word_app/backend/src/infrastructure/repository/auth"
+	user_repo "word_app/backend/src/infrastructure/repository/user"
 	"word_app/backend/src/interfaces/http/auth"
-	auth_repo "word_app/backend/src/interfaces/repository/auth"
-	user_repo "word_app/backend/src/interfaces/repository/user"
 	"word_app/backend/src/utils/tempjwt"
 
 	"github.com/coreos/go-oidc/v3/oidc"

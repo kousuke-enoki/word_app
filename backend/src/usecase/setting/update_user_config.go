@@ -4,26 +4,34 @@ import (
 	"context"
 
 	"word_app/backend/src/domain"
-	settingport "word_app/backend/src/interfaces/repository/setting"
-	"word_app/backend/src/interfaces/repository/tx"
+	settingRepo "word_app/backend/src/infrastructure/repository/setting"
+	"word_app/backend/src/infrastructure/repository/tx"
 )
 
-type UpdateUserConfigInput struct {
+type InputUpdateUserConfig struct {
 	UserID     int  // 取得済み (Auth MW 等で)
 	IsDarkMode bool // true=ダーク・false=ライト
 }
 
-type UpdateUserConfig struct {
-	Repo settingport.UserConfigRepository
-	Tx   tx.TxManager // 既存の Tx ラッパーを流用
+type updateUserConfigInteractor struct {
+	Tx       tx.TxManager // 既存の Tx ラッパーを流用
+	userRepo settingRepo.UserConfigRepository
 }
 
-func (uc *UpdateUserConfig) UpdateUserConfigExecute(ctx context.Context, in UpdateUserConfigInput) (*domain.UserConfig, error) {
+type UpdateUserConfig interface {
+	Execute(ctx context.Context, in InputUpdateUserConfig) (*domain.UserConfig, error)
+}
+
+func NewUpdateUserConfig(tx tx.TxManager, u settingRepo.UserConfigRepository) *updateUserConfigInteractor {
+	return &updateUserConfigInteractor{Tx: tx, userRepo: u}
+}
+
+func (uc *updateUserConfigInteractor) Execute(ctx context.Context, in InputUpdateUserConfig) (*domain.UserConfig, error) {
 	var out *domain.UserConfig
 	err := uc.Tx.WithTx(ctx, func(txCtx context.Context) error {
 		cfg := &domain.UserConfig{UserID: in.UserID, IsDarkMode: in.IsDarkMode}
 		var err error
-		out, err = uc.Repo.Upsert(txCtx, cfg)
+		out, err = uc.userRepo.Upsert(txCtx, cfg)
 		return err
 	})
 	return out, err

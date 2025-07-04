@@ -13,6 +13,11 @@ type EntRootConfigRepo struct {
 	client service_interfaces.EntClientInterface
 }
 
+type RootConfigRepository interface {
+	Get(ctx context.Context) (*domain.RootConfig, error)
+	Upsert(ctx context.Context, cfg *domain.RootConfig) (*domain.RootConfig, error)
+}
+
 func NewEntRootConfigRepo(c service_interfaces.EntClientInterface) *EntRootConfigRepo {
 	return &EntRootConfigRepo{client: c}
 }
@@ -26,8 +31,11 @@ func (r *EntRootConfigRepo) Get(ctx context.Context) (*domain.RootConfig, error)
 		return nil, err
 	}
 	return &domain.RootConfig{
-		ID:                   rc.ID,
-		IsLineAuthentication: rc.IsLineAuthentication,
+		ID:                         rc.ID,
+		EditingPermission:          rc.EditingPermission,
+		IsTestUserMode:             rc.IsTestUserMode,
+		IsEmailAuthenticationCheck: rc.IsEmailAuthenticationCheck,
+		IsLineAuthentication:       rc.IsLineAuthentication,
 	}, nil
 }
 

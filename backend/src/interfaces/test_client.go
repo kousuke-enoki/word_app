@@ -13,23 +13,48 @@ type TestClientWrapper struct {
 	entClient *ent.Client
 }
 
+// GetAuth implements ClientInterface.
+func (w *TestClientWrapper) GetAuth(ctx context.Context) (*settingUc.AuthConfigDTO, error) {
+	panic("unimplemented")
+}
+
+// GetRoot implements ClientInterface.
+func (w *TestClientWrapper) GetRoot(ctx context.Context, in settingUc.InputGetRootConfig) (*settingUc.OutputGetRootConfig, error) {
+	panic("unimplemented")
+}
+
+// GetUser implements ClientInterface.
+func (w *TestClientWrapper) GetUser(ctx context.Context, in settingUc.InputGetUserConfig) (*settingUc.OutputGetUserConfig, error) {
+	panic("unimplemented")
+}
+
+// UpdateRoot implements ClientInterface.
+func (w *TestClientWrapper) UpdateRoot(ctx context.Context, in settingUc.InputUpdateRootConfig) (*domain.RootConfig, error) {
+	panic("unimplemented")
+}
+
+// UpdateUser implements ClientInterface.
+func (w *TestClientWrapper) UpdateUser(ctx context.Context, in settingUc.InputUpdateUserConfig) (*domain.UserConfig, error) {
+	panic("unimplemented")
+}
+
 // GetRootConfigExecute implements ClientInterface.
-func (w *TestClientWrapper) GetRootConfigExecute(ctx context.Context, in settingUc.GetRootConfigInput) (*settingUc.GetRootConfigOutput, error) {
+func (w *TestClientWrapper) GetRootConfigExecute(ctx context.Context, in settingUc.InputGetRootConfig) (*settingUc.OutputGetRootConfig, error) {
 	panic("unimplemented")
 }
 
 // GetUserConfigExecute implements ClientInterface.
-func (w *TestClientWrapper) GetUserConfigExecute(ctx context.Context, in settingUc.GetUserConfigInput) (*settingUc.GetUserConfigOutput, error) {
+func (w *TestClientWrapper) GetUserConfigExecute(ctx context.Context, in settingUc.InputGetUserConfig) (*settingUc.OutputGetUserConfig, error) {
 	panic("unimplemented")
 }
 
 // UpdateRootConfigExecute implements ClientInterface.
-func (w *TestClientWrapper) UpdateRootConfigExecute(ctx context.Context, in settingUc.UpdateRootConfigInput) (*domain.RootConfig, error) {
+func (w *TestClientWrapper) UpdateRootConfigExecute(ctx context.Context, in settingUc.InputUpdateRootConfig) (*domain.RootConfig, error) {
 	panic("unimplemented")
 }
 
 // UpdateUserConfigExecute implements ClientInterface.
-func (w *TestClientWrapper) UpdateUserConfigExecute(ctx context.Context, in settingUc.UpdateUserConfigInput) (*domain.UserConfig, error) {
+func (w *TestClientWrapper) UpdateUserConfigExecute(ctx context.Context, in settingUc.InputUpdateUserConfig) (*domain.UserConfig, error) {
 	panic("unimplemented")
 }
 

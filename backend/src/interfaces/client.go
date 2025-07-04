@@ -15,5 +15,5 @@ type ClientInterface interface {
 	middleware.TokenValidator
 	EntClient() *ent.Client
 	service_interfaces.EntClientInterface
-	settingUc.ConfigUsecase
+	settingUc.SettingFacade
 }

@@ -8,7 +8,7 @@ import (
 
 func (h *AuthSettingHandler) GetAuthSettingHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		rootConfig, err := h.settingUsecase.GetAuthConfig(c)
+		rootConfig, err := h.settingUsecase.GetAuth(c)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

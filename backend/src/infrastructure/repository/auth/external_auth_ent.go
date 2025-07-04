@@ -11,6 +11,9 @@ import (
 type EntExtAuthRepo struct {
 	client service_interfaces.EntClientInterface
 }
+type ExternalAuthRepository interface {
+	Create(ctx context.Context, ext *domain.ExternalAuth) error
+}
 
 func NewEntExtAuthRepo(c service_interfaces.EntClientInterface) *EntExtAuthRepo {
 	return &EntExtAuthRepo{client: c}

@@ -9,15 +9,20 @@ import (
 	"word_app/backend/src/interfaces/service_interfaces"
 )
 
-type userCfgEntRepo struct {
+type EntUserConfigRepo struct {
 	client service_interfaces.EntClientInterface
 }
 
-func NewUserCfgEntRepo(client service_interfaces.EntClientInterface) *userCfgEntRepo {
-	return &userCfgEntRepo{client: client}
+type UserConfigRepository interface {
+	GetByUserID(ctx context.Context, userID int) (*domain.UserConfig, error)
+	Upsert(ctx context.Context, cfg *domain.UserConfig) (*domain.UserConfig, error)
 }
 
-func (r *userCfgEntRepo) GetByUserID(ctx context.Context, uid int) (*domain.UserConfig, error) {
+func NewEntUserConfigRepo(client service_interfaces.EntClientInterface) *EntUserConfigRepo {
+	return &EntUserConfigRepo{client: client}
+}
+
+func (r *EntUserConfigRepo) GetByUserID(ctx context.Context, uid int) (*domain.UserConfig, error) {
 	uc, err := r.client.UserConfig().
 		Query().
 		Where(userconfig.UserID(uid)).
@@ -33,7 +38,7 @@ func (r *userCfgEntRepo) GetByUserID(ctx context.Context, uid int) (*domain.User
 	}, nil
 }
 
-func (r *userCfgEntRepo) Upsert(ctx context.Context, cfg *domain.UserConfig) (*domain.UserConfig, error) {
+func (r *EntUserConfigRepo) Upsert(ctx context.Context, cfg *domain.UserConfig) (*domain.UserConfig, error) {
 	uc, err := r.client.UserConfig().
 		Query().
 		Where(userconfig.UserIDEQ(cfg.UserID)).

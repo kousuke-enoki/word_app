@@ -15,9 +15,9 @@ func (h *AuthSettingHandler) GetUserSettingHandler() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": ErrUserNotFound})
 			return
 		}
-		var req settingUc.GetUserConfigInput
+		var req settingUc.InputGetUserConfig
 		req.UserID = userID.(int)
-		setting, err := h.settingUsecase.GetUserConfigExecute(c, req)
+		setting, err := h.settingUsecase.GetUser(c, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -30,14 +30,14 @@ func (h *AuthSettingHandler) SaveUserSettingHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, _ := c.Get("userID")
 
-		var req settingUc.UpdateUserConfigInput
+		var req settingUc.InputUpdateUserConfig
 		req.UserID = userID.(int)
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		setting, err := h.settingUsecase.UpdateUserConfigExecute(c, req)
+		setting, err := h.settingUsecase.UpdateUser(c, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

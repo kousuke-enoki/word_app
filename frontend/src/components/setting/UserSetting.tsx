@@ -19,10 +19,12 @@ const UserSetting: React.FC = () => {
     const fetchUserSettingData = async () => {
       try {
         const response = await axiosInstance.get('/setting/user_config')
-        SetIsDarkMode(response.data.is_dark_mode)
+        console.log(response.data)
+        const config = response.data.Config
+        SetIsDarkMode(config.is_dark_mode)
         // 初期値を保持
         setInitial({
-          isDarkMode: response.data.is_dark_mode,
+          isDarkMode: config.is_dark_mode,
         })
       } catch (error) {
         console.error(error)

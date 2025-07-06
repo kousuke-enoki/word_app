@@ -9,8 +9,8 @@ import (
 )
 
 type InputUpdateUserConfig struct {
-	UserID     int  // 取得済み (Auth MW 等で)
-	IsDarkMode bool // true=ダーク・false=ライト
+	UserID     int  `json:"user_id"`      // 取得済み (Auth MW 等で)
+	IsDarkMode bool `json:"is_dark_mode"` // true=ダーク・false=ライト
 }
 
 type updateUserConfigInteractor struct {

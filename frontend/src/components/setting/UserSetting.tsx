@@ -19,7 +19,6 @@ const UserSetting: React.FC = () => {
     const fetchUserSettingData = async () => {
       try {
         const response = await axiosInstance.get('/setting/user_config')
-        console.log(response.data)
         const config = response.data.Config
         SetIsDarkMode(config.is_dark_mode)
         // 初期値を保持

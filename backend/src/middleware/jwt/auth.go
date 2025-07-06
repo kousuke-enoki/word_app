@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 func (m *JwtMiddleware) AuthMiddleware() gin.HandlerFunc {
@@ -16,7 +15,7 @@ func (m *JwtMiddleware) AuthMiddleware() gin.HandlerFunc {
 				gin.H{"error": "authorization header required"})
 			return
 		}
-		logrus.Info(token)
+
 		roles, err := m.tokenValidator.Validate(c.Request.Context(), token)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized,

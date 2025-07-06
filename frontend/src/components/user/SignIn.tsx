@@ -6,7 +6,7 @@ import { useTheme } from '@/contexts/themeContext'
 
 
 type SettingResponse = {
-  isLineAuth: boolean;
+  is_line_auth: boolean;
 };
 
 const SignIn: React.FC = () => {
@@ -27,7 +27,9 @@ const SignIn: React.FC = () => {
           '/setting/auth',
         );
         if (!isMounted) return;
-        setLineAuthEnabled(data.isLineAuth);
+        setLineAuthEnabled(data.is_line_auth);
+      } catch(e) {
+        console.log(e)
       } finally {
         // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         isMounted && setLoadingSetting(false);
@@ -49,8 +51,8 @@ const SignIn: React.FC = () => {
       const token = response.data.token
       localStorage.setItem('token', token)
       localStorage.setItem('logoutMessage', 'サインイン成功！')
-      const res = await axiosInstance.get('/setting/user_config')
-      setTheme(res.data.is_dark_mode ? 'dark' : 'light')
+      const { data } = await axiosInstance.get('/setting/user_config')
+      setTheme(data.Config.is_dark_mode ? 'dark' : 'light')
 
       setTimeout(() => {
         navigate('/mypage')

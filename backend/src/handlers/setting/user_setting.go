@@ -11,12 +11,14 @@ import (
 func (h *AuthSettingHandler) GetUserSettingHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, ok := c.Get("userID")
+
 		if !ok {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": ErrUserNotFound})
 			return
 		}
 		var req settingUc.InputGetUserConfig
 		req.UserID = userID.(int)
+
 		setting, err := h.settingUsecase.GetUser(c, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

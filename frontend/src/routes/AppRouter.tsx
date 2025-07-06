@@ -83,7 +83,7 @@ const AppRouter: React.FC = () => {
         <Route
           path="/user/userSetting"
           element={
-            <PrivateRoute requiredRole={'root'}>
+            <PrivateRoute requiredRole={'general'}>
               <UserSetting />
             </PrivateRoute>
           }

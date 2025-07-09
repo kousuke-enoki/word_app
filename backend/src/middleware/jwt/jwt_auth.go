@@ -9,6 +9,7 @@ import (
 )
 
 // JwtAuth : JWT検証 & ユーザー情報(ロール)取得
+// GinのミドルウェアとしてJWTを検証し、ユーザーロールをフロントに返す
 func (m *JwtMiddleware) JwtCheckMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 

@@ -21,19 +21,39 @@ packages:
       dir: src/mocks/http/middleware
       recursive: false
 
-  word_app/backend/src/interfaces/repository/auth:
+  word_app/backend/src/interfaces/http/setting:
     config:
-      dir: src/mocks/repository/auth
+      dir: src/mocks/http/setting
       recursive: false
 
-  word_app/backend/src/interfaces/repository/user:
+  word_app/backend/src/infrastructure/repository/auth:
     config:
-      dir: src/mocks/repository/user
+      dir: src/mocks/infrastructure/repository/auth
       recursive: false
 
-  word_app/backend/src/interfaces/usecase/port/auth:
+  word_app/backend/src/infrastructure/repository/user:
     config:
-      dir: src/mocks/usecase/port/auth
+      dir: src/mocks/infrastructure/repository/user
+      recursive: false
+
+  word_app/backend/src/infrastructure/repository/setting:
+    config:
+      dir: src/mocks/infrastructure/repository/setting
+      recursive: false
+
+  word_app/backend/src/infrastructure/repository/tx:
+    config:
+      dir: src/mocks/infrastructure/repository/tx
+      recursive: false
+
+  word_app/backend/src/usecase/auth:
+    config:
+      dir: src/mocks/usecase/auth
+      recursive: false
+
+  word_app/backend/src/usecase/setting:
+    config:
+      dir: src/mocks/usecase/setting
       recursive: false
 
   word_app/backend/src/interfaces/service_interfaces:

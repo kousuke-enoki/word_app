@@ -1,4 +1,6 @@
 # 初回
+.envを用意して./backend, ./frontend それぞれの直下に置く
+
 docker compose build
 
 bash docker.sh up dev

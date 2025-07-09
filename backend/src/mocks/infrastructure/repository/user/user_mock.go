@@ -2,7 +2,7 @@
 // github.com/vektra/mockery
 // template: testify
 
-package auth
+package user
 
 import (
 	"context"
@@ -101,6 +101,74 @@ func (_c *MockUserRepository_Create_Call) RunAndReturn(run func(ctx context.Cont
 	return _c
 }
 
+// FindByID provides a mock function for the type MockUserRepository
+func (_mock *MockUserRepository) FindByID(ctx context.Context, id int) (*domain.User, error) {
+	ret := _mock.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindByID")
+	}
+
+	var r0 *domain.User
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) (*domain.User, error)); ok {
+		return returnFunc(ctx, id)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) *domain.User); ok {
+		r0 = returnFunc(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.User)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = returnFunc(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUserRepository_FindByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByID'
+type MockUserRepository_FindByID_Call struct {
+	*mock.Call
+}
+
+// FindByID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id int
+func (_e *MockUserRepository_Expecter) FindByID(ctx interface{}, id interface{}) *MockUserRepository_FindByID_Call {
+	return &MockUserRepository_FindByID_Call{Call: _e.mock.On("FindByID", ctx, id)}
+}
+
+func (_c *MockUserRepository_FindByID_Call) Run(run func(ctx context.Context, id int)) *MockUserRepository_FindByID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 int
+		if args[1] != nil {
+			arg1 = args[1].(int)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUserRepository_FindByID_Call) Return(user *domain.User, err error) *MockUserRepository_FindByID_Call {
+	_c.Call.Return(user, err)
+	return _c
+}
+
+func (_c *MockUserRepository_FindByID_Call) RunAndReturn(run func(ctx context.Context, id int) (*domain.User, error)) *MockUserRepository_FindByID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // FindByProvider provides a mock function for the type MockUserRepository
 func (_mock *MockUserRepository) FindByProvider(ctx context.Context, provider string, sub string) (*domain.User, error) {
 	ret := _mock.Called(ctx, provider, sub)
@@ -171,6 +239,72 @@ func (_c *MockUserRepository_FindByProvider_Call) Return(user *domain.User, err 
 }
 
 func (_c *MockUserRepository_FindByProvider_Call) RunAndReturn(run func(ctx context.Context, provider string, sub string) (*domain.User, error)) *MockUserRepository_FindByProvider_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// IsRoot provides a mock function for the type MockUserRepository
+func (_mock *MockUserRepository) IsRoot(ctx context.Context, userID int) (bool, error) {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsRoot")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) (bool, error)); ok {
+		return returnFunc(ctx, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) bool); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = returnFunc(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUserRepository_IsRoot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsRoot'
+type MockUserRepository_IsRoot_Call struct {
+	*mock.Call
+}
+
+// IsRoot is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID int
+func (_e *MockUserRepository_Expecter) IsRoot(ctx interface{}, userID interface{}) *MockUserRepository_IsRoot_Call {
+	return &MockUserRepository_IsRoot_Call{Call: _e.mock.On("IsRoot", ctx, userID)}
+}
+
+func (_c *MockUserRepository_IsRoot_Call) Run(run func(ctx context.Context, userID int)) *MockUserRepository_IsRoot_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 int
+		if args[1] != nil {
+			arg1 = args[1].(int)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUserRepository_IsRoot_Call) Return(b bool, err error) *MockUserRepository_IsRoot_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockUserRepository_IsRoot_Call) RunAndReturn(run func(ctx context.Context, userID int) (bool, error)) *MockUserRepository_IsRoot_Call {
 	_c.Call.Return(run)
 	return _c
 }

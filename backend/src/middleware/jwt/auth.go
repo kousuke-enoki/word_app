@@ -7,6 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// 後続ハンドラでユーザーロールを使えるようにcontextにセットするミドルウェア
+// ユーザーID、isAdmin、isRootをcontextにセットする
 func (m *JwtMiddleware) AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := strings.TrimPrefix(c.GetHeader("Authorization"), "Bearer ")

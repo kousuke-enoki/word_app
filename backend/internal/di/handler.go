@@ -39,7 +39,7 @@ func NewHandlers(config *config.Config, uc *UseCases, client interfaces.ClientIn
 	return &Handlers{
 		JWTMiD:  jwt_middleware.NewJwtMiddleware(authClient),
 		Auth:    AuthH.NewAuthHandler(uc.Auth, jwtGen),
-		Setting: settingH.NewAuthSettingHandler(uc.Setting),
+		Setting: settingH.NewSettingHandler(uc.Setting),
 		User:    userH.NewUserHandler(userSvc.NewEntUserClient(client), jwtGen),
 		Word:    wordH.NewWordHandler(wordSvc.NewWordService(client)),
 		Quiz:    quizH.NewQuizHandler(quizSvc.NewQuizService(client)),

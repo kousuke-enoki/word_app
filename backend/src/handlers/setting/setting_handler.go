@@ -11,7 +11,7 @@ type AuthSettingHandler struct {
 	settingUsecase settingUc.SettingFacade
 }
 
-func NewAuthSettingHandler(client settingUc.SettingFacade) *AuthSettingHandler {
+func NewSettingHandler(client settingUc.SettingFacade) *AuthSettingHandler {
 	return &AuthSettingHandler{
 		settingUsecase: client,
 	}

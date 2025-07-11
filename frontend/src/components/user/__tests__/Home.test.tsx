@@ -6,7 +6,7 @@ import Home from '../Home'
 
 /* ThemeContext をモック */
 const setThemeMock = vi.fn()
-vi.mock('@/contexts/ThemeContext', () => ({
+vi.mock('@/contexts/themeContext', () => ({
   useTheme: () => ({ setTheme: setThemeMock }),
 }))
 

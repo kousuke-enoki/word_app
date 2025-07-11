@@ -1,250 +1,251 @@
-// auth_usecase_test.go
 package auth_test
 
-// ★AuthUsecase 構造体を定義しているパッケージ
+import (
+	"context"
+	"errors"
+	"testing"
+	"time"
+
+	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
+	"word_app/backend/src/domain"
+	mockExt "word_app/backend/src/mocks/infrastructure/repository/auth"
+	authUc "word_app/backend/src/usecase/auth"
+	"word_app/backend/src/utils/tempjwt"
+
+	mockUser "word_app/backend/src/mocks/infrastructure/repository/user"
+)
 
 /* -------------------------------------------------------------------------- */
-/*                               モック定義                                   */
+/*                            Simple hand-made mocks                          */
 /* -------------------------------------------------------------------------- */
 
-// Provider インタフェース（AuthURL / Exchange）用モック
-// type providerMock struct{ mock.Mock }
+type providerMock struct{ mock.Mock }
 
-// func (m *providerMock) AuthURL(state, nonce string) string {
-// 	args := m.Called(state, nonce)
-// 	return args.String(0)
-// }
+func (m *providerMock) AuthURL(state, nonce string) string {
+	return m.Called(state, nonce).String(0)
+}
 
-// func (m *providerMock) Exchange(ctx context.Context, code string) (*domain.IDToken, error) {
-// 	args := m.Called(ctx, code)
-// 	token, _ := args.Get(0).(*domain.IDToken)
-// 	return token, args.Error(1)
-// }
+func (m *providerMock) Exchange(ctx context.Context, code string) (*tempjwt.Identity, error) {
+	args := m.Called(ctx, code)
+	id, _ := args.Get(0).(*tempjwt.Identity)
+	return id, args.Error(1)
+}
 
-// // UserRepository (FindByProvider / Create) 用モック
-// type userRepoMock struct{ mock.Mock }
+func (m *providerMock) ValidateNonce(idTok *oidc.IDToken, expected string) error { // ★追加
+	args := m.Called(idTok, expected)
+	return args.Error(0)
+}
 
-// func (m *userRepoMock) FindByProvider(ctx context.Context, provider, subject string) (*domain.User, error) {
-// 	args := m.Called(ctx, provider, subject)
-// 	user, _ := args.Get(0).(*domain.User)
-// 	return user, args.Error(1)
-// }
+type jwtMock struct{ mock.Mock }
 
-// func (m *userRepoMock) Create(ctx context.Context, u *domain.User, ext *domain.ExternalAuth) error {
-// 	return m.Called(ctx, u, ext).Error(0)
-// }
+func (m *jwtMock) GenerateJWT(sub string) (string, error) {
+	args := m.Called(sub)
+	return args.String(0), args.Error(1)
+}
 
-// // JWTGenerator (GenerateJWT) 用モック
-// type jwtGenMock struct{ mock.Mock }
+type tempMock struct{ mock.Mock }
 
-// func (m *jwtGenMock) GenerateJWT(sub string) (string, error) {
-// 	args := m.Called(sub)
-// 	return args.String(0), args.Error(1)
-// }
+func (m *tempMock) GenerateTemp(id *tempjwt.Identity, ttl time.Duration) (string, error) {
+	args := m.Called(id, ttl)
+	return args.String(0), args.Error(1)
+}
+func (m *tempMock) ParseTemp(tok string) (*tempjwt.Identity, error) {
+	args := m.Called(tok)
+	id, _ := args.Get(0).(*tempjwt.Identity)
+	return id, args.Error(1)
+}
 
-// // TempTokenGenerator (GenerateTemp / ParseTemp) 用モック
-// type tempGenMock struct{ mock.Mock }
+/* -------------------------------------------------------------------------- */
+/*                              helper to build UC                            */
+/* -------------------------------------------------------------------------- */
 
-// func (m *tempGenMock) GenerateTemp(id *domain.IDToken, ttl time.Duration) (string, error) {
-// 	args := m.Called(id, ttl)
-// 	return args.String(0), args.Error(1)
-// }
-// func (m *tempGenMock) ParseTemp(token string) (*domain.IDToken, error) {
-// 	args := m.Called(token)
-// 	id, _ := args.Get(0).(*domain.IDToken)
-// 	return id, args.Error(1)
-// }
+func newUC(
+	p *providerMock,
+	r *mockUser.MockUserRepository,
+	j *jwtMock,
+	t *tempMock,
+	tHelper testing.TB, // *testing.T を渡すため追加
+) *authUc.AuthUsecase {
 
-// /* -------------------------------------------------------------------------- */
-// /*                                  Helper                                    */
-// /* -------------------------------------------------------------------------- */
+	ext := mockExt.NewMockExternalAuthRepository(tHelper)
 
-// func newUsecase(p *providerMock, r *userRepoMock, j *jwtGenMock, t *tempGenMock) *auth.AuthUsecase {
-// 	return &auth.AuthUsecase{
-// 		Provider:     p,
-// 		UserRepo:     r,
-// 		JwtGenerator: j,
-// 		TempJwtGen:   t,
-// 	} // フィールド名は実装に合わせてください
-// }
+	return authUc.NewAuthUsecase(
+		p,   // AuthProvider
+		r,   // UserRepository
+		ext, // ExternalAuthRepository
+		j,   // JWTGenerator
+		t,   // TempTokenGenerator
+	)
+}
 
-// /* -------------------------------------------------------------------------- */
-// /*                               StartLogin                                   */
-// /* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+/*                                  StartLogin                                */
+/* ========================================================================== */
 
-// func TestStartLogin(t *testing.T) {
-// 	p := &providerMock{}
-// 	r := &userRepoMock{}
-// 	j := &jwtGenMock{}
-// 	tmp := &tempGenMock{}
+func TestStartLogin(t *testing.T) {
+	p := &providerMock{}
+	p.On("AuthURL", "st", "no").Return("https://example/auth")
+	uc := newUC(p, mockUser.NewMockUserRepository(t), &jwtMock{}, &tempMock{},
+		t)
 
-// 	state, nonce := "s123", "n456"
-// 	wantURL := "https://example.com/auth?state=s123"
+	got := uc.StartLogin(context.Background(), "st", "no")
+	assert.Equal(t, "https://example/auth", got)
+	p.AssertExpectations(t)
+}
 
-// 	p.On("AuthURL", state, nonce).Return(wantURL)
+/* ========================================================================== */
+/*                               HandleCallback                               */
+/* ========================================================================== */
 
-// 	uc := newUsecase(p, r, j, tmp)
-// 	got := uc.StartLogin(context.Background(), state, nonce)
+func TestHandleCallback(t *testing.T) {
+	ctx := context.Background()
+	idTok := &tempjwt.Identity{
+		Provider: "line",
+		Subject:  "sub",
+		Email:    "a@b.com",
+		Name:     "Taro",
+	}
+	cases := []struct {
+		name     string
+		setup    func(*providerMock, *mockUser.MockUserRepository, *jwtMock, *tempMock)
+		wantErr  bool
+		wantJWT  string
+		wantTemp string
+		needPass bool
+	}{
+		{
+			name: "Exchange error",
+			setup: func(p *providerMock, r *mockUser.MockUserRepository, j *jwtMock, tmp *tempMock) {
+				p.On("Exchange", ctx, "code").Return(nil, errors.New("x"))
+			},
+			wantErr: true,
+		},
+		{
+			name: "既存ユーザ → JWT",
+			setup: func(p *providerMock, r *mockUser.MockUserRepository, j *jwtMock, tmp *tempMock) {
+				p.On("Exchange", ctx, "code").Return(idTok, nil)
+				r.On("FindByProvider", ctx, "line", "sub").Return(&domain.User{ID: 123}, nil)
+				j.On("GenerateJWT", "123").Return("JWT123", nil)
+			},
+			wantJWT: "JWT123",
+		},
+		{
+			name: "新規ユーザ → Temp",
+			setup: func(p *providerMock, r *mockUser.MockUserRepository, j *jwtMock, tmp *tempMock) {
+				p.On("Exchange", ctx, "code").Return(idTok, nil)
+				r.On("FindByProvider", ctx, "line", "sub").Return(nil, nil)
+				tmp.On("GenerateTemp", idTok, mock.AnythingOfType("time.Duration")).Return("TMP42", nil)
+			},
+			wantTemp: "TMP42", needPass: true,
+		},
+	}
 
-// 	assert.Equal(t, wantURL, got)
-// 	p.AssertExpectations(t)
-// }
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := &providerMock{}
+			r := mockUser.NewMockUserRepository(t)
+			j := &jwtMock{}
+			tmp := &tempMock{}
+			tc.setup(p, r, j, tmp)
 
-// /* -------------------------------------------------------------------------- */
-// /*                             HandleCallback                                 */
-// /* -------------------------------------------------------------------------- */
+			uc := newUC(p, r, j, tmp, t)
+			res, err := uc.HandleCallback(ctx, "code", "st", "no")
 
-// func TestHandleCallback_AllCases(t *testing.T) {
-// 	ctx := context.Background()
-// 	baseID := &domain.IDToken{
-// 		Provider: "line",
-// 		Subject:  "sub123",
-// 		Email:    "taro@example.com",
-// 		Name:     "Taro",
-// 	}
+			if tc.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			if tc.needPass {
+				assert.True(t, res.NeedPassword)
+				assert.Equal(t, tc.wantTemp, res.TempToken)
+			} else {
+				assert.Equal(t, tc.wantJWT, res.Token)
+			}
+		})
+	}
+}
 
-// 	tests := []struct {
-// 		name          string
-// 		prepare       func(*providerMock, *userRepoMock, *jwtGenMock, *tempGenMock)
-// 		wantErr       bool
-// 		wantNeedPass  bool
-// 		wantToken     string
-// 		wantTempToken string
-// 	}{
-// 		{
-// 			name: "既存ユーザ => JWT 発行",
-// 			prepare: func(p *providerMock, r *userRepoMock, j *jwtGenMock, tmp *tempGenMock) {
-// 				p.On("Exchange", mock.Anything, "code").Return(baseID, nil)
-// 				user := &domain.User{ID: 1, Email: baseID.Email, Name: baseID.Name}
-// 				r.On("FindByProvider", mock.Anything, "line", "sub123").Return(user, nil)
-// 				j.On("GenerateJWT", "1").Return("jwt_token", nil)
-// 			},
-// 			wantNeedPass: false,
-// 			wantToken:    "jwt_token",
-// 		},
-// 		{
-// 			name: "新規ユーザ => TempToken + NeedPassword",
-// 			prepare: func(p *providerMock, r *userRepoMock, j *jwtGenMock, tmp *tempGenMock) {
-// 				p.On("Exchange", mock.Anything, "code").Return(baseID, nil)
-// 				r.On("FindByProvider", mock.Anything, "line", "sub123").Return(nil, nil)
-// 				tmp.On("GenerateTemp", baseID, mock.AnythingOfType("time.Duration")).Return("TMP123", nil)
-// 			},
-// 			wantNeedPass:  true,
-// 			wantTempToken: "TMP123",
-// 		},
-// 		{
-// 			name: "Exchange エラー",
-// 			prepare: func(p *providerMock, r *userRepoMock, j *jwtGenMock, tmp *tempGenMock) {
-// 				p.On("Exchange", mock.Anything, "code").Return(nil, errors.New("exchange NG"))
-// 			},
-// 			wantErr: true,
-// 		},
-// 	}
+/* ========================================================================== */
+/*                               CompleteSignUp                               */
+/* ========================================================================== */
 
-// 	for _, tt := range tests {
-// 		p := &providerMock{}
-// 		r := &userRepoMock{}
-// 		j := &jwtGenMock{}
-// 		tmp := &tempGenMock{}
-// 		tt.prepare(p, r, j, tmp)
+func TestCompleteSignUp(t *testing.T) {
+	ctx := context.Background()
+	idTok := &tempjwt.Identity{
+		Provider: "line",
+		Subject:  "sub",
+		Email:    "m@x.com",
+		Name:     "Mika",
+	}
+	cases := []struct {
+		name     string
+		setup    func(*tempMock, *mockUser.MockUserRepository, *jwtMock)
+		tokenArg string
+		wantErr  bool
+		wantJWT  string
+	}{
+		{
+			name: "ParseTemp error",
+			setup: func(tmp *tempMock, r *mockUser.MockUserRepository, j *jwtMock) {
+				tmp.On("ParseTemp", "BAD").Return(nil, errors.New("bad"))
+			},
+			tokenArg: "BAD", wantErr: true,
+		},
+		{
+			name: "Repo.Create error",
+			setup: func(tmp *tempMock, r *mockUser.MockUserRepository, j *jwtMock) {
+				tmp.On("ParseTemp", "OK").Return(idTok, nil)
+				r.On("Create", ctx, mock.Anything, mock.Anything).Return(errors.New("db"))
+			},
+			tokenArg: "OK", wantErr: true,
+		},
+		{
+			name: "success",
+			setup: func(tmp *tempMock, r *mockUser.MockUserRepository, j *jwtMock) {
+				tmp.On("ParseTemp", "OK").Return(idTok, nil)
+				r.On("Create", ctx, mock.Anything, mock.Anything).Return(nil)
+				j.On("GenerateJWT", mock.AnythingOfType("string")).Return("JWT_OK", nil)
+			},
+			tokenArg: "OK", wantJWT: "JWT_OK",
+		},
+	}
 
-// 		uc := newUsecase(p, r, j, tmp)
-// 		res, err := uc.HandleCallback(ctx, "code", "state", "nonce")
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := &providerMock{}
+			r := mockUser.NewMockUserRepository(t)
+			j := &jwtMock{}
+			tmp := &tempMock{}
+			tc.setup(tmp, r, j)
 
-// 		if tt.wantErr {
-// 			assert.Error(t, err, tt.name)
-// 			continue
-// 		}
-// 		assert.NoError(t, err, tt.name)
-// 		assert.Equal(t, tt.wantNeedPass, res.NeedPassword, tt.name)
-// 		if tt.wantNeedPass {
-// 			assert.Equal(t, tt.wantTempToken, res.TempToken, tt.name)
-// 			assert.Equal(t, baseID.Email, res.SuggestedMail, tt.name)
-// 		} else {
-// 			assert.Equal(t, tt.wantToken, res.Token, tt.name)
-// 		}
-// 		p.AssertExpectations(t)
-// 		r.AssertExpectations(t)
-// 		j.AssertExpectations(t)
-// 		tmp.AssertExpectations(t)
-// 	}
-// }
+			uc := newUC(p, r, j, tmp, t)
+			jwt, err := uc.CompleteSignUp(ctx, tc.tokenArg, "Passw0rd!")
 
-// /* -------------------------------------------------------------------------- */
-// /*                             CompleteSignUp                                 */
-// /* -------------------------------------------------------------------------- */
+			if tc.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.wantJWT, jwt)
+			}
+		})
+	}
+}
 
-// func TestCompleteSignUp_AllCases(t *testing.T) {
-// 	ctx := context.Background()
-// 	idToken := &domain.IDToken{
-// 		Provider: "line", Subject: "sub123",
-// 		Email: "taro@example.com", Name: "Taro",
-// 	}
+/* ========================================================================== */
+/*                                 StartLogin                                 */
+/* ========================================================================== */
 
-// 	tests := []struct {
-// 		name      string
-// 		pass      string
-// 		prepare   func(*tempGenMock, *userRepoMock, *jwtGenMock)
-// 		wantErr   bool
-// 		wantToken string
-// 	}{
-// 		{
-// 			name: "ParseTemp エラー",
-// 			pass: "Password1!",
-// 			prepare: func(tmp *tempGenMock, repo *userRepoMock, j *jwtGenMock) {
-// 				tmp.On("ParseTemp", "BAD").Return(nil, errors.New("parse error"))
-// 			},
-// 			wantErr: true,
-// 		},
-// 		{
-// 			name: "ユーザ作成バリデーション NG",
-// 			pass: "bad", // ← domain.NewUser が弾く想定
-// 			prepare: func(tmp *tempGenMock, repo *userRepoMock, j *jwtGenMock) {
-// 				tmp.On("ParseTemp", "TOKEN").Return(idToken, nil)
-// 			},
-// 			wantErr: true,
-// 		},
-// 		{
-// 			name: "DB 作成エラー",
-// 			pass: "Password1!",
-// 			prepare: func(tmp *tempGenMock, repo *userRepoMock, j *jwtGenMock) {
-// 				tmp.On("ParseTemp", "TOKEN").Return(idToken, nil)
-// 				repo.On("Create", mock.Anything, mock.Anything, mock.Anything).
-// 					Return(errors.New("db error"))
-// 			},
-// 			wantErr: true,
-// 		},
-// 		{
-// 			name: "正常完了 => JWT",
-// 			pass: "Password1!",
-// 			prepare: func(tmp *tempGenMock, repo *userRepoMock, j *jwtGenMock) {
-// 				tmp.On("ParseTemp", "TOKEN").Return(idToken, nil)
-// 				repo.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-// 				j.On("GenerateJWT", mock.AnythingOfType("string")).Return("JWT_OK", nil)
-// 			},
-// 			wantToken: "JWT_OK",
-// 		},
-// 	}
+func TestProviderAuthURLDelegation(t *testing.T) {
+	p := &providerMock{}
+	p.On("AuthURL", "s", "n").Return("url")
+	uc := newUC(p, mockUser.NewMockUserRepository(t), &jwtMock{}, &tempMock{}, t)
 
-// 	for _, tt := range tests {
-// 		p := &providerMock{} // 未使用
-// 		tmp := &tempGenMock{}
-// 		repo := &userRepoMock{}
-// 		j := &jwtGenMock{}
+	assert.Equal(t, "url", uc.StartLogin(context.Background(), "s", "n"))
+	p.AssertCalled(t, "AuthURL", "s", "n")
+}
 
-// 		tt.prepare(tmp, repo, j)
-
-// 		uc := newUsecase(p, repo, j, tmp)
-// 		token, err := uc.CompleteSignUp(ctx, "TOKEN", tt.pass)
-
-// 		if tt.wantErr {
-// 			assert.Error(t, err, tt.name)
-// 			continue
-// 		}
-// 		assert.NoError(t, err, tt.name)
-// 		assert.Equal(t, tt.wantToken, token, tt.name)
-// 		tmp.AssertExpectations(t)
-// 		repo.AssertExpectations(t)
-// 		j.AssertExpectations(t)
-// 	}
-// }
+/* ========================================================================== */

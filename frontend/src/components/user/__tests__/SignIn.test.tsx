@@ -28,7 +28,7 @@ import axiosInstance from '@/axiosConfig'
 
 /* ---------- ThemeContext の setTheme だけ使いたい ---------- */
 export const setThemeMock = vi.fn()
-vi.mock('@/contexts/ThemeContext', () => ({
+vi.mock('@/contexts/themeContext', () => ({
   useTheme: () => ({ setTheme: setThemeMock }),
 }))
 
@@ -62,12 +62,11 @@ describe('SignIn Component', () => {
 
   /* ---------- 2. LINE ログインボタン ---------- */
   it('isLineAuth=true なら「LINEでログイン」ボタンが出る & クリックで location.href 書き換え', async () => {
-    ;(axiosInstance.get as any).mockResolvedValueOnce({ data: { isLineAuth: true } })
+    ;(axiosInstance.get as any).mockResolvedValueOnce({ data: { is_line_auth: true } })
 
     // JSDOM の location を書き換え可能にする
-    const originalLocation = window.location
-    delete (window as any).location
-    ;(window as any).location = { href: '' }
+    const originalLocation = window.location as unknown as Location;
+    vi.stubGlobal('location', { ...originalLocation, href: '' });
 
     render(
       <MemoryRouter>
@@ -83,7 +82,7 @@ describe('SignIn Component', () => {
     )
 
     // 後片付け
-    window.location = originalLocation
+    vi.stubGlobal('location', originalLocation);
   })
 
   /* ---------- 3. サインイン成功フロー ---------- */
@@ -91,7 +90,7 @@ describe('SignIn Component', () => {
     // ❶ mock 順序は get → post → get の３連発
     (axiosInstance.get  as any).mockResolvedValueOnce({ data: { isLineAuth: false } });
     (axiosInstance.post as any).mockResolvedValueOnce({ data: { token: 'jwt123' } });
-    (axiosInstance.get  as any).mockResolvedValueOnce({ data: { is_dark_mode: true } });
+    (axiosInstance.get  as any).mockResolvedValueOnce({ data: { Config: { is_dark_mode: true } }, });
   
     render(<MemoryRouter><SignIn /></MemoryRouter>);
   

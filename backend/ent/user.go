@@ -47,9 +47,11 @@ type UserEdges struct {
 	Quizs []*Quiz `json:"quizs,omitempty"`
 	// UserConfig holds the value of the user_config edge.
 	UserConfig *UserConfig `json:"user_config,omitempty"`
+	// ExternalAuths holds the value of the external_auths edge.
+	ExternalAuths []*ExternalAuth `json:"external_auths,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // RegisteredWordsOrErr returns the RegisteredWords value or an error if the edge
@@ -79,6 +81,15 @@ func (e UserEdges) UserConfigOrErr() (*UserConfig, error) {
 		return nil, &NotFoundError{label: userconfig.Label}
 	}
 	return nil, &NotLoadedError{edge: "user_config"}
+}
+
+// ExternalAuthsOrErr returns the ExternalAuths value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ExternalAuthsOrErr() ([]*ExternalAuth, error) {
+	if e.loadedTypes[3] {
+		return e.ExternalAuths, nil
+	}
+	return nil, &NotLoadedError{edge: "external_auths"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -183,6 +194,11 @@ func (u *User) QueryQuizs() *QuizQuery {
 // QueryUserConfig queries the "user_config" edge of the User entity.
 func (u *User) QueryUserConfig() *UserConfigQuery {
 	return NewUserClient(u.config).QueryUserConfig(u)
+}
+
+// QueryExternalAuths queries the "external_auths" edge of the User entity.
+func (u *User) QueryExternalAuths() *ExternalAuthQuery {
+	return NewUserClient(u.config).QueryExternalAuths(u)
 }
 
 // Update returns a builder for updating this User.

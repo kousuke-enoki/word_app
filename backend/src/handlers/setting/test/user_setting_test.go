@@ -1,115 +1,171 @@
-// setting_handler_test.go
 package setting_test
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
+	"net/http/httptest"
 	"testing"
-
-	"word_app/backend/ent"
-	"word_app/backend/src/handlers/setting"
-	"word_app/backend/src/test"
-
-	"word_app/backend/src/mocks"
-	"word_app/backend/src/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	"word_app/backend/src/domain"
+	settinghdlr "word_app/backend/src/handlers/setting"
+	mocks "word_app/backend/src/mocks/usecase/setting"
+	"word_app/backend/src/test"
+	settingUc "word_app/backend/src/usecase/setting"
 )
 
-func TestUserSettingHandler(t *testing.T) {
+/* -------------------------------------------------------------------------- */
+/*                               helper (POST)                                */
+/* -------------------------------------------------------------------------- */
+
+func rawCtx(method, path string, body []byte) (*gin.Context, *httptest.ResponseRecorder) {
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	rdr := bytes.NewReader(body)
+	req, _ := http.NewRequest(method, path, rdr)
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	c.Request = req
+	return c, w
+}
+
+/* ========================================================================== */
+/*                        GetUserSettingHandler Tests                         */
+/* ========================================================================== */
+
+func TestGetUserSettingHandler(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	mockSvc := new(mocks.SettingClient)
-	h := setting.NewSettingHandler(mockSvc)
+	successCfg := &domain.UserConfig{ID: 1, UserID: 99, IsDarkMode: true} // フィールドは例
+	tests := []struct {
+		name         string
+		injectUser   bool
+		mockBehavior func(*mocks.MockSettingFacade)
+		wantCode     int
+	}{
+		{
+			name:       "正常取得 (200)",
+			injectUser: true,
+			mockBehavior: func(m *mocks.MockSettingFacade) {
+				m.On("GetUser", mock.Anything, mock.Anything).
+					Return(&settingUc.OutputGetUserConfig{Config: successCfg}, nil)
+			},
+			wantCode: http.StatusOK,
+		},
+		{
+			name:         "userID 無 (401)",
+			injectUser:   false,
+			mockBehavior: func(m *mocks.MockSettingFacade) {},
+			wantCode:     http.StatusUnauthorized,
+		},
+		{
+			name:       "usecase エラー (500)",
+			injectUser: true,
+			mockBehavior: func(m *mocks.MockSettingFacade) {
+				m.On("GetUser", mock.Anything, mock.Anything).
+					Return(nil, errors.New("db err"))
+			},
+			wantCode: http.StatusInternalServerError,
+		},
+	}
 
-	t.Run("GetUserSetting_OK", func(t *testing.T) {
-		cfg := &ent.UserConfig{ID: 1, IsDarkMode: true}
-		mockSvc.
-			On("GetUserConfig", mock.Anything, 99).
-			Return(cfg, nil)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockUc := mocks.NewMockSettingFacade(t)
+			tt.mockBehavior(mockUc)
 
-		c, w := test.NewTestCtx("GET", "/setting/user_config", nil)
-		test.InjectUser(c, 99, false) // 任意ユーザー
-		h.GetUserSettingHandler()(c)
+			h := settinghdlr.NewSettingHandler(mockUc)
+			c, w := test.NewTestCtx("GET", "/setting/user_config", nil)
+			if tt.injectUser {
+				test.InjectUser(c, 99, false)
+			}
 
-		assert.Equal(t, http.StatusOK, w.Code)
-		var got ent.UserConfig
-		_ = json.Unmarshal(w.Body.Bytes(), &got)
-		assert.True(t, got.IsDarkMode)
-	})
+			h.GetUserSettingHandler()(c)
+			assert.Equal(t, tt.wantCode, w.Code)
 
-	t.Run("GetUserSetting_UserNotFound", func(t *testing.T) {
-		mockSvc.
-			On("GetUserConfig", mock.Anything, 404).
-			Return(nil, setting.ErrUserNotFound)
+			if w.Code == http.StatusOK {
+				var got settingUc.OutputGetUserConfig
+				_ = json.Unmarshal(w.Body.Bytes(), &got)
+				assert.Equal(t, true, got.Config.IsDarkMode)
+			}
+			mockUc.AssertExpectations(t)
+		})
+	}
+}
 
-		c, w := test.NewTestCtx("GET", "/setting/user_config", nil)
-		test.InjectUser(c, 404, false)
-		h.GetUserSettingHandler()(c)
+/* ========================================================================== */
+/*                       SaveUserSettingHandler Tests                         */
+/* ========================================================================== */
 
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-	})
+func TestSaveUserSettingHandler(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 
-	t.Run("SaveUserSetting_OK", func(t *testing.T) {
-		payload := models.UserConfig{IsDarkMode: false}
-		updated := &ent.UserConfig{ID: 1, IsDarkMode: false}
+	successCfg := &domain.UserConfig{ID: 1, UserID: 99, IsDarkMode: false}
+	validBody, _ := json.Marshal(map[string]interface{}{"theme": "light"})
+	badJSON := []byte("{invalid-json")
 
-		mockSvc.
-			On("UpdateUserConfig", mock.Anything, 99, false).
-			Return(updated, nil)
+	tests := []struct {
+		name         string
+		body         []byte
+		injectUser   bool
+		mockBehavior func(*mocks.MockSettingFacade)
+		wantCode     int
+	}{
+		{
+			name:       "正常更新 (200)",
+			body:       validBody,
+			injectUser: true,
+			mockBehavior: func(m *mocks.MockSettingFacade) {
+				m.On("UpdateUser", mock.Anything, mock.Anything).
+					Return(successCfg, nil)
+			},
+			wantCode: http.StatusOK,
+		},
+		{
+			name:         "BindJSON エラー (400)",
+			body:         badJSON,
+			injectUser:   true,
+			mockBehavior: func(m *mocks.MockSettingFacade) {},
+			wantCode:     http.StatusBadRequest,
+		},
+		{
+			name:       "usecase エラー (500)",
+			body:       validBody,
+			injectUser: true,
+			mockBehavior: func(m *mocks.MockSettingFacade) {
+				m.On("UpdateUser", mock.Anything, mock.Anything).
+					Return(nil, errors.New("db ng"))
+			},
+			wantCode: http.StatusInternalServerError,
+		},
+	}
 
-		c, w := test.NewTestCtx("POST", "/setting/user_config", payload)
-		test.InjectUser(c, 99, false)
-		h.SaveUserSettingHandler()(c)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockUc := mocks.NewMockSettingFacade(t)
+			tt.mockBehavior(mockUc)
 
-		assert.Equal(t, http.StatusOK, w.Code)
-	})
+			h := settinghdlr.NewSettingHandler(mockUc)
+			c, w := rawCtx("POST", "/setting/user_config", tt.body)
+			if tt.injectUser {
+				test.InjectUser(c, 99, false)
+			}
 
-	t.Run("SaveUserSetting_UserNotFound", func(t *testing.T) {
-		payload := models.UserConfig{IsDarkMode: true}
-		mockSvc.
-			On("UpdateUserConfig", mock.Anything, 404, true).
-			Return(nil, setting.ErrUserNotFound)
+			h.SaveUserSettingHandler()(c)
+			assert.Equal(t, tt.wantCode, w.Code)
 
-		c, w := test.NewTestCtx("POST", "/setting/user_config", payload)
-		test.InjectUser(c, 404, false)
-		h.SaveUserSettingHandler()(c)
-
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-	})
-	t.Run("TestSaveUserSettingHandler", func(t *testing.T) {
-
-		payload := models.UserConfig{
-			IsDarkMode: false,
-		}
-		updated := &ent.UserConfig{
-			ID:         1,
-			IsDarkMode: false,
-		}
-		mockSvc.
-			On("UpdateUserConfig", mock.Anything, 99, "admin", true, false).
-			Return(updated, nil)
-
-		c, w := test.NewTestCtx("POST", "/setting/user_config", payload)
-		test.InjectUser(c, 99, true)
-		h.SaveUserSettingHandler()(c)
-
-		assert.Equal(t, http.StatusOK, w.Code)
-
-	})
-	// t.Run("TestSaveUserSettingHandler_validation_error", func(t *testing.T) {
-	// 	payload := models.UserConfig{
-	// 		IsDarkMode: false,
-	// 	}
-	// 	bad := payload
-	// 	bad.IsDarkMode = "hacker"
-
-	// 	c2, w2 := test.NewTestCtx("POST", "/setting/user_config", bad)
-	// 	test.InjectUser(c2, 99, true)
-	// 	h.SaveUserSettingHandler()(c2)
-	// 	assert.Equal(t, http.StatusBadRequest, w2.Code)
-
-	// })
+			if w.Code == http.StatusOK {
+				var got domain.UserConfig
+				_ = json.Unmarshal(w.Body.Bytes(), &got)
+				assert.Equal(t, successCfg.IsDarkMode, got.IsDarkMode)
+			}
+			mockUc.AssertExpectations(t)
+		})
+	}
 }

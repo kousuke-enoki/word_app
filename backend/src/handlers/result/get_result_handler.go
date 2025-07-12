@@ -3,7 +3,7 @@ package result
 import (
 	"net/http"
 	"strconv"
-	"word_app/backend/src/handlers/middleware"
+	"word_app/backend/src/utils/contextutil"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -11,7 +11,7 @@ import (
 
 func (h *ResultHandler) GetResultHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, err := middleware.MustUserID(c)
+		userID, err := contextutil.MustUserID(c)
 		if err != nil {
 			logrus.Error(err)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})

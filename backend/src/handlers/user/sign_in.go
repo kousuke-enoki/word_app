@@ -9,6 +9,7 @@ import (
 	"word_app/backend/src/validators/user"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -39,6 +40,7 @@ func (h *UserHandler) SignInHandler() gin.HandlerFunc {
 			return
 		}
 
+		logrus.Info(token)
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Authentication successful", "token": token})
 	}

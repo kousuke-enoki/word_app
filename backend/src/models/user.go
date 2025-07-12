@@ -12,9 +12,10 @@ type SignUpRequest struct {
 }
 
 type User struct {
-	Name  string `json:"name" binding:"required"`
-	Admin bool   `json:"admin"`
-	Root  bool   `json:"root"`
+	ID      int    `json:"id" binding:"required"`
+	Name    string `json:"name"`
+	IsAdmin bool   `json:"isAdmin"`
+	IsRoot  bool   `json:"isRoot"`
 }
 
 type MyPageResponse struct {

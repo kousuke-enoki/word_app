@@ -3,11 +3,74 @@ package interfaces
 import (
 	"context"
 	"word_app/backend/ent"
+	"word_app/backend/src/domain"
 	"word_app/backend/src/models"
+	settingUc "word_app/backend/src/usecase/setting"
+	"word_app/backend/src/utils/contextutil"
 )
 
 type TestClientWrapper struct {
 	entClient *ent.Client
+}
+
+// GetAuth implements ClientInterface.
+func (w *TestClientWrapper) GetAuth(ctx context.Context) (*settingUc.AuthConfigDTO, error) {
+	panic("unimplemented")
+}
+
+// GetRoot implements ClientInterface.
+func (w *TestClientWrapper) GetRoot(ctx context.Context, in settingUc.InputGetRootConfig) (*settingUc.OutputGetRootConfig, error) {
+	panic("unimplemented")
+}
+
+// GetUser implements ClientInterface.
+func (w *TestClientWrapper) GetUser(ctx context.Context, in settingUc.InputGetUserConfig) (*settingUc.OutputGetUserConfig, error) {
+	panic("unimplemented")
+}
+
+// UpdateRoot implements ClientInterface.
+func (w *TestClientWrapper) UpdateRoot(ctx context.Context, in settingUc.InputUpdateRootConfig) (*domain.RootConfig, error) {
+	panic("unimplemented")
+}
+
+// UpdateUser implements ClientInterface.
+func (w *TestClientWrapper) UpdateUser(ctx context.Context, in settingUc.InputUpdateUserConfig) (*domain.UserConfig, error) {
+	panic("unimplemented")
+}
+
+// GetRootConfigExecute implements ClientInterface.
+func (w *TestClientWrapper) GetRootConfigExecute(ctx context.Context, in settingUc.InputGetRootConfig) (*settingUc.OutputGetRootConfig, error) {
+	panic("unimplemented")
+}
+
+// GetUserConfigExecute implements ClientInterface.
+func (w *TestClientWrapper) GetUserConfigExecute(ctx context.Context, in settingUc.InputGetUserConfig) (*settingUc.OutputGetUserConfig, error) {
+	panic("unimplemented")
+}
+
+// UpdateRootConfigExecute implements ClientInterface.
+func (w *TestClientWrapper) UpdateRootConfigExecute(ctx context.Context, in settingUc.InputUpdateRootConfig) (*domain.RootConfig, error) {
+	panic("unimplemented")
+}
+
+// UpdateUserConfigExecute implements ClientInterface.
+func (w *TestClientWrapper) UpdateUserConfigExecute(ctx context.Context, in settingUc.InputUpdateUserConfig) (*domain.UserConfig, error) {
+	panic("unimplemented")
+}
+
+// GetAuthConfig implements interfaces.ClientInterface.
+func (w *TestClientWrapper) GetAuthConfig(ctx context.Context) (*settingUc.AuthConfigDTO, error) {
+	panic("unimplemented")
+}
+
+// GetAuthConfig implements interfaces.ClientInterface.
+func (w *TestClientWrapper) GetAuthConfigs(ctx context.Context) (*models.AuthSettingResponse, error) {
+	panic("unimplemented")
+}
+
+// GetResultSummaries implements ClientInterface.
+func (w *TestClientWrapper) Validate(ctx context.Context, tokenStr string) (contextutil.UserRoles, error) {
+	panic("unimplemented")
 }
 
 // GetResultSummaries implements ClientInterface.
@@ -185,5 +248,10 @@ func (w *TestClientWrapper) Quiz() *ent.QuizClient {
 
 // QuizQuestion は QuizQuestionClient を返します。
 func (w *TestClientWrapper) QuizQuestion() *ent.QuizQuestionClient {
+	panic("unimplemented")
+}
+
+// ExternalAuth は ExternalAuthClient を返します。
+func (w *TestClientWrapper) ExternalAuth() *ent.ExternalAuthClient {
 	panic("unimplemented")
 }

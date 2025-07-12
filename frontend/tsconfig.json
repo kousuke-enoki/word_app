@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": ["vitest/globals", "vite/client", "node"],
     "target": "es5",
     "lib": [
       "dom",

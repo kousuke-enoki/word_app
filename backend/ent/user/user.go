@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -23,8 +24,48 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// FieldIsAdmin holds the string denoting the isadmin field in the database.
+	FieldIsAdmin = "is_admin"
+	// FieldIsRoot holds the string denoting the isroot field in the database.
+	FieldIsRoot = "is_root"
+	// EdgeRegisteredWords holds the string denoting the registered_words edge name in mutations.
+	EdgeRegisteredWords = "registered_words"
+	// EdgeQuizs holds the string denoting the quizs edge name in mutations.
+	EdgeQuizs = "quizs"
+	// EdgeUserConfig holds the string denoting the user_config edge name in mutations.
+	EdgeUserConfig = "user_config"
+	// EdgeExternalAuths holds the string denoting the external_auths edge name in mutations.
+	EdgeExternalAuths = "external_auths"
 	// Table holds the table name of the user in the database.
 	Table = "users"
+	// RegisteredWordsTable is the table that holds the registered_words relation/edge.
+	RegisteredWordsTable = "registered_words"
+	// RegisteredWordsInverseTable is the table name for the RegisteredWord entity.
+	// It exists in this package in order to avoid circular dependency with the "registeredword" package.
+	RegisteredWordsInverseTable = "registered_words"
+	// RegisteredWordsColumn is the table column denoting the registered_words relation/edge.
+	RegisteredWordsColumn = "user_id"
+	// QuizsTable is the table that holds the quizs relation/edge.
+	QuizsTable = "quizs"
+	// QuizsInverseTable is the table name for the Quiz entity.
+	// It exists in this package in order to avoid circular dependency with the "quiz" package.
+	QuizsInverseTable = "quizs"
+	// QuizsColumn is the table column denoting the quizs relation/edge.
+	QuizsColumn = "user_id"
+	// UserConfigTable is the table that holds the user_config relation/edge.
+	UserConfigTable = "user_configs"
+	// UserConfigInverseTable is the table name for the UserConfig entity.
+	// It exists in this package in order to avoid circular dependency with the "userconfig" package.
+	UserConfigInverseTable = "user_configs"
+	// UserConfigColumn is the table column denoting the user_config relation/edge.
+	UserConfigColumn = "user_id"
+	// ExternalAuthsTable is the table that holds the external_auths relation/edge.
+	ExternalAuthsTable = "external_auths"
+	// ExternalAuthsInverseTable is the table name for the ExternalAuth entity.
+	// It exists in this package in order to avoid circular dependency with the "externalauth" package.
+	ExternalAuthsInverseTable = "external_auths"
+	// ExternalAuthsColumn is the table column denoting the external_auths relation/edge.
+	ExternalAuthsColumn = "user_external_auths"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -35,6 +76,8 @@ var Columns = []string{
 	FieldName,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+	FieldIsAdmin,
+	FieldIsRoot,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -52,6 +95,8 @@ var (
 	EmailValidator func(string) error
 	// PasswordValidator is a validator for the "password" field. It is called by the builders before save.
 	PasswordValidator func(string) error
+	// DefaultName holds the default value on creation for the "name" field.
+	DefaultName string
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
@@ -60,6 +105,10 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// DefaultIsAdmin holds the default value on creation for the "isAdmin" field.
+	DefaultIsAdmin bool
+	// DefaultIsRoot holds the default value on creation for the "isRoot" field.
+	DefaultIsRoot bool
 )
 
 // OrderOption defines the ordering options for the User queries.
@@ -93,4 +142,91 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdatedAt orders the results by the updated_at field.
 func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByIsAdmin orders the results by the isAdmin field.
+func ByIsAdmin(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsAdmin, opts...).ToFunc()
+}
+
+// ByIsRoot orders the results by the isRoot field.
+func ByIsRoot(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsRoot, opts...).ToFunc()
+}
+
+// ByRegisteredWordsCount orders the results by registered_words count.
+func ByRegisteredWordsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRegisteredWordsStep(), opts...)
+	}
+}
+
+// ByRegisteredWords orders the results by registered_words terms.
+func ByRegisteredWords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRegisteredWordsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByQuizsCount orders the results by quizs count.
+func ByQuizsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newQuizsStep(), opts...)
+	}
+}
+
+// ByQuizs orders the results by quizs terms.
+func ByQuizs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newQuizsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByUserConfigField orders the results by user_config field.
+func ByUserConfigField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserConfigStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByExternalAuthsCount orders the results by external_auths count.
+func ByExternalAuthsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newExternalAuthsStep(), opts...)
+	}
+}
+
+// ByExternalAuths orders the results by external_auths terms.
+func ByExternalAuths(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newExternalAuthsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newRegisteredWordsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RegisteredWordsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RegisteredWordsTable, RegisteredWordsColumn),
+	)
+}
+func newQuizsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(QuizsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, QuizsTable, QuizsColumn),
+	)
+}
+func newUserConfigStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserConfigInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, UserConfigTable, UserConfigColumn),
+	)
+}
+func newExternalAuthsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ExternalAuthsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ExternalAuthsTable, ExternalAuthsColumn),
+	)
 }

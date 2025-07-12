@@ -3,12 +3,12 @@
 package ent
 
 import (
-	"eng_app/ent/partofspeech"
-	"eng_app/ent/word"
-	"eng_app/ent/wordinfo"
 	"fmt"
 	"strings"
 	"time"
+	"word_app/backend/ent/partofspeech"
+	"word_app/backend/ent/word"
+	"word_app/backend/ent/wordinfo"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"

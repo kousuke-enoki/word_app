@@ -3,11 +3,11 @@
 package ent
 
 import (
-	"eng_app/ent/japanesemean"
-	"eng_app/ent/wordinfo"
 	"fmt"
 	"strings"
 	"time"
+	"word_app/backend/ent/japanesemean"
+	"word_app/backend/ent/wordinfo"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -36,9 +36,11 @@ type JapaneseMean struct {
 type JapaneseMeanEdges struct {
 	// WordInfo holds the value of the word_info edge.
 	WordInfo *WordInfo `json:"word_info,omitempty"`
+	// QuizQuestions holds the value of the quiz_questions edge.
+	QuizQuestions []*QuizQuestion `json:"quiz_questions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // WordInfoOrErr returns the WordInfo value or an error if the edge
@@ -50,6 +52,15 @@ func (e JapaneseMeanEdges) WordInfoOrErr() (*WordInfo, error) {
 		return nil, &NotFoundError{label: wordinfo.Label}
 	}
 	return nil, &NotLoadedError{edge: "word_info"}
+}
+
+// QuizQuestionsOrErr returns the QuizQuestions value or an error if the edge
+// was not loaded in eager-loading.
+func (e JapaneseMeanEdges) QuizQuestionsOrErr() ([]*QuizQuestion, error) {
+	if e.loadedTypes[1] {
+		return e.QuizQuestions, nil
+	}
+	return nil, &NotLoadedError{edge: "quiz_questions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -124,6 +135,11 @@ func (jm *JapaneseMean) Value(name string) (ent.Value, error) {
 // QueryWordInfo queries the "word_info" edge of the JapaneseMean entity.
 func (jm *JapaneseMean) QueryWordInfo() *WordInfoQuery {
 	return NewJapaneseMeanClient(jm.config).QueryWordInfo(jm)
+}
+
+// QueryQuizQuestions queries the "quiz_questions" edge of the JapaneseMean entity.
+func (jm *JapaneseMean) QueryQuizQuestions() *QuizQuestionQuery {
+	return NewJapaneseMeanClient(jm.config).QueryQuizQuestions(jm)
 }
 
 // Update returns a builder for updating this JapaneseMean.

@@ -12,12 +12,24 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// ExternalAuth is the client for interacting with the ExternalAuth builders.
+	ExternalAuth *ExternalAuthClient
 	// JapaneseMean is the client for interacting with the JapaneseMean builders.
 	JapaneseMean *JapaneseMeanClient
 	// PartOfSpeech is the client for interacting with the PartOfSpeech builders.
 	PartOfSpeech *PartOfSpeechClient
+	// Quiz is the client for interacting with the Quiz builders.
+	Quiz *QuizClient
+	// QuizQuestion is the client for interacting with the QuizQuestion builders.
+	QuizQuestion *QuizQuestionClient
+	// RegisteredWord is the client for interacting with the RegisteredWord builders.
+	RegisteredWord *RegisteredWordClient
+	// RootConfig is the client for interacting with the RootConfig builders.
+	RootConfig *RootConfigClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserConfig is the client for interacting with the UserConfig builders.
+	UserConfig *UserConfigClient
 	// Word is the client for interacting with the Word builders.
 	Word *WordClient
 	// WordInfo is the client for interacting with the WordInfo builders.
@@ -153,9 +165,15 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.ExternalAuth = NewExternalAuthClient(tx.config)
 	tx.JapaneseMean = NewJapaneseMeanClient(tx.config)
 	tx.PartOfSpeech = NewPartOfSpeechClient(tx.config)
+	tx.Quiz = NewQuizClient(tx.config)
+	tx.QuizQuestion = NewQuizQuestionClient(tx.config)
+	tx.RegisteredWord = NewRegisteredWordClient(tx.config)
+	tx.RootConfig = NewRootConfigClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.UserConfig = NewUserConfigClient(tx.config)
 	tx.Word = NewWordClient(tx.config)
 	tx.WordInfo = NewWordInfoClient(tx.config)
 }
@@ -167,7 +185,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: JapaneseMean.QueryXXX(), the query will be executed
+// applies a query, for example: ExternalAuth.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

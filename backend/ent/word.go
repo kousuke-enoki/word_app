@@ -3,10 +3,10 @@
 package ent
 
 import (
-	"eng_app/ent/word"
 	"fmt"
 	"strings"
 	"time"
+	"word_app/backend/ent/word"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -20,7 +20,13 @@ type Word struct {
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// VoiceID holds the value of the "voice_id" field.
-	VoiceID int `json:"voice_id,omitempty"`
+	VoiceID *string `json:"voice_id,omitempty"`
+	// IsIdioms holds the value of the "is_idioms" field.
+	IsIdioms bool `json:"is_idioms,omitempty"`
+	// IsSpecialCharacters holds the value of the "is_special_characters" field.
+	IsSpecialCharacters bool `json:"is_special_characters,omitempty"`
+	// RegistrationCount holds the value of the "registration_count" field.
+	RegistrationCount int `json:"registration_count,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -35,9 +41,13 @@ type Word struct {
 type WordEdges struct {
 	// WordInfos holds the value of the word_infos edge.
 	WordInfos []*WordInfo `json:"word_infos,omitempty"`
+	// RegisteredWords holds the value of the registered_words edge.
+	RegisteredWords []*RegisteredWord `json:"registered_words,omitempty"`
+	// QuizQuestions holds the value of the quiz_questions edge.
+	QuizQuestions []*QuizQuestion `json:"quiz_questions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [3]bool
 }
 
 // WordInfosOrErr returns the WordInfos value or an error if the edge
@@ -49,14 +59,34 @@ func (e WordEdges) WordInfosOrErr() ([]*WordInfo, error) {
 	return nil, &NotLoadedError{edge: "word_infos"}
 }
 
+// RegisteredWordsOrErr returns the RegisteredWords value or an error if the edge
+// was not loaded in eager-loading.
+func (e WordEdges) RegisteredWordsOrErr() ([]*RegisteredWord, error) {
+	if e.loadedTypes[1] {
+		return e.RegisteredWords, nil
+	}
+	return nil, &NotLoadedError{edge: "registered_words"}
+}
+
+// QuizQuestionsOrErr returns the QuizQuestions value or an error if the edge
+// was not loaded in eager-loading.
+func (e WordEdges) QuizQuestionsOrErr() ([]*QuizQuestion, error) {
+	if e.loadedTypes[2] {
+		return e.QuizQuestions, nil
+	}
+	return nil, &NotLoadedError{edge: "quiz_questions"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Word) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case word.FieldID, word.FieldVoiceID:
+		case word.FieldIsIdioms, word.FieldIsSpecialCharacters:
+			values[i] = new(sql.NullBool)
+		case word.FieldID, word.FieldRegistrationCount:
 			values[i] = new(sql.NullInt64)
-		case word.FieldName:
+		case word.FieldName, word.FieldVoiceID:
 			values[i] = new(sql.NullString)
 		case word.FieldCreatedAt, word.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -88,10 +118,29 @@ func (w *Word) assignValues(columns []string, values []any) error {
 				w.Name = value.String
 			}
 		case word.FieldVoiceID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field voice_id", values[i])
 			} else if value.Valid {
-				w.VoiceID = int(value.Int64)
+				w.VoiceID = new(string)
+				*w.VoiceID = value.String
+			}
+		case word.FieldIsIdioms:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_idioms", values[i])
+			} else if value.Valid {
+				w.IsIdioms = value.Bool
+			}
+		case word.FieldIsSpecialCharacters:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_special_characters", values[i])
+			} else if value.Valid {
+				w.IsSpecialCharacters = value.Bool
+			}
+		case word.FieldRegistrationCount:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field registration_count", values[i])
+			} else if value.Valid {
+				w.RegistrationCount = int(value.Int64)
 			}
 		case word.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -123,6 +172,16 @@ func (w *Word) QueryWordInfos() *WordInfoQuery {
 	return NewWordClient(w.config).QueryWordInfos(w)
 }
 
+// QueryRegisteredWords queries the "registered_words" edge of the Word entity.
+func (w *Word) QueryRegisteredWords() *RegisteredWordQuery {
+	return NewWordClient(w.config).QueryRegisteredWords(w)
+}
+
+// QueryQuizQuestions queries the "quiz_questions" edge of the Word entity.
+func (w *Word) QueryQuizQuestions() *QuizQuestionQuery {
+	return NewWordClient(w.config).QueryQuizQuestions(w)
+}
+
 // Update returns a builder for updating this Word.
 // Note that you need to call Word.Unwrap() before calling this method if this Word
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -149,8 +208,19 @@ func (w *Word) String() string {
 	builder.WriteString("name=")
 	builder.WriteString(w.Name)
 	builder.WriteString(", ")
-	builder.WriteString("voice_id=")
-	builder.WriteString(fmt.Sprintf("%v", w.VoiceID))
+	if v := w.VoiceID; v != nil {
+		builder.WriteString("voice_id=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	builder.WriteString("is_idioms=")
+	builder.WriteString(fmt.Sprintf("%v", w.IsIdioms))
+	builder.WriteString(", ")
+	builder.WriteString("is_special_characters=")
+	builder.WriteString(fmt.Sprintf("%v", w.IsSpecialCharacters))
+	builder.WriteString(", ")
+	builder.WriteString("registration_count=")
+	builder.WriteString(fmt.Sprintf("%v", w.RegistrationCount))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(w.CreatedAt.Format(time.ANSIC))

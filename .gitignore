@@ -1,15 +1,34 @@
 # # バイナリファイル
 # *.exe
 # *.dll
+backend/tmp/main
 
 # # ログファイル
-# *.log
+*.log
+backend/tmp/build-error.log
 
 # # ディレクトリ
 # /node_modules
 # /dist
+backend/assets/
+backend/tmp/
+backend/log/
 
 # # OSやエディタの一時ファイル
 # .DS_Store
 # Thumbs.db
 .history
+backup.sql
+backend/tmp/main
+backend/tmp/build-errors.log
+
+# # 環境変数ファイル
+backend/.env.development
+backend/.env.production
+backend/.env.staging
+backend/.env.staging
+frontend/.env.test
+.env.local
+# # IDEの設定ファイル
+.vscode/
+.DS_Store

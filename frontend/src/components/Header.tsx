@@ -1,14 +1,14 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react'
+import { Link } from 'react-router-dom'
 
 const Header: React.FC = () => {
   return (
     <div>
-      <p>
+      <h1>
         <Link to="/">word app</Link>
-      </p>
+      </h1>
     </div>
-  );
-};
+  )
+}
 
-export default Header;
+export default Header

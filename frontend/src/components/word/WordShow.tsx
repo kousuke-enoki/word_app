@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import axiosInstance from '../../axiosConfig'
+import axiosInstance from '@/axiosConfig'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { Word, WordInfo, JapaneseMean } from '../../types/wordTypes'
-import { registerWord } from '../../service/word/RegisterWord'
-import { saveMemo } from '../../service/word/SaveMemo'
-import { deleteWord } from '../../service/word/DeleteWord'
-import { getPartOfSpeech } from '../../service/word/GetPartOfSpeech'
-import '../../styles/components/word/WordShow.css'
+import { Word, WordInfo, JapaneseMean } from '@/types/wordTypes'
+import { registerWord } from '@/service/word/RegisterWord'
+import { saveMemo } from '@/service/word/SaveMemo'
+import { deleteWord } from '@/service/word/DeleteWord'
+import { getPartOfSpeech } from '@/service/word/GetPartOfSpeech'
+import '@/styles/components/word/WordShow.css'
 
 const WordShow: React.FC = () => {
   const { id } = useParams()
@@ -26,6 +26,7 @@ const WordShow: React.FC = () => {
         setWord(response.data)
         setMemo(response.data.memo || '')
       } catch (error) {
+        console.error(error)
         alert('単語情報の取得中にエラーが発生しました。')
       } finally {
         setLoading(false)
@@ -83,6 +84,7 @@ const WordShow: React.FC = () => {
       }
       setTimeout(() => setSuccessMessage(''), 3000)
     } catch (error) {
+      console.error(error)
       alert('単語の登録中にエラーが発生しました。')
     }
   }
@@ -111,6 +113,7 @@ const WordShow: React.FC = () => {
         })
       }, 1500)
     } catch (error) {
+      console.error(error)
       setSuccessMessage('単語の削除に失敗しました。')
       setTimeout(() => setSuccessMessage(''), 3000)
     }
@@ -123,6 +126,7 @@ const WordShow: React.FC = () => {
       setSuccessMessage('メモを保存しました！')
       setTimeout(() => setSuccessMessage(''), 3000)
     } catch (error) {
+      console.error(error)
       alert('メモの保存中にエラーが発生しました。')
     }
   }

@@ -1,15 +1,45 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import axiosInstance from '../../axiosConfig'
-import { useTheme } from '../../context/ThemeContext'
+import { Link } from 'react-router-dom'
+import axiosInstance from '@/axiosConfig'
+import { useTheme } from '@/contexts/themeContext'
 
+
+type SettingResponse = {
+  is_line_auth: boolean;
+};
 
 const SignIn: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
+  const [lineAuthEnabled, setLineAuthEnabled] = useState<boolean>(false);
+  const [loadingSetting,  setLoadingSetting]  = useState<boolean>(true);
   const navigate = useNavigate()
   const { setTheme } = useTheme()
+
+  useEffect(() => {
+    let isMounted = true;                         // アンマウント対策
+
+    (async () => {
+      try {
+        const { data } = await axiosInstance.get<SettingResponse>(
+          '/setting/auth',
+        );
+        if (!isMounted) return;
+        setLineAuthEnabled(data.is_line_auth);
+      } catch(e) {
+        console.log(e)
+      } finally {
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        isMounted && setLoadingSetting(false);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [setTheme]);
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -21,16 +51,22 @@ const SignIn: React.FC = () => {
       const token = response.data.token
       localStorage.setItem('token', token)
       localStorage.setItem('logoutMessage', 'サインイン成功！')
-      const res = await axiosInstance.get('/setting/user_config')
-      setTheme(res.data.is_dark_mode ? 'dark' : 'light')
+      const { data } = await axiosInstance.get('/setting/user_config')
+      setTheme(data.Config.is_dark_mode ? 'dark' : 'light')
 
       setTimeout(() => {
         navigate('/mypage')
       })
-    } catch (error) {
+    } catch {
       setMessage('Sign in failed. Please try again.')
     }
   }
+
+  const handleLineLogin = () => {
+    window.location.href = `${import.meta.env.VITE_API_URL}/users/auth/line/login`;
+  };
+
+  if (loadingSetting) return <p>Loading…</p>;
 
   return (
     <div>
@@ -59,6 +95,18 @@ const SignIn: React.FC = () => {
         <button type="submit">サインイン</button>
       </form>
       {message && <p>{message}</p>}
+      <div>
+        {lineAuthEnabled && (
+          <button type="button" onClick={handleLineLogin}>
+            LINEでログイン
+          </button>
+        )}
+      </div>
+      <div>
+        <p>
+          <Link to="/sign_up">サインアップはここから！</Link>
+        </p>
+      </div>
     </div>
   )
 }

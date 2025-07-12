@@ -6,7 +6,7 @@ import App from './App'
 // import reportWebVitals from './reportWebVitals'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 // ダークモード等の切り替え用
-import { ThemeProvider } from './context/ThemeContext'
+import { ThemeProvider } from '@/contexts/ThemeProvider'
 
 // const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 const queryClient = new QueryClient()

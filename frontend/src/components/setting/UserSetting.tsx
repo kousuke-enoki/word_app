@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import axiosInstance from '../../axiosConfig'
-import '../../styles/components/setting/UserSetting.css'
-import { useTheme } from '../../context/ThemeContext'
+import axiosInstance from '@/axiosConfig'
+import '@/styles/components/setting/UserSetting.css'
+import { useTheme } from '@/contexts/themeContext'
 
 const UserSetting: React.FC = () => {
   const [initial, setInitial] = useState<{
@@ -19,12 +19,14 @@ const UserSetting: React.FC = () => {
     const fetchUserSettingData = async () => {
       try {
         const response = await axiosInstance.get('/setting/user_config')
-        SetIsDarkMode(response.data.is_dark_mode)
+        const config = response.data.Config
+        SetIsDarkMode(config.is_dark_mode)
         // 初期値を保持
-        setInitial({          
-          isDarkMode: response.data.is_dark_mode,
+        setInitial({
+          isDarkMode: config.is_dark_mode,
         })
       } catch (error) {
+        console.error(error)
         alert('ユーザー設定の取得中にエラーが発生しました。')
       }
     }

@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
-import axiosInstance from '../../axiosConfig'
+import axiosInstance from '@/axiosConfig'
 import {
   getPartOfSpeech,
   PartOfSpeechOption,
-} from '../../service/word/GetPartOfSpeech'
-import '../../styles/components/word/WordNew.css'
+} from '@/service/word/GetPartOfSpeech'
+import '@/styles/components/word/WordNew.css'
 
 export type WordForNew = {
   name: string
@@ -226,7 +226,11 @@ const WordNew: React.FC = () => {
       <h1>単語登録フォーム</h1>
       {/* エラーメッセージ */}
       {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
-      <form className="word-create-form" onSubmit={handleSubmit}>
+      <form 
+        aria-label="word-create-form"
+        className="word-create-form"
+        onSubmit={handleSubmit}
+      >
         <div>
           <label>
             単語名:

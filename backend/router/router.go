@@ -5,17 +5,20 @@ import (
 	"os"
 	"time"
 
-	"word_app/backend/src/handlers/middleware"
 	"word_app/backend/src/interfaces"
+	"word_app/backend/src/interfaces/http/auth"
+	middleware_interface "word_app/backend/src/interfaces/http/middleware"
+	"word_app/backend/src/interfaces/http/setting"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
 type RouterImplementation struct {
-	AuthHandler    interfaces.AuthHandler
+	JwtMiddleware  middleware_interface.JwtMiddleware
+	AuthHandler    auth.AuthHandler
 	UserHandler    interfaces.UserHandler
-	SettingHandler interfaces.SettingHandler
+	SettingHandler setting.SettingHandler
 	WordHandler    interfaces.WordHandler
 	QuizHandler    interfaces.QuizHandler
 	ResultHandler  interfaces.ResultHandler
@@ -23,9 +26,10 @@ type RouterImplementation struct {
 }
 
 func NewRouter(
-	authHandler interfaces.AuthHandler,
+	jwtMiddleware middleware_interface.JwtMiddleware,
+	authHandler auth.AuthHandler,
 	userHandler interfaces.UserHandler,
-	settingHandler interfaces.SettingHandler,
+	settingHandler setting.SettingHandler,
 	wordHandler interfaces.WordHandler,
 	quizHandler interfaces.QuizHandler,
 	resultHandler interfaces.ResultHandler,
@@ -36,6 +40,7 @@ func NewRouter(
 	}
 
 	return &RouterImplementation{
+		JwtMiddleware:  jwtMiddleware,
 		AuthHandler:    authHandler,
 		UserHandler:    userHandler,
 		SettingHandler: settingHandler,
@@ -49,7 +54,6 @@ func NewRouter(
 func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
 	router.Use(requestLoggerMiddleware())
 	router.Use(CORSMiddleware())
-
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "healthy"})
 	})
@@ -58,12 +62,20 @@ func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
 	{
 		userRoutes.POST("/sign_up", r.UserHandler.SignUpHandler())
 		userRoutes.POST("/sign_in", r.UserHandler.SignInHandler())
+		userRoutes.GET("/auth/line/login", r.AuthHandler.LineLogin())
+		userRoutes.GET("/auth/line/callback", r.AuthHandler.LineCallback())
+		userRoutes.POST("/auth/line/complete", r.AuthHandler.LineComplete())
+	}
+
+	SettingRoutes := router.Group("/setting")
+	{
+		SettingRoutes.GET("/auth", r.SettingHandler.GetAuthSettingHandler())
 	}
 
 	protectedRoutes := router.Group("/")
-	protectedRoutes.Use(middleware.AuthMiddleware())
+	protectedRoutes.Use(r.JwtMiddleware.AuthMiddleware())
 	{
-		protectedRoutes.GET("/auth/check", r.AuthHandler.AuthCheckHandler())
+		protectedRoutes.GET("/auth/check", r.JwtMiddleware.JwtCheckMiddleware())
 
 		protectedRoutes.GET("/users/my_page", r.UserHandler.MyPageHandler())
 		protectedRoutes.GET("/setting/user_config", r.SettingHandler.GetUserSettingHandler())

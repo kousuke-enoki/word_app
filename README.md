@@ -1,10 +1,11 @@
-# eng_backend
+# 初回
+.envを用意して./backend, ./frontend それぞれの直下に置く
+
 docker compose build
 
-bash start.sh development
+bash docker.sh up dev
 
-docker compose exec backend bash
-
+bash docker.sh import dev
 
 ## 環境起動コマンド
  docker.shで振り分け
@@ -25,11 +26,10 @@ bash docker.sh exec frontend prod
 bash docker.sh import prod
 
 
-## dockerキャッシュ削除
+## dockerキャッシュ削除して起動
 docker compose --env-file backend/.env.development down --volumes --rmi all
 docker compose build --no-cache
 bash docker.sh up dev
-<!-- bash docker.sh up dev -->
 
 # 実行中のコンテナを確認
 docker ps
@@ -57,11 +57,21 @@ ent/schema で作成
 #  generate (スキーマ作ったら)
 go generate ./ent
 
-# モック作成(mockery)
+# モック作成(mockery) (v3推奨、v2は何故か使用できなくなった)
 mockery(コンテナ内で)
+go install github.com/vektra/mockery/v3@v3.4.0
+
 go install github.com/vektra/mockery/v2@v2.43.2
 
-interfacesがあるディレクトリで
+# mockery v3使用方法
+.mockery.ymlに、新規interfaceのパッケージを追加
+
+bash docker.sh exec backend
+
+ルートで
+mockery
+
+# interfacesがあるディレクトリで（v2） 
 mockery --name=UserClient --output=./../mocks
 
 # goimport
@@ -76,6 +86,7 @@ golangci-lint run --verbose
 ## フロント
 
 #  eslint
+cd frontend
 npm run eslint
 
 # フロントエンドライブラリインストール

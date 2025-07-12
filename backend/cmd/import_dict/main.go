@@ -36,14 +36,14 @@ func main() {
 
 	// ★ 追加: スキーマを作成（存在すれば no‑op）
 	if err := cli.Schema.Create(context.Background()); err != nil {
-		log.Fatalln("schema create failed: %v", err)
+		log.Fatalf("schema create failed: %v", err)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	start := time.Now()
-	log.Println("JMdict import start (file=%s)", file)
+	log.Printf("JMdict import start (file=%s)", file)
 
 	// -------- インポート実行 --------
 	opts := dictimport.Options{
@@ -53,13 +53,13 @@ func main() {
 
 	errs, fatal := dictimport.ImportJMdict(ctx, file, cli, opts)
 	if fatal != nil {
-		log.Fatalln("import failed: %v", fatal)
+		log.Fatalf("import failed: %v", fatal)
 	}
 	log.Printf("import finished. failures=%d\n", len(errs))
 	for _, e := range errs {
 		log.Println(e.ID, e.Message)
 	}
 
-	log.Println("JMdict import completed in %s", time.Since(start))
+	log.Printf("JMdict import completed in %s", time.Since(start))
 	os.Exit(0)
 }

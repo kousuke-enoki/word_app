@@ -7,11 +7,6 @@ type Props = {
   onChangeAtten:   (row: ResultQuestion, lv: number)=>void;
 };
 
-export const setTheme = (dark: boolean) => {
-  const root = document.documentElement;
-  root.classList.toggle('dark', dark);
-};
-
 const ResultTable = ({ rows, onToggleRegister, onChangeAtten }: Props) => (
   <table className="rs-table">
     <thead>

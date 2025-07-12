@@ -2,15 +2,25 @@
 package setting
 
 import (
-	"word_app/backend/src/interfaces"
+	settingUc "word_app/backend/src/usecase/setting"
+
+	"github.com/gin-gonic/gin"
 )
 
-type SettingHandler struct {
-	settingService interfaces.SettingClient
+type AuthSettingHandler struct {
+	settingUsecase settingUc.SettingFacade
 }
 
-func NewSettingHandler(client interfaces.SettingClient) *SettingHandler {
-	return &SettingHandler{
-		settingService: client,
+func NewSettingHandler(client settingUc.SettingFacade) *AuthSettingHandler {
+	return &AuthSettingHandler{
+		settingUsecase: client,
 	}
+}
+
+type SettingHandler interface {
+	GetUserSettingHandler() gin.HandlerFunc
+	SaveUserSettingHandler() gin.HandlerFunc
+	GetRootSettingHandler() gin.HandlerFunc
+	SaveRootSettingHandler() gin.HandlerFunc
+	GetAuthSettingHandler() gin.HandlerFunc
 }

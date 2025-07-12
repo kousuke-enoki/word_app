@@ -21,3 +21,14 @@ backend/log/
 backup.sql
 backend/tmp/main
 backend/tmp/build-errors.log
+
+# # 環境変数ファイル
+backend/.env.development
+backend/.env.production
+backend/.env.staging
+backend/.env.staging
+frontend/.env.test
+.env.local
+# # IDEの設定ファイル
+.vscode/
+.DS_Store

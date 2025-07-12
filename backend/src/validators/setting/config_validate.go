@@ -2,9 +2,16 @@ package setting
 
 import (
 	"word_app/backend/src/models"
+	settingUc "word_app/backend/src/usecase/setting"
+
+	"github.com/sirupsen/logrus"
 )
 
-func ValidateRootConfig(req *models.RootConfig) []*models.FieldError {
+type SettingValidator interface {
+	ValidateRootConfig(SignUpRequest *settingUc.InputUpdateRootConfig) []*models.FieldError
+}
+
+func ValidateRootConfig(req *settingUc.InputUpdateRootConfig) []*models.FieldError {
 	var fieldErrors []*models.FieldError
 
 	// 各フィールドの検証を個別の関数に分割
@@ -20,6 +27,8 @@ func validateEditingPermissions(editingPermissions string) []*models.FieldError 
 		"admin": true,
 		"root":  true,
 	}
+	logrus.Info("editingPermissions")
+	logrus.Info(editingPermissions)
 	if !validRoles[editingPermissions] {
 		fieldErrors = append(fieldErrors, &models.FieldError{
 			Field:   "editing_permissions",

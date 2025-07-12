@@ -2,28 +2,16 @@ package main
 
 import (
 	"context"
-	"os"
 
 	"word_app/backend/config"
 	"word_app/backend/database"
 	"word_app/backend/ent/user"
+	"word_app/backend/internal/di"
 	"word_app/backend/logger"
 	routerConfig "word_app/backend/router"
 	"word_app/backend/seeder"
-	auth "word_app/backend/src/handlers/middleware"
-	"word_app/backend/src/handlers/quiz"
-	"word_app/backend/src/handlers/result"
-	settingHandler "word_app/backend/src/handlers/setting"
-	userHandler "word_app/backend/src/handlers/user"
-	"word_app/backend/src/handlers/word"
 	"word_app/backend/src/infrastructure"
 	"word_app/backend/src/interfaces"
-	quizService "word_app/backend/src/service/quiz"
-	resultService "word_app/backend/src/service/result"
-	settingService "word_app/backend/src/service/setting"
-	userService "word_app/backend/src/service/user"
-	wordService "word_app/backend/src/service/word"
-	"word_app/backend/src/utils"
 	"word_app/backend/src/validators"
 
 	"github.com/gin-contrib/cors"
@@ -40,6 +28,11 @@ func main() {
 
 // サーバーの初期化関数
 func initializeServer() {
+	defer func() {
+		if p := recover(); p != nil {
+			logrus.Fatalf("PANIC caught in main: %v\n", p)
+		}
+	}()
 	config.LoadEnv()
 
 	config.ConfigureGinMode()
@@ -48,7 +41,6 @@ func initializeServer() {
 	appEnv, appPort, corsOrigin := config.LoadAppConfig()
 	database.InitEntClient()
 	entClient := database.GetEntClient()
-	// entClient := connectToDatabase()
 	defer entClient.Close()
 
 	client := infrastructure.NewAppClient(entClient)
@@ -87,7 +79,6 @@ func setupDatabase(client interfaces.ClientInterface) {
 	}
 }
 
-// ルータのセットアップ
 func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engine {
 	router := gin.New()
 
@@ -100,34 +91,36 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 		AllowCredentials: true,
 	}))
 
-	// Handler の初期化
-	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
-		logrus.Fatal("JWT_SECRET environment variable is required")
+	// // Handler の初期化
+	// jwtSecret := os.Getenv("JWT_SECRET")
+	// if jwtSecret == "" {
+	// 	logrus.Fatal("JWT_SECRET environment variable is required")
+	// }
+	// jwtGen := jwt.NewMyJWTGenerator(jwtSecret)
+
+	// ルータのセットアップ
+	cfg := config.NewConfig() // ← env 読み取りなど 1 箇所に集約
+	repos := di.NewRepositories(client)
+	ucs, err := di.NewUseCases(cfg, repos)
+	if err != nil {
+		logrus.Fatal(err)
 	}
-	jwtGenerator := utils.NewMyJWTGenerator(jwtSecret)
-	entUserClient := userService.NewEntUserClient(client)
-	entSettingClient := settingService.NewEntSettingClient(client)
-	wordClient := wordService.NewWordService(client)
-	quizClient := quizService.NewQuizService(client)
-	resultClient := resultService.NewResultService(client)
-	userHandler := userHandler.NewUserHandler(entUserClient, jwtGenerator)
-	settingHandler := settingHandler.NewSettingHandler(entSettingClient)
 
-	wordHandler := word.NewWordHandler(wordClient)
-	quizHandler := quiz.NewQuizHandler(quizClient)
-	resultHandler := result.NewResultHandler(resultClient)
-	authHandler := auth.NewAuthHandler()
+	handlers := di.NewHandlers(cfg, ucs, client)
+	// jwtMw := jwtMwPkg.NewJwtMiddleware(cfg.JWTValidator)
+	// authClient := jwt.NewJWTValidator(jwtSecret, client)
+	// JwtMiddleware := JwtMiddlewarePackage.NewJwtMiddleware(authClient)
 
-	routerImpl := routerConfig.NewRouter(authHandler, userHandler, settingHandler, wordHandler, quizHandler, resultHandler)
+	routerImpl := routerConfig.NewRouter(
+		handlers.JWTMiD, handlers.Auth, handlers.User,
+		handlers.Setting, handlers.Word, handlers.Quiz, handlers.Result)
 	routerImpl.SetupRouter(router)
 	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
 		logrus.Fatalf("Failed to set trusted proxies: %v", err)
 	}
-	logrus.Info("Router setup completed")
 
 	validators.Init()
-	binding.Validator = &validators.GinValidator{validators.V}
+	binding.Validator = &validators.GinValidator{Validate: validators.V}
 
 	return router
 }

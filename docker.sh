@@ -1,39 +1,48 @@
-# コマンドリスト
-# bash docker.sh up dev
-# bash docker.sh up prod
-# bash docker.sh down dev
-# bash docker.sh down prod
-# bash docker.sh exec backend dev
-# bash docker.sh exec backend prod
-# bash docker.sh exec frontend dev
-# bash docker.sh exec frontend prod
-# bash docker.sh db dev
-# bash docker.sh db prod
-# bash docker.sh import dev
-# bash docker.sh import prod
+#!/usr/bin/env bash
+set -euo pipefail
 
-CMD="$1"            # up / down / exec / db / import
-TARGET="$2"         # backend / frontend / dev / prod など
-ENV_NAME="$2"       # import コマンドでは dev|prod がここに入る
-if [[ "$CMD" == "exec" ]]; then
-  ENV_NAME="$3"
-fi
+# ----------------------------------------
+# 使い方メモ
+# ----------------------------------------
+# bash docker.sh up dev|prod
+# bash docker.sh down dev|prod
+# bash docker.sh exec backend|frontend dev|prod
+# bash docker.sh db [dev|prod]        ← ここを改善
+# bash docker.sh import dev|prod
+# ----------------------------------------
 
-# .env ファイルの切替
-if [[ "$ENV_NAME" == "prod" || "$ENV_NAME" == "production" ]]; then
+CMD="${1:-}"          # up / down / exec / db / import
+TARGET="${2:-}"       # backend / frontend / dev / prod …
+ENV_NAME="${2:-dev}"  # dev をデフォルトに
+[[ "$CMD" == "exec" ]] && ENV_NAME="${3:-dev}"
+
+# .env 切替
+if [[ "$ENV_NAME" =~ ^(prod|production)$ ]]; then
   ENV_FILE="backend/.env.production"
 else
+  ENV_NAME="dev"
   ENV_FILE="backend/.env.development"
 fi
 
+# 開発時だけ確認しやすいように echo
+echo "[INFO] CMD=$CMD  TARGET=$TARGET  ENV=$ENV_NAME  ENV_FILE=$ENV_FILE"
+
+# -------------------------------------------------
+# 補助: .env からホスト環境変数へ取り込み
+# -------------------------------------------------
+if [[ -f "$ENV_FILE" ]]; then
+  # shellcheck disable=SC1090
+  set -o allexport
+  source "$ENV_FILE"
+  set +o allexport
+fi
+
+# -------------------------------------------------
+# コマンド本体
+# -------------------------------------------------
 case "$CMD" in
   up)
-    if [[ "$ENV_NAME" == "dev" ]]; then
-      docker compose --env-file "$ENV_FILE" up db backend frontend
-    else                       # prod
-      docker compose --env-file "$ENV_FILE" \
-        --profile import up -d db backend frontend   # import はプロファイル管理
-    fi
+    docker compose --env-file "$ENV_FILE" up db backend frontend
     ;;
 
   up_d)
@@ -45,25 +54,25 @@ case "$CMD" in
     ;;
 
   exec)
-    case "$TARGET" in
-      backend|frontend)
-        docker compose --env-file "$ENV_FILE" exec "$TARGET" bash
-        ;;
-      *)
-        echo "Usage: $0 exec {backend|frontend} {dev|prod}"
-        exit 1
-        ;;
-    esac
+    if [[ "$TARGET" =~ ^(backend|frontend)$ ]]; then
+      docker compose --env-file "$ENV_FILE" exec "$TARGET" bash
+    else
+      echo "Usage: $0 exec {backend|frontend} {dev|prod}"
+      exit 1
+    fi
     ;;
 
   db)
-    docker compose --env-file "$ENV_FILE" exec -it db psql -U "${DB_USER:-postgres}" -d "${DB_NAME:-postgres}"
+    # DB_USER / DB_NAME は .env に無ければ postgres / postgres
+    DB_USER="${DB_USER:-postgres}"
+    DB_NAME="${DB_NAME:-postgres}"
+    docker compose --env-file "$ENV_FILE" exec -it db \
+      psql -U "$DB_USER" -d "$DB_NAME"
     ;;
 
   import)
     docker compose --env-file "$ENV_FILE" up -d db
-    docker compose --env-file "$ENV_FILE" \
-      --profile import run --rm dict-import \
+    docker compose --env-file "$ENV_FILE" --profile import run --rm dict-import \
       -file=/data/jmdict.json -workers=4
     ;;
 
@@ -73,7 +82,7 @@ Usage:
   $0 up {dev|prod}
   $0 down {dev|prod}
   $0 exec {backend|frontend} {dev|prod}
-  $0 db {dev|prod}
+  $0 db [dev|prod]
   $0 import {dev|prod}
 EOF
     exit 1

@@ -13,6 +13,7 @@ import UserSetting from '../components/setting/UserSetting'
 import RootSetting from '../components/setting/RootSetting'
 import SignIn from '../components/user/SignIn'
 import SignUp from '../components/user/SignUp'
+import LineCallback from '../components/user/LineCallback'
 import WordNew from '../components/word/WordNew'
 import WordEdit from '../components/word/WordEdit'
 import WordList from '../components/word/WordList'
@@ -25,9 +26,14 @@ import ResultIndex  from '../components/result/ResultIndex';
 // import Dashboard from '../components/Dashboard';
 // import Footer from '../components/Footer';
 
+const routerFutureFlags = {
+  v7_startTransition : true,
+  v7_relativeSplatPath: true,
+}
+
 const AppRouter: React.FC = () => {
   return (
-    <Router>
+    <Router future={routerFutureFlags}>
       <Header />
       <Routes>
         {/* 未ログインのみアクセス可 */}
@@ -56,6 +62,14 @@ const AppRouter: React.FC = () => {
             </PublicRoute>
           }
         />
+        <Route
+          path="/line/callback"
+          element={
+            <PublicRoute>
+              <LineCallback />
+            </PublicRoute>
+          }
+        />
 
         {/* ログイン済みのみアクセス可 */}
         <Route
@@ -69,7 +83,7 @@ const AppRouter: React.FC = () => {
         <Route
           path="/user/userSetting"
           element={
-            <PrivateRoute requiredRole={'root'}>
+            <PrivateRoute requiredRole={'general'}>
               <UserSetting />
             </PrivateRoute>
           }

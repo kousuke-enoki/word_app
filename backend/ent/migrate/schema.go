@@ -8,6 +8,34 @@ import (
 )
 
 var (
+	// ExternalAuthsColumns holds the columns for the "external_auths" table.
+	ExternalAuthsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "provider", Type: field.TypeString},
+		{Name: "provider_user_id", Type: field.TypeString},
+		{Name: "user_external_auths", Type: field.TypeInt},
+	}
+	// ExternalAuthsTable holds the schema information for the "external_auths" table.
+	ExternalAuthsTable = &schema.Table{
+		Name:       "external_auths",
+		Columns:    ExternalAuthsColumns,
+		PrimaryKey: []*schema.Column{ExternalAuthsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "external_auths_users_external_auths",
+				Columns:    []*schema.Column{ExternalAuthsColumns[3]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "externalauth_provider_provider_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{ExternalAuthsColumns[1], ExternalAuthsColumns[2]},
+			},
+		},
+	}
 	// JapaneseMeansColumns holds the columns for the "japanese_means" table.
 	JapaneseMeansColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -172,7 +200,8 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "editing_permission", Type: field.TypeString, Default: "admin"},
 		{Name: "is_test_user_mode", Type: field.TypeBool, Default: false},
-		{Name: "is_email_authentication", Type: field.TypeBool, Default: false},
+		{Name: "is_email_authentication_check", Type: field.TypeBool, Default: false},
+		{Name: "is_line_authentication", Type: field.TypeBool, Default: false},
 	}
 	// RootConfigsTable holds the schema information for the "root_configs" table.
 	RootConfigsTable = &schema.Table{
@@ -264,6 +293,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		ExternalAuthsTable,
 		JapaneseMeansTable,
 		PartOfSpeechesTable,
 		QuizsTable,
@@ -278,6 +308,7 @@ var (
 )
 
 func init() {
+	ExternalAuthsTable.ForeignKeys[0].RefTable = UsersTable
 	JapaneseMeansTable.ForeignKeys[0].RefTable = WordInfosTable
 	QuizsTable.ForeignKeys[0].RefTable = UsersTable
 	QuizQuestionsTable.ForeignKeys[0].RefTable = JapaneseMeansTable

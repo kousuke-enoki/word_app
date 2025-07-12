@@ -1,6 +1,6 @@
 /* WordBulkRegister.tsx */
 import React, { useState, useMemo } from 'react'
-import axiosInstance from '../../axiosConfig'
+import axiosInstance from '@/axiosConfig'
 
 
 type Token = { word: string; checked: boolean }

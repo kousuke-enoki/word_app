@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useReducer } from 'react';
 import axiosInstance from '@/axiosConfig';
 import { ResultRes } from '@/types/quiz';

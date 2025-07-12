@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"word_app/backend/ent/externalauth"
 	"word_app/backend/ent/quiz"
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/user"
@@ -154,6 +155,21 @@ func (uc *UserCreate) SetNillableUserConfigID(id *int) *UserCreate {
 // SetUserConfig sets the "user_config" edge to the UserConfig entity.
 func (uc *UserCreate) SetUserConfig(u *UserConfig) *UserCreate {
 	return uc.SetUserConfigID(u.ID)
+}
+
+// AddExternalAuthIDs adds the "external_auths" edge to the ExternalAuth entity by IDs.
+func (uc *UserCreate) AddExternalAuthIDs(ids ...int) *UserCreate {
+	uc.mutation.AddExternalAuthIDs(ids...)
+	return uc
+}
+
+// AddExternalAuths adds the "external_auths" edges to the ExternalAuth entity.
+func (uc *UserCreate) AddExternalAuths(e ...*ExternalAuth) *UserCreate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return uc.AddExternalAuthIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -347,6 +363,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(userconfig.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.ExternalAuthsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ExternalAuthsTable,
+			Columns: []string{user.ExternalAuthsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(externalauth.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

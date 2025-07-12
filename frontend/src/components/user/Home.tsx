@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useTheme } from '../../context/ThemeContext'
+import { useTheme } from '@/contexts/themeContext'
 
 const Home: React.FC = () => {
   const [message, setMessage] = useState('')
@@ -8,22 +8,19 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     const logoutMessage = localStorage.getItem('logoutMessage')
-    setTheme('light') 
+    setTheme('light')   // 初期テーマを設定
     if (logoutMessage) {
       setMessage(logoutMessage)
       localStorage.removeItem('logoutMessage')
     }
-  }, [])
+  }, [setTheme])
 
   return (
     <div>
       <p>トップページです。</p>
       <p>{message}</p>
       <p>
-        <Link to="/sign_up">サインアップページ</Link>
-      </p>
-      <p>
-        <Link to="/sign_in">サインインページ</Link>
+        <Link to="/sign_in">サインインはここから！</Link>
       </p>
     </div>
   )

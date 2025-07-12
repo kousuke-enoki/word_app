@@ -2,13 +2,6 @@ package models
 
 import "time"
 
-// type CreateQuizRequest struct {
-// 	QuizCount       int    `json:"questionCount"`
-// 	TargetWords     string `json:"targetWordTypes"`
-// 	PartsOfSpeeches []int  `json:"partsOfSpeeches"`
-// 	UserID          int    `json:"userId"`
-// }
-
 type CreateQuizDTO struct {
 	QuestionCount       int   `json:"questionCount" validate:"required,min=10,max=100"`
 	IsSaveResult        bool  `json:"isSaveResult"`

@@ -49,7 +49,7 @@ func TestMyPageHandler(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		// レスポンスボディの内容を確認（小文字の"admin"と"name"に変更）
-		expectedResponse := `{"user":{"name":"Test User","admin":true}}`
+		expectedResponse := `{"user":{"id":0, "isAdmin":true, "isRoot":false, "name":"Test User"}}`
 		assert.JSONEq(t, expectedResponse, w.Body.String())
 
 		mockClient.AssertExpectations(t)

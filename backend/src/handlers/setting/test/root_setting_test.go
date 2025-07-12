@@ -2,115 +2,281 @@
 package setting_test
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
-	"word_app/backend/ent"
-	"word_app/backend/src/handlers/setting"
-	"word_app/backend/src/test"
-
-	"word_app/backend/src/mocks"
-	"word_app/backend/src/models"
-
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	"word_app/backend/ent"
+	"word_app/backend/src/domain"
+	settinghdlr "word_app/backend/src/handlers/setting"
+	mockSettingUc "word_app/backend/src/mocks/usecase/setting"
+	"word_app/backend/src/test"
+	settingUc "word_app/backend/src/usecase/setting"
 )
 
+/* -------------------------------------------------------------------------- */
+/*                               Use-case Mock                                */
+/* -------------------------------------------------------------------------- */
+
+type mockSettingUsecase struct{ mock.Mock }
+
+func (m *mockSettingUsecase) GetRoot(ctx context.Context, in settingUc.InputGetRootConfig) (*ent.RootConfig, error) {
+	args := m.Called(ctx, in)
+	cfg, _ := args.Get(0).(*ent.RootConfig)
+	return cfg, args.Error(1)
+}
+func (m *mockSettingUsecase) UpdateRoot(ctx context.Context, in settingUc.InputUpdateRootConfig) (*ent.RootConfig, error) {
+	args := m.Called(ctx, in)
+	cfg, _ := args.Get(0).(*ent.RootConfig)
+	return cfg, args.Error(1)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                        helpers (raw ctx when必要)                          */
+/* -------------------------------------------------------------------------- */
+
+func newRawCtx(method, path string, body []byte) (*gin.Context, *httptest.ResponseRecorder) {
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	var rdr *bytes.Reader
+	if body != nil {
+		rdr = bytes.NewReader(body)
+	} else {
+		rdr = bytes.NewReader(nil)
+	}
+	req, _ := http.NewRequest(method, path, rdr)
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	c.Request = req
+	return c, w
+}
+
+/* ========================================================================== */
+/*                         GetRootSettingHandler Tests                        */
+/* ========================================================================== */
+
 func TestGetRootSettingHandler(t *testing.T) {
-	t.Run("TestGetRootSettingHandler", func(t *testing.T) {
-		gin.SetMode(gin.TestMode)
-
-		mockSvc := new(mocks.SettingClient)
-		h := setting.NewSettingHandler(mockSvc)
-		rootCfg := &ent.RootConfig{
-			ID:                         1,
-			EditingPermission:          "admin",
-			IsTestUserMode:             false,
-			IsEmailAuthenticationCheck: false,
-			IsLineAuthentication:       false,
-		}
-		mockSvc.
-			On("GetRootConfig", mock.Anything, 99).
-			Return(rootCfg, nil)
-
-		c, w := test.NewTestCtx("GET", "/setting/root_config", nil)
-		test.InjectUser(c, 99, true) // root ユーザー
-		h.GetRootSettingHandler()(c)
-
-		assert.Equal(t, http.StatusOK, w.Code)
-		var got ent.RootConfig
-		_ = json.Unmarshal(w.Body.Bytes(), &got)
-		assert.Equal(t, rootCfg.EditingPermission, got.EditingPermission)
-	})
-
-	t.Run("TestGetRootSettingHandler_role_error", func(t *testing.T) {
-		gin.SetMode(gin.TestMode)
-
-		mockSvc := new(mocks.SettingClient)
-		h := setting.NewSettingHandler(mockSvc)
-		c2, w2 := test.NewTestCtx("GET", "/setting/root_config", nil)
-		test.InjectUser(c2, 50, false) // root ではない
-		h.GetRootSettingHandler()(c2)
-		assert.Equal(t, http.StatusUnauthorized, w2.Code)
-	})
 	gin.SetMode(gin.TestMode)
 
-	mockSvc := new(mocks.SettingClient)
-	h := setting.NewSettingHandler(mockSvc)
+	// successCfg := &ent.RootConfig{
+	// 	ID:                         1,
+	// 	EditingPermission:          "admin",
+	// 	IsTestUserMode:             false,
+	// 	IsEmailAuthenticationCheck: false,
+	// 	IsLineAuthentication:       false,
+	// }
+	successCfg := &domain.RootConfig{
+		ID: 1, EditingPermission: "admin",
+		IsTestUserMode: false, IsEmailAuthenticationCheck: false,
+		IsLineAuthentication: false,
+	}
+	tests := []struct {
+		name         string
+		injectUser   bool // true = use test.InjectUser
+		isRoot       bool // if injectUser
+		needUserID   bool // include userID but NO roles
+		mockBehavior func(*mockSettingUc.MockSettingFacade)
+		wantCode     int
+	}{
+		{
+			name:       "正常取得 (200)",
+			injectUser: true, isRoot: true,
+			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {
+				m.On("GetRoot", mock.Anything, mock.Anything).
+					Return(&settingUc.OutputGetRootConfig{Config: successCfg}, nil)
+			},
+			wantCode: http.StatusOK,
+		},
+		{
+			name:       "userID 無 (401)",
+			injectUser: false, needUserID: false,
+			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {},
+			wantCode:     http.StatusUnauthorized,
+		},
+		{
+			name:       "userRoles 取得失敗 (401)",
+			injectUser: false, needUserID: true,
+			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {},
+			wantCode:     http.StatusUnauthorized,
+		},
+		{
+			name:       "root 権限なし (401)",
+			injectUser: true, isRoot: false,
+			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {},
+			wantCode:     http.StatusUnauthorized,
+		},
+		{
+			name:       "usecase エラー (500)",
+			injectUser: true, isRoot: true,
+			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {
+				m.On("GetRoot", mock.Anything, mock.Anything).
+					Return(nil, errors.New("db err"))
+			},
+			wantCode: http.StatusInternalServerError,
+		},
+	}
 
-	t.Run("TestSaveRootSettingHandler", func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockUc := mockSettingUc.NewMockSettingFacade(t)
+			tt.mockBehavior(mockUc)
 
-		payload := models.RootConfig{
-			EditingPermission: "admin",
-			IsTestUserMode:    true,
-			IsEmailAuthCheck:  false,
-			IsLineAuth:        false,
-		}
-		updated := &ent.RootConfig{
-			ID:                         1,
-			EditingPermission:          "admin",
-			IsTestUserMode:             true,
-			IsEmailAuthenticationCheck: false,
-			IsLineAuthentication:       false,
-		}
-		mockSvc.
-			On("UpdateRootConfig", mock.Anything, 99, "admin", true, false, false).
-			Return(updated, nil)
-		c, w := test.NewTestCtx("POST", "/setting/root_config", payload)
-		test.InjectUser(c, 99, true)
-		h.SaveRootSettingHandler()(c)
+			h := settinghdlr.NewSettingHandler(mockUc)
 
-		assert.Equal(t, http.StatusOK, w.Code)
+			c, w := test.NewTestCtx("GET", "/setting/root_config", nil)
+			switch {
+			case tt.injectUser:
+				test.InjectUser(c, 99, tt.isRoot)
+			case tt.needUserID:
+				c.Set("userID", 99)
+				c.Set("isRoot", false)
+				c.Set("isAdmin", false)
+			}
 
+			h.GetRootSettingHandler()(c)
+			assert.Equal(t, tt.wantCode, w.Code)
+			if w.Code == http.StatusOK {
+				var got settingUc.OutputGetRootConfig
+				_ = json.Unmarshal(w.Body.Bytes(), &got)
+				logrus.Info("got:", got)
+				assert.Equal(t, successCfg.EditingPermission, got.Config.EditingPermission)
+			}
+			mockUc.AssertExpectations(t)
+		})
+	}
+}
+
+/* ========================================================================== */
+/*                        SaveRootSettingHandler Tests                        */
+/* ========================================================================== */
+
+func TestSaveRootSettingHandler(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	validJSON, _ := json.Marshal(map[string]interface{}{
+		"editing_permission":            "admin",
+		"is_test_user_mode":             true,
+		"is_email_authentication_check": false,
+		"is_line_authentication":        false,
 	})
-	t.Run("TestSaveRootSettingHandler_validation_error", func(t *testing.T) {
-		payload := models.RootConfig{
-			EditingPermission: "admin",
-			IsTestUserMode:    true,
-			IsEmailAuthCheck:  false,
-			IsLineAuth:        false,
-		}
-		bad := payload
-		bad.EditingPermission = "hacker"
-
-		c2, w2 := test.NewTestCtx("POST", "/setting/root_config", bad)
-		test.InjectUser(c2, 99, true)
-		h.SaveRootSettingHandler()(c2)
-		assert.Equal(t, http.StatusBadRequest, w2.Code)
-
+	invalidPermJSON, _ := json.Marshal(map[string]interface{}{
+		"editing_permission":            "hacker", // ← validation NG
+		"is_test_user_mode":             true,
+		"is_email_authentication_check": false,
+		"is_line_authentication":        false,
 	})
-	t.Run("TestSaveRootSettingHandler_role_error", func(t *testing.T) {
-		payload := models.RootConfig{
-			EditingPermission: "admin",
-			IsTestUserMode:    true,
-			IsEmailAuthCheck:  false,
-			IsLineAuth:        false,
-		}
-		c3, w3 := test.NewTestCtx("POST", "/setting/root_config", payload)
-		test.InjectUser(c3, 10, false) // root でない
-		h.SaveRootSettingHandler()(c3)
-		assert.Equal(t, http.StatusUnauthorized, w3.Code)
-	})
+
+	okCfg := &domain.RootConfig{
+		ID:                         1,
+		EditingPermission:          "admin",
+		IsTestUserMode:             true,
+		IsEmailAuthenticationCheck: false,
+		IsLineAuthentication:       false,
+	}
+
+	tests := []struct {
+		name         string
+		body         []byte
+		injectUser   bool
+		isRoot       bool
+		needUserID   bool // include userID but no roles
+		mockBehavior func(*mockSettingUc.MockSettingFacade)
+		wantCode     int
+	}{
+		{
+			name:       "正常更新 (200)",
+			body:       validJSON,
+			injectUser: true, isRoot: true,
+			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {
+				m.On("UpdateRoot", mock.Anything, mock.AnythingOfType("settingUc.InputUpdateRootConfig")).
+					Return(okCfg, nil)
+			},
+			wantCode: http.StatusOK,
+		},
+		{
+			name:         "userID 無 (401)",
+			body:         validJSON,
+			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {},
+			wantCode:     http.StatusUnauthorized,
+		},
+		{
+			name:         "userRoles 取得失敗 (401)",
+			body:         validJSON,
+			needUserID:   true,
+			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {},
+			wantCode:     http.StatusUnauthorized,
+		},
+		{
+			name:       "root 権限なし (401)",
+			body:       validJSON,
+			injectUser: true, isRoot: false,
+			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {},
+			wantCode:     http.StatusUnauthorized,
+		},
+		{
+			name:       "BindJSON エラー (400)",
+			body:       []byte("{invalid-json"),
+			injectUser: true, isRoot: true,
+			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {},
+			wantCode:     http.StatusBadRequest,
+		},
+		{
+			name:       "ValidateRootConfig エラー (400)",
+			body:       invalidPermJSON,
+			injectUser: true, isRoot: true,
+			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {},
+			wantCode:     http.StatusBadRequest,
+		},
+		{
+			name:       "usecase.UpdateRoot エラー (500)",
+			body:       validJSON,
+			injectUser: true, isRoot: true,
+			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {
+				m.On("UpdateRoot", mock.Anything, mock.Anything).
+					Return(nil, errors.New("db err"))
+			},
+			wantCode: http.StatusInternalServerError,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// mockUc := &mockSettingUsecase{}
+			// tt.mockBehavior(mockUc)
+
+			mockUc := mockSettingUc.NewMockSettingFacade(t)
+			tt.mockBehavior(mockUc) // ① 期待呼び出しを登録
+			h := settinghdlr.NewSettingHandler(mockUc)
+
+			c, w := newRawCtx("POST", "/setting/root_config", tt.body)
+			switch {
+			case tt.injectUser:
+				test.InjectUser(c, 99, tt.isRoot)
+			case tt.needUserID:
+				c.Set("userID", 99)
+				c.Set("isRoot", false)
+				c.Set("isAdmin", false)
+			}
+
+			h.SaveRootSettingHandler()(c)
+			assert.Equal(t, tt.wantCode, w.Code)
+
+			if w.Code == http.StatusOK {
+				var got domain.RootConfig // または ent.RootConfig
+				_ = json.Unmarshal(w.Body.Bytes(), &got)
+				assert.Equal(t, okCfg.IsTestUserMode, got.IsTestUserMode)
+			}
+			mockUc.AssertExpectations(t)
+		})
+	}
 }

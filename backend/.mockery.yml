@@ -1,0 +1,62 @@
+dir: '{{.InterfaceDir}}'
+filename: '{{.SrcPackageName}}_mock.go'
+force-file-write: true
+formatter: goimports
+log-level: info
+structname: '{{.Mock}}{{.InterfaceName}}'
+pkgname: '{{.SrcPackageName}}'
+recursive: false
+template: testify
+template-schema: '{{.Template}}.schema.json'
+all: true                            # パッケージ内すべての interface
+packages:
+
+  word_app/backend/src/interfaces/http/auth:
+    config:
+      dir: src/mocks/http/auth
+      recursive: false
+
+  word_app/backend/src/interfaces/http/middleware:
+    config:
+      dir: src/mocks/http/middleware
+      recursive: false
+
+  word_app/backend/src/interfaces/http/setting:
+    config:
+      dir: src/mocks/http/setting
+      recursive: false
+
+  word_app/backend/src/infrastructure/repository/auth:
+    config:
+      dir: src/mocks/infrastructure/repository/auth
+      recursive: false
+
+  word_app/backend/src/infrastructure/repository/user:
+    config:
+      dir: src/mocks/infrastructure/repository/user
+      recursive: false
+
+  word_app/backend/src/infrastructure/repository/setting:
+    config:
+      dir: src/mocks/infrastructure/repository/setting
+      recursive: false
+
+  word_app/backend/src/infrastructure/repository/tx:
+    config:
+      dir: src/mocks/infrastructure/repository/tx
+      recursive: false
+
+  word_app/backend/src/usecase/auth:
+    config:
+      dir: src/mocks/usecase/auth
+      recursive: false
+
+  word_app/backend/src/usecase/setting:
+    config:
+      dir: src/mocks/usecase/setting
+      recursive: false
+
+  word_app/backend/src/interfaces/service_interfaces:
+    config:
+      dir: src/mocks/service_interfaces
+      recursive: false

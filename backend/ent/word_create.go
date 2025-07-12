@@ -4,12 +4,15 @@ package ent
 
 import (
 	"context"
-	"eng_app/ent/word"
-	"eng_app/ent/wordinfo"
 	"errors"
 	"fmt"
 	"time"
+	"word_app/backend/ent/quizquestion"
+	"word_app/backend/ent/registeredword"
+	"word_app/backend/ent/word"
+	"word_app/backend/ent/wordinfo"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )
@@ -19,6 +22,7 @@ type WordCreate struct {
 	config
 	mutation *WordMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetName sets the "name" field.
@@ -28,8 +32,58 @@ func (wc *WordCreate) SetName(s string) *WordCreate {
 }
 
 // SetVoiceID sets the "voice_id" field.
-func (wc *WordCreate) SetVoiceID(i int) *WordCreate {
-	wc.mutation.SetVoiceID(i)
+func (wc *WordCreate) SetVoiceID(s string) *WordCreate {
+	wc.mutation.SetVoiceID(s)
+	return wc
+}
+
+// SetNillableVoiceID sets the "voice_id" field if the given value is not nil.
+func (wc *WordCreate) SetNillableVoiceID(s *string) *WordCreate {
+	if s != nil {
+		wc.SetVoiceID(*s)
+	}
+	return wc
+}
+
+// SetIsIdioms sets the "is_idioms" field.
+func (wc *WordCreate) SetIsIdioms(b bool) *WordCreate {
+	wc.mutation.SetIsIdioms(b)
+	return wc
+}
+
+// SetNillableIsIdioms sets the "is_idioms" field if the given value is not nil.
+func (wc *WordCreate) SetNillableIsIdioms(b *bool) *WordCreate {
+	if b != nil {
+		wc.SetIsIdioms(*b)
+	}
+	return wc
+}
+
+// SetIsSpecialCharacters sets the "is_special_characters" field.
+func (wc *WordCreate) SetIsSpecialCharacters(b bool) *WordCreate {
+	wc.mutation.SetIsSpecialCharacters(b)
+	return wc
+}
+
+// SetNillableIsSpecialCharacters sets the "is_special_characters" field if the given value is not nil.
+func (wc *WordCreate) SetNillableIsSpecialCharacters(b *bool) *WordCreate {
+	if b != nil {
+		wc.SetIsSpecialCharacters(*b)
+	}
+	return wc
+}
+
+// SetRegistrationCount sets the "registration_count" field.
+func (wc *WordCreate) SetRegistrationCount(i int) *WordCreate {
+	wc.mutation.SetRegistrationCount(i)
+	return wc
+}
+
+// SetNillableRegistrationCount sets the "registration_count" field if the given value is not nil.
+func (wc *WordCreate) SetNillableRegistrationCount(i *int) *WordCreate {
+	if i != nil {
+		wc.SetRegistrationCount(*i)
+	}
 	return wc
 }
 
@@ -76,6 +130,36 @@ func (wc *WordCreate) AddWordInfos(w ...*WordInfo) *WordCreate {
 	return wc.AddWordInfoIDs(ids...)
 }
 
+// AddRegisteredWordIDs adds the "registered_words" edge to the RegisteredWord entity by IDs.
+func (wc *WordCreate) AddRegisteredWordIDs(ids ...int) *WordCreate {
+	wc.mutation.AddRegisteredWordIDs(ids...)
+	return wc
+}
+
+// AddRegisteredWords adds the "registered_words" edges to the RegisteredWord entity.
+func (wc *WordCreate) AddRegisteredWords(r ...*RegisteredWord) *WordCreate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return wc.AddRegisteredWordIDs(ids...)
+}
+
+// AddQuizQuestionIDs adds the "quiz_questions" edge to the QuizQuestion entity by IDs.
+func (wc *WordCreate) AddQuizQuestionIDs(ids ...int) *WordCreate {
+	wc.mutation.AddQuizQuestionIDs(ids...)
+	return wc
+}
+
+// AddQuizQuestions adds the "quiz_questions" edges to the QuizQuestion entity.
+func (wc *WordCreate) AddQuizQuestions(q ...*QuizQuestion) *WordCreate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return wc.AddQuizQuestionIDs(ids...)
+}
+
 // Mutation returns the WordMutation object of the builder.
 func (wc *WordCreate) Mutation() *WordMutation {
 	return wc.mutation
@@ -111,6 +195,18 @@ func (wc *WordCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (wc *WordCreate) defaults() {
+	if _, ok := wc.mutation.IsIdioms(); !ok {
+		v := word.DefaultIsIdioms
+		wc.mutation.SetIsIdioms(v)
+	}
+	if _, ok := wc.mutation.IsSpecialCharacters(); !ok {
+		v := word.DefaultIsSpecialCharacters
+		wc.mutation.SetIsSpecialCharacters(v)
+	}
+	if _, ok := wc.mutation.RegistrationCount(); !ok {
+		v := word.DefaultRegistrationCount
+		wc.mutation.SetRegistrationCount(v)
+	}
 	if _, ok := wc.mutation.CreatedAt(); !ok {
 		v := word.DefaultCreatedAt()
 		wc.mutation.SetCreatedAt(v)
@@ -131,13 +227,14 @@ func (wc *WordCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Word.name": %w`, err)}
 		}
 	}
-	if _, ok := wc.mutation.VoiceID(); !ok {
-		return &ValidationError{Name: "voice_id", err: errors.New(`ent: missing required field "Word.voice_id"`)}
+	if _, ok := wc.mutation.IsIdioms(); !ok {
+		return &ValidationError{Name: "is_idioms", err: errors.New(`ent: missing required field "Word.is_idioms"`)}
 	}
-	if v, ok := wc.mutation.VoiceID(); ok {
-		if err := word.VoiceIDValidator(v); err != nil {
-			return &ValidationError{Name: "voice_id", err: fmt.Errorf(`ent: validator failed for field "Word.voice_id": %w`, err)}
-		}
+	if _, ok := wc.mutation.IsSpecialCharacters(); !ok {
+		return &ValidationError{Name: "is_special_characters", err: errors.New(`ent: missing required field "Word.is_special_characters"`)}
+	}
+	if _, ok := wc.mutation.RegistrationCount(); !ok {
+		return &ValidationError{Name: "registration_count", err: errors.New(`ent: missing required field "Word.registration_count"`)}
 	}
 	if _, ok := wc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Word.created_at"`)}
@@ -171,13 +268,26 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 		_node = &Word{config: wc.config}
 		_spec = sqlgraph.NewCreateSpec(word.Table, sqlgraph.NewFieldSpec(word.FieldID, field.TypeInt))
 	)
+	_spec.OnConflict = wc.conflict
 	if value, ok := wc.mutation.Name(); ok {
 		_spec.SetField(word.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if value, ok := wc.mutation.VoiceID(); ok {
-		_spec.SetField(word.FieldVoiceID, field.TypeInt, value)
-		_node.VoiceID = value
+		_spec.SetField(word.FieldVoiceID, field.TypeString, value)
+		_node.VoiceID = &value
+	}
+	if value, ok := wc.mutation.IsIdioms(); ok {
+		_spec.SetField(word.FieldIsIdioms, field.TypeBool, value)
+		_node.IsIdioms = value
+	}
+	if value, ok := wc.mutation.IsSpecialCharacters(); ok {
+		_spec.SetField(word.FieldIsSpecialCharacters, field.TypeBool, value)
+		_node.IsSpecialCharacters = value
+	}
+	if value, ok := wc.mutation.RegistrationCount(); ok {
+		_spec.SetField(word.FieldRegistrationCount, field.TypeInt, value)
+		_node.RegistrationCount = value
 	}
 	if value, ok := wc.mutation.CreatedAt(); ok {
 		_spec.SetField(word.FieldCreatedAt, field.TypeTime, value)
@@ -203,7 +313,369 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := wc.mutation.RegisteredWordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.RegisteredWordsTable,
+			Columns: []string{word.RegisteredWordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(registeredword.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := wc.mutation.QuizQuestionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   word.QuizQuestionsTable,
+			Columns: []string{word.QuizQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Word.Create().
+//		SetName(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.WordUpsert) {
+//			SetName(v+v).
+//		}).
+//		Exec(ctx)
+func (wc *WordCreate) OnConflict(opts ...sql.ConflictOption) *WordUpsertOne {
+	wc.conflict = opts
+	return &WordUpsertOne{
+		create: wc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Word.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (wc *WordCreate) OnConflictColumns(columns ...string) *WordUpsertOne {
+	wc.conflict = append(wc.conflict, sql.ConflictColumns(columns...))
+	return &WordUpsertOne{
+		create: wc,
+	}
+}
+
+type (
+	// WordUpsertOne is the builder for "upsert"-ing
+	//  one Word node.
+	WordUpsertOne struct {
+		create *WordCreate
+	}
+
+	// WordUpsert is the "OnConflict" setter.
+	WordUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetName sets the "name" field.
+func (u *WordUpsert) SetName(v string) *WordUpsert {
+	u.Set(word.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *WordUpsert) UpdateName() *WordUpsert {
+	u.SetExcluded(word.FieldName)
+	return u
+}
+
+// SetVoiceID sets the "voice_id" field.
+func (u *WordUpsert) SetVoiceID(v string) *WordUpsert {
+	u.Set(word.FieldVoiceID, v)
+	return u
+}
+
+// UpdateVoiceID sets the "voice_id" field to the value that was provided on create.
+func (u *WordUpsert) UpdateVoiceID() *WordUpsert {
+	u.SetExcluded(word.FieldVoiceID)
+	return u
+}
+
+// ClearVoiceID clears the value of the "voice_id" field.
+func (u *WordUpsert) ClearVoiceID() *WordUpsert {
+	u.SetNull(word.FieldVoiceID)
+	return u
+}
+
+// SetIsIdioms sets the "is_idioms" field.
+func (u *WordUpsert) SetIsIdioms(v bool) *WordUpsert {
+	u.Set(word.FieldIsIdioms, v)
+	return u
+}
+
+// UpdateIsIdioms sets the "is_idioms" field to the value that was provided on create.
+func (u *WordUpsert) UpdateIsIdioms() *WordUpsert {
+	u.SetExcluded(word.FieldIsIdioms)
+	return u
+}
+
+// SetIsSpecialCharacters sets the "is_special_characters" field.
+func (u *WordUpsert) SetIsSpecialCharacters(v bool) *WordUpsert {
+	u.Set(word.FieldIsSpecialCharacters, v)
+	return u
+}
+
+// UpdateIsSpecialCharacters sets the "is_special_characters" field to the value that was provided on create.
+func (u *WordUpsert) UpdateIsSpecialCharacters() *WordUpsert {
+	u.SetExcluded(word.FieldIsSpecialCharacters)
+	return u
+}
+
+// SetRegistrationCount sets the "registration_count" field.
+func (u *WordUpsert) SetRegistrationCount(v int) *WordUpsert {
+	u.Set(word.FieldRegistrationCount, v)
+	return u
+}
+
+// UpdateRegistrationCount sets the "registration_count" field to the value that was provided on create.
+func (u *WordUpsert) UpdateRegistrationCount() *WordUpsert {
+	u.SetExcluded(word.FieldRegistrationCount)
+	return u
+}
+
+// AddRegistrationCount adds v to the "registration_count" field.
+func (u *WordUpsert) AddRegistrationCount(v int) *WordUpsert {
+	u.Add(word.FieldRegistrationCount, v)
+	return u
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *WordUpsert) SetCreatedAt(v time.Time) *WordUpsert {
+	u.Set(word.FieldCreatedAt, v)
+	return u
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *WordUpsert) UpdateCreatedAt() *WordUpsert {
+	u.SetExcluded(word.FieldCreatedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *WordUpsert) SetUpdatedAt(v time.Time) *WordUpsert {
+	u.Set(word.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *WordUpsert) UpdateUpdatedAt() *WordUpsert {
+	u.SetExcluded(word.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// Using this option is equivalent to using:
+//
+//	client.Word.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *WordUpsertOne) UpdateNewValues() *WordUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Word.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *WordUpsertOne) Ignore() *WordUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *WordUpsertOne) DoNothing() *WordUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the WordCreate.OnConflict
+// documentation for more info.
+func (u *WordUpsertOne) Update(set func(*WordUpsert)) *WordUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&WordUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *WordUpsertOne) SetName(v string) *WordUpsertOne {
+	return u.Update(func(s *WordUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *WordUpsertOne) UpdateName() *WordUpsertOne {
+	return u.Update(func(s *WordUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetVoiceID sets the "voice_id" field.
+func (u *WordUpsertOne) SetVoiceID(v string) *WordUpsertOne {
+	return u.Update(func(s *WordUpsert) {
+		s.SetVoiceID(v)
+	})
+}
+
+// UpdateVoiceID sets the "voice_id" field to the value that was provided on create.
+func (u *WordUpsertOne) UpdateVoiceID() *WordUpsertOne {
+	return u.Update(func(s *WordUpsert) {
+		s.UpdateVoiceID()
+	})
+}
+
+// ClearVoiceID clears the value of the "voice_id" field.
+func (u *WordUpsertOne) ClearVoiceID() *WordUpsertOne {
+	return u.Update(func(s *WordUpsert) {
+		s.ClearVoiceID()
+	})
+}
+
+// SetIsIdioms sets the "is_idioms" field.
+func (u *WordUpsertOne) SetIsIdioms(v bool) *WordUpsertOne {
+	return u.Update(func(s *WordUpsert) {
+		s.SetIsIdioms(v)
+	})
+}
+
+// UpdateIsIdioms sets the "is_idioms" field to the value that was provided on create.
+func (u *WordUpsertOne) UpdateIsIdioms() *WordUpsertOne {
+	return u.Update(func(s *WordUpsert) {
+		s.UpdateIsIdioms()
+	})
+}
+
+// SetIsSpecialCharacters sets the "is_special_characters" field.
+func (u *WordUpsertOne) SetIsSpecialCharacters(v bool) *WordUpsertOne {
+	return u.Update(func(s *WordUpsert) {
+		s.SetIsSpecialCharacters(v)
+	})
+}
+
+// UpdateIsSpecialCharacters sets the "is_special_characters" field to the value that was provided on create.
+func (u *WordUpsertOne) UpdateIsSpecialCharacters() *WordUpsertOne {
+	return u.Update(func(s *WordUpsert) {
+		s.UpdateIsSpecialCharacters()
+	})
+}
+
+// SetRegistrationCount sets the "registration_count" field.
+func (u *WordUpsertOne) SetRegistrationCount(v int) *WordUpsertOne {
+	return u.Update(func(s *WordUpsert) {
+		s.SetRegistrationCount(v)
+	})
+}
+
+// AddRegistrationCount adds v to the "registration_count" field.
+func (u *WordUpsertOne) AddRegistrationCount(v int) *WordUpsertOne {
+	return u.Update(func(s *WordUpsert) {
+		s.AddRegistrationCount(v)
+	})
+}
+
+// UpdateRegistrationCount sets the "registration_count" field to the value that was provided on create.
+func (u *WordUpsertOne) UpdateRegistrationCount() *WordUpsertOne {
+	return u.Update(func(s *WordUpsert) {
+		s.UpdateRegistrationCount()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *WordUpsertOne) SetCreatedAt(v time.Time) *WordUpsertOne {
+	return u.Update(func(s *WordUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *WordUpsertOne) UpdateCreatedAt() *WordUpsertOne {
+	return u.Update(func(s *WordUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *WordUpsertOne) SetUpdatedAt(v time.Time) *WordUpsertOne {
+	return u.Update(func(s *WordUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *WordUpsertOne) UpdateUpdatedAt() *WordUpsertOne {
+	return u.Update(func(s *WordUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *WordUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for WordCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *WordUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *WordUpsertOne) ID(ctx context.Context) (id int, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *WordUpsertOne) IDX(ctx context.Context) int {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
 }
 
 // WordCreateBulk is the builder for creating many Word entities in bulk.
@@ -211,6 +683,7 @@ type WordCreateBulk struct {
 	config
 	err      error
 	builders []*WordCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Word entities in the database.
@@ -240,6 +713,7 @@ func (wcb *WordCreateBulk) Save(ctx context.Context) ([]*Word, error) {
 					_, err = mutators[i+1].Mutate(root, wcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = wcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, wcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -290,6 +764,222 @@ func (wcb *WordCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (wcb *WordCreateBulk) ExecX(ctx context.Context) {
 	if err := wcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Word.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.WordUpsert) {
+//			SetName(v+v).
+//		}).
+//		Exec(ctx)
+func (wcb *WordCreateBulk) OnConflict(opts ...sql.ConflictOption) *WordUpsertBulk {
+	wcb.conflict = opts
+	return &WordUpsertBulk{
+		create: wcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Word.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (wcb *WordCreateBulk) OnConflictColumns(columns ...string) *WordUpsertBulk {
+	wcb.conflict = append(wcb.conflict, sql.ConflictColumns(columns...))
+	return &WordUpsertBulk{
+		create: wcb,
+	}
+}
+
+// WordUpsertBulk is the builder for "upsert"-ing
+// a bulk of Word nodes.
+type WordUpsertBulk struct {
+	create *WordCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Word.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *WordUpsertBulk) UpdateNewValues() *WordUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Word.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *WordUpsertBulk) Ignore() *WordUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *WordUpsertBulk) DoNothing() *WordUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the WordCreateBulk.OnConflict
+// documentation for more info.
+func (u *WordUpsertBulk) Update(set func(*WordUpsert)) *WordUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&WordUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *WordUpsertBulk) SetName(v string) *WordUpsertBulk {
+	return u.Update(func(s *WordUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *WordUpsertBulk) UpdateName() *WordUpsertBulk {
+	return u.Update(func(s *WordUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetVoiceID sets the "voice_id" field.
+func (u *WordUpsertBulk) SetVoiceID(v string) *WordUpsertBulk {
+	return u.Update(func(s *WordUpsert) {
+		s.SetVoiceID(v)
+	})
+}
+
+// UpdateVoiceID sets the "voice_id" field to the value that was provided on create.
+func (u *WordUpsertBulk) UpdateVoiceID() *WordUpsertBulk {
+	return u.Update(func(s *WordUpsert) {
+		s.UpdateVoiceID()
+	})
+}
+
+// ClearVoiceID clears the value of the "voice_id" field.
+func (u *WordUpsertBulk) ClearVoiceID() *WordUpsertBulk {
+	return u.Update(func(s *WordUpsert) {
+		s.ClearVoiceID()
+	})
+}
+
+// SetIsIdioms sets the "is_idioms" field.
+func (u *WordUpsertBulk) SetIsIdioms(v bool) *WordUpsertBulk {
+	return u.Update(func(s *WordUpsert) {
+		s.SetIsIdioms(v)
+	})
+}
+
+// UpdateIsIdioms sets the "is_idioms" field to the value that was provided on create.
+func (u *WordUpsertBulk) UpdateIsIdioms() *WordUpsertBulk {
+	return u.Update(func(s *WordUpsert) {
+		s.UpdateIsIdioms()
+	})
+}
+
+// SetIsSpecialCharacters sets the "is_special_characters" field.
+func (u *WordUpsertBulk) SetIsSpecialCharacters(v bool) *WordUpsertBulk {
+	return u.Update(func(s *WordUpsert) {
+		s.SetIsSpecialCharacters(v)
+	})
+}
+
+// UpdateIsSpecialCharacters sets the "is_special_characters" field to the value that was provided on create.
+func (u *WordUpsertBulk) UpdateIsSpecialCharacters() *WordUpsertBulk {
+	return u.Update(func(s *WordUpsert) {
+		s.UpdateIsSpecialCharacters()
+	})
+}
+
+// SetRegistrationCount sets the "registration_count" field.
+func (u *WordUpsertBulk) SetRegistrationCount(v int) *WordUpsertBulk {
+	return u.Update(func(s *WordUpsert) {
+		s.SetRegistrationCount(v)
+	})
+}
+
+// AddRegistrationCount adds v to the "registration_count" field.
+func (u *WordUpsertBulk) AddRegistrationCount(v int) *WordUpsertBulk {
+	return u.Update(func(s *WordUpsert) {
+		s.AddRegistrationCount(v)
+	})
+}
+
+// UpdateRegistrationCount sets the "registration_count" field to the value that was provided on create.
+func (u *WordUpsertBulk) UpdateRegistrationCount() *WordUpsertBulk {
+	return u.Update(func(s *WordUpsert) {
+		s.UpdateRegistrationCount()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *WordUpsertBulk) SetCreatedAt(v time.Time) *WordUpsertBulk {
+	return u.Update(func(s *WordUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *WordUpsertBulk) UpdateCreatedAt() *WordUpsertBulk {
+	return u.Update(func(s *WordUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *WordUpsertBulk) SetUpdatedAt(v time.Time) *WordUpsertBulk {
+	return u.Update(func(s *WordUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *WordUpsertBulk) UpdateUpdatedAt() *WordUpsertBulk {
+	return u.Update(func(s *WordUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *WordUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the WordCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for WordCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *WordUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

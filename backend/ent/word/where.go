@@ -3,8 +3,8 @@
 package word
 
 import (
-	"eng_app/ent/predicate"
 	"time"
+	"word_app/backend/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -61,8 +61,23 @@ func Name(v string) predicate.Word {
 }
 
 // VoiceID applies equality check predicate on the "voice_id" field. It's identical to VoiceIDEQ.
-func VoiceID(v int) predicate.Word {
+func VoiceID(v string) predicate.Word {
 	return predicate.Word(sql.FieldEQ(FieldVoiceID, v))
+}
+
+// IsIdioms applies equality check predicate on the "is_idioms" field. It's identical to IsIdiomsEQ.
+func IsIdioms(v bool) predicate.Word {
+	return predicate.Word(sql.FieldEQ(FieldIsIdioms, v))
+}
+
+// IsSpecialCharacters applies equality check predicate on the "is_special_characters" field. It's identical to IsSpecialCharactersEQ.
+func IsSpecialCharacters(v bool) predicate.Word {
+	return predicate.Word(sql.FieldEQ(FieldIsSpecialCharacters, v))
+}
+
+// RegistrationCount applies equality check predicate on the "registration_count" field. It's identical to RegistrationCountEQ.
+func RegistrationCount(v int) predicate.Word {
+	return predicate.Word(sql.FieldEQ(FieldRegistrationCount, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -141,43 +156,138 @@ func NameContainsFold(v string) predicate.Word {
 }
 
 // VoiceIDEQ applies the EQ predicate on the "voice_id" field.
-func VoiceIDEQ(v int) predicate.Word {
+func VoiceIDEQ(v string) predicate.Word {
 	return predicate.Word(sql.FieldEQ(FieldVoiceID, v))
 }
 
 // VoiceIDNEQ applies the NEQ predicate on the "voice_id" field.
-func VoiceIDNEQ(v int) predicate.Word {
+func VoiceIDNEQ(v string) predicate.Word {
 	return predicate.Word(sql.FieldNEQ(FieldVoiceID, v))
 }
 
 // VoiceIDIn applies the In predicate on the "voice_id" field.
-func VoiceIDIn(vs ...int) predicate.Word {
+func VoiceIDIn(vs ...string) predicate.Word {
 	return predicate.Word(sql.FieldIn(FieldVoiceID, vs...))
 }
 
 // VoiceIDNotIn applies the NotIn predicate on the "voice_id" field.
-func VoiceIDNotIn(vs ...int) predicate.Word {
+func VoiceIDNotIn(vs ...string) predicate.Word {
 	return predicate.Word(sql.FieldNotIn(FieldVoiceID, vs...))
 }
 
 // VoiceIDGT applies the GT predicate on the "voice_id" field.
-func VoiceIDGT(v int) predicate.Word {
+func VoiceIDGT(v string) predicate.Word {
 	return predicate.Word(sql.FieldGT(FieldVoiceID, v))
 }
 
 // VoiceIDGTE applies the GTE predicate on the "voice_id" field.
-func VoiceIDGTE(v int) predicate.Word {
+func VoiceIDGTE(v string) predicate.Word {
 	return predicate.Word(sql.FieldGTE(FieldVoiceID, v))
 }
 
 // VoiceIDLT applies the LT predicate on the "voice_id" field.
-func VoiceIDLT(v int) predicate.Word {
+func VoiceIDLT(v string) predicate.Word {
 	return predicate.Word(sql.FieldLT(FieldVoiceID, v))
 }
 
 // VoiceIDLTE applies the LTE predicate on the "voice_id" field.
-func VoiceIDLTE(v int) predicate.Word {
+func VoiceIDLTE(v string) predicate.Word {
 	return predicate.Word(sql.FieldLTE(FieldVoiceID, v))
+}
+
+// VoiceIDContains applies the Contains predicate on the "voice_id" field.
+func VoiceIDContains(v string) predicate.Word {
+	return predicate.Word(sql.FieldContains(FieldVoiceID, v))
+}
+
+// VoiceIDHasPrefix applies the HasPrefix predicate on the "voice_id" field.
+func VoiceIDHasPrefix(v string) predicate.Word {
+	return predicate.Word(sql.FieldHasPrefix(FieldVoiceID, v))
+}
+
+// VoiceIDHasSuffix applies the HasSuffix predicate on the "voice_id" field.
+func VoiceIDHasSuffix(v string) predicate.Word {
+	return predicate.Word(sql.FieldHasSuffix(FieldVoiceID, v))
+}
+
+// VoiceIDIsNil applies the IsNil predicate on the "voice_id" field.
+func VoiceIDIsNil() predicate.Word {
+	return predicate.Word(sql.FieldIsNull(FieldVoiceID))
+}
+
+// VoiceIDNotNil applies the NotNil predicate on the "voice_id" field.
+func VoiceIDNotNil() predicate.Word {
+	return predicate.Word(sql.FieldNotNull(FieldVoiceID))
+}
+
+// VoiceIDEqualFold applies the EqualFold predicate on the "voice_id" field.
+func VoiceIDEqualFold(v string) predicate.Word {
+	return predicate.Word(sql.FieldEqualFold(FieldVoiceID, v))
+}
+
+// VoiceIDContainsFold applies the ContainsFold predicate on the "voice_id" field.
+func VoiceIDContainsFold(v string) predicate.Word {
+	return predicate.Word(sql.FieldContainsFold(FieldVoiceID, v))
+}
+
+// IsIdiomsEQ applies the EQ predicate on the "is_idioms" field.
+func IsIdiomsEQ(v bool) predicate.Word {
+	return predicate.Word(sql.FieldEQ(FieldIsIdioms, v))
+}
+
+// IsIdiomsNEQ applies the NEQ predicate on the "is_idioms" field.
+func IsIdiomsNEQ(v bool) predicate.Word {
+	return predicate.Word(sql.FieldNEQ(FieldIsIdioms, v))
+}
+
+// IsSpecialCharactersEQ applies the EQ predicate on the "is_special_characters" field.
+func IsSpecialCharactersEQ(v bool) predicate.Word {
+	return predicate.Word(sql.FieldEQ(FieldIsSpecialCharacters, v))
+}
+
+// IsSpecialCharactersNEQ applies the NEQ predicate on the "is_special_characters" field.
+func IsSpecialCharactersNEQ(v bool) predicate.Word {
+	return predicate.Word(sql.FieldNEQ(FieldIsSpecialCharacters, v))
+}
+
+// RegistrationCountEQ applies the EQ predicate on the "registration_count" field.
+func RegistrationCountEQ(v int) predicate.Word {
+	return predicate.Word(sql.FieldEQ(FieldRegistrationCount, v))
+}
+
+// RegistrationCountNEQ applies the NEQ predicate on the "registration_count" field.
+func RegistrationCountNEQ(v int) predicate.Word {
+	return predicate.Word(sql.FieldNEQ(FieldRegistrationCount, v))
+}
+
+// RegistrationCountIn applies the In predicate on the "registration_count" field.
+func RegistrationCountIn(vs ...int) predicate.Word {
+	return predicate.Word(sql.FieldIn(FieldRegistrationCount, vs...))
+}
+
+// RegistrationCountNotIn applies the NotIn predicate on the "registration_count" field.
+func RegistrationCountNotIn(vs ...int) predicate.Word {
+	return predicate.Word(sql.FieldNotIn(FieldRegistrationCount, vs...))
+}
+
+// RegistrationCountGT applies the GT predicate on the "registration_count" field.
+func RegistrationCountGT(v int) predicate.Word {
+	return predicate.Word(sql.FieldGT(FieldRegistrationCount, v))
+}
+
+// RegistrationCountGTE applies the GTE predicate on the "registration_count" field.
+func RegistrationCountGTE(v int) predicate.Word {
+	return predicate.Word(sql.FieldGTE(FieldRegistrationCount, v))
+}
+
+// RegistrationCountLT applies the LT predicate on the "registration_count" field.
+func RegistrationCountLT(v int) predicate.Word {
+	return predicate.Word(sql.FieldLT(FieldRegistrationCount, v))
+}
+
+// RegistrationCountLTE applies the LTE predicate on the "registration_count" field.
+func RegistrationCountLTE(v int) predicate.Word {
+	return predicate.Word(sql.FieldLTE(FieldRegistrationCount, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -275,6 +385,52 @@ func HasWordInfos() predicate.Word {
 func HasWordInfosWith(preds ...predicate.WordInfo) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
 		step := newWordInfosStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRegisteredWords applies the HasEdge predicate on the "registered_words" edge.
+func HasRegisteredWords() predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RegisteredWordsTable, RegisteredWordsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRegisteredWordsWith applies the HasEdge predicate on the "registered_words" edge with a given conditions (other predicates).
+func HasRegisteredWordsWith(preds ...predicate.RegisteredWord) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		step := newRegisteredWordsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasQuizQuestions applies the HasEdge predicate on the "quiz_questions" edge.
+func HasQuizQuestions() predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, QuizQuestionsTable, QuizQuestionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasQuizQuestionsWith applies the HasEdge predicate on the "quiz_questions" edge with a given conditions (other predicates).
+func HasQuizQuestionsWith(preds ...predicate.QuizQuestion) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		step := newQuizQuestionsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

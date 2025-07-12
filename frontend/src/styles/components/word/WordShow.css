@@ -1,0 +1,89 @@
+/* WordShow.css */
+.container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  border: var(--container_bd);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: var(--container_bg);
+  color: var(--container_c);
+}
+
+h1 {
+  text-align: center;
+  color: var(--h1_fg);
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+}
+
+textarea {
+  width: 100%;
+  font-size: 1rem;
+  text-align: center;
+  padding: 5px;
+  border: 1px solid var(--textarea_bd);
+  background-color: var(--textarea_bg);
+  color: var(--textarea_c);
+  border-radius: 4px;
+  resize: none;
+}
+
+button {
+  padding: 10px 15px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #fff;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.register-button {
+  background-color: #4caf50; /* 緑 */
+}
+
+.register-button.registered {
+  background-color: #f44336; /* 赤 */
+}
+
+.save-button {
+  margin-top: 10px;
+  background-color: var(--save_button);
+}
+
+.save-button:hover {
+  background-color:var(--save_button_hover);
+}
+
+.success-popup {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #4caf50;
+  background-color: #dff0d8;
+  color: #3c763d;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.back-button {
+  background-color: #888;
+  margin-top: 20px;
+}
+
+.back-button:hover {
+  background-color: #666;
+}
+
+p {
+  margin: 10px 0;
+  color: #555;
+}
+
+div {
+  margin-bottom: 20px;
+}

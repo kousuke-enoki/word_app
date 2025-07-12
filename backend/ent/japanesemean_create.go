@@ -4,12 +4,14 @@ package ent
 
 import (
 	"context"
-	"eng_app/ent/japanesemean"
-	"eng_app/ent/wordinfo"
 	"errors"
 	"fmt"
 	"time"
+	"word_app/backend/ent/japanesemean"
+	"word_app/backend/ent/quizquestion"
+	"word_app/backend/ent/wordinfo"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )
@@ -19,6 +21,7 @@ type JapaneseMeanCreate struct {
 	config
 	mutation *JapaneseMeanMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetName sets the "name" field.
@@ -64,6 +67,21 @@ func (jmc *JapaneseMeanCreate) SetNillableUpdatedAt(t *time.Time) *JapaneseMeanC
 // SetWordInfo sets the "word_info" edge to the WordInfo entity.
 func (jmc *JapaneseMeanCreate) SetWordInfo(w *WordInfo) *JapaneseMeanCreate {
 	return jmc.SetWordInfoID(w.ID)
+}
+
+// AddQuizQuestionIDs adds the "quiz_questions" edge to the QuizQuestion entity by IDs.
+func (jmc *JapaneseMeanCreate) AddQuizQuestionIDs(ids ...int) *JapaneseMeanCreate {
+	jmc.mutation.AddQuizQuestionIDs(ids...)
+	return jmc
+}
+
+// AddQuizQuestions adds the "quiz_questions" edges to the QuizQuestion entity.
+func (jmc *JapaneseMeanCreate) AddQuizQuestions(q ...*QuizQuestion) *JapaneseMeanCreate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return jmc.AddQuizQuestionIDs(ids...)
 }
 
 // Mutation returns the JapaneseMeanMutation object of the builder.
@@ -164,6 +182,7 @@ func (jmc *JapaneseMeanCreate) createSpec() (*JapaneseMean, *sqlgraph.CreateSpec
 		_node = &JapaneseMean{config: jmc.config}
 		_spec = sqlgraph.NewCreateSpec(japanesemean.Table, sqlgraph.NewFieldSpec(japanesemean.FieldID, field.TypeInt))
 	)
+	_spec.OnConflict = jmc.conflict
 	if value, ok := jmc.mutation.Name(); ok {
 		_spec.SetField(japanesemean.FieldName, field.TypeString, value)
 		_node.Name = value
@@ -193,7 +212,249 @@ func (jmc *JapaneseMeanCreate) createSpec() (*JapaneseMean, *sqlgraph.CreateSpec
 		_node.WordInfoID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := jmc.mutation.QuizQuestionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   japanesemean.QuizQuestionsTable,
+			Columns: []string{japanesemean.QuizQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.JapaneseMean.Create().
+//		SetName(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.JapaneseMeanUpsert) {
+//			SetName(v+v).
+//		}).
+//		Exec(ctx)
+func (jmc *JapaneseMeanCreate) OnConflict(opts ...sql.ConflictOption) *JapaneseMeanUpsertOne {
+	jmc.conflict = opts
+	return &JapaneseMeanUpsertOne{
+		create: jmc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.JapaneseMean.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (jmc *JapaneseMeanCreate) OnConflictColumns(columns ...string) *JapaneseMeanUpsertOne {
+	jmc.conflict = append(jmc.conflict, sql.ConflictColumns(columns...))
+	return &JapaneseMeanUpsertOne{
+		create: jmc,
+	}
+}
+
+type (
+	// JapaneseMeanUpsertOne is the builder for "upsert"-ing
+	//  one JapaneseMean node.
+	JapaneseMeanUpsertOne struct {
+		create *JapaneseMeanCreate
+	}
+
+	// JapaneseMeanUpsert is the "OnConflict" setter.
+	JapaneseMeanUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetName sets the "name" field.
+func (u *JapaneseMeanUpsert) SetName(v string) *JapaneseMeanUpsert {
+	u.Set(japanesemean.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *JapaneseMeanUpsert) UpdateName() *JapaneseMeanUpsert {
+	u.SetExcluded(japanesemean.FieldName)
+	return u
+}
+
+// SetWordInfoID sets the "word_info_id" field.
+func (u *JapaneseMeanUpsert) SetWordInfoID(v int) *JapaneseMeanUpsert {
+	u.Set(japanesemean.FieldWordInfoID, v)
+	return u
+}
+
+// UpdateWordInfoID sets the "word_info_id" field to the value that was provided on create.
+func (u *JapaneseMeanUpsert) UpdateWordInfoID() *JapaneseMeanUpsert {
+	u.SetExcluded(japanesemean.FieldWordInfoID)
+	return u
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *JapaneseMeanUpsert) SetCreatedAt(v time.Time) *JapaneseMeanUpsert {
+	u.Set(japanesemean.FieldCreatedAt, v)
+	return u
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *JapaneseMeanUpsert) UpdateCreatedAt() *JapaneseMeanUpsert {
+	u.SetExcluded(japanesemean.FieldCreatedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *JapaneseMeanUpsert) SetUpdatedAt(v time.Time) *JapaneseMeanUpsert {
+	u.Set(japanesemean.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *JapaneseMeanUpsert) UpdateUpdatedAt() *JapaneseMeanUpsert {
+	u.SetExcluded(japanesemean.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// Using this option is equivalent to using:
+//
+//	client.JapaneseMean.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *JapaneseMeanUpsertOne) UpdateNewValues() *JapaneseMeanUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.JapaneseMean.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *JapaneseMeanUpsertOne) Ignore() *JapaneseMeanUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *JapaneseMeanUpsertOne) DoNothing() *JapaneseMeanUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the JapaneseMeanCreate.OnConflict
+// documentation for more info.
+func (u *JapaneseMeanUpsertOne) Update(set func(*JapaneseMeanUpsert)) *JapaneseMeanUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&JapaneseMeanUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *JapaneseMeanUpsertOne) SetName(v string) *JapaneseMeanUpsertOne {
+	return u.Update(func(s *JapaneseMeanUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *JapaneseMeanUpsertOne) UpdateName() *JapaneseMeanUpsertOne {
+	return u.Update(func(s *JapaneseMeanUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetWordInfoID sets the "word_info_id" field.
+func (u *JapaneseMeanUpsertOne) SetWordInfoID(v int) *JapaneseMeanUpsertOne {
+	return u.Update(func(s *JapaneseMeanUpsert) {
+		s.SetWordInfoID(v)
+	})
+}
+
+// UpdateWordInfoID sets the "word_info_id" field to the value that was provided on create.
+func (u *JapaneseMeanUpsertOne) UpdateWordInfoID() *JapaneseMeanUpsertOne {
+	return u.Update(func(s *JapaneseMeanUpsert) {
+		s.UpdateWordInfoID()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *JapaneseMeanUpsertOne) SetCreatedAt(v time.Time) *JapaneseMeanUpsertOne {
+	return u.Update(func(s *JapaneseMeanUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *JapaneseMeanUpsertOne) UpdateCreatedAt() *JapaneseMeanUpsertOne {
+	return u.Update(func(s *JapaneseMeanUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *JapaneseMeanUpsertOne) SetUpdatedAt(v time.Time) *JapaneseMeanUpsertOne {
+	return u.Update(func(s *JapaneseMeanUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *JapaneseMeanUpsertOne) UpdateUpdatedAt() *JapaneseMeanUpsertOne {
+	return u.Update(func(s *JapaneseMeanUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *JapaneseMeanUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for JapaneseMeanCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *JapaneseMeanUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *JapaneseMeanUpsertOne) ID(ctx context.Context) (id int, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *JapaneseMeanUpsertOne) IDX(ctx context.Context) int {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
 }
 
 // JapaneseMeanCreateBulk is the builder for creating many JapaneseMean entities in bulk.
@@ -201,6 +462,7 @@ type JapaneseMeanCreateBulk struct {
 	config
 	err      error
 	builders []*JapaneseMeanCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the JapaneseMean entities in the database.
@@ -230,6 +492,7 @@ func (jmcb *JapaneseMeanCreateBulk) Save(ctx context.Context) ([]*JapaneseMean, 
 					_, err = mutators[i+1].Mutate(root, jmcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = jmcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, jmcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -280,6 +543,166 @@ func (jmcb *JapaneseMeanCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (jmcb *JapaneseMeanCreateBulk) ExecX(ctx context.Context) {
 	if err := jmcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.JapaneseMean.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.JapaneseMeanUpsert) {
+//			SetName(v+v).
+//		}).
+//		Exec(ctx)
+func (jmcb *JapaneseMeanCreateBulk) OnConflict(opts ...sql.ConflictOption) *JapaneseMeanUpsertBulk {
+	jmcb.conflict = opts
+	return &JapaneseMeanUpsertBulk{
+		create: jmcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.JapaneseMean.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (jmcb *JapaneseMeanCreateBulk) OnConflictColumns(columns ...string) *JapaneseMeanUpsertBulk {
+	jmcb.conflict = append(jmcb.conflict, sql.ConflictColumns(columns...))
+	return &JapaneseMeanUpsertBulk{
+		create: jmcb,
+	}
+}
+
+// JapaneseMeanUpsertBulk is the builder for "upsert"-ing
+// a bulk of JapaneseMean nodes.
+type JapaneseMeanUpsertBulk struct {
+	create *JapaneseMeanCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.JapaneseMean.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *JapaneseMeanUpsertBulk) UpdateNewValues() *JapaneseMeanUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.JapaneseMean.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *JapaneseMeanUpsertBulk) Ignore() *JapaneseMeanUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *JapaneseMeanUpsertBulk) DoNothing() *JapaneseMeanUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the JapaneseMeanCreateBulk.OnConflict
+// documentation for more info.
+func (u *JapaneseMeanUpsertBulk) Update(set func(*JapaneseMeanUpsert)) *JapaneseMeanUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&JapaneseMeanUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *JapaneseMeanUpsertBulk) SetName(v string) *JapaneseMeanUpsertBulk {
+	return u.Update(func(s *JapaneseMeanUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *JapaneseMeanUpsertBulk) UpdateName() *JapaneseMeanUpsertBulk {
+	return u.Update(func(s *JapaneseMeanUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetWordInfoID sets the "word_info_id" field.
+func (u *JapaneseMeanUpsertBulk) SetWordInfoID(v int) *JapaneseMeanUpsertBulk {
+	return u.Update(func(s *JapaneseMeanUpsert) {
+		s.SetWordInfoID(v)
+	})
+}
+
+// UpdateWordInfoID sets the "word_info_id" field to the value that was provided on create.
+func (u *JapaneseMeanUpsertBulk) UpdateWordInfoID() *JapaneseMeanUpsertBulk {
+	return u.Update(func(s *JapaneseMeanUpsert) {
+		s.UpdateWordInfoID()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *JapaneseMeanUpsertBulk) SetCreatedAt(v time.Time) *JapaneseMeanUpsertBulk {
+	return u.Update(func(s *JapaneseMeanUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *JapaneseMeanUpsertBulk) UpdateCreatedAt() *JapaneseMeanUpsertBulk {
+	return u.Update(func(s *JapaneseMeanUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *JapaneseMeanUpsertBulk) SetUpdatedAt(v time.Time) *JapaneseMeanUpsertBulk {
+	return u.Update(func(s *JapaneseMeanUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *JapaneseMeanUpsertBulk) UpdateUpdatedAt() *JapaneseMeanUpsertBulk {
+	return u.Update(func(s *JapaneseMeanUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *JapaneseMeanUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the JapaneseMeanCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for JapaneseMeanCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *JapaneseMeanUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

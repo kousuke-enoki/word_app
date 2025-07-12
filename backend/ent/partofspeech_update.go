@@ -4,12 +4,12 @@ package ent
 
 import (
 	"context"
-	"eng_app/ent/partofspeech"
-	"eng_app/ent/predicate"
-	"eng_app/ent/wordinfo"
 	"errors"
 	"fmt"
 	"time"
+	"word_app/backend/ent/partofspeech"
+	"word_app/backend/ent/predicate"
+	"word_app/backend/ent/wordinfo"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"

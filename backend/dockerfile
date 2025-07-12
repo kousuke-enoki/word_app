@@ -1,28 +1,36 @@
-# ビルド用のステージ
-FROM golang:1.22 AS builder
+# ---------- base build stage ----------
+FROM golang:1.24.3 AS build-base
+WORKDIR /src
 
-# 作業ディレクトリを設定
-WORKDIR /app
-
-# Goのモジュールをコピー
 COPY go.mod go.sum ./
 RUN go mod download
 
-# アプリケーションのソースコードをコピー
 COPY . .
 
-# アプリケーションをビルド
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main .
+# ---------- production build ----------
+FROM build-base AS prod-build
+RUN CGO_ENABLED=0 go build -o /out/server      ./cmd/server && \
+    CGO_ENABLED=0 go build -o /out/import_dict ./cmd/import_dict
 
-# 実行用の軽量イメージを使用
-FROM alpine:latest
-
-# 依存関係をコピー
+# ---------- development (hot‑reload) ----------
+FROM golang:1.24.3 AS dev
 WORKDIR /app
-COPY --from=builder /app/main /app/main
+# air をインストール
+RUN go install entgo.io/ent/cmd/ent@latest \
+ && go install github.com/air-verse/air@latest
+COPY --from=build-base /src .
 
-# バックエンドのポートを設定
-EXPOSE 8080
+# ★ 生成ステップを追加
+RUN go generate ./ent
+#   もしくは  ↓
+# RUN ent generate ./ent/schema --feature sql/execquery,sql/upsert
 
-# アプリケーションを実行
-CMD ["./main"]
+# Air の設定ファイルがあれば一緒にコピー
+COPY .air.toml .
+ENTRYPOINT ["air"]
+
+# ---------- production runtime ----------
+FROM busybox:uclibc AS prod
+WORKDIR /app
+COPY --from=prod-build /out/* /usr/local/bin/
+ENTRYPOINT ["/usr/local/bin/server"]

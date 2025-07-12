@@ -18,12 +18,22 @@ const (
 	FieldName = "name"
 	// FieldVoiceID holds the string denoting the voice_id field in the database.
 	FieldVoiceID = "voice_id"
+	// FieldIsIdioms holds the string denoting the is_idioms field in the database.
+	FieldIsIdioms = "is_idioms"
+	// FieldIsSpecialCharacters holds the string denoting the is_special_characters field in the database.
+	FieldIsSpecialCharacters = "is_special_characters"
+	// FieldRegistrationCount holds the string denoting the registration_count field in the database.
+	FieldRegistrationCount = "registration_count"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
 	// EdgeWordInfos holds the string denoting the word_infos edge name in mutations.
 	EdgeWordInfos = "word_infos"
+	// EdgeRegisteredWords holds the string denoting the registered_words edge name in mutations.
+	EdgeRegisteredWords = "registered_words"
+	// EdgeQuizQuestions holds the string denoting the quiz_questions edge name in mutations.
+	EdgeQuizQuestions = "quiz_questions"
 	// Table holds the table name of the word in the database.
 	Table = "words"
 	// WordInfosTable is the table that holds the word_infos relation/edge.
@@ -33,6 +43,20 @@ const (
 	WordInfosInverseTable = "word_infos"
 	// WordInfosColumn is the table column denoting the word_infos relation/edge.
 	WordInfosColumn = "word_id"
+	// RegisteredWordsTable is the table that holds the registered_words relation/edge.
+	RegisteredWordsTable = "registered_words"
+	// RegisteredWordsInverseTable is the table name for the RegisteredWord entity.
+	// It exists in this package in order to avoid circular dependency with the "registeredword" package.
+	RegisteredWordsInverseTable = "registered_words"
+	// RegisteredWordsColumn is the table column denoting the registered_words relation/edge.
+	RegisteredWordsColumn = "word_id"
+	// QuizQuestionsTable is the table that holds the quiz_questions relation/edge.
+	QuizQuestionsTable = "quiz_questions"
+	// QuizQuestionsInverseTable is the table name for the QuizQuestion entity.
+	// It exists in this package in order to avoid circular dependency with the "quizquestion" package.
+	QuizQuestionsInverseTable = "quiz_questions"
+	// QuizQuestionsColumn is the table column denoting the quiz_questions relation/edge.
+	QuizQuestionsColumn = "word_id"
 )
 
 // Columns holds all SQL columns for word fields.
@@ -40,6 +64,9 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldVoiceID,
+	FieldIsIdioms,
+	FieldIsSpecialCharacters,
+	FieldRegistrationCount,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -57,8 +84,12 @@ func ValidColumn(column string) bool {
 var (
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
-	// VoiceIDValidator is a validator for the "voice_id" field. It is called by the builders before save.
-	VoiceIDValidator func(int) error
+	// DefaultIsIdioms holds the default value on creation for the "is_idioms" field.
+	DefaultIsIdioms bool
+	// DefaultIsSpecialCharacters holds the default value on creation for the "is_special_characters" field.
+	DefaultIsSpecialCharacters bool
+	// DefaultRegistrationCount holds the default value on creation for the "registration_count" field.
+	DefaultRegistrationCount int
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -85,6 +116,21 @@ func ByVoiceID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVoiceID, opts...).ToFunc()
 }
 
+// ByIsIdioms orders the results by the is_idioms field.
+func ByIsIdioms(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsIdioms, opts...).ToFunc()
+}
+
+// ByIsSpecialCharacters orders the results by the is_special_characters field.
+func ByIsSpecialCharacters(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsSpecialCharacters, opts...).ToFunc()
+}
+
+// ByRegistrationCount orders the results by the registration_count field.
+func ByRegistrationCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRegistrationCount, opts...).ToFunc()
+}
+
 // ByCreatedAt orders the results by the created_at field.
 func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
@@ -108,10 +154,52 @@ func ByWordInfos(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newWordInfosStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByRegisteredWordsCount orders the results by registered_words count.
+func ByRegisteredWordsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRegisteredWordsStep(), opts...)
+	}
+}
+
+// ByRegisteredWords orders the results by registered_words terms.
+func ByRegisteredWords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRegisteredWordsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByQuizQuestionsCount orders the results by quiz_questions count.
+func ByQuizQuestionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newQuizQuestionsStep(), opts...)
+	}
+}
+
+// ByQuizQuestions orders the results by quiz_questions terms.
+func ByQuizQuestions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newQuizQuestionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newWordInfosStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(WordInfosInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, WordInfosTable, WordInfosColumn),
+	)
+}
+func newRegisteredWordsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RegisteredWordsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RegisteredWordsTable, RegisteredWordsColumn),
+	)
+}
+func newQuizQuestionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(QuizQuestionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, QuizQuestionsTable, QuizQuestionsColumn),
 	)
 }

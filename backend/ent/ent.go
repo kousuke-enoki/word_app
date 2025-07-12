@@ -4,15 +4,21 @@ package ent
 
 import (
 	"context"
-	"eng_app/ent/japanesemean"
-	"eng_app/ent/partofspeech"
-	"eng_app/ent/user"
-	"eng_app/ent/word"
-	"eng_app/ent/wordinfo"
 	"errors"
 	"fmt"
 	"reflect"
 	"sync"
+	"word_app/backend/ent/externalauth"
+	"word_app/backend/ent/japanesemean"
+	"word_app/backend/ent/partofspeech"
+	"word_app/backend/ent/quiz"
+	"word_app/backend/ent/quizquestion"
+	"word_app/backend/ent/registeredword"
+	"word_app/backend/ent/rootconfig"
+	"word_app/backend/ent/user"
+	"word_app/backend/ent/userconfig"
+	"word_app/backend/ent/word"
+	"word_app/backend/ent/wordinfo"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -77,11 +83,17 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			japanesemean.Table: japanesemean.ValidColumn,
-			partofspeech.Table: partofspeech.ValidColumn,
-			user.Table:         user.ValidColumn,
-			word.Table:         word.ValidColumn,
-			wordinfo.Table:     wordinfo.ValidColumn,
+			externalauth.Table:   externalauth.ValidColumn,
+			japanesemean.Table:   japanesemean.ValidColumn,
+			partofspeech.Table:   partofspeech.ValidColumn,
+			quiz.Table:           quiz.ValidColumn,
+			quizquestion.Table:   quizquestion.ValidColumn,
+			registeredword.Table: registeredword.ValidColumn,
+			rootconfig.Table:     rootconfig.ValidColumn,
+			user.Table:           user.ValidColumn,
+			userconfig.Table:     userconfig.ValidColumn,
+			word.Table:           word.ValidColumn,
+			wordinfo.Table:       wordinfo.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

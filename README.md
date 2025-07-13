@@ -79,7 +79,7 @@ cd backend
 goimports -w -local word_app/backend src/
 
 # golangci-lint run --verbose(ライブラリ関係はスキップするように設定)
-cd backend
+bash docker.sh exec backend
 golangci-lint run --verbose
 
 

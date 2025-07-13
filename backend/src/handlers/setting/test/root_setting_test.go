@@ -3,7 +3,6 @@ package setting_test
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -15,30 +14,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"word_app/backend/ent"
 	"word_app/backend/src/domain"
 	settinghdlr "word_app/backend/src/handlers/setting"
 	mockSettingUc "word_app/backend/src/mocks/usecase/setting"
 	"word_app/backend/src/test"
 	settingUc "word_app/backend/src/usecase/setting"
 )
-
-/* -------------------------------------------------------------------------- */
-/*                               Use-case Mock                                */
-/* -------------------------------------------------------------------------- */
-
-type mockSettingUsecase struct{ mock.Mock }
-
-func (m *mockSettingUsecase) GetRoot(ctx context.Context, in settingUc.InputGetRootConfig) (*ent.RootConfig, error) {
-	args := m.Called(ctx, in)
-	cfg, _ := args.Get(0).(*ent.RootConfig)
-	return cfg, args.Error(1)
-}
-func (m *mockSettingUsecase) UpdateRoot(ctx context.Context, in settingUc.InputUpdateRootConfig) (*ent.RootConfig, error) {
-	args := m.Called(ctx, in)
-	cfg, _ := args.Get(0).(*ent.RootConfig)
-	return cfg, args.Error(1)
-}
 
 /* -------------------------------------------------------------------------- */
 /*                        helpers (raw ctx when必要)                          */

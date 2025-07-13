@@ -6,6 +6,7 @@ package middleware
 
 import (
 	"context"
+
 	"word_app/backend/src/utils/contextutil"
 
 	"github.com/gin-gonic/gin"

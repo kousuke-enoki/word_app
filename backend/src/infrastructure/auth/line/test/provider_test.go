@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha1" // key ID 用
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -65,7 +66,9 @@ func newRSAKey(t *testing.T) (*rsa.PrivateKey, jwkSet, string) {
 	return priv, jwkSet{Keys: []jwkKey{jwk}}, kid
 }
 
-func b64(b []byte) string { return jwt.EncodeSegment(b) }
+func b64(b []byte) string {
+	return base64.RawURLEncoding.EncodeToString(b)
+}
 
 // --- helper: ID Token を RS256 署名 ------------------------------
 

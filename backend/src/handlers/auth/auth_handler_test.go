@@ -2,6 +2,7 @@ package auth
 
 import (
 	"testing"
+
 	"word_app/backend/src/mocks"
 	"word_app/backend/src/mocks/http/auth"
 

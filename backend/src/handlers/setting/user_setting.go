@@ -3,6 +3,7 @@ package setting
 import (
 	"errors"
 	"net/http"
+
 	settingUc "word_app/backend/src/usecase/setting"
 
 	"github.com/gin-gonic/gin"

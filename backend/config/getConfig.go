@@ -12,9 +12,9 @@ type AppCfg struct {
 	Port string
 }
 
-type TempJWT struct {
-	secret []byte
-}
+// type TempJWT struct {
+// 	secret []byte
+// }
 
 type JWTCfg struct {
 	Secret       string

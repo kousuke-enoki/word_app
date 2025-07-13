@@ -18,6 +18,9 @@ WORKDIR /app
 # air をインストール
 RUN go install entgo.io/ent/cmd/ent@latest \
  && go install github.com/air-verse/air@latest
+
+RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.2
+
 COPY --from=build-base /src .
 
 # ★ 生成ステップを追加

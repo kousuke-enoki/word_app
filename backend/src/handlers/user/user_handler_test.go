@@ -2,6 +2,7 @@ package user
 
 import (
 	"testing"
+
 	"word_app/backend/src/mocks"
 
 	"github.com/stretchr/testify/assert"

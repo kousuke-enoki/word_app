@@ -2,6 +2,7 @@ package quiz_service
 
 import (
 	"errors"
+
 	"word_app/backend/src/interfaces/service_interfaces"
 )
 

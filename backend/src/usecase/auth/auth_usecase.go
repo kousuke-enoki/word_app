@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"time"
+
 	auth_repo "word_app/backend/src/infrastructure/repository/auth"
 	user_repo "word_app/backend/src/infrastructure/repository/user"
 	"word_app/backend/src/interfaces/http/auth"

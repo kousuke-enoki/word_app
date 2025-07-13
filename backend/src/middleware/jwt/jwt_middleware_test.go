@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"testing"
+
 	"word_app/backend/src/mocks/http/middleware"
 
 	"github.com/stretchr/testify/assert"

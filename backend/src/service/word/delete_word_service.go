@@ -2,6 +2,7 @@ package word_service
 
 import (
 	"context"
+
 	"word_app/backend/ent"
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/registeredword"

@@ -3,6 +3,7 @@ package word_service
 import (
 	"context"
 	"errors"
+
 	"word_app/backend/ent"
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/word"

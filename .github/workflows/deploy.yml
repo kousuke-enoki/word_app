@@ -1,0 +1,24 @@
+name: CDK deploy
+on:
+  push:
+    paths:
+      - "infra/**"
+      - ".github/workflows/deploy.yml"
+      - "backend/dockerfiles/**"   # イメージ hash 変わる時も
+env:
+  CDK_APP: "npx ts-node infra/bin/myapp.ts"
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions: { contents: read, id-token: write }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
+          aws-region: ap-northeast-1
+      - uses: actions/setup-node@v4
+        with: { node-version: 18 }
+      - run: npm ci --prefix infra
+      - name: CDK Deploy
+        run: npx cdk deploy --app "$CDK_APP" --all --require-approval never

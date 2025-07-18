@@ -4,11 +4,7 @@ on:
   pull_request:
     branches: [main, develop]
   push:
-    branches:
-      - main
-      - develop
-      - 'feature/**'
-      - 'hotfix/**'
+    branches: [main, develop, 'feature/**', 'hotfix/**']
   workflow_dispatch:
 
 env:

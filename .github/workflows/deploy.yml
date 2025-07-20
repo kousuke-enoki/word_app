@@ -1,10 +1,8 @@
 name: CDK deploy
 on:
-  push:
-    paths:
-      - "infra/**"
-      - ".github/workflows/deploy.yml"
-      - "backend/dockerfiles/**"   # イメージ hash 変わる時も
+  workflow_run:                    # ★build 完了後に発火
+    workflows: ["Build images"]
+    types: [completed]             # success / failure の判定用
 env:
   CDK_APP: "npx ts-node infra/bin/myapp.ts"
 jobs:
@@ -15,8 +13,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
-          aws-region: ap-northeast-1
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ap-northeast-1
       - uses: actions/setup-node@v4
         with: { node-version: 18 }
       - run: npm ci --prefix infra

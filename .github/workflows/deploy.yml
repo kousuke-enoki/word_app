@@ -1,10 +1,8 @@
 name: CDK deploy
 on:
-  push:
-    paths:
-      - "infra/**"
-      - ".github/workflows/deploy.yml"
-      - "backend/dockerfiles/**"   # イメージ hash 変わる時も
+  workflow_run:                    # ★build 完了後に発火
+    workflows: ["Build images"]
+    types: [completed]             # success / failure の判定用
 env:
   CDK_APP: "npx ts-node infra/bin/myapp.ts"
 jobs:

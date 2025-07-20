@@ -5,7 +5,7 @@ import path from 'path';
 import checker from 'vite-plugin-checker';
 
 export default defineConfig(({ mode }) => {
-  /* ★ .env / Vercel の環境変数を読み込む */
+  /* .env / Vercel の環境変数を読み込む */
   const env = loadEnv(mode, process.cwd());      // mode = 'development' | 'production'
 
   return {
@@ -40,6 +40,11 @@ export default defineConfig(({ mode }) => {
       globals: true,
       setupFiles: './src/__tests__/setupTests.ts',
       css: true,
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'lcov'],
+        reportsDirectory: './coverage'
+      }
     },
   };
 });

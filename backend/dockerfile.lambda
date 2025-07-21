@@ -1,0 +1,17 @@
+# backend/dockerfiles/Lambda.Dockerfile
+# 1) builder ステージをインポート
+FROM --platform=linux/amd64 golang:1.24.3 AS builder
+WORKDIR /src
+COPY --from=ghcr.io/your-org/wordapp-builder:latest /out/server /bootstrap
+# ↑もし Builder.Dockerfile を別イメージとしてキャッシュ用 Push していなければ
+#   COPY --from=builder /out/server /bootstrap でも可
+
+# 2) ランタイム → Lambda "provided.al2"
+FROM public.ecr.aws/lambda/provided:al2 AS runtime
+# Lambda の規約: /bootstrap が実行ファイル
+COPY --from=builder /bootstrap /bootstrap
+# 環境変数などあれば
+# ENV POWERTOOLS_SERVICE_NAME=api
+
+# Optional: 健康チェック用ポート
+# EXPOSE 8080

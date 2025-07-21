@@ -81,19 +81,19 @@ func TestGetRootSettingHandler(t *testing.T) {
 		{
 			name:       "userID 無 (401)",
 			injectUser: false, needUserID: false,
-			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {},
+			mockBehavior: func(_ *mockSettingUc.MockSettingFacade) {},
 			wantCode:     http.StatusUnauthorized,
 		},
 		{
 			name:       "userRoles 取得失敗 (401)",
 			injectUser: false, needUserID: true,
-			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {},
+			mockBehavior: func(_ *mockSettingUc.MockSettingFacade) {},
 			wantCode:     http.StatusUnauthorized,
 		},
 		{
 			name:       "root 権限なし (401)",
 			injectUser: true, isRoot: false,
-			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {},
+			mockBehavior: func(_ *mockSettingUc.MockSettingFacade) {},
 			wantCode:     http.StatusUnauthorized,
 		},
 		{

@@ -32,10 +32,8 @@ func (s *WordServiceImpl) GetWords(ctx context.Context, WordListRequest *models.
 	// 検索条件の追加
 	query = addSearchFilter(query, search)
 
-	var totalCount int = 0
-
 	// 総レコード数を取得
-	totalCount, err = query.Count(ctx)
+	totalCount, err := query.Count(ctx)
 	if err != nil {
 		return nil, errors.New("failed to count words")
 	}

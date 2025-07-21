@@ -56,9 +56,9 @@ func (h *AuthSettingHandler) SaveRootSettingHandler() gin.HandlerFunc {
 
 		var req settingUc.InputUpdateRootConfig
 		req.UserID = userID.(int)
-		if err := c.ShouldBindJSON(&req); err != nil {
-			logrus.Error(err)
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if bindErr := c.ShouldBindJSON(&req); bindErr != nil {
+			logrus.Error(bindErr)
+			c.JSON(http.StatusBadRequest, gin.H{"error": bindErr.Error()})
 			return
 		}
 

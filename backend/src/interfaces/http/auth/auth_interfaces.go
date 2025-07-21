@@ -13,7 +13,7 @@ type CallbackResult struct {
 	SuggestedMail string `json:"suggested_mail,omitempty"`
 }
 
-type AuthHandler interface {
+type Handler interface {
 	LineLogin() gin.HandlerFunc
 	LineCallback() gin.HandlerFunc
 	LineComplete() gin.HandlerFunc

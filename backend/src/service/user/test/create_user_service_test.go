@@ -36,11 +36,11 @@ func TestEntUserClient_CreateUser(t *testing.T) {
 	})
 
 	t.Run("DuplicateEmail", func(t *testing.T) {
-		usrClient := user_service.NewEntUserClient(clientWrapper)
-		ctx := context.Background()
+		entUsrClient := user_service.NewEntUserClient(clientWrapper)
+		// ctx := context.Background()
 
 		// Successで登録したuserと同じメールアドレスで再度作成
-		_, err := usrClient.CreateUser(ctx, email, "Another User", "anotherpassword")
+		_, err := entUsrClient.CreateUser(ctx, email, "Another User", "anotherpassword")
 		assert.ErrorIs(t, err, user_service.ErrDuplicateEmail)
 	})
 

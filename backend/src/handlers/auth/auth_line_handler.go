@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *AuthHandler) LineLogin() gin.HandlerFunc {
+func (h *Handler) LineLogin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		state, _ := oauthutil.NewState(c)
 		nonce, _ := oauthutil.NewNonce(c)
@@ -18,7 +18,7 @@ func (h *AuthHandler) LineLogin() gin.HandlerFunc {
 	}
 }
 
-func (h *AuthHandler) LineCallback() gin.HandlerFunc {
+func (h *Handler) LineCallback() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		code := c.Query("code")
 		state := c.Query("state")
@@ -33,7 +33,7 @@ func (h *AuthHandler) LineCallback() gin.HandlerFunc {
 	}
 }
 
-func (h *AuthHandler) LineComplete() gin.HandlerFunc {
+func (h *Handler) LineComplete() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
 			TempToken string `json:"temp_token"`

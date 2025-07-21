@@ -6,162 +6,177 @@ import (
 	"fmt"
 
 	"word_app/backend/ent"
-	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/word"
-	"word_app/backend/ent/wordinfo"
 	"word_app/backend/src/models"
 
 	"github.com/sirupsen/logrus"
 )
 
-func (s *WordServiceImpl) UpdateWord(ctx context.Context, req *models.UpdateWordRequest) (*models.UpdateWordResponse, error) {
-	// トランザクション開始
+/*==================== public ====================*/
+
+func (s *WordServiceImpl) UpdateWord(
+	ctx context.Context,
+	req *models.UpdateWordRequest,
+) (resp *models.UpdateWordResponse, err error) {
+
 	tx, err := s.client.Tx(ctx)
 	if err != nil {
-		logrus.Error("Failed to start transaction: ", err)
+		logrus.Error("start tx:", err)
 		return nil, errors.New("failed to start transaction")
 	}
+	defer finishTxWithLog(&err, tx)
 
-	defer func() {
-		if r := recover(); r != nil {
-			_ = tx.Rollback()
-			panic(r)
-		} else if err != nil {
-			_ = tx.Rollback()
-		} else {
-			err = tx.Commit()
-			if err != nil {
-				logrus.Error(err)
-			}
-		}
-	}()
-
-	// 管理者チェック
-	userEntity, err := tx.User.Get(ctx, req.UserID)
-	if err != nil {
-		logrus.Error("failed to get user:", err)
-		return nil, errors.New("failed to get user")
-	}
-	if !userEntity.IsAdmin {
-		logrus.Error("unauthorized user")
-		return nil, ErrUnauthorized
+	// ① 管理者チェック
+	if err = s.assertAdmin(ctx, tx, req.UserID); err != nil {
+		return nil, err
 	}
 
-	// 既存の単語を取得
-	existingWord, err := tx.Word.Get(ctx, req.ID)
+	// ② 単語取得＆重複名チェック
+	wordEnt, err := s.fetchAndValidateName(ctx, tx, req.ID, req.Name)
 	if err != nil {
-		logrus.Info(err)
-		if ent.IsNotFound(err) {
-			return nil, errors.New("word not found")
-		}
-		logrus.Error("failed to fetch word:", err)
+		return nil, err
+	}
+
+	// ③ 単語名更新
+	wordEnt, err = s.updateWordName(ctx, tx, wordEnt, req.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	// ④ WordInfo / JapaneseMean を upsert
+	if err = s.upsertWordInfos(ctx, tx, wordEnt.ID, req.WordInfos); err != nil {
+		return nil, err
+	}
+
+	resp = &models.UpdateWordResponse{
+		ID:      wordEnt.ID,
+		Name:    wordEnt.Name,
+		Message: fmt.Sprintf("word '%s' updated successfully", wordEnt.Name),
+	}
+	return
+}
+
+/*==================== tx wrapper ====================*/
+
+// func finishTxWithLog(perr *error, tx *ent.Tx) {
+// 	if p := recover(); p != nil {
+// 		_ = tx.Rollback()
+// 		panic(p)
+// 	} else if *perr != nil {
+// 		if rb := tx.Rollback(); rb != nil {
+// 			logrus.Errorf("rollback failed: %v", rb)
+// 		}
+// 	} else if cErr := tx.Commit(); cErr != nil {
+// 		logrus.Errorf("commit failed: %v", cErr)
+// 		*perr = cErr
+// 	}
+// }
+
+/*==================== domain / repository-like helpers ====================*/
+
+// // 管理者かチェック
+// func (s *WordServiceImpl) assertAdmin(
+// 	ctx context.Context,
+// 	tx *ent.Tx,
+// 	userID int,
+// ) error {
+// 	u, err := tx.User.Get(ctx, userID)
+// 	if err != nil {
+// 		return ErrUnauthorized
+// 	}
+// 	if !u.IsAdmin {
+// 		return ErrUnauthorized
+// 	}
+// 	return nil
+// }
+
+// 既存 Word を取得し、名前重複を検証
+func (s *WordServiceImpl) fetchAndValidateName(
+	ctx context.Context,
+	tx *ent.Tx,
+	wordID int,
+	newName string,
+) (*ent.Word, error) {
+
+	w, err := tx.Word.Get(ctx, wordID)
+	if ent.IsNotFound(err) {
+		return nil, errors.New("word not found")
+	}
+	if err != nil {
 		return nil, errors.New("failed to fetch word")
 	}
-
-	// 単語の名前を変える場合、同じ名前の単語があるかどうか確認。ある場合は失敗
-	if req.Name != existingWord.Name {
-		exists, err := s.client.Word().Query().Where(word.Name(req.Name)).Exist(ctx)
+	if w.Name != newName {
+		exists, err := s.client.Word().
+			Query().
+			Where(word.Name(newName)).
+			Exist(ctx)
 		if err != nil {
-			logrus.Errorf("failed to query word existence: %v", err)
 			return nil, ErrDatabaseFailure
 		}
 		if exists {
 			return nil, ErrWordExists
 		}
 	}
+	return w, nil
+}
 
-	// 単語を更新
-	updatedWord, err := tx.Word.UpdateOne(existingWord).
-		SetName(req.Name).
+// 単語名を更新
+func (s *WordServiceImpl) updateWordName(
+	ctx context.Context,
+	tx *ent.Tx,
+	w *ent.Word,
+	name string,
+) (*ent.Word, error) {
+
+	return tx.Word.UpdateOne(w).
+		SetName(name).
 		Save(ctx)
-	if err != nil {
-		logrus.Error("failed to update word:", err)
-		return nil, errors.New("failed to update word")
-	}
+}
 
-	// 関連する WordInfo を更新
-	for _, wordInfo := range req.WordInfos {
-		var wordInfoEntity *ent.WordInfo
+// WordInfo / JapaneseMean を upsert
+func (s *WordServiceImpl) upsertWordInfos(
+	ctx context.Context,
+	tx *ent.Tx,
+	wordID int,
+	infos []models.WordInfo,
+) error {
 
-		// 既存の WordInfo があるか確認
-		wordInfoEntity, err = tx.WordInfo.Query().
-			Where(wordinfo.IDEQ(wordInfo.ID)).
-			Only(ctx)
+	for _, wi := range infos {
+		wiEnt, err := tx.WordInfo.Get(ctx, wi.ID)
 		if err != nil {
-			// 	// 存在しない場合、新規作成する処理
-			// if ent.IsNotFound(err) {
-			// 	wordInfoEntity, err = tx.WordInfo.Create().
-			// 		SetWordID(updatedWord.ID).
-			// 		SetPartOfSpeechID(wordInfo.PartOfSpeechID).
-			// 		Save(ctx)
-			// 	if err != nil {
-			// 		logrus.Error("failed to create word info:", err)
-			// 		return nil, errors.New("failed to create word info")
-			// 	}
-			// } else {
-			logrus.Error("failed to fetch word info:", err)
-			return nil, errors.New("failed to fetch word info")
-			// }
-		} else {
-			// 存在する場合、更新
-			wordInfoEntity, err = tx.WordInfo.UpdateOne(wordInfoEntity).
-				SetPartOfSpeechID(wordInfo.PartOfSpeechID).
-				Save(ctx)
-			if err != nil {
-				logrus.Error("failed to update word info:", err)
-				return nil, errors.New("failed to update word info")
-			}
+			return errors.New("failed to fetch word info")
 		}
-
-		// JapaneseMean の更新
-		for _, japaneseMean := range wordInfo.JapaneseMeans {
-			var meanEntity *ent.JapaneseMean
-
-			// 既存の JapaneseMean を検索
-			meanEntity, err = tx.JapaneseMean.Query().
-				Where(japanesemean.IDEQ(japaneseMean.ID)).
-				Only(ctx)
-			if err != nil {
-				// 存在しない場合、新規作成する処理
-				// if ent.IsNotFound(err) {
-				// 	_, err = tx.JapaneseMean.Create().
-				// 		SetWordInfoID(wordInfoEntity.ID).
-				// 		SetName(japaneseMean.Name).
-				// 		Save(ctx)
-				// 	if err != nil {
-				// 		logrus.Error("failed to create japanese mean:", err)
-				// 		return nil, errors.New("failed to create japanese mean")
-				// 	}
-				// } else {
-				logrus.Error("failed to fetch japanese mean:", err)
-				return nil, errors.New("failed to fetch japanese mean")
-				// }
-			} else {
-				// 存在する場合、更新
-				_, err = tx.JapaneseMean.UpdateOne(meanEntity).
-					SetName(japaneseMean.Name).
-					Save(ctx)
-				if err != nil {
-					logrus.Error("failed to update japanese mean:", err)
-					return nil, errors.New("failed to update japanese mean")
-				}
-			}
+		wiEnt, err = tx.WordInfo.UpdateOne(wiEnt).
+			SetPartOfSpeechID(wi.PartOfSpeechID).
+			Save(ctx)
+		if err != nil {
+			return errors.New("failed to update word info")
+		}
+		if err = s.upsertMeans(ctx, tx, wiEnt.ID, wi.JapaneseMeans); err != nil {
+			return err
 		}
 	}
+	return nil
+}
 
-	// トランザクションコミット
-	err = tx.Commit()
-	if err != nil {
-		logrus.Error("failed to commit transaction:", err)
-		return nil, errors.New("failed to commit transaction")
+// JapaneseMean upsert
+func (s *WordServiceImpl) upsertMeans(
+	ctx context.Context,
+	tx *ent.Tx,
+	wordInfoID int,
+	means []models.JapaneseMean,
+) error {
+
+	for _, jm := range means {
+		mEnt, err := tx.JapaneseMean.Get(ctx, jm.ID)
+		if err != nil {
+			return errors.New("failed to fetch japanese mean")
+		}
+		if _, err = tx.JapaneseMean.UpdateOne(mEnt).
+			SetName(jm.Name).
+			Save(ctx); err != nil {
+			return errors.New("failed to update japanese mean")
+		}
 	}
-
-	// レスポンス生成
-	response := &models.UpdateWordResponse{
-		ID:      updatedWord.ID,
-		Name:    updatedWord.Name,
-		Message: fmt.Sprintf("word '%s' updated successfully", updatedWord.Name),
-	}
-
-	return response, nil
+	return nil
 }

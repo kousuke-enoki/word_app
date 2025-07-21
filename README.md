@@ -82,6 +82,15 @@ goimports -w -local word_app/backend src/
 bash docker.sh exec backend
 golangci-lint run --verbose
 
+# コミット前の確認
+bash docker.sh exec backend
+
+go install golang.org/x/tools/cmd/goimports@latest
+
+golangci-lint run --verbose
+
+go test ./...
+
 
 ## フロント
 

@@ -13,98 +13,117 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (s *WordServiceImpl) DeleteWord(ctx context.Context, DeleteWordRequest *models.DeleteWordRequest) (*models.DeleteWordResponse, error) {
-	userID := DeleteWordRequest.UserID
-	wordID := DeleteWordRequest.WordID
-	// トランザクション開始
+// ======== public =========
+func (s *WordServiceImpl) DeleteWord(
+	ctx context.Context,
+	req *models.DeleteWordRequest,
+) (resp *models.DeleteWordResponse, err error) {
+
 	tx, err := s.client.Tx(ctx)
 	if err != nil {
 		logrus.Error(err)
 		return nil, ErrDeleteWord
 	}
+	defer finishTxWithLog(&err, tx)
 
-	defer func() {
-		if r := recover(); r != nil {
-			_ = tx.Rollback()
-			panic(r)
-		} else if err != nil {
-			_ = tx.Rollback()
-		} else {
-			err = tx.Commit()
-			if err != nil {
-				logrus.Error(err)
-			}
-		}
-	}()
+	// --- ① 管理者チェック ---
+	if err = s.assertAdmin(ctx, tx, req.UserID); err != nil {
+		return nil, err
+	}
 
-	// 管理者チェック
-	userEntity, err := tx.User.Get(ctx, userID)
+	// --- ② Word を論理削除 ---
+	wordName, err := s.cascadeDeleteWord(ctx, tx, req.WordID)
 	if err != nil {
-		logrus.Error(err)
-		tx.Rollback()
-		return nil, ErrDeleteWord
-	}
-	if !userEntity.IsAdmin {
-		logrus.Error(err)
-		tx.Rollback()
-		return nil, ErrUnauthorized
+		return nil, err
 	}
 
-	// word を取得して存在確認
-	wordEntity, err := tx.Word.Query().Where(word.IDEQ(wordID)).Only(ctx)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			logrus.Info("word not found")
-			return nil, ErrWordNotFound
-		}
-		logrus.Error(err)
-		tx.Rollback()
-		return nil, ErrDeleteWord
-	}
-
-	// wordInfo に紐づく japaneseMean を削除
-	_, err = tx.JapaneseMean.Delete().Where(
-		japanesemean.HasWordInfoWith(wordinfo.HasWordWith(word.IDEQ(wordID))),
-	).Exec(ctx)
-	if err != nil {
-		logrus.Error(err)
-		tx.Rollback()
-		return nil, ErrDeleteWord
-	}
-
-	// word に紐づく wordInfo を削除
-	_, err = tx.WordInfo.Delete().Where(wordinfo.HasWordWith(word.IDEQ(wordID))).Exec(ctx)
-	if err != nil {
-		logrus.Error(err)
-		tx.Rollback()
-		return nil, ErrDeleteWord
-	}
-
-	// word に紐づく registeredword を削除
-	_, err = tx.RegisteredWord.Delete().Where(registeredword.HasWordWith(word.IDEQ(wordID))).Exec(ctx)
-	if err != nil {
-		logrus.Error(err)
-		tx.Rollback()
-		return nil, ErrDeleteWord
-	}
-
-	// 最後に word を削除
-	err = tx.Word.DeleteOne(wordEntity).Exec(ctx)
-	if err != nil {
-		logrus.Error(err)
-		tx.Rollback()
-		return nil, ErrDeleteWord
-	}
-
-	// トランザクションをコミット
-	if err := tx.Commit(); err != nil {
-		return nil, ErrDeleteWord
-	}
-
-	response := &models.DeleteWordResponse{
-		Name:    wordEntity.Name,
+	resp = &models.DeleteWordResponse{
+		Name:    wordName, // Word を取得した際にセットしておく
 		Message: "word delete complete",
 	}
+	return
+}
 
-	return response, nil
+/*========== helper: Tx wrap ==========*/
+func finishTxWithLog(perr *error, tx *ent.Tx) {
+	if p := recover(); p != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			logrus.Errorf("rollback failed after panic: %v", rbErr)
+		}
+		panic(p)
+	} else if *perr != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			logrus.Errorf("rollback failed: %v", rbErr)
+		}
+	} else if cErr := tx.Commit(); cErr != nil {
+		logrus.Errorf("commit failed: %v", cErr)
+		*perr = cErr
+	}
+}
+
+/*========== domain-like helpers ==========*/
+
+// 管理者チェックだけ担当
+func (s *WordServiceImpl) assertAdmin(
+	ctx context.Context,
+	tx *ent.Tx,
+	userID int,
+) error {
+	u, err := tx.User.Get(ctx, userID)
+	switch {
+	case ent.IsNotFound(err):
+		return ErrUnauthorized
+	case err != nil:
+		return ErrDeleteWord
+	case !u.IsAdmin:
+		return ErrUnauthorized
+	}
+	return nil
+}
+
+// Word, WordInfo, JapaneseMean, RegisteredWord を削除
+func (s *WordServiceImpl) cascadeDeleteWord(
+	ctx context.Context,
+	tx *ent.Tx,
+	wordID int,
+) (string, error) {
+
+	// ① Word 存在確認
+	w, err := tx.Word.Get(ctx, wordID)
+	if ent.IsNotFound(err) {
+		return "", ErrWordNotFound
+	} else if err != nil {
+		return "", ErrDeleteWord
+	}
+
+	// ② 関連行をまとめて削除（順序は外部キー制約に合わせる）
+	queries := []func(context.Context) error{
+		func(c context.Context) error {
+			_, e := tx.JapaneseMean.Delete().
+				Where(japanesemean.HasWordInfoWith(wordinfo.HasWordWith(word.IDEQ(wordID)))).
+				Exec(c)
+			return e
+		},
+		func(c context.Context) error {
+			_, e := tx.WordInfo.Delete().
+				Where(wordinfo.HasWordWith(word.IDEQ(wordID))).
+				Exec(c)
+			return e
+		},
+		func(c context.Context) error {
+			_, e := tx.RegisteredWord.Delete().
+				Where(registeredword.HasWordWith(word.IDEQ(wordID))).
+				Exec(c)
+			return e
+		},
+		func(c context.Context) error {
+			return tx.Word.DeleteOne(w).Exec(c)
+		},
+	}
+	for _, fn := range queries {
+		if err = fn(ctx); err != nil {
+			return "", ErrDeleteWord // finishTx が Rollback してくれる
+		}
+	}
+	return w.Name, nil
 }

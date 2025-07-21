@@ -1,6 +1,7 @@
 run:
   timeout: 5m
-  skip-dirs:
+issues:
+  exclude-dirs:
     - "opt"
     - "go"
     - "ent"
@@ -12,27 +13,24 @@ linters-settings:
 
   govet:
     check-shadowing: true
+    enable:          # ← ここで shadow アナライザを有効化
+      - shadow
 
   gocyclo:
     min-complexity: 15
 
 linters:
   enable:
-    - govet
     - errcheck
-    - gofmt
     - goimports
+    - gosimple
+    - govet
+    - ineffassign
     - staticcheck
     - gocyclo
+    - revive
 
 output:
   formats:
     colored-line-number
   sort-results: true
-
-issues:
-  exclude-dirs:
-    - "opt"
-    - "go"
-    - "ent"
-    - "mocks"

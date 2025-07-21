@@ -12,7 +12,7 @@ func TestNewAuthsettingHandler(t *testing.T) {
 	// Arrange: Create mocks for dependencies.
 	var mockSettingClient settingUc.SettingFacade
 
-	// Act: Create a new AuthHandler instance.
+	// Act: Create a new Handler instance.
 	handler := NewSettingHandler(mockSettingClient)
 
 	// Assert: Verify that the handler is properly initialized.

@@ -38,7 +38,7 @@ func TestAuthLineHandler(t *testing.T) {
 					Return(tt.redirectURL)
 
 				mockJWTGen := new(auth_mock.MockJWTGenerator)
-				h := auth_handler.NewAuthHandler(mockUC, mockJWTGen)
+				h := auth_handler.NewHandler(mockUC, mockJWTGen)
 
 				w := httptest.NewRecorder()
 				c, _ := gin.CreateTestContext(w)
@@ -96,10 +96,10 @@ func TestAuthLineHandler(t *testing.T) {
 					Return(tt.mockReturn, tt.mockErr)
 				mockJWTGenerator := new(auth_mock.MockJWTGenerator)
 
-				userHandler := auth_handler.NewAuthHandler(mockUC, mockJWTGenerator)
-				// h := &auth.AuthHandler{AuthUsecase: mockUC, jwtGenerator: mockJWTGenerator}
+				userHandler := auth_handler.NewHandler(mockUC, mockJWTGenerator)
+				// h := &auth.Handler{AuthUsecase: mockUC, jwtGenerator: mockJWTGenerator}
 
-				//  := &auth.AuthHandler{AuthUsecase: mockUC}
+				//  := &auth.Handler{AuthUsecase: mockUC}
 
 				w := httptest.NewRecorder()
 				c, _ := gin.CreateTestContext(w)
@@ -171,8 +171,8 @@ func TestAuthLineHandler(t *testing.T) {
 				}
 				mockJWTGenerator := new(auth_mock.MockJWTGenerator)
 
-				userHandler := auth_handler.NewAuthHandler(mockUC, mockJWTGenerator)
-				// h := &auth.AuthHandler{AuthUsecase: mockUC}
+				userHandler := auth_handler.NewHandler(mockUC, mockJWTGenerator)
+				// h := &auth.Handler{AuthUsecase: mockUC}
 
 				w := httptest.NewRecorder()
 				c, _ := gin.CreateTestContext(w)

@@ -94,11 +94,6 @@ func (w *TestClientWrapper) SubmitAnswerAndRoute(ctx context.Context, userID int
 	panic("unimplemented")
 }
 
-// finishQuizTx implements ClientInterface.
-func (w *TestClientWrapper) finishQuizTx(ctx context.Context, tx *ent.Tx, q *ent.Quiz) (*models.Result, error) {
-	panic("unimplemented")
-}
-
 // GetNextOrResume implements ClientInterface.
 func (w *TestClientWrapper) GetNextOrResume(ctx context.Context, userID int, req *models.GetQuizRequest) (*models.GetQuizResponse, error) {
 	panic("unimplemented")

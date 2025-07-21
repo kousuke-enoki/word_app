@@ -14,8 +14,8 @@ func TestNewAuthHandler(t *testing.T) {
 	mockAuthClient := new(auth.MockAuthUsecase)
 	mockJWTGenerator := new(mocks.MockJwtGenerator)
 
-	// Act: Create a new AuthHandler instance.
-	handler := NewAuthHandler(mockAuthClient, mockJWTGenerator)
+	// Act: Create a new Handler instance.
+	handler := NewHandler(mockAuthClient, mockJWTGenerator)
 
 	// Assert: Verify that the handler is properly initialized.
 	assert.NotNil(t, handler)

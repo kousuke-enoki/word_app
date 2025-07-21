@@ -14,9 +14,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type RouterImplementation struct {
+type Implementation struct {
 	JwtMiddleware  middleware_interface.JwtMiddleware
-	AuthHandler    auth.AuthHandler
+	AuthHandler    auth.Handler
 	UserHandler    interfaces.UserHandler
 	SettingHandler setting.SettingHandler
 	WordHandler    interfaces.WordHandler
@@ -27,19 +27,19 @@ type RouterImplementation struct {
 
 func NewRouter(
 	jwtMiddleware middleware_interface.JwtMiddleware,
-	authHandler auth.AuthHandler,
+	authHandler auth.Handler,
 	userHandler interfaces.UserHandler,
 	settingHandler setting.SettingHandler,
 	wordHandler interfaces.WordHandler,
 	quizHandler interfaces.QuizHandler,
 	resultHandler interfaces.ResultHandler,
-) *RouterImplementation {
+) *Implementation {
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		logrus.Fatal("JWT_SECRET environment variable is required")
 	}
 
-	return &RouterImplementation{
+	return &Implementation{
 		JwtMiddleware:  jwtMiddleware,
 		AuthHandler:    authHandler,
 		UserHandler:    userHandler,
@@ -51,7 +51,7 @@ func NewRouter(
 	}
 }
 
-func (r *RouterImplementation) SetupRouter(router *gin.Engine) {
+func (r *Implementation) SetupRouter(router *gin.Engine) {
 	router.Use(requestLoggerMiddleware())
 	router.Use(CORSMiddleware())
 	router.GET("/health", func(c *gin.Context) {

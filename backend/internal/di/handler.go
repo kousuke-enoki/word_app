@@ -24,7 +24,7 @@ import (
 
 type Handlers struct {
 	JWTMiD  middleware_interface.JwtMiddleware // JWT ミドルウェアは Handler ではなく、インターフェースとして定義
-	Auth    auth.AuthHandler
+	Auth    auth.Handler
 	Setting setting.SettingHandler
 	User    interfaces.UserHandler
 	Word    interfaces.WordHandler
@@ -38,7 +38,7 @@ func NewHandlers(config *config.Config, uc *UseCases, client interfaces.ClientIn
 	// 既存のservice 層は “薄い Facade” として存続させる想定
 	return &Handlers{
 		JWTMiD:  jwt_middleware.NewJwtMiddleware(authClient),
-		Auth:    AuthH.NewAuthHandler(uc.Auth, jwtGen),
+		Auth:    AuthH.NewHandler(uc.Auth, jwtGen),
 		Setting: settingH.NewSettingHandler(uc.Setting),
 		User:    userH.NewUserHandler(userSvc.NewEntUserClient(client), jwtGen),
 		Word:    wordH.NewWordHandler(wordSvc.NewWordService(client)),

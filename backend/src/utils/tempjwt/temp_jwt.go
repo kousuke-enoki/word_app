@@ -10,7 +10,7 @@ type TempJWT struct {
 	secret []byte
 }
 
-func TempJWTNew(secret string) *TempJWT { return &TempJWT{secret: []byte(secret)} }
+func New(secret string) *TempJWT { return &TempJWT{secret: []byte(secret)} }
 
 type Identity struct {
 	Provider string `json:"provider"`
@@ -28,15 +28,15 @@ func (t *TempJWT) GenerateTemp(id *Identity, ttl time.Duration) (string, error) 
 
 func (t *TempJWT) ParseTemp(tok string) (*Identity, error) {
 	var id Identity
-	_, err := jwt.ParseWithClaims(tok, &id, func(token *jwt.Token) (interface{}, error) {
+	_, err := jwt.ParseWithClaims(tok, &id, func(_ *jwt.Token) (interface{}, error) {
 		return t.secret, nil
 	})
-	authId := &Identity{
+	authID := &Identity{
 		Provider:         id.Provider,
 		Subject:          id.Subject,
 		Email:            id.Email,
 		Name:             id.Name,
 		RegisteredClaims: id.RegisteredClaims,
 	}
-	return authId, err
+	return authID, err
 }

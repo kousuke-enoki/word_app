@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (h *QuizHandler) GetQuizHandler() gin.HandlerFunc {
+func (h *Handler) GetHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// ユーザーIDをコンテキストから取得
 		userID, err := contextutil.MustUserID(c)
@@ -26,7 +26,7 @@ func (h *QuizHandler) GetQuizHandler() gin.HandlerFunc {
 
 		// --- サービス呼び出し ---
 		q, err := h.quizService.GetNextOrResume(c.Request.Context(), userID, &req)
-		if err != nil {
+		if err != nil && q == nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}

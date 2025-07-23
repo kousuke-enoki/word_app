@@ -11,7 +11,7 @@ import (
 )
 
 type UseCases struct {
-	Auth    *authUc.AuthUsecase
+	Auth    *authUc.Usecase
 	Setting settingUc.SettingFacade // interface
 }
 
@@ -22,7 +22,7 @@ func NewUseCases(config *config.Config, r *Repos) (*UseCases, error) {
 	// JWT 生成器の初期化
 	// JWTSecret は環境変数から取得することを想定
 	jwtGen := jwt.NewMyJWTGenerator(config.JWT.Secret)
-	tempJwt := tempjwt.TempJWTNew(config.JWT.TempSecret)
+	tempJwt := tempjwt.New(config.JWT.TempSecret)
 
 	// -------- Setting -----------
 	// 各種設定ユースケースの初期化
@@ -34,7 +34,7 @@ func NewUseCases(config *config.Config, r *Repos) (*UseCases, error) {
 	settingFacade := settingUc.NewSettingFacade(authCfgUc, getRootUc, getUserUc, updateRootUc, updateUserUc)
 
 	return &UseCases{
-		Auth:    authUc.NewAuthUsecase(lineProv, r.User, r.Auth, jwtGen, tempJwt),
+		Auth:    authUc.NewUsecase(lineProv, r.User, r.Auth, jwtGen, tempJwt),
 		Setting: settingFacade, // ✅ まとめ役だけ保持
 	}, nil
 }

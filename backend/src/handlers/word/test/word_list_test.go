@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestWordList(t *testing.T) {
+func TestWordList(_ *testing.T) {
 	// gin.SetMode(gin.TestMode)
 
 	// // Mockサービスの初期化
@@ -38,7 +38,7 @@ func TestWordList(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware()) // テスト用ミドルウェア
-	// 	router.GET("/words", wordHandler.WordListHandler())
+	// 	router.GET("/words", wordHandler.ListHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -72,7 +72,7 @@ func TestWordList(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware()) // テスト用ミドルウェア
-	// 	router.GET("/words", wordHandler.WordListHandler())
+	// 	router.GET("/words", wordHandler.ListHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -101,7 +101,7 @@ func TestWordList(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware()) // テスト用ミドルウェア
-	// 	router.GET("/words", wordHandler.WordListHandler())
+	// 	router.GET("/words", wordHandler.ListHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -128,7 +128,7 @@ func TestWordList(t *testing.T) {
 	// 		// ユーザーIDをセットしないミドルウェア
 	// 		c.Next()
 	// 	})
-	// 	router.GET("/words", wordHandler.WordListHandler())
+	// 	router.GET("/words", wordHandler.ListHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -155,7 +155,7 @@ func TestWordList(t *testing.T) {
 	// 		c.Set("userID", "invalid") // 不正な型の userID をセット
 	// 		c.Next()
 	// 	})
-	// 	router.GET("/words", wordHandler.WordListHandler())
+	// 	router.GET("/words", wordHandler.ListHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -184,7 +184,7 @@ func TestWordList(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware())
-	// 	router.GET("/words", wordHandler.WordListHandler())
+	// 	router.GET("/words", wordHandler.ListHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -213,7 +213,7 @@ func TestWordList(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware())
-	// 	router.GET("/words", wordHandler.WordListHandler())
+	// 	router.GET("/words", wordHandler.ListHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)

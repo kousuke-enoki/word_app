@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestUpdateWordHandler(t *testing.T) {
+func TestUpdateHandler(_ *testing.T) {
 	// gin.SetMode(gin.TestMode)
 	// // mockWordService := new(mocks.WordService)
 
@@ -50,7 +50,7 @@ func TestUpdateWordHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware()) // テスト用ミドルウェア
-	// 	router.POST("/words/new", wordHandler.UpdateWordHandler())
+	// 	router.POST("/words/new", wordHandler.UpdateHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -94,7 +94,7 @@ func TestUpdateWordHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware()) // テスト用ミドルウェア
-	// 	router.POST("/words/new", wordHandler.UpdateWordHandler())
+	// 	router.POST("/words/new", wordHandler.UpdateHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -120,7 +120,7 @@ func TestUpdateWordHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware())
-	// 	router.POST("/words/new", wordHandler.UpdateWordHandler())
+	// 	router.POST("/words/new", wordHandler.UpdateHandler())
 
 	// 	router.ServeHTTP(w, req)
 	// 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -143,7 +143,7 @@ func TestUpdateWordHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware()) // テスト用ミドルウェア
-	// 	router.POST("/words/new", wordHandler.UpdateWordHandler())
+	// 	router.POST("/words/new", wordHandler.UpdateHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -190,7 +190,7 @@ func TestUpdateWordHandler(t *testing.T) {
 	// // 	w := httptest.NewRecorder()
 	// // 	router := gin.Default()
 	// // 	router.Use(mocks.MockAuthMiddleware()) // テスト用ミドルウェア
-	// // 	router.POST("/words/new", wordHandler.UpdateWordHandler())
+	// // 	router.POST("/words/new", wordHandler.UpdateHandler())
 
 	// // 	// テスト実行
 	// // 	router.ServeHTTP(w, req)

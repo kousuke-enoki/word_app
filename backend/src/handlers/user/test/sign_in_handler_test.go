@@ -26,7 +26,7 @@ func TestSignInHandler(t *testing.T) {
 		mockClient := new(mocks.UserClient)
 		mockJWTGen := new(mocks.MockJwtGenerator)
 
-		handler := user.NewUserHandler(mockClient, mockJWTGen)
+		handler := user.NewHandler(mockClient, mockJWTGen)
 
 		// 正常なリクエストデータ
 		reqData := models.SignInRequest{
@@ -36,7 +36,7 @@ func TestSignInHandler(t *testing.T) {
 		reqBody, _ := json.Marshal(reqData)
 
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("Secure123!"), bcrypt.DefaultCost)
-		mockClient.On("FindUserByEmail", mock.Anything, reqData.Email).
+		mockClient.On("FindByEmail", mock.Anything, reqData.Email).
 			Return(&ent.User{ID: 1, Email: reqData.Email, Password: string(hashedPassword)}, nil)
 		mockJWTGen.On("GenerateJWT", "1").Return("mocked_jwt_token", nil)
 
@@ -66,7 +66,7 @@ func TestSignInHandler(t *testing.T) {
 
 		mockClient := new(mocks.UserClient)
 		mockJWTGen := &mocks.MockJwtGenerator{}
-		handler := user.NewUserHandler(mockClient, mockJWTGen)
+		handler := user.NewHandler(mockClient, mockJWTGen)
 
 		// 無効なリクエストデータ
 		password := "InvalidSecure123!"
@@ -79,7 +79,7 @@ func TestSignInHandler(t *testing.T) {
 		}
 
 		// モックの設定
-		mockClient.On("FindUserByEmail", mock.Anything, "test@example.com").Return(signInUser, nil)
+		mockClient.On("FindByEmail", mock.Anything, "test@example.com").Return(signInUser, nil)
 
 		// リクエスト作成
 		reqData := models.SignInRequest{
@@ -114,7 +114,7 @@ func TestSignInHandler(t *testing.T) {
 
 		mockClient := new(mocks.UserClient)
 		mockJWTGen := &mocks.MockJwtGenerator{}
-		handler := user.NewUserHandler(mockClient, mockJWTGen)
+		handler := user.NewHandler(mockClient, mockJWTGen)
 
 		// 正常なユーザーデータとトークン生成エラーのモック設定
 		password := "Secure123!"
@@ -126,7 +126,7 @@ func TestSignInHandler(t *testing.T) {
 			Password: string(hashedPassword),
 		}
 
-		mockClient.On("FindUserByEmail", mock.Anything, "test@example.com").Return(signInUser, nil)
+		mockClient.On("FindByEmail", mock.Anything, "test@example.com").Return(signInUser, nil)
 		mockJWTGen.On("GenerateJWT", "1").Return("", fmt.Errorf("token generation error"))
 
 		// リクエスト作成

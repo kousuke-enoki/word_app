@@ -1,4 +1,4 @@
-package settingUc_test
+package settinguctest
 
 import (
 	"context"
@@ -20,13 +20,13 @@ import (
 
 /* shared data -------------------------------------------------------------- */
 var (
-	ctx      = context.Background()
-	sentinel = errors.New("boom")
-	rootCfg  = &domain.RootConfig{ID: 1, EditingPermission: "admin"}
-	userCfg  = &domain.UserConfig{ID: 1, UserID: 99, IsDarkMode: true}
-	rootOut  = &settingUc.OutputGetRootConfig{Config: rootCfg}
-	userOut  = &settingUc.OutputGetUserConfig{Config: userCfg}
-	authDTO  = &settingUc.AuthConfigDTO{IsLineAuth: true}
+	ctx     = context.Background()
+	errFoo  = errors.New("boom")
+	rootCfg = &domain.RootConfig{ID: 1, EditingPermission: "admin"}
+	userCfg = &domain.UserConfig{ID: 1, UserID: 99, IsDarkMode: true}
+	rootOut = &settingUc.OutputGetRootConfig{Config: rootCfg}
+	userOut = &settingUc.OutputGetUserConfig{Config: userCfg}
+	authDTO = &settingUc.AuthConfigDTO{IsLineAuth: true}
 )
 
 /* -------------------------------------------------------------------------- */
@@ -53,7 +53,7 @@ func TestSettingFacade_GetAuth(t *testing.T) {
 	// error
 	{
 		a := mockAuth.NewMockGetAuthConfig(t)
-		a.On("Execute", ctx).Return((*settingUc.AuthConfigDTO)(nil), sentinel)
+		a.On("Execute", ctx).Return((*settingUc.AuthConfigDTO)(nil), errFoo)
 
 		f := settingUc.NewSettingFacade(a,
 			mockRoot.NewMockGetRootConfig(t),
@@ -62,7 +62,7 @@ func TestSettingFacade_GetAuth(t *testing.T) {
 			mockUpdU.NewMockUpdateUserConfig(t),
 		)
 		_, err := f.GetAuth(ctx)
-		assert.ErrorIs(t, err, sentinel)
+		assert.ErrorIs(t, err, errFoo)
 		a.AssertExpectations(t)
 	}
 }
@@ -95,7 +95,7 @@ func TestSettingFacade_GetRoot(t *testing.T) {
 	// error
 	{
 		gr := mockRoot.NewMockGetRootConfig(t)
-		gr.On("Execute", ctx, in).Return((*settingUc.OutputGetRootConfig)(nil), sentinel)
+		gr.On("Execute", ctx, in).Return((*settingUc.OutputGetRootConfig)(nil), errFoo)
 		f := settingUc.NewSettingFacade(
 			mockAuth.NewMockGetAuthConfig(t),
 			gr,
@@ -104,7 +104,7 @@ func TestSettingFacade_GetRoot(t *testing.T) {
 			mockUpdU.NewMockUpdateUserConfig(t),
 		)
 		_, err := f.GetRoot(ctx, in)
-		assert.ErrorIs(t, err, sentinel)
+		assert.ErrorIs(t, err, errFoo)
 		gr.AssertExpectations(t)
 	}
 }
@@ -136,7 +136,7 @@ func TestSettingFacade_GetUser(t *testing.T) {
 	// error
 	{
 		gu := mockUser.NewMockGetUserConfig(t)
-		gu.On("Execute", ctx, in).Return((*settingUc.OutputGetUserConfig)(nil), sentinel)
+		gu.On("Execute", ctx, in).Return((*settingUc.OutputGetUserConfig)(nil), errFoo)
 		f := settingUc.NewSettingFacade(
 			mockAuth.NewMockGetAuthConfig(t),
 			mockRoot.NewMockGetRootConfig(t),
@@ -145,7 +145,7 @@ func TestSettingFacade_GetUser(t *testing.T) {
 			mockUpdU.NewMockUpdateUserConfig(t),
 		)
 		_, err := f.GetUser(ctx, in)
-		assert.ErrorIs(t, err, sentinel)
+		assert.ErrorIs(t, err, errFoo)
 		gu.AssertExpectations(t)
 	}
 }
@@ -177,7 +177,7 @@ func TestSettingFacade_UpdateRoot(t *testing.T) {
 	// error
 	{
 		ur := mockUpdR.NewMockUpdateRootConfig(t)
-		ur.On("Execute", ctx, in).Return((*domain.RootConfig)(nil), sentinel)
+		ur.On("Execute", ctx, in).Return((*domain.RootConfig)(nil), errFoo)
 		f := settingUc.NewSettingFacade(
 			mockAuth.NewMockGetAuthConfig(t),
 			mockRoot.NewMockGetRootConfig(t),
@@ -186,7 +186,7 @@ func TestSettingFacade_UpdateRoot(t *testing.T) {
 			mockUpdU.NewMockUpdateUserConfig(t),
 		)
 		_, err := f.UpdateRoot(ctx, in)
-		assert.ErrorIs(t, err, sentinel)
+		assert.ErrorIs(t, err, errFoo)
 		ur.AssertExpectations(t)
 	}
 }
@@ -218,7 +218,7 @@ func TestSettingFacade_UpdateUser(t *testing.T) {
 	// error
 	{
 		uu := mockUpdU.NewMockUpdateUserConfig(t)
-		uu.On("Execute", ctx, in).Return((*domain.UserConfig)(nil), sentinel)
+		uu.On("Execute", ctx, in).Return((*domain.UserConfig)(nil), errFoo)
 		f := settingUc.NewSettingFacade(
 			mockAuth.NewMockGetAuthConfig(t),
 			mockRoot.NewMockGetRootConfig(t),
@@ -227,7 +227,7 @@ func TestSettingFacade_UpdateUser(t *testing.T) {
 			uu,
 		)
 		_, err := f.UpdateUser(ctx, in)
-		assert.ErrorIs(t, err, sentinel)
+		assert.ErrorIs(t, err, errFoo)
 		uu.AssertExpectations(t)
 	}
 }

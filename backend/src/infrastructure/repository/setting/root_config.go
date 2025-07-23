@@ -6,11 +6,11 @@ import (
 	"word_app/backend/ent"
 	"word_app/backend/ent/rootconfig"
 	"word_app/backend/src/domain"
-	"word_app/backend/src/interfaces/service_interfaces"
+	serviceinterfaces "word_app/backend/src/interfaces/service_interfaces"
 )
 
 type EntRootConfigRepo struct {
-	client service_interfaces.EntClientInterface
+	client serviceinterfaces.EntClientInterface
 }
 
 type RootConfigRepository interface {
@@ -18,7 +18,7 @@ type RootConfigRepository interface {
 	Upsert(ctx context.Context, cfg *domain.RootConfig) (*domain.RootConfig, error)
 }
 
-func NewEntRootConfigRepo(c service_interfaces.EntClientInterface) *EntRootConfigRepo {
+func NewEntRootConfigRepo(c serviceinterfaces.EntClientInterface) *EntRootConfigRepo {
 	return &EntRootConfigRepo{client: c}
 }
 

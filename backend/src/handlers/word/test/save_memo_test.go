@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestSaveMemoHandler(t *testing.T) {
+func TestSaveMemoHandler(_ *testing.T) {
 	// gin.SetMode(gin.TestMode)
 	// // mockWordService := new(mocks.WordService)
 

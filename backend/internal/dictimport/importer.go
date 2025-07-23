@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// ImportJMdict は巨大な JMdictJSON を並列インポートするエントリポイント
 func ImportJMdict(ctx context.Context, path string, cli *ent.Client, opt Options) ([]ImportErr, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -30,13 +31,15 @@ func ImportJMdict(ctx context.Context, path string, cli *ent.Client, opt Options
 	}
 
 	errCh := make(chan ImportErr, 1024)
+
 	var (
 		errs   []ImportErr
 		mu     sync.Mutex
 		recvWG sync.WaitGroup
 		wg     sync.WaitGroup
 	)
-	// ------------ 受信 goroutine ------------
+
+	// ---- エラー集約 goroutine ----
 	recvWG.Add(1)
 	go func() {
 		defer recvWG.Done()
@@ -47,6 +50,7 @@ func ImportJMdict(ctx context.Context, path string, cli *ent.Client, opt Options
 		}
 	}()
 
+	// ---- ワーカープール ----
 	jobs := make(chan JMEntry, opt.Workers*2)
 	for i := 0; i < opt.Workers; i++ {
 		wg.Add(1)
@@ -55,15 +59,12 @@ func ImportJMdict(ctx context.Context, path string, cli *ent.Client, opt Options
 			for e := range jobs {
 				if err := importOne(ctx, cli, e); err != nil {
 					log.Println("id", e.ID)
-					// チャネルに渡す
-					errCh <- ImportErr{
-						ID:      e.ID,
-						Message: err.Error(),
-					}
+					errCh <- ImportErr{ID: e.ID, Message: err.Error()}
 				}
 			}
 		}()
 	}
+
 	for _, e := range root.Words {
 		jobs <- e
 	}
@@ -76,128 +77,134 @@ func ImportJMdict(ctx context.Context, path string, cli *ent.Client, opt Options
 	return errs, nil
 }
 
-func importOne(ctx context.Context, cli *ent.Client, e JMEntry) (err error) {
+// ---------------- 内部処理 ----------------
+
+// withTx は Tx を張って関数 fn を実行し、commit / rollback を一元管理する。
+func withTx(ctx context.Context, cli *ent.Client, fn func(*ent.Tx) error) error {
 	tx, err := cli.Tx(ctx)
 	if err != nil {
 		return err
 	}
-	var txErr error // ← DB処理の成否は txErr に集約
 	defer func() {
 		if p := recover(); p != nil {
 			_ = tx.Rollback()
 			panic(p)
 		}
-		if txErr != nil {
-			_ = tx.Rollback()
-			err = txErr
-		} else {
-			err = tx.Commit() // commit の結果を export
-		}
 	}()
 
-	// ❶ sense ループ
-	for _, s := range e.Sense {
-		if len(s.PartOfSpeech) == 0 {
-			continue
-		}
-		posID := mappedPosID(s.PartOfSpeech[0])
-		if posID == 11 && len(s.PartOfSpeech) > 1 {
-			for _, c := range s.PartOfSpeech[1:] {
-				if mapped := mappedPosID(c); mapped != 11 {
-					posID = mapped
-					break
-				}
-			}
-		}
+	if err := fn(tx); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return tx.Commit()
+}
 
-		// ❷ gloss 英語ごとに Word を生成
-		for _, g := range s.Gloss {
-			if g.Lang != "eng" {
+func importOne(ctx context.Context, cli *ent.Client, e JMEntry) error {
+	return withTx(ctx, cli, func(tx *ent.Tx) error {
+		for _, s := range e.Sense {
+			if len(s.PartOfSpeech) == 0 {
 				continue
 			}
-			var wID int
-			w, e2 := tx.Word.Query().
-				Where(word.NameEQ(g.Text)).
-				Only(ctx)
-			if ent.IsNotFound(e2) {
-				spaceRegex := regexp.MustCompile(`\s`)
-				specialCharRegex := regexp.MustCompile(`[!?\(\)0-9]`)
+			posID := pickPosID(s.PartOfSpeech)
 
-				isIdioms := spaceRegex.MatchString(g.Text)
-				isSpecialCharacters := specialCharRegex.MatchString(g.Text)
-
-				w, e2 = tx.Word.Create().
-					SetName(g.Text).
-					SetIsIdioms(isIdioms).
-					SetIsSpecialCharacters(isSpecialCharacters).
-					SetRegistrationCount(0).
-					Save(ctx)
-			}
-			if e2 != nil {
-				txErr = e2
-				return
-			} // ← ここで return しても defer が commit/rollback
-
-			wID = w.ID
-
-			var wi *ent.WordInfo
-			wi, e2 = tx.WordInfo. // ← ここで一度だけ宣言
-						Query().
-						Where(wordinfo.WordID(wID),
-					wordinfo.PartOfSpeechIDEQ(posID)).
-				Only(ctx)
-
-			if ent.IsNotFound(e2) {
-				wi, e2 = tx.WordInfo.Create().
-					SetWordID(wID).
-					SetPartOfSpeechID(posID).
-					Save(ctx)
-			}
-			if e2 != nil {
-				txErr = e2
-				return
-			}
-			if ent.IsNotFound(e2) {
-				wi, e2 = tx.WordInfo.Create().
-					SetWordID(wID).
-					SetPartOfSpeechID(posID).
-					Save(ctx)
-			}
-			log.Println(wi)
-			if e2 != nil {
-				txErr = e2
-				return
-			}
-			// c. JapaneseMean を全ての kanji.text で作成（無ければ kana[0]）
-			if len(e.Kanji) > 0 {
-				for _, kj := range e.Kanji {
-					if kj.Text == "" {
-						continue
-					}
-					if err := tx.JapaneseMean.Create().
-						SetWordInfoID(wi.ID).
-						SetName(kj.Text).
-						OnConflict(sql.ConflictColumns("word_info_id", "name")).
-						DoNothing().
-						Exec(ctx); err != nil {
-						return err
-					}
+			for _, g := range s.Gloss {
+				if g.Lang != "eng" {
+					continue
 				}
-			} else if len(e.Kana) > 0 && e.Kana[0].Text != "" {
-				if err := tx.JapaneseMean.Create().
-					SetWordInfoID(wi.ID).
-					SetName(e.Kana[0].Text).
-					OnConflict(sql.ConflictColumns("word_info_id", "name")).
-					DoNothing().
-					Exec(ctx); err != nil {
+				if err := processGloss(ctx, tx, g.Text, posID, e); err != nil {
 					return err
 				}
 			}
+		}
+		return nil
+	})
+}
 
+// pickPosID は Priority 付き part‑of‑speech スライスから最適な posID を決定する
+func pickPosID(parts []string) int {
+	id := mappedPosID(parts[0])
+	if id == 11 && len(parts) > 1 {
+		for _, c := range parts[1:] {
+			if m := mappedPosID(c); m != 11 {
+				return m
+			}
 		}
 	}
+	return id
+}
 
+// processGloss は 1 つの英語 Gloss に対して Word / WordInfo / JapaneseMean を確立する
+func processGloss(ctx context.Context, tx *ent.Tx, text string, posID int, entry JMEntry) error {
+	w, err := ensureWord(ctx, tx, text)
+	if err != nil {
+		return err
+	}
+
+	wi, err := ensureWordInfo(ctx, tx, w.ID, posID)
+	if err != nil {
+		return err
+	}
+
+	return ensureJapaneseMeans(ctx, tx, wi.ID, entry)
+}
+
+// ensureWord は text に対応する ent.Word を取得 / 作成する
+func ensureWord(ctx context.Context, tx *ent.Tx, text string) (*ent.Word, error) {
+	w, err := tx.Word.Query().Where(word.NameEQ(text)).Only(ctx)
+	if ent.IsNotFound(err) {
+		reSpace := regexp.MustCompile(`\s`)
+		reSymbol := regexp.MustCompile(`[!?\(\)0-9]`)
+		return tx.Word.Create().
+			SetName(text).
+			SetIsIdioms(reSpace.MatchString(text)).
+			SetIsSpecialCharacters(reSymbol.MatchString(text)).
+			SetRegistrationCount(0).
+			Save(ctx)
+	}
+	return w, err
+}
+
+// ensureWordInfo は (wordID,posID) に対応する WordInfo を取得 / 作成する
+func ensureWordInfo(ctx context.Context, tx *ent.Tx, wordID, posID int) (*ent.WordInfo, error) {
+	wi, err := tx.WordInfo.Query().
+		Where(wordinfo.WordID(wordID), wordinfo.PartOfSpeechIDEQ(posID)).
+		Only(ctx)
+	if ent.IsNotFound(err) {
+		return tx.WordInfo.Create().
+			SetWordID(wordID).
+			SetPartOfSpeechID(posID).
+			Save(ctx)
+	}
+	return wi, err
+}
+
+// ensureJapaneseMeans は Entry 情報から日本語訳を upsert する
+func ensureJapaneseMeans(ctx context.Context, tx *ent.Tx, wiID int, entry JMEntry) error {
+	// kanji.text 優先、無い場合 kana[0]
+	if len(entry.Kanji) > 0 {
+		for _, kj := range entry.Kanji {
+			if kj.Text == "" {
+				continue
+			}
+			if err := upsertJapaneseMean(ctx, tx, wiID, kj.Text); err != nil {
+				return err
+			}
+		}
+	} else if len(entry.Kana) > 0 && entry.Kana[0].Text != "" {
+		if err := upsertJapaneseMean(ctx, tx, wiID, entry.Kana[0].Text); err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+func upsertJapaneseMean(ctx context.Context, tx *ent.Tx, wiID int, name string) error {
+	return tx.JapaneseMean.Create().
+		SetWordInfoID(wiID).
+		SetName(name).
+		OnConflict(sql.ConflictColumns("word_info_id", "name")).
+		DoNothing().
+		Exec(ctx)
 }
 
 var posCode2ID = map[string]int{
@@ -215,7 +222,7 @@ var posCode2ID = map[string]int{
 	"unc":   12,
 }
 
-// 結果 0‑11 のどれにも当てはまらなければ 11
+// mappedPosID は 品詞コード → 内部 ID 変換（未知コードは 11）
 func mappedPosID(code string) int {
 	if id, ok := posCode2ID[code]; ok {
 		return id

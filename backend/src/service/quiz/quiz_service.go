@@ -1,16 +1,17 @@
-package quiz_service
+package quiz
 
 import (
 	"errors"
-	"word_app/backend/src/interfaces/service_interfaces"
+
+	serviceinterfaces "word_app/backend/src/interfaces/service_interfaces"
 )
 
-type QuizServiceImpl struct {
-	client service_interfaces.EntClientInterface
+type ServiceImpl struct {
+	client serviceinterfaces.EntClientInterface
 }
 
-func NewQuizService(client service_interfaces.EntClientInterface) *QuizServiceImpl {
-	return &QuizServiceImpl{client: client}
+func NewService(client serviceinterfaces.EntClientInterface) *ServiceImpl {
+	return &ServiceImpl{client: client}
 }
 
 var (

@@ -1,4 +1,4 @@
-package word_service
+package word
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 )
 
 // word_show
-func (s *WordServiceImpl) GetWordDetails(ctx context.Context, WordShowRequest *models.WordShowRequest) (*models.WordShowResponse, error) {
+func (s *ServiceImpl) GetWordDetails(ctx context.Context, WordShowRequest *models.WordShowRequest) (*models.WordShowResponse, error) {
 	wordID := WordShowRequest.WordID
 	userID := WordShowRequest.UserID
 

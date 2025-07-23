@@ -1,4 +1,4 @@
-package quiz_service
+package quiz
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (s *QuizServiceImpl) GetNextOrResume(
+func (s *ServiceImpl) GetNextOrResume(
 	ctx context.Context,
 	userID int,
 	req *models.GetQuizRequest,
@@ -50,7 +50,7 @@ func (s *QuizServiceImpl) GetNextOrResume(
 	if req.BeforeQuestionNumber != nil {
 		targetNum = *req.BeforeQuestionNumber + 1
 	} else {
-		unanswered, err := tx.QuizQuestion.
+		unanswered, qErr := tx.QuizQuestion.
 			Query().
 			Where(
 				quizquestion.QuizIDEQ(q.ID),
@@ -59,9 +59,9 @@ func (s *QuizServiceImpl) GetNextOrResume(
 			Order(ent.Asc(quizquestion.FieldQuestionNumber)).
 			First(ctx)
 
-		if err == nil {
+		if qErr == nil {
 			targetNum = unanswered.QuestionNumber
-		} else if ent.IsNotFound(err) {
+		} else if ent.IsNotFound(qErr) {
 			targetNum = q.TotalQuestionsCount
 		} else {
 			return &models.GetQuizResponse{
@@ -93,16 +93,4 @@ func (s *QuizServiceImpl) GetNextOrResume(
 			ChoicesJpms:    qq.ChoicesJpms,
 		},
 	}, nil
-}
-
-/*** helper ***/
-func rollbackOrCommit(perr *error, tx *ent.Tx) {
-	if p := recover(); p != nil {
-		_ = tx.Rollback()
-		panic(p)
-	} else if *perr != nil {
-		_ = tx.Rollback()
-	} else {
-		*perr = tx.Commit()
-	}
 }

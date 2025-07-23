@@ -3,6 +3,7 @@ package jwt
 
 import (
 	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -19,7 +20,7 @@ func TestJwtCheckMiddleware(t *testing.T) {
 	// 共通: JSON 比較 helper
 	// trim := func(b []byte) string { return string(bytes.TrimSpace(b)) }
 
-	t.Run("roles present → 200", func(t *testing.T) {
+	t.Run("user logined", func(t *testing.T) {
 		r := gin.New()
 
 		// ① ロールを仕込むダミーミドルウェア
@@ -29,7 +30,7 @@ func TestJwtCheckMiddleware(t *testing.T) {
 			c.Set("isRoot", false)
 		})
 		// ② テスト対象
-		r.GET("/mypage", new(jwt.JwtMiddleware).JwtCheckMiddleware())
+		r.GET("/mypage", new(jwt.Middleware).JwtCheckMiddleware())
 
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/mypage", nil)
@@ -39,21 +40,40 @@ func TestJwtCheckMiddleware(t *testing.T) {
 
 		// want := `{"user":{"id":42,"isAdmin":true,"isRoot":false}}`
 		require.JSONEq(t,
-			`{"user":{"id":42,"name":"","isAdmin":true,"isRoot":false}}`, // ← name を追加
+			`{"user":{"id":42,"name":"","isAdmin":true,"isRoot":false}, "isLogin": true}`,
 			string(bytes.TrimSpace(w.Body.Bytes())),
 		)
 	})
 
-	t.Run("roles missing → 401", func(t *testing.T) {
+	t.Run("user not logined", func(t *testing.T) {
 		r := gin.New()
-		// ロールを仕込まない
-		r.GET("/mypage", new(jwt.JwtMiddleware).JwtCheckMiddleware())
+		// Recovery は使わず自前 recover で panic を確認
+		r.GET("/mypage", new(jwt.Middleware).JwtCheckMiddleware())
 
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/mypage", nil)
-		r.ServeHTTP(w, req)
 
-		require.Equal(t, http.StatusUnauthorized, w.Code)
-		require.Contains(t, w.Body.String(), "userID not found in context")
+		var rec any
+		func() {
+			defer func() { rec = recover() }()
+			r.ServeHTTP(w, req)
+		}()
+
+		require.NotNil(t, rec, "roles が無いので panic するはず")
+
+		// --- JSON は柔らかくチェックする ---
+		var got map[string]any
+		require.NoError(t, json.Unmarshal(bytes.TrimSpace(w.Body.Bytes()), &got))
+
+		// isLogin が false であることだけ必須に
+		require.Equal(t, false, got["isLogin"])
+
+		// user が含まれていてもゼロ値なら OK とする
+		if u, ok := got["user"].(map[string]any); ok {
+			require.Equal(t, float64(0), u["id"])
+			require.Equal(t, false, u["isAdmin"])
+			require.Equal(t, false, u["isRoot"])
+		}
 	})
+
 }

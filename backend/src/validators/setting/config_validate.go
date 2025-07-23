@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type SettingValidator interface {
+type Validator interface {
 	ValidateRootConfig(SignUpRequest *settingUc.InputUpdateRootConfig) []*models.FieldError
 }
 

@@ -1,5 +1,5 @@
 // usecase/setting/update_root_config.go
-package settingUc
+package settinguc
 
 import (
 	"context"
@@ -19,14 +19,14 @@ type InputUpdateRootConfig struct {
 
 type UpdateRootConfigInteractor struct {
 	rootRepo settingRepo.RootConfigRepository
-	userRepo userRepo.UserRepository
+	userRepo userRepo.Repository
 }
 
 type UpdateRootConfig interface {
 	Execute(ctx context.Context, in InputUpdateRootConfig) (*domain.RootConfig, error)
 }
 
-func NewUpdateRootConfig(r settingRepo.RootConfigRepository, u userRepo.UserRepository) *UpdateRootConfigInteractor {
+func NewUpdateRootConfig(r settingRepo.RootConfigRepository, u userRepo.Repository) *UpdateRootConfigInteractor {
 	return &UpdateRootConfigInteractor{rootRepo: r, userRepo: u}
 }
 

@@ -3,6 +3,7 @@ package quiz
 import (
 	"context"
 	"net/http"
+
 	"word_app/backend/src/models"
 	"word_app/backend/src/utils/contextutil"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (h *QuizHandler) CreateQuizHandler() gin.HandlerFunc {
+func (h *Handler) CreateHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 		req, err := h.parseCreateQuizRequest(c)
@@ -40,7 +41,7 @@ func (h *QuizHandler) CreateQuizHandler() gin.HandlerFunc {
 }
 
 // リクエスト構造体を解析
-func (h *QuizHandler) parseCreateQuizRequest(c *gin.Context) (*models.CreateQuizReq, error) {
+func (h *Handler) parseCreateQuizRequest(c *gin.Context) (*models.CreateQuizReq, error) {
 	var req models.CreateQuizReq
 
 	// JSONリクエストをバインド

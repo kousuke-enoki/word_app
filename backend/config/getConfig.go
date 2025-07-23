@@ -12,9 +12,9 @@ type AppCfg struct {
 	Port string
 }
 
-type TempJWT struct {
-	secret []byte
-}
+// type TempJWT struct {
+// 	secret []byte
+// }
 
 type JWTCfg struct {
 	Secret       string
@@ -46,7 +46,7 @@ func NewConfig() *Config {
 	// ♦ 1. 必須値を取得
 	jwtSecret := must("JWT_SECRET")
 	tempSecret := must("JWT_SECRET")
-	// tempJwt := tempjwt.TempJWTNew(os.Getenv("TEMP_JWT_SECRET"))
+	// tempJwt := tempjwt.New(os.Getenv("TEMP_JWT_SECRET"))
 	lineClientID := must("LINE_CLIENT_ID")
 	lineClientSec := must("LINE_CLIENT_SECRET")
 	lineRedirect := must("LINE_REDIRECT_URI")

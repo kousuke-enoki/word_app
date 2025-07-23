@@ -1,7 +1,8 @@
-package service_interfaces
+package serviceinterfaces
 
 import (
 	"context"
+
 	"word_app/backend/ent"
 )
 

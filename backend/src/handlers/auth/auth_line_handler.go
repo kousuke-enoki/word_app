@@ -2,12 +2,13 @@ package auth
 
 import (
 	"net/http"
+
 	"word_app/backend/src/utils/oauthutil"
 
 	"github.com/gin-gonic/gin"
 )
 
-func (h *AuthHandler) LineLogin() gin.HandlerFunc {
+func (h *Handler) LineLogin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		state, _ := oauthutil.NewState(c)
 		nonce, _ := oauthutil.NewNonce(c)
@@ -17,13 +18,13 @@ func (h *AuthHandler) LineLogin() gin.HandlerFunc {
 	}
 }
 
-func (h *AuthHandler) LineCallback() gin.HandlerFunc {
+func (h *Handler) LineCallback() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		code := c.Query("code")
-		state := c.Query("state")
-		nonce := oauthutil.LoadNonce(c)
+		// state := c.Query("state")
+		// nonce := oauthutil.LoadNonce(c)
 
-		res, err := h.AuthUsecase.HandleCallback(c, code, state, nonce)
+		res, err := h.AuthUsecase.HandleCallback(c, code)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -32,7 +33,7 @@ func (h *AuthHandler) LineCallback() gin.HandlerFunc {
 	}
 }
 
-func (h *AuthHandler) LineComplete() gin.HandlerFunc {
+func (h *Handler) LineComplete() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
 			TempToken string `json:"temp_token"`

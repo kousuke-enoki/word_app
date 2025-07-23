@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (h *WordHandler) BulkRegisterHandler() gin.HandlerFunc {
+func (h *Handler) BulkRegisterHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 		// userID は認証ミドルウェアでセットされている前提

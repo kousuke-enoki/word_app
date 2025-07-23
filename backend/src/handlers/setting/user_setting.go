@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *AuthSettingHandler) GetUserSettingHandler() gin.HandlerFunc {
+func (h *AuthSettingHandler) GetUserConfigHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, ok := c.Get("userID")
 
@@ -29,7 +29,7 @@ func (h *AuthSettingHandler) GetUserSettingHandler() gin.HandlerFunc {
 	}
 }
 
-func (h *AuthSettingHandler) SaveUserSettingHandler() gin.HandlerFunc {
+func (h *AuthSettingHandler) SaveUserConfigHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, _ := c.Get("userID")
 

@@ -1,4 +1,4 @@
-package quiz_service
+package quiz
 
 import (
 	"context"
@@ -20,7 +20,7 @@ import (
 
 /*==================== public service ====================*/
 
-func (s *QuizServiceImpl) CreateQuiz(
+func (s *ServiceImpl) CreateQuiz(
 	ctx context.Context,
 	userID int,
 	req *models.CreateQuizReq,
@@ -58,7 +58,7 @@ func (s *QuizServiceImpl) CreateQuiz(
 
 // fetchCandidates は「クエリ組み立て＋件数チェック」だけ担当。
 // 将来 WordRepository に移設すれば service 層は一切修正不要。
-func (s *QuizServiceImpl) fetchCandidates(
+func (s *ServiceImpl) fetchCandidates(
 	ctx context.Context,
 	userID int,
 	req *models.CreateQuizReq,
@@ -80,7 +80,7 @@ func (s *QuizServiceImpl) fetchCandidates(
 
 // ensureQuizRecord は「排他チェック＋Quiz行作成」をまとめた 1 ユースケース。
 // ここも将来 QuizRepository へ切り出し可能。
-func (s *QuizServiceImpl) ensureQuizRecord(
+func (s *ServiceImpl) ensureQuizRecord(
 	ctx context.Context,
 	tx *ent.Tx,
 	userID int,
@@ -119,7 +119,7 @@ func (s *QuizServiceImpl) ensureQuizRecord(
 
 // generateQuestions は「ドメインロジック：誤答抽出＋問題行作成」
 // 今は Ent を直叩きだが、あとで QuestionRepository に。
-func (s *QuizServiceImpl) generateQuestions(
+func (s *ServiceImpl) generateQuestions(
 	ctx context.Context,
 	tx *ent.Tx,
 	qEnt *ent.Quiz,
@@ -174,7 +174,7 @@ func (s *QuizServiceImpl) generateQuestions(
 
 // baseWordQuery はフィルタ条件を組み立てるだけ。
 // 呼び出し側が order/limit を決められる＝再利用しやすい。
-func (s *QuizServiceImpl) baseWordQuery(
+func (s *ServiceImpl) baseWordQuery(
 	userID int,
 	req *models.CreateQuizReq,
 ) *ent.WordQuery {
@@ -217,7 +217,7 @@ func (s *QuizServiceImpl) baseWordQuery(
 
 /*==================== tx wrapper & utility ====================*/
 
-func (s *QuizServiceImpl) withTx(
+func (s *ServiceImpl) withTx(
 	ctx context.Context,
 	fn func(tx *ent.Tx) error,
 ) (err error) {

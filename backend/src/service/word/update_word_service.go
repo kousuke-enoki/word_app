@@ -1,4 +1,4 @@
-package word_service
+package word
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 
 /*==================== public ====================*/
 
-func (s *WordServiceImpl) UpdateWord(
+func (s *ServiceImpl) UpdateWord(
 	ctx context.Context,
 	req *models.UpdateWordRequest,
 ) (resp *models.UpdateWordResponse, err error) {
@@ -44,7 +44,7 @@ func (s *WordServiceImpl) UpdateWord(
 	}
 
 	// ④ WordInfo / JapaneseMean を upsert
-	if err = s.upsertWordInfos(ctx, tx, wordEnt.ID, req.WordInfos); err != nil {
+	if err = s.upsertWordInfos(ctx, tx, req.WordInfos); err != nil {
 		return nil, err
 	}
 
@@ -75,7 +75,7 @@ func (s *WordServiceImpl) UpdateWord(
 /*==================== domain / repository-like helpers ====================*/
 
 // // 管理者かチェック
-// func (s *WordServiceImpl) assertAdmin(
+// func (s *ServiceImpl) assertAdmin(
 // 	ctx context.Context,
 // 	tx *ent.Tx,
 // 	userID int,
@@ -91,7 +91,7 @@ func (s *WordServiceImpl) UpdateWord(
 // }
 
 // 既存 Word を取得し、名前重複を検証
-func (s *WordServiceImpl) fetchAndValidateName(
+func (s *ServiceImpl) fetchAndValidateName(
 	ctx context.Context,
 	tx *ent.Tx,
 	wordID int,
@@ -121,7 +121,7 @@ func (s *WordServiceImpl) fetchAndValidateName(
 }
 
 // 単語名を更新
-func (s *WordServiceImpl) updateWordName(
+func (s *ServiceImpl) updateWordName(
 	ctx context.Context,
 	tx *ent.Tx,
 	w *ent.Word,
@@ -134,10 +134,9 @@ func (s *WordServiceImpl) updateWordName(
 }
 
 // WordInfo / JapaneseMean を upsert
-func (s *WordServiceImpl) upsertWordInfos(
+func (s *ServiceImpl) upsertWordInfos(
 	ctx context.Context,
 	tx *ent.Tx,
-	wordID int,
 	infos []models.WordInfo,
 ) error {
 
@@ -146,13 +145,13 @@ func (s *WordServiceImpl) upsertWordInfos(
 		if err != nil {
 			return errors.New("failed to fetch word info")
 		}
-		wiEnt, err = tx.WordInfo.UpdateOne(wiEnt).
+		_, err = tx.WordInfo.UpdateOne(wiEnt).
 			SetPartOfSpeechID(wi.PartOfSpeechID).
 			Save(ctx)
 		if err != nil {
 			return errors.New("failed to update word info")
 		}
-		if err = s.upsertMeans(ctx, tx, wiEnt.ID, wi.JapaneseMeans); err != nil {
+		if err = s.upsertMeans(ctx, tx, wi.JapaneseMeans); err != nil {
 			return err
 		}
 	}
@@ -160,10 +159,9 @@ func (s *WordServiceImpl) upsertWordInfos(
 }
 
 // JapaneseMean upsert
-func (s *WordServiceImpl) upsertMeans(
+func (s *ServiceImpl) upsertMeans(
 	ctx context.Context,
 	tx *ent.Tx,
-	wordInfoID int,
 	means []models.JapaneseMean,
 ) error {
 

@@ -19,5 +19,6 @@ type User struct {
 }
 
 type MyPageResponse struct {
-	User User `json:"user" binding:"required"`
+	User    User `json:"user" binding:"required"`
+	IsLogin bool `json:"isLogin"`
 }

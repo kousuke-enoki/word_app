@@ -13,7 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (h *UserHandler) SignInHandler() gin.HandlerFunc {
+func (h *Handler) SignInHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req models.SignInRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -28,7 +28,7 @@ func (h *UserHandler) SignInHandler() gin.HandlerFunc {
 		}
 
 		// ユーザーの検索
-		signInUser, err := h.userClient.FindUserByEmail(context.Background(), req.Email)
+		signInUser, err := h.userClient.FindByEmail(context.Background(), req.Email)
 		if err != nil || bcrypt.CompareHashAndPassword([]byte(signInUser.Password), []byte(req.Password)) != nil {
 			c.JSON(400, gin.H{"error": "Invalid request"})
 			return

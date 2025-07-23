@@ -1,4 +1,4 @@
-package service_interfaces
+package serviceinterfaces
 
 import (
 	"context"

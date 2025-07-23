@@ -6,7 +6,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func TestDeleteWord(t *testing.T) {
+func TestDeleteWord(_ *testing.T) {
 	// client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 	// defer client.Close()
 

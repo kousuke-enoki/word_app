@@ -1,4 +1,4 @@
-package settingUc_test
+package settinguctest
 
 import (
 	"context"

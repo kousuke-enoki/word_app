@@ -4,12 +4,12 @@ import (
 	"word_app/backend/src/interfaces/http/middleware"
 )
 
-type JwtMiddleware struct {
+type Middleware struct {
 	tokenValidator middleware.TokenValidator
 }
 
-func NewJwtMiddleware(tokenValidator middleware.TokenValidator) *JwtMiddleware {
-	return &JwtMiddleware{
+func NewMiddleware(tokenValidator middleware.TokenValidator) *Middleware {
+	return &Middleware{
 		tokenValidator: tokenValidator,
 	}
 }

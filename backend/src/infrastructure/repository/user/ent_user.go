@@ -7,23 +7,23 @@ import (
 	"word_app/backend/ent/externalauth"
 	"word_app/backend/ent/user"
 	"word_app/backend/src/domain"
-	"word_app/backend/src/interfaces/service_interfaces"
+	serviceinterfaces "word_app/backend/src/interfaces/service_interfaces"
 
 	"github.com/sirupsen/logrus"
 )
 
 type EntUserRepo struct {
-	client service_interfaces.EntClientInterface
+	client serviceinterfaces.EntClientInterface
 }
 
-type UserRepository interface {
+type Repository interface {
 	FindByProvider(ctx context.Context, provider, sub string) (*domain.User, error)
 	Create(ctx context.Context, u *domain.User, ext *domain.ExternalAuth) error
 	FindByID(ctx context.Context, id int) (*domain.User, error)
 	IsRoot(ctx context.Context, userID int) (bool, error)
 }
 
-func NewEntUserRepo(c service_interfaces.EntClientInterface) *EntUserRepo {
+func NewEntUserRepo(c serviceinterfaces.EntClientInterface) *EntUserRepo {
 	return &EntUserRepo{client: c}
 }
 

@@ -1,4 +1,4 @@
-package settingUc
+package settinguc
 
 import (
 	"errors"

@@ -11,7 +11,7 @@ import (
 
 func TestNewAuthHandler(t *testing.T) {
 	// Arrange: Create mocks for dependencies.
-	mockAuthClient := new(auth.MockAuthUsecase)
+	mockAuthClient := new(auth.MockUsecase)
 	mockJWTGenerator := new(mocks.MockJwtGenerator)
 
 	// Act: Create a new Handler instance.

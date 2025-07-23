@@ -1,24 +1,24 @@
-package user_service
+package user
 
 import (
 	"errors"
 
-	"word_app/backend/src/interfaces/service_interfaces"
+	serviceinterfaces "word_app/backend/src/interfaces/service_interfaces"
 )
 
 // ent.Client をラップして UserClient インターフェースを実装
 type EntUserClient struct {
-	client service_interfaces.EntClientInterface
+	client serviceinterfaces.EntClientInterface
 }
 
-func NewEntUserClient(client service_interfaces.EntClientInterface) *EntUserClient {
+func NewEntUserClient(client serviceinterfaces.EntClientInterface) *EntUserClient {
 	return &EntUserClient{client: client}
 }
 
 var (
-	ErrDuplicateEmail   = errors.New("duplicate email")
-	ErrDuplicateID      = errors.New("duplicate ID")
-	ErrDatabaseFailure  = errors.New("database failure")
-	ErrUserNotFound     = errors.New("user not found")
-	ErrCreateUserConfig = errors.New("create user config failure")
+	ErrDuplicateEmail  = errors.New("duplicate email")
+	ErrDuplicateID     = errors.New("duplicate ID")
+	ErrDatabaseFailure = errors.New("database failure")
+	ErrUserNotFound    = errors.New("user not found")
+	ErrCreateConfig    = errors.New("create user config failure")
 )

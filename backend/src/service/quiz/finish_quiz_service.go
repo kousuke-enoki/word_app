@@ -1,4 +1,4 @@
-package quiz_service
+package quiz
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 
 /*==================== public ====================*/
 
-func (s *QuizServiceImpl) finishQuizTx(
+func (s *ServiceImpl) finishQuizTx(
 	ctx context.Context,
 	tx *ent.Tx,
 	q *ent.Quiz,
@@ -56,7 +56,7 @@ func (s *QuizServiceImpl) finishQuizTx(
 /*==================== repository-like helpers ====================*/
 
 // Edge が無い場合のみ再取得
-func (s *QuizServiceImpl) loadQuizQuestions(
+func (s *ServiceImpl) loadQuizQuestions(
 	ctx context.Context,
 	tx *ent.Tx,
 	q *ent.Quiz,
@@ -72,7 +72,7 @@ func (s *QuizServiceImpl) loadQuizQuestions(
 }
 
 // RegisteredWord を作成 / 更新し、正答かどうかを返す
-func (s *QuizServiceImpl) upsertRegisteredWord(
+func (s *ServiceImpl) upsertRegisteredWord(
 	ctx context.Context,
 	tx *ent.Tx,
 	qq *ent.QuizQuestion,
@@ -129,7 +129,7 @@ func (s *QuizServiceImpl) upsertRegisteredWord(
 }
 
 // クイズ本体の完了情報を更新
-func (s *QuizServiceImpl) updateQuizResult(
+func (s *ServiceImpl) updateQuizResult(
 	ctx context.Context,
 	tx *ent.Tx,
 	q *ent.Quiz,
@@ -146,7 +146,7 @@ func (s *QuizServiceImpl) updateQuizResult(
 }
 
 // Quiz / QuizQuestion を soft-delete
-func (s *QuizServiceImpl) softDeleteQuiz(
+func (s *ServiceImpl) softDeleteQuiz(
 	ctx context.Context,
 	tx *ent.Tx,
 	quizID int,

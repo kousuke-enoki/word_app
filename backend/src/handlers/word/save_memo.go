@@ -14,7 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (h *WordHandler) SaveMemoHandler() gin.HandlerFunc {
+func (h *Handler) SaveMemoHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 		req, err := h.parseSaveMemoRequest(c)
@@ -40,7 +40,7 @@ func (h *WordHandler) SaveMemoHandler() gin.HandlerFunc {
 	}
 }
 
-func (h *WordHandler) parseSaveMemoRequest(c *gin.Context) (*models.SaveMemoRequest, error) {
+func (h *Handler) parseSaveMemoRequest(c *gin.Context) (*models.SaveMemoRequest, error) {
 	// リクエストボディが空の場合をチェック
 	if c.Request.Body == nil {
 		return nil, errors.New("request body is missing")

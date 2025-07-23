@@ -53,12 +53,12 @@ func (_m *WordHandler) BulkTokenizeHandler() gin.HandlerFunc {
 	return r0
 }
 
-// CreateWordHandler provides a mock function with given fields:
-func (_m *WordHandler) CreateWordHandler() gin.HandlerFunc {
+// CreateHandler provides a mock function with given fields:
+func (_m *WordHandler) CreateHandler() gin.HandlerFunc {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for CreateWordHandler")
+		panic("no return value specified for CreateHandler")
 	}
 
 	var r0 gin.HandlerFunc
@@ -73,12 +73,12 @@ func (_m *WordHandler) CreateWordHandler() gin.HandlerFunc {
 	return r0
 }
 
-// DeleteWordHandler provides a mock function with given fields:
-func (_m *WordHandler) DeleteWordHandler() gin.HandlerFunc {
+// DeleteHandler provides a mock function with given fields:
+func (_m *WordHandler) DeleteHandler() gin.HandlerFunc {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for DeleteWordHandler")
+		panic("no return value specified for DeleteHandler")
 	}
 
 	var r0 gin.HandlerFunc
@@ -93,12 +93,12 @@ func (_m *WordHandler) DeleteWordHandler() gin.HandlerFunc {
 	return r0
 }
 
-// RegisterWordHandler provides a mock function with given fields:
-func (_m *WordHandler) RegisterWordHandler() gin.HandlerFunc {
+// RegisterHandler provides a mock function with given fields:
+func (_m *WordHandler) RegisterHandler() gin.HandlerFunc {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for RegisterWordHandler")
+		panic("no return value specified for RegisterHandler")
 	}
 
 	var r0 gin.HandlerFunc
@@ -133,12 +133,12 @@ func (_m *WordHandler) SaveMemoHandler() gin.HandlerFunc {
 	return r0
 }
 
-// UpdateWordHandler provides a mock function with given fields:
-func (_m *WordHandler) UpdateWordHandler() gin.HandlerFunc {
+// UpdateHandler provides a mock function with given fields:
+func (_m *WordHandler) UpdateHandler() gin.HandlerFunc {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for UpdateWordHandler")
+		panic("no return value specified for UpdateHandler")
 	}
 
 	var r0 gin.HandlerFunc
@@ -153,12 +153,12 @@ func (_m *WordHandler) UpdateWordHandler() gin.HandlerFunc {
 	return r0
 }
 
-// WordListHandler provides a mock function with given fields:
-func (_m *WordHandler) WordListHandler() gin.HandlerFunc {
+// ListHandler provides a mock function with given fields:
+func (_m *WordHandler) ListHandler() gin.HandlerFunc {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for WordListHandler")
+		panic("no return value specified for ListHandler")
 	}
 
 	var r0 gin.HandlerFunc
@@ -173,12 +173,12 @@ func (_m *WordHandler) WordListHandler() gin.HandlerFunc {
 	return r0
 }
 
-// WordShowHandler provides a mock function with given fields:
-func (_m *WordHandler) WordShowHandler() gin.HandlerFunc {
+// ShowHandler provides a mock function with given fields:
+func (_m *WordHandler) ShowHandler() gin.HandlerFunc {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for WordShowHandler")
+		panic("no return value specified for ShowHandler")
 	}
 
 	var r0 gin.HandlerFunc

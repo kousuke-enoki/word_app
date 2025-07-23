@@ -12,7 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (h *WordHandler) WordShowHandler() gin.HandlerFunc {
+func (h *Handler) ShowHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 
@@ -33,7 +33,7 @@ func (h *WordHandler) WordShowHandler() gin.HandlerFunc {
 	}
 }
 
-func (h *WordHandler) parseWordShowRequest(c *gin.Context) (*models.WordShowRequest, error) {
+func (h *Handler) parseWordShowRequest(c *gin.Context) (*models.WordShowRequest, error) {
 	// パラメータの取得と検証
 	wordID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {

@@ -61,7 +61,7 @@ func TestGetUserSettingHandler(t *testing.T) {
 		{
 			name:         "userID 無 (401)",
 			injectUser:   false,
-			mockBehavior: func(m *mocks.MockSettingFacade) {},
+			mockBehavior: func(_ *mocks.MockSettingFacade) {},
 			wantCode:     http.StatusUnauthorized,
 		},
 		{
@@ -80,13 +80,13 @@ func TestGetUserSettingHandler(t *testing.T) {
 			mockUc := mocks.NewMockSettingFacade(t)
 			tt.mockBehavior(mockUc)
 
-			h := settinghdlr.NewSettingHandler(mockUc)
+			h := settinghdlr.NewHandler(mockUc)
 			c, w := test.NewTestCtx("GET", "/setting/user_config", nil)
 			if tt.injectUser {
 				test.InjectUser(c, 99, false)
 			}
 
-			h.GetUserSettingHandler()(c)
+			h.GetUserConfigHandler()(c)
 			assert.Equal(t, tt.wantCode, w.Code)
 
 			if w.Code == http.StatusOK {
@@ -131,7 +131,7 @@ func TestSaveUserSettingHandler(t *testing.T) {
 			name:         "BindJSON エラー (400)",
 			body:         badJSON,
 			injectUser:   true,
-			mockBehavior: func(m *mocks.MockSettingFacade) {},
+			mockBehavior: func(_ *mocks.MockSettingFacade) {},
 			wantCode:     http.StatusBadRequest,
 		},
 		{
@@ -151,13 +151,13 @@ func TestSaveUserSettingHandler(t *testing.T) {
 			mockUc := mocks.NewMockSettingFacade(t)
 			tt.mockBehavior(mockUc)
 
-			h := settinghdlr.NewSettingHandler(mockUc)
+			h := settinghdlr.NewHandler(mockUc)
 			c, w := rawCtx("POST", "/setting/user_config", tt.body)
 			if tt.injectUser {
 				test.InjectUser(c, 99, false)
 			}
 
-			h.SaveUserSettingHandler()(c)
+			h.SaveUserConfigHandler()(c)
 			assert.Equal(t, tt.wantCode, w.Code)
 
 			if w.Code == http.StatusOK {

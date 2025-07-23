@@ -68,9 +68,9 @@ export interface ResultQuestion {
   wordID: number;
   wordName: string;
   posID: number;
-  correctJpmId: number;
+  correctJpmID: number;
   choicesJpms: ChoiceJpm[];
-  answerJpmId: number;
+  answerJpmID: number;
   isCorrect: boolean;
   timeMs: number;
   registeredWord: registeredWord;

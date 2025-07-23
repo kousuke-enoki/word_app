@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestSaveMemo(t *testing.T) {
+func TestSaveMemo(_ *testing.T) {
 	// client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 	// defer client.Close()
 	// clientWrapper := infrastructure.NewAppClient(client)
@@ -87,7 +87,7 @@ func TestSaveMemo(t *testing.T) {
 	// // 	mockTx := new(ent.Tx)
 
 	// // 	// テスト対象のサービスの作成
-	// // 	service := word_service.WordServiceImpl{
+	// // 	service := word_service.ServiceImpl{
 	// // 		Client: mockEntClient,
 	// // 	}
 

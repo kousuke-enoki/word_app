@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func RouterTest(t *testing.T) {
+func RouterTest(_ *testing.T) {
 	// t.Run("TestSetupRouter", func(t *testing.T) {
 	// 	gin.SetMode(gin.TestMode)
 
@@ -39,39 +39,39 @@ func RouterTest(t *testing.T) {
 	// 			c.JSON(http.StatusOK, gin.H{"message": "this is MyPageHandler"})
 	// 		}
 	// 	})
-	// 	mockWordHandler.On("CreateWordHandler").Return(func() gin.HandlerFunc {
+	// 	mockWordHandler.On("CreateHandler").Return(func() gin.HandlerFunc {
 	// 		return func(c *gin.Context) {
-	// 			c.JSON(http.StatusOK, gin.H{"message": "this is CreateWordHandler"})
+	// 			c.JSON(http.StatusOK, gin.H{"message": "this is CreateHandler"})
 	// 		}
 	// 	})
-	// 	mockWordHandler.On("UpdateWordHandler").Return(func() gin.HandlerFunc {
+	// 	mockWordHandler.On("UpdateHandler").Return(func() gin.HandlerFunc {
 	// 		return func(c *gin.Context) {
-	// 			c.JSON(http.StatusOK, gin.H{"message": "this is UpdateWordHandler"})
+	// 			c.JSON(http.StatusOK, gin.H{"message": "this is UpdateHandler"})
 	// 		}
 	// 	})
-	// 	mockWordHandler.On("DeleteWordHandler").Return(func() gin.HandlerFunc {
+	// 	mockWordHandler.On("DeleteHandler").Return(func() gin.HandlerFunc {
 	// 		return func(c *gin.Context) {
-	// 			c.JSON(http.StatusOK, gin.H{"message": "this is DeleteWordHandler"})
+	// 			c.JSON(http.StatusOK, gin.H{"message": "this is DeleteHandler"})
 	// 		}
 	// 	})
-	// 	mockWordHandler.On("WordListHandler").Return(func() gin.HandlerFunc {
+	// 	mockWordHandler.On("ListHandler").Return(func() gin.HandlerFunc {
 	// 		return func(c *gin.Context) {
-	// 			c.JSON(http.StatusOK, gin.H{"message": "WordListHandler"})
+	// 			c.JSON(http.StatusOK, gin.H{"message": "ListHandler"})
 	// 		}
 	// 	})
-	// 	mockWordHandler.On("WordShowHandler").Return(func() gin.HandlerFunc {
+	// 	mockWordHandler.On("ShowHandler").Return(func() gin.HandlerFunc {
 	// 		return func(c *gin.Context) {
-	// 			c.JSON(http.StatusOK, gin.H{"message": "WordShowHandler"})
+	// 			c.JSON(http.StatusOK, gin.H{"message": "ShowHandler"})
 	// 		}
 	// 	})
-	// 	mockWordHandler.On("WordShowHandler").Return(func() gin.HandlerFunc {
+	// 	mockWordHandler.On("ShowHandler").Return(func() gin.HandlerFunc {
 	// 		return func(c *gin.Context) {
-	// 			c.JSON(http.StatusOK, gin.H{"message": "WordShowHandler"})
+	// 			c.JSON(http.StatusOK, gin.H{"message": "ShowHandler"})
 	// 		}
 	// 	})
-	// 	mockWordHandler.On("RegisterWordHandler").Return(func() gin.HandlerFunc {
+	// 	mockWordHandler.On("RegisterHandler").Return(func() gin.HandlerFunc {
 	// 		return func(c *gin.Context) {
-	// 			c.JSON(http.StatusOK, gin.H{"message": "RegisterWordHandler"})
+	// 			c.JSON(http.StatusOK, gin.H{"message": "RegisterHandler"})
 	// 		}
 	// 	})
 	// 	mockWordHandler.On("SaveMemoHandler").Return(func() gin.HandlerFunc {

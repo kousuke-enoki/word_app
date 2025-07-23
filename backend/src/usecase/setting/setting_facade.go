@@ -1,5 +1,5 @@
 // src/usecase/setting/facade.go
-package settingUc
+package settinguc
 
 import (
 	"context"

@@ -22,7 +22,7 @@ type Provider struct {
 	verifier *oidc.IDTokenVerifier
 }
 
-func NewProvider(c config.LineOAuthCfg) (auth_port.AuthProvider, error) {
+func NewProvider(c config.LineOAuthCfg) (auth_port.Provider, error) {
 	oidcProvider, err := oidc.NewProvider(context.Background(), "https://access.line.me")
 	if err != nil {
 		return nil, err

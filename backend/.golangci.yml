@@ -6,6 +6,8 @@ issues:
     - "go"
     - "ent"
     - "mocks"
+  exclude-files:
+    - ^src/infrastructure/app_client\.go$
 
 linters-settings:
   goimports:

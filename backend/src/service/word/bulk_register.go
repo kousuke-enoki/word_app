@@ -1,4 +1,4 @@
-package word_service
+package word
 
 import (
 	"context"
@@ -17,7 +17,7 @@ const maxBulkRegister = 200
 /*==================== public ====================*/
 
 // orchestration だけ残す
-func (s *WordServiceImpl) BulkRegister(
+func (s *ServiceImpl) BulkRegister(
 	ctx context.Context,
 	userID int,
 	words []string,
@@ -84,7 +84,7 @@ func normalizeWords(words []string) []string {
 	return out
 }
 
-func (s *WordServiceImpl) fetchWordIDs(
+func (s *ServiceImpl) fetchWordIDs(
 	ctx context.Context,
 	names []string,
 ) (map[string]int, error) {
@@ -103,7 +103,7 @@ func (s *WordServiceImpl) fetchWordIDs(
 	return res, nil
 }
 
-func (s *WordServiceImpl) fetchActiveRegs(
+func (s *ServiceImpl) fetchActiveRegs(
 	ctx context.Context,
 	userID int,
 	nameToID map[string]int,
@@ -131,7 +131,7 @@ func (s *WordServiceImpl) fetchActiveRegs(
 
 /*==================== Tx + upsert ====================*/
 
-func (s *WordServiceImpl) upsertRegsTx(
+func (s *ServiceImpl) upsertRegsTx(
 	ctx context.Context,
 	userID int,
 	norm []string,
@@ -171,7 +171,7 @@ func (s *WordServiceImpl) upsertRegsTx(
 	return
 }
 
-func (s *WordServiceImpl) activateReg(
+func (s *ServiceImpl) activateReg(
 	ctx context.Context,
 	tx *ent.Tx,
 	userID, wordID int,
@@ -187,7 +187,7 @@ func (s *WordServiceImpl) activateReg(
 	return err
 }
 
-func (s *WordServiceImpl) createReg(
+func (s *ServiceImpl) createReg(
 	ctx context.Context,
 	tx *ent.Tx,
 	userID, wordID int,
@@ -203,7 +203,7 @@ func (s *WordServiceImpl) createReg(
 
 /*==================== post process ====================*/
 
-func (s *WordServiceImpl) incrementRegCount(
+func (s *ServiceImpl) incrementRegCount(
 	ctx context.Context,
 	okWords []string,
 ) error {

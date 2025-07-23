@@ -12,7 +12,7 @@ type TempJWTAdapter struct {
 }
 
 func New(secret string) auth.TempTokenGenerator {
-	return &TempJWTAdapter{inner: tempjwt.TempJWTNew(secret)}
+	return &TempJWTAdapter{inner: tempjwt.New(secret)}
 }
 
 func (t *TempJWTAdapter) GenerateTemp(id *tempjwt.Identity, ttl time.Duration) (string, error) {

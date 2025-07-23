@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestDeleteWordHandler(t *testing.T) {
+func TestDeleteHandler(_ *testing.T) {
 	// gin.SetMode(gin.TestMode)
 
 	// // テスト用 JWT_SECRET 設定
@@ -30,7 +30,7 @@ func TestDeleteWordHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware()) // テスト用ミドルウェア
-	// 	router.DELETE("/words/:id", wordHandler.DeleteWordHandler())
+	// 	router.DELETE("/words/:id", wordHandler.DeleteHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -55,7 +55,7 @@ func TestDeleteWordHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware())
-	// 	router.DELETE("/words/:id", wordHandler.DeleteWordHandler())
+	// 	router.DELETE("/words/:id", wordHandler.DeleteHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -75,7 +75,7 @@ func TestDeleteWordHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddlewareWithoutUser()) // userIDをセットしないモック
-	// 	router.DELETE("/words/:id", wordHandler.DeleteWordHandler())
+	// 	router.DELETE("/words/:id", wordHandler.DeleteHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -96,7 +96,7 @@ func TestDeleteWordHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddlewareWithInvalidUserType()) // 不正なuserID型をセットするモック
-	// 	router.DELETE("/words/:id", wordHandler.DeleteWordHandler())
+	// 	router.DELETE("/words/:id", wordHandler.DeleteHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -118,7 +118,7 @@ func TestDeleteWordHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware())
-	// 	router.DELETE("/words/:id", wordHandler.DeleteWordHandler())
+	// 	router.DELETE("/words/:id", wordHandler.DeleteHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)

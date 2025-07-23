@@ -12,7 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (h *AuthSettingHandler) GetRootSettingHandler() gin.HandlerFunc {
+func (h *AuthSettingHandler) GetRootConfigHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, ok := c.Get("userID")
 		if !ok {
@@ -38,7 +38,7 @@ func (h *AuthSettingHandler) GetRootSettingHandler() gin.HandlerFunc {
 	}
 }
 
-func (h *AuthSettingHandler) SaveRootSettingHandler() gin.HandlerFunc {
+func (h *AuthSettingHandler) SaveRootConfigHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, ok := c.Get("userID")
 		if !ok {

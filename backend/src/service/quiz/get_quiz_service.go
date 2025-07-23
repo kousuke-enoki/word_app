@@ -1,4 +1,4 @@
-package quiz_service
+package quiz
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (s *QuizServiceImpl) GetNextOrResume(
+func (s *ServiceImpl) GetNextOrResume(
 	ctx context.Context,
 	userID int,
 	req *models.GetQuizRequest,

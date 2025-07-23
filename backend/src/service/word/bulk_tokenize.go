@@ -1,4 +1,4 @@
-package word_service
+package word
 
 import (
 	"context"
@@ -32,7 +32,7 @@ func unique(words []string) []string {
 	return out
 }
 
-func (s *WordServiceImpl) BulkTokenize(ctx context.Context, userID int, text string) ([]string, []string, []string, error) {
+func (s *ServiceImpl) BulkTokenize(ctx context.Context, userID int, text string) ([]string, []string, []string, error) {
 	wordsRaw := reWord.FindAllString(text, -1)
 	if len(wordsRaw) == 0 {
 		return nil, nil, nil, nil

@@ -40,7 +40,7 @@ func TestTokenValidator_Validate(t *testing.T) {
 	defer ec.Close()
 
 	// ❷ テーブルごとにセットアップ
-	mustCreateUser := func(isAdmin, isRoot bool) {
+	mustCreate := func(isAdmin, isRoot bool) {
 		_, err := ec.User.Create().
 			SetEmail("emaill@example.com").
 			SetPassword("Password123$").
@@ -49,7 +49,7 @@ func TestTokenValidator_Validate(t *testing.T) {
 			Save(context.Background())
 		require.NoError(t, err)
 	}
-	mustCreateUser(true, false) // 成功ケース用ユーザ
+	mustCreate(true, false) // 成功ケース用ユーザ
 
 	validator := jwti.NewJWTValidator(secret, test.RealEntClient{Client: ec})
 	ctx := context.Background()

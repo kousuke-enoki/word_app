@@ -17,8 +17,8 @@ const ResultTable = ({ rows, onToggleRegister, onChangeAtten }: Props) => (
     </thead>
     <tbody>
       {rows.map(row=>{
-        const correct = row.choicesJpms.find(c=>c.japaneseMeanID===row.correctJpmId)?.name ?? '-';
-        const select  = row.choicesJpms.find(c=>c.japaneseMeanID===row.answerJpmId )?.name ?? '-';
+        const correct = row.choicesJpms.find(c=>c.japaneseMeanID===row.correctJpmID)?.name ?? '-';
+        const select  = row.choicesJpms.find(c=>c.japaneseMeanID===row.answerJpmID )?.name ?? '-';
         return (
           <tr key={row.questionNumber}>
             <td>{row.questionNumber}</td>

@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (h *QuizHandler) PostAnswerAndRouteHandler() gin.HandlerFunc {
+func (h *Handler) PostAnswerAndRouteHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 		// リクエストを解析
@@ -44,7 +44,7 @@ func (h *QuizHandler) PostAnswerAndRouteHandler() gin.HandlerFunc {
 }
 
 // リクエスト構造体を解析
-func (h *QuizHandler) parsePostAnswerQuizRequest(c *gin.Context) (*models.PostAnswerQuestionRequest, error) {
+func (h *Handler) parsePostAnswerQuizRequest(c *gin.Context) (*models.PostAnswerQuestionRequest, error) {
 	var req models.PostAnswerQuestionRequest
 
 	// JSONリクエストをバインド

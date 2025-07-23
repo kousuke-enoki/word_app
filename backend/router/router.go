@@ -5,34 +5,37 @@ import (
 	"os"
 	"time"
 
-	"word_app/backend/src/interfaces"
 	"word_app/backend/src/interfaces/http/auth"
 	middleware_interface "word_app/backend/src/interfaces/http/middleware"
+	"word_app/backend/src/interfaces/http/quiz"
+	"word_app/backend/src/interfaces/http/result"
 	"word_app/backend/src/interfaces/http/setting"
+	"word_app/backend/src/interfaces/http/user"
+	"word_app/backend/src/interfaces/http/word"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
 type Implementation struct {
-	JwtMiddleware  middleware_interface.JwtMiddleware
+	JwtMiddleware  middleware_interface.Middleware
 	AuthHandler    auth.Handler
-	UserHandler    interfaces.UserHandler
-	SettingHandler setting.SettingHandler
-	WordHandler    interfaces.WordHandler
-	QuizHandler    interfaces.QuizHandler
-	ResultHandler  interfaces.ResultHandler
+	UserHandler    user.Handler
+	SettingHandler setting.Handler
+	WordHandler    word.Handler
+	QuizHandler    quiz.Handler
+	ResultHandler  result.Handler
 	JWTSecret      string
 }
 
 func NewRouter(
-	jwtMiddleware middleware_interface.JwtMiddleware,
+	jwtMiddleware middleware_interface.Middleware,
 	authHandler auth.Handler,
-	userHandler interfaces.UserHandler,
-	settingHandler setting.SettingHandler,
-	wordHandler interfaces.WordHandler,
-	quizHandler interfaces.QuizHandler,
-	resultHandler interfaces.ResultHandler,
+	userHandler user.Handler,
+	settingHandler setting.Handler,
+	wordHandler word.Handler,
+	quizHandler quiz.Handler,
+	resultHandler result.Handler,
 ) *Implementation {
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
@@ -69,7 +72,7 @@ func (r *Implementation) SetupRouter(router *gin.Engine) {
 
 	SettingRoutes := router.Group("/setting")
 	{
-		SettingRoutes.GET("/auth", r.SettingHandler.GetAuthSettingHandler())
+		SettingRoutes.GET("/auth", r.SettingHandler.GetAuthConfigHandler())
 	}
 
 	protectedRoutes := router.Group("/")
@@ -78,27 +81,27 @@ func (r *Implementation) SetupRouter(router *gin.Engine) {
 		protectedRoutes.GET("/auth/check", r.JwtMiddleware.JwtCheckMiddleware())
 
 		protectedRoutes.GET("/users/my_page", r.UserHandler.MyPageHandler())
-		protectedRoutes.GET("/setting/user_config", r.SettingHandler.GetUserSettingHandler())
-		protectedRoutes.POST("/setting/user_config", r.SettingHandler.SaveUserSettingHandler())
-		protectedRoutes.GET("/setting/root_config", r.SettingHandler.GetRootSettingHandler())
-		protectedRoutes.POST("/setting/root_config", r.SettingHandler.SaveRootSettingHandler())
-		protectedRoutes.GET("/words", r.WordHandler.WordListHandler())
-		protectedRoutes.GET("/words/:id", r.WordHandler.WordShowHandler())
-		protectedRoutes.POST("/words/register", r.WordHandler.RegisterWordHandler())
+		protectedRoutes.GET("/setting/user_config", r.SettingHandler.GetUserConfigHandler())
+		protectedRoutes.POST("/setting/user_config", r.SettingHandler.SaveUserConfigHandler())
+		protectedRoutes.GET("/setting/root_config", r.SettingHandler.GetRootConfigHandler())
+		protectedRoutes.POST("/setting/root_config", r.SettingHandler.SaveRootConfigHandler())
+		protectedRoutes.GET("/words", r.WordHandler.ListHandler())
+		protectedRoutes.GET("/words/:id", r.WordHandler.ShowHandler())
+		protectedRoutes.POST("/words/register", r.WordHandler.RegisterHandler())
 		protectedRoutes.POST("/words/memo", r.WordHandler.SaveMemoHandler())
 
-		protectedRoutes.POST("/words/new", r.WordHandler.CreateWordHandler())
-		protectedRoutes.PUT("/words/:id", r.WordHandler.UpdateWordHandler())
-		protectedRoutes.DELETE("/words/:id", r.WordHandler.DeleteWordHandler())
+		protectedRoutes.POST("/words/new", r.WordHandler.CreateHandler())
+		protectedRoutes.PUT("/words/:id", r.WordHandler.UpdateHandler())
+		protectedRoutes.DELETE("/words/:id", r.WordHandler.DeleteHandler())
 		protectedRoutes.POST("/words/bulk_tokenize", r.WordHandler.BulkTokenizeHandler())
 		protectedRoutes.POST("/words/bulk_register", r.WordHandler.BulkRegisterHandler())
 
-		protectedRoutes.POST("/quizzes/new", r.QuizHandler.CreateQuizHandler())
+		protectedRoutes.POST("/quizzes/new", r.QuizHandler.CreateHandler())
 		protectedRoutes.POST("/quizzes/answers/:id", r.QuizHandler.PostAnswerAndRouteHandler())
-		protectedRoutes.GET("/quizzes", r.QuizHandler.GetQuizHandler())
+		protectedRoutes.GET("/quizzes", r.QuizHandler.GetHandler())
 
-		protectedRoutes.GET("/results", r.ResultHandler.GetResultsIndexHandler())
-		protectedRoutes.GET("/results/:quizNo", r.ResultHandler.GetResultHandler())
+		protectedRoutes.GET("/results", r.ResultHandler.GetIndexHandler())
+		protectedRoutes.GET("/results/:quizNo", r.ResultHandler.GetHandler())
 	}
 }
 

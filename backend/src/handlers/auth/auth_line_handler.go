@@ -21,10 +21,10 @@ func (h *Handler) LineLogin() gin.HandlerFunc {
 func (h *Handler) LineCallback() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		code := c.Query("code")
-		state := c.Query("state")
-		nonce := oauthutil.LoadNonce(c)
+		// state := c.Query("state")
+		// nonce := oauthutil.LoadNonce(c)
 
-		res, err := h.AuthUsecase.HandleCallback(c, code, state, nonce)
+		res, err := h.AuthUsecase.HandleCallback(c, code)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

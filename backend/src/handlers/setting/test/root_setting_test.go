@@ -16,7 +16,7 @@ import (
 
 	"word_app/backend/src/domain"
 	settinghdlr "word_app/backend/src/handlers/setting"
-	mockSettingUc "word_app/backend/src/mocks/usecase/setting"
+	mockSettinguc "word_app/backend/src/mocks/usecase/setting"
 	"word_app/backend/src/test"
 	settingUc "word_app/backend/src/usecase/setting"
 )
@@ -66,13 +66,13 @@ func TestGetRootSettingHandler(t *testing.T) {
 		injectUser   bool // true = use test.InjectUser
 		isRoot       bool // if injectUser
 		needUserID   bool // include userID but NO roles
-		mockBehavior func(*mockSettingUc.MockSettingFacade)
+		mockBehavior func(*mockSettinguc.MockSettingFacade)
 		wantCode     int
 	}{
 		{
 			name:       "正常取得 (200)",
 			injectUser: true, isRoot: true,
-			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {
+			mockBehavior: func(m *mockSettinguc.MockSettingFacade) {
 				m.On("GetRoot", mock.Anything, mock.Anything).
 					Return(&settingUc.OutputGetRootConfig{Config: successCfg}, nil)
 			},
@@ -81,25 +81,25 @@ func TestGetRootSettingHandler(t *testing.T) {
 		{
 			name:       "userID 無 (401)",
 			injectUser: false, needUserID: false,
-			mockBehavior: func(_ *mockSettingUc.MockSettingFacade) {},
+			mockBehavior: func(_ *mockSettinguc.MockSettingFacade) {},
 			wantCode:     http.StatusUnauthorized,
 		},
 		{
 			name:       "userRoles 取得失敗 (401)",
 			injectUser: false, needUserID: true,
-			mockBehavior: func(_ *mockSettingUc.MockSettingFacade) {},
+			mockBehavior: func(_ *mockSettinguc.MockSettingFacade) {},
 			wantCode:     http.StatusUnauthorized,
 		},
 		{
 			name:       "root 権限なし (401)",
 			injectUser: true, isRoot: false,
-			mockBehavior: func(_ *mockSettingUc.MockSettingFacade) {},
+			mockBehavior: func(_ *mockSettinguc.MockSettingFacade) {},
 			wantCode:     http.StatusUnauthorized,
 		},
 		{
 			name:       "usecase エラー (500)",
 			injectUser: true, isRoot: true,
-			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {
+			mockBehavior: func(m *mockSettinguc.MockSettingFacade) {
 				m.On("GetRoot", mock.Anything, mock.Anything).
 					Return(nil, errors.New("db err"))
 			},
@@ -109,10 +109,10 @@ func TestGetRootSettingHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUc := mockSettingUc.NewMockSettingFacade(t)
+			mockUc := mockSettinguc.NewMockSettingFacade(t)
 			tt.mockBehavior(mockUc)
 
-			h := settinghdlr.NewSettingHandler(mockUc)
+			h := settinghdlr.NewHandler(mockUc)
 
 			c, w := test.NewTestCtx("GET", "/setting/root_config", nil)
 			switch {
@@ -124,7 +124,7 @@ func TestGetRootSettingHandler(t *testing.T) {
 				c.Set("isAdmin", false)
 			}
 
-			h.GetRootSettingHandler()(c)
+			h.GetRootConfigHandler()(c)
 			assert.Equal(t, tt.wantCode, w.Code)
 			if w.Code == http.StatusOK {
 				var got settingUc.OutputGetRootConfig
@@ -171,15 +171,15 @@ func TestSaveRootSettingHandler(t *testing.T) {
 		injectUser   bool
 		isRoot       bool
 		needUserID   bool // include userID but no roles
-		mockBehavior func(*mockSettingUc.MockSettingFacade)
+		mockBehavior func(*mockSettinguc.MockSettingFacade)
 		wantCode     int
 	}{
 		{
 			name:       "正常更新 (200)",
 			body:       validJSON,
 			injectUser: true, isRoot: true,
-			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {
-				m.On("UpdateRoot", mock.Anything, mock.AnythingOfType("settingUc.InputUpdateRootConfig")).
+			mockBehavior: func(m *mockSettinguc.MockSettingFacade) {
+				m.On("UpdateRoot", mock.Anything, mock.AnythingOfType("settinguc.InputUpdateRootConfig")).
 					Return(okCfg, nil)
 			},
 			wantCode: http.StatusOK,
@@ -187,42 +187,42 @@ func TestSaveRootSettingHandler(t *testing.T) {
 		{
 			name:         "userID 無 (401)",
 			body:         validJSON,
-			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {},
+			mockBehavior: func(_ *mockSettinguc.MockSettingFacade) {},
 			wantCode:     http.StatusUnauthorized,
 		},
 		{
 			name:         "userRoles 取得失敗 (401)",
 			body:         validJSON,
 			needUserID:   true,
-			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {},
+			mockBehavior: func(_ *mockSettinguc.MockSettingFacade) {},
 			wantCode:     http.StatusUnauthorized,
 		},
 		{
 			name:       "root 権限なし (401)",
 			body:       validJSON,
 			injectUser: true, isRoot: false,
-			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {},
+			mockBehavior: func(_ *mockSettinguc.MockSettingFacade) {},
 			wantCode:     http.StatusUnauthorized,
 		},
 		{
 			name:       "BindJSON エラー (400)",
 			body:       []byte("{invalid-json"),
 			injectUser: true, isRoot: true,
-			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {},
+			mockBehavior: func(_ *mockSettinguc.MockSettingFacade) {},
 			wantCode:     http.StatusBadRequest,
 		},
 		{
 			name:       "ValidateRootConfig エラー (400)",
 			body:       invalidPermJSON,
 			injectUser: true, isRoot: true,
-			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {},
+			mockBehavior: func(_ *mockSettinguc.MockSettingFacade) {},
 			wantCode:     http.StatusBadRequest,
 		},
 		{
 			name:       "usecase.UpdateRoot エラー (500)",
 			body:       validJSON,
 			injectUser: true, isRoot: true,
-			mockBehavior: func(m *mockSettingUc.MockSettingFacade) {
+			mockBehavior: func(m *mockSettinguc.MockSettingFacade) {
 				m.On("UpdateRoot", mock.Anything, mock.Anything).
 					Return(nil, errors.New("db err"))
 			},
@@ -235,9 +235,9 @@ func TestSaveRootSettingHandler(t *testing.T) {
 			// mockUc := &mockSettingUsecase{}
 			// tt.mockBehavior(mockUc)
 
-			mockUc := mockSettingUc.NewMockSettingFacade(t)
+			mockUc := mockSettinguc.NewMockSettingFacade(t)
 			tt.mockBehavior(mockUc) // ① 期待呼び出しを登録
-			h := settinghdlr.NewSettingHandler(mockUc)
+			h := settinghdlr.NewHandler(mockUc)
 
 			c, w := newRawCtx("POST", "/setting/root_config", tt.body)
 			switch {
@@ -249,7 +249,7 @@ func TestSaveRootSettingHandler(t *testing.T) {
 				c.Set("isAdmin", false)
 			}
 
-			h.SaveRootSettingHandler()(c)
+			h.SaveRootConfigHandler()(c)
 			assert.Equal(t, tt.wantCode, w.Code)
 
 			if w.Code == http.StatusOK {

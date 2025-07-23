@@ -13,102 +13,114 @@ import (
 	"word_app/backend/src/utils/contextutil"
 )
 
+// entの型からはmockeryでモックを作れないので、
+// こちらをserviceinterfaces.EntClientInterfaceでラップして
+// mockeryでモック作成するためのもの
+// クリーンアーキテクチャ移行により削除予定
+
 type appClient struct {
 	entClient *ent.Client
 }
 
+// NewAppClient 初期化関数
+func NewAppClient(entClient *ent.Client) interfaces.ClientInterface {
+	return &appClient{
+		entClient: entClient,
+	}
+}
+
 // GetAuth implements interfaces.ClientInterface.
-func (w *appClient) GetAuth(ctx context.Context) (*settingUc.AuthConfigDTO, error) {
+func (c *appClient) GetAuth(_ context.Context) (*settingUc.AuthConfigDTO, error) {
 	panic("unimplemented")
 }
 
 // GetRoot implements interfaces.ClientInterface.
-func (w *appClient) GetRoot(ctx context.Context, in settingUc.InputGetRootConfig) (*settingUc.OutputGetRootConfig, error) {
+func (c *appClient) GetRoot(_ context.Context, in settingUc.InputGetRootConfig) (*settingUc.OutputGetRootConfig, error) {
 	panic("unimplemented")
 }
 
 // GetUser implements interfaces.ClientInterface.
-func (w *appClient) GetUser(ctx context.Context, in settingUc.InputGetUserConfig) (*settingUc.OutputGetUserConfig, error) {
+func (c *appClient) GetUser(_ context.Context, in settingUc.InputGetUserConfig) (*settingUc.OutputGetUserConfig, error) {
 	panic("unimplemented")
 }
 
 // UpdateRoot implements interfaces.ClientInterface.
-func (w *appClient) UpdateRoot(ctx context.Context, in settingUc.InputUpdateRootConfig) (*domain.RootConfig, error) {
+func (c *appClient) UpdateRoot(_ context.Context, in settingUc.InputUpdateRootConfig) (*domain.RootConfig, error) {
 	panic("unimplemented")
 }
 
 // UpdateUser implements interfaces.ClientInterface.
-func (w *appClient) UpdateUser(ctx context.Context, in settingUc.InputUpdateUserConfig) (*domain.UserConfig, error) {
+func (c *appClient) UpdateUser(_ context.Context, in settingUc.InputUpdateUserConfig) (*domain.UserConfig, error) {
 	panic("unimplemented")
 }
 
 // GetRootConfigExecute implements interfaces.ClientInterface.
-func (w *appClient) GetRootConfigExecute(ctx context.Context, in settingUc.InputGetRootConfig) (*settingUc.OutputGetRootConfig, error) {
+func (c *appClient) GetRootConfigExecute(_ context.Context, in settingUc.InputGetRootConfig) (*settingUc.OutputGetRootConfig, error) {
 	panic("unimplemented")
 }
 
 // GetUserConfigExecute implements interfaces.ClientInterface.
-func (w *appClient) GetUserConfigExecute(ctx context.Context, in settingUc.InputGetUserConfig) (*settingUc.OutputGetUserConfig, error) {
+func (c *appClient) GetUserConfigExecute(_ context.Context, in settingUc.InputGetUserConfig) (*settingUc.OutputGetUserConfig, error) {
 	panic("unimplemented")
 }
 
 // UpdateRootConfigExecute implements interfaces.ClientInterface.
-func (w *appClient) UpdateRootConfigExecute(ctx context.Context, in settingUc.InputUpdateRootConfig) (*domain.RootConfig, error) {
+func (c *appClient) UpdateRootConfigExecute(_ context.Context, in settingUc.InputUpdateRootConfig) (*domain.RootConfig, error) {
 	panic("unimplemented")
 }
 
 // UpdateUserConfigExecute implements interfaces.ClientInterface.
-func (w *appClient) UpdateUserConfigExecute(ctx context.Context, in settingUc.InputUpdateUserConfig) (*domain.UserConfig, error) {
+func (c *appClient) UpdateUserConfigExecute(_ context.Context, in settingUc.InputUpdateUserConfig) (*domain.UserConfig, error) {
 	panic("unimplemented")
 }
 
 // GetAuthConfig implements interfaces.ClientInterface.
-func (w *appClient) GetAuthConfig(ctx context.Context) (*settingUc.AuthConfigDTO, error) {
+func (c *appClient) GetAuthConfig(_ context.Context) (*settingUc.AuthConfigDTO, error) {
 	panic("unimplemented")
 }
 
 // GetAuthConfig implements interfaces.ClientInterface.
-func (w *appClient) GetAuthConfigs(ctx context.Context) (*models.AuthSettingResponse, error) {
+func (c *appClient) GetAuthConfigs(_ context.Context) (*models.AuthSettingResponse, error) {
 	panic("unimplemented")
 }
 
 // GetResultSummaries implements interfaces.ClientInterface.
-func (w *appClient) Validate(ctx context.Context, tokenStr string) (contextutil.UserRoles, error) {
+func (c *appClient) Validate(_ context.Context, tokenStr string) (contextutil.UserRoles, error) {
 	panic("unimplemented")
 }
 
-// GetResultSummaries implements interfaces.ClientInterface.
-func (w *appClient) GetResultSummaries(ctx context.Context, userID int) ([]models.ResultSummary, error) {
+// GetSummaries implements interfaces.ClientInterface.
+func (c *appClient) GetSummaries(_ context.Context, userID int) ([]models.ResultSummary, error) {
 	panic("unimplemented")
 }
 
-// GetResultByQuizNo implements interfaces.ClientInterface.
-func (w *appClient) GetResultByQuizNo(ctx context.Context, userID int, QuizNo int) (*models.Result, error) {
+// GetByQuizNo implements interfaces.ClientInterface.
+func (c *appClient) GetByQuizNo(_ context.Context, userID int, QuizNo int) (*models.Result, error) {
 	panic("unimplemented")
 }
 
 // CreateQuiz implements ClientInterface.
-func (w *appClient) CreateQuiz(ctx context.Context, userID int, CreateQuizRequest *models.CreateQuizReq) (*models.CreateQuizResponse, error) {
+func (c *appClient) CreateQuiz(_ context.Context, userID int, CreateQuizRequest *models.CreateQuizReq) (*models.CreateQuizResponse, error) {
 	panic("unimplemented")
 }
 
 // SubmitAnswerAndRoute implements ClientInterface.
-func (w *appClient) SubmitAnswerAndRoute(ctx context.Context, userID int, CreateQuizRequest *models.PostAnswerQuestionRequest) (*models.AnswerRouteRes, error) {
+func (c *appClient) SubmitAnswerAndRoute(_ context.Context, userID int, CreateQuizRequest *models.PostAnswerQuestionRequest) (*models.AnswerRouteRes, error) {
 	panic("unimplemented")
 }
 
 // GetNextOrResume implements ClientInterface.
-func (w *appClient) GetNextOrResume(ctx context.Context, userID int, req *models.GetQuizRequest) (*models.GetQuizResponse, error) {
+func (c *appClient) GetNextOrResume(_ context.Context, userID int, req *models.GetQuizRequest) (*models.GetQuizResponse, error) {
 	panic("unimplemented")
 }
 
 // BulkRegister implements interfaces.ClientInterface.
-func (c *appClient) BulkRegister(ctx context.Context, userID int, words []string) (*models.BulkRegisterResponse, error) {
+func (c *appClient) BulkRegister(_ context.Context, userID int, words []string) (*models.BulkRegisterResponse, error) {
 	panic("unimplemented")
 }
 
 // BulkTokenize implements interfaces.ClientInterface.
-func (c *appClient) BulkTokenize(ctx context.Context, userID int, text string) ([]string, []string, []string, error) {
+func (c *appClient) BulkTokenize(_ context.Context, userID int, text string) ([]string, []string, []string, error) {
 	panic("unimplemented")
 }
 
@@ -122,55 +134,48 @@ func (c *appClient) UserConfig() *ent.UserConfigClient {
 	return c.entClient.UserConfig
 }
 
-// NewAppClient 初期化関数
-func NewAppClient(entClient *ent.Client) interfaces.ClientInterface {
-	return &appClient{
-		entClient: entClient,
-	}
-}
-
 // DeleteWord implements interfaces.ClientInterface.
-func (c *appClient) DeleteWord(ctx context.Context, DeleteWordRequest *models.DeleteWordRequest) (*models.DeleteWordResponse, error) {
+func (c *appClient) DeleteWord(_ context.Context, DeleteWordRequest *models.DeleteWordRequest) (*models.DeleteWordResponse, error) {
 	panic("unimplemented")
 }
 
 // RegisteredWordCount implements interfaces.ClientInterface.
-func (c *appClient) RegisteredWordCount(ctx context.Context, RegisteredWordCountRequest *models.RegisteredWordCountRequest) (*models.RegisteredWordCountResponse, error) {
+func (c *appClient) RegisteredWordCount(_ context.Context, RegisteredWordCountRequest *models.RegisteredWordCountRequest) (*models.RegisteredWordCountResponse, error) {
 	panic("unimplemented")
 }
 
 // GetRegisteredWords implements interfaces.ClientInterface.
-func (c *appClient) GetRegisteredWords(ctx context.Context, WordListRequest *models.WordListRequest) (*models.WordListResponse, error) {
+func (c *appClient) GetRegisteredWords(_ context.Context, WordListRequest *models.WordListRequest) (*models.WordListResponse, error) {
 	panic("unimplemented")
 }
 
 // GetWordDetails implements interfaces.ClientInterface.
-func (c *appClient) GetWordDetails(ctx context.Context, WordShowRequest *models.WordShowRequest) (*models.WordShowResponse, error) {
+func (c *appClient) GetWordDetails(_ context.Context, WordShowRequest *models.WordShowRequest) (*models.WordShowResponse, error) {
 	panic("unimplemented")
 }
 
 // GetWords implements interfaces.ClientInterface.
-func (c *appClient) GetWords(ctx context.Context, WordListRequest *models.WordListRequest) (*models.WordListResponse, error) {
+func (c *appClient) GetWords(_ context.Context, WordListRequest *models.WordListRequest) (*models.WordListResponse, error) {
 	panic("unimplemented")
 }
 
 // RegisterWords implements interfaces.ClientInterface.
-func (c *appClient) RegisterWords(ctx context.Context, RegisterWordRequest *models.RegisterWordRequest) (*models.RegisterWordResponse, error) {
+func (c *appClient) RegisterWords(_ context.Context, RegisterWordRequest *models.RegisterWordRequest) (*models.RegisterWordResponse, error) {
 	panic("unimplemented")
 }
 
 // SaveMemo implements interfaces.ClientInterface.
-func (c *appClient) SaveMemo(ctx context.Context, SaveMemoRequest *models.SaveMemoRequest) (*models.SaveMemoResponse, error) {
+func (c *appClient) SaveMemo(_ context.Context, SaveMemoRequest *models.SaveMemoRequest) (*models.SaveMemoResponse, error) {
 	panic("unimplemented")
 }
 
 // UpdateWord implements interfaces.ClientInterface.
-func (c *appClient) UpdateWord(ctx context.Context, UpdateWordRequest *models.UpdateWordRequest) (*models.UpdateWordResponse, error) {
+func (c *appClient) UpdateWord(_ context.Context, UpdateWordRequest *models.UpdateWordRequest) (*models.UpdateWordResponse, error) {
 	panic("unimplemented")
 }
 
 // UserClient の実装
-func (c *appClient) CreateUser(ctx context.Context, email, name, password string) (*ent.User, error) {
+func (c *appClient) Create(ctx context.Context, email, name, password string) (*ent.User, error) {
 	return c.entClient.User.Create().
 		SetEmail(email).
 		SetName(name).
@@ -178,16 +183,16 @@ func (c *appClient) CreateUser(ctx context.Context, email, name, password string
 		Save(ctx)
 }
 
-func (c *appClient) FindUserByEmail(ctx context.Context, email string) (*ent.User, error) {
+func (c *appClient) FindByEmail(ctx context.Context, email string) (*ent.User, error) {
 	return c.entClient.User.Query().Where(user.Email(email)).Only(ctx)
 }
 
-func (c *appClient) FindUserByID(ctx context.Context, id int) (*ent.User, error) {
+func (c *appClient) FindByID(ctx context.Context, id int) (*ent.User, error) {
 	return c.entClient.User.Query().Where(user.ID(id)).Only(ctx)
 }
 
 // WordService の実装
-func (c *appClient) CreateWord(ctx context.Context, req *models.CreateWordRequest) (*models.CreateWordResponse, error) {
+func (c *appClient) CreateWord(_ context.Context, req *models.CreateWordRequest) (*models.CreateWordResponse, error) {
 	// 実装例
 	return nil, nil
 }

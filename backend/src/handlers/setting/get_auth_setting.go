@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *AuthSettingHandler) GetAuthSettingHandler() gin.HandlerFunc {
+func (h *AuthSettingHandler) GetAuthConfigHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		rootConfig, err := h.settingUsecase.GetAuth(c)
 		if err != nil {

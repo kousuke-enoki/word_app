@@ -22,7 +22,7 @@ type FieldError struct {
 	Message string `json:"message"`
 }
 
-func (h *UserHandler) SignUpHandler() gin.HandlerFunc {
+func (h *Handler) SignUpHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		req, err := h.parseRequest(c)
 		if err != nil {
@@ -43,7 +43,7 @@ func (h *UserHandler) SignUpHandler() gin.HandlerFunc {
 		}
 
 		// ユーザー作成
-		user, err := h.userClient.CreateUser(context.Background(), req.Email, req.Name, hashedPassword)
+		user, err := h.userClient.Create(context.Background(), req.Email, req.Name, hashedPassword)
 		if err != nil {
 
 			// エラーの種類ごとにレスポンスを変更
@@ -68,7 +68,7 @@ func (h *UserHandler) SignUpHandler() gin.HandlerFunc {
 	}
 }
 
-func (h *UserHandler) parseRequest(c *gin.Context) (*models.SignUpRequest, error) {
+func (h *Handler) parseRequest(c *gin.Context) (*models.SignUpRequest, error) {
 	if c.Request.Body == nil {
 		return nil, errors.New("request body is nil")
 	}
@@ -85,7 +85,7 @@ func (h *UserHandler) parseRequest(c *gin.Context) (*models.SignUpRequest, error
 	return &req, nil
 }
 
-func (h *UserHandler) hashPassword(password string) (string, error) {
+func (h *Handler) hashPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err

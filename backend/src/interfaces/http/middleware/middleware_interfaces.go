@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type JwtMiddleware interface {
+type Middleware interface {
 	AuthMiddleware() gin.HandlerFunc
 	JwtCheckMiddleware() gin.HandlerFunc
 }

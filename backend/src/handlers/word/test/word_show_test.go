@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestWordShowHandler(t *testing.T) {
+func TestShowHandler(_ *testing.T) {
 	// gin.SetMode(gin.TestMode)
 
 	// // テスト用 JWT_SECRET 設定
@@ -39,7 +39,7 @@ func TestWordShowHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware()) // テスト用ミドルウェア
-	// 	router.GET("/words/:id", wordHandler.WordShowHandler())
+	// 	router.GET("/words/:id", wordHandler.ShowHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -65,7 +65,7 @@ func TestWordShowHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware())
-	// 	router.GET("/words/:id", wordHandler.WordShowHandler())
+	// 	router.GET("/words/:id", wordHandler.ShowHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -85,7 +85,7 @@ func TestWordShowHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddlewareWithoutUser()) // userIDをセットしないモック
-	// 	router.GET("/words/:id", wordHandler.WordShowHandler())
+	// 	router.GET("/words/:id", wordHandler.ShowHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -106,7 +106,7 @@ func TestWordShowHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddlewareWithInvalidUserType()) // 不正なuserID型をセットするモック
-	// 	router.GET("/words/:id", wordHandler.WordShowHandler())
+	// 	router.GET("/words/:id", wordHandler.ShowHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -128,7 +128,7 @@ func TestWordShowHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware())
-	// 	router.GET("/words/:id", wordHandler.WordShowHandler())
+	// 	router.GET("/words/:id", wordHandler.ShowHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)

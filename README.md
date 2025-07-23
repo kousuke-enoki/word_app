@@ -76,6 +76,7 @@ mockery --name=UserClient --output=./../mocks
 
 # goimport
 cd backend
+go install golang.org/x/tools/cmd/goimports@latest
 goimports -w -local word_app/backend src/
 
 # golangci-lint run --verbose(ライブラリ関係はスキップするように設定)
@@ -85,7 +86,7 @@ golangci-lint run --verbose
 # コミット前の確認
 bash docker.sh exec backend
 
-go install golang.org/x/tools/cmd/goimports@latest
+goimports -w -local word_app/backend src/
 
 golangci-lint run --verbose
 

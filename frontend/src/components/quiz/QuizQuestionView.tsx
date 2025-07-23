@@ -26,7 +26,7 @@ const QuizQuestionView: React.FC<Props> = ({ question, onAnswered }) => {
     try {
       const payload = {
         quizID: question.quizID,
-        answerJpmId: selectedId,
+        answerJpmID: selectedId,
         questionNumber: question.questionNumber,
       };
       const res = await axiosInstance.post<AnswerRouteRes>(

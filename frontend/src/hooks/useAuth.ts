@@ -23,7 +23,8 @@ export const useAuth = () => {
         .get('/auth/check')
         .then((response) => {
           const user = response.data.user
-          if (user.id) {
+          const isLogin = response.data.isLogin
+          if (isLogin && user.id) {
             setIsLoggedIn(true)
             if (user.isAdmin) {
               setUserRole('admin')
@@ -36,8 +37,7 @@ export const useAuth = () => {
             setUserRole('guest')
           }
         })
-        .catch((err) => {
-          console.log(err)
+        .catch(() => {
           setIsLoggedIn(false)
           setUserRole('guest')
         })

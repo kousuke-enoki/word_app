@@ -1,4 +1,4 @@
-package word_service
+package word
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (s *WordServiceImpl) RegisteredWordsCount(ctx context.Context, IsRegistered bool, words []string) ([]string, error) {
+func (s *ServiceImpl) RegisteredWordsCount(ctx context.Context, IsRegistered bool, words []string) ([]string, error) {
 
 	if len(words) <= 0 {
 		logrus.Error("empty words")

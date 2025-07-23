@@ -15,8 +15,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func newMgr(c *mockCli.MockEntClientInterface) *txrepo.EntTxManager {
-	return txrepo.NewEntTxManager(c)
+func newMgr(c *mockCli.MockEntClientInterface) *txrepo.EntManager {
+	return txrepo.NewEntManager(c)
 }
 
 func TestEntTxManager_WithTx(t *testing.T) {

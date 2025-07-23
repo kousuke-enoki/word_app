@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestGetRegisteredWords_Success(t *testing.T) {
+func TestGetRegisteredWords_Success(_ *testing.T) {
 	// client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 	// defer client.Close()
 	// clientWrapper := infrastructure.NewAppClient(client)

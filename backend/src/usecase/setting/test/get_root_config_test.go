@@ -1,4 +1,4 @@
-package settingUc_test
+package settinguctest
 
 import (
 	"context"
@@ -58,7 +58,7 @@ func TestGetRootConfigInteractor_Execute(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ur := mockUser.NewMockUserRepository(t)
+			ur := mockUser.NewMockRepository(t)
 			rc := mockRoot.NewMockRootConfigRepository(t)
 
 			// --- UserRepo.Expect ---

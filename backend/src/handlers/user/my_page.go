@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *UserHandler) MyPageHandler() gin.HandlerFunc {
+func (h *Handler) MyPageHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// userID の取得
 		userID, exists := c.Get("userID")
@@ -27,7 +27,7 @@ func (h *UserHandler) MyPageHandler() gin.HandlerFunc {
 		}
 
 		// ユーザー情報の取得
-		signInUser, err := h.userClient.FindUserByID(context.Background(), id)
+		signInUser, err := h.userClient.FindByID(context.Background(), id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
 			return
@@ -39,6 +39,7 @@ func (h *UserHandler) MyPageHandler() gin.HandlerFunc {
 				IsAdmin: signInUser.IsAdmin,
 				IsRoot:  signInUser.IsRoot,
 			},
+			IsLogin: true,
 		})
 	}
 }

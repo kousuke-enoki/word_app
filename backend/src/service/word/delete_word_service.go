@@ -1,4 +1,4 @@
-package word_service
+package word
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 )
 
 // ======== public =========
-func (s *WordServiceImpl) DeleteWord(
+func (s *ServiceImpl) DeleteWord(
 	ctx context.Context,
 	req *models.DeleteWordRequest,
 ) (resp *models.DeleteWordResponse, err error) {
@@ -64,7 +64,7 @@ func finishTxWithLog(perr *error, tx *ent.Tx) {
 /*========== domain-like helpers ==========*/
 
 // 管理者チェックだけ担当
-func (s *WordServiceImpl) assertAdmin(
+func (s *ServiceImpl) assertAdmin(
 	ctx context.Context,
 	tx *ent.Tx,
 	userID int,
@@ -82,7 +82,7 @@ func (s *WordServiceImpl) assertAdmin(
 }
 
 // Word, WordInfo, JapaneseMean, RegisteredWord を削除
-func (s *WordServiceImpl) cascadeDeleteWord(
+func (s *ServiceImpl) cascadeDeleteWord(
 	ctx context.Context,
 	tx *ent.Tx,
 	wordID int,

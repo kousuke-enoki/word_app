@@ -5,12 +5,12 @@ import (
 )
 
 type Handler struct {
-	AuthUsecase  auth.AuthUsecase
+	AuthUsecase  auth.Usecase
 	jwtGenerator auth.JWTGenerator
 }
 
 func NewHandler(
-	authUsecase auth.AuthUsecase,
+	authUsecase auth.Usecase,
 	jwtGen auth.JWTGenerator,
 ) *Handler {
 	return &Handler{

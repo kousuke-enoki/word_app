@@ -1,4 +1,4 @@
-package service_interfaces
+package interfaces
 
 import (
 	"word_app/backend/ent"

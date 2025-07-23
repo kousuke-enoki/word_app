@@ -10,8 +10,8 @@ import (
 )
 
 type Repos struct {
-	Tx          txRepo.TxManager // 既存の Tx ラッパーを流用
-	User        userRepo.UserRepository
+	Tx          txRepo.Manager // 既存の Tx ラッパーを流用
+	User        userRepo.Repository
 	Auth        authRepo.ExternalAuthRepository
 	RootSetting settingRepo.RootConfigRepository
 	UserSetting settingRepo.UserConfigRepository
@@ -19,7 +19,7 @@ type Repos struct {
 
 func NewRepositories(cli interfaces.ClientInterface) *Repos {
 	return &Repos{
-		Tx:          txRepo.NewEntTxManager(cli),
+		Tx:          txRepo.NewEntManager(cli),
 		User:        userRepo.NewEntUserRepo(cli),
 		Auth:        authRepo.NewEntExtAuthRepo(cli),
 		RootSetting: settingRepo.NewEntRootConfigRepo(cli),

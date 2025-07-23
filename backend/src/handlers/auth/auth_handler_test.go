@@ -2,6 +2,7 @@ package auth
 
 import (
 	"testing"
+
 	"word_app/backend/src/mocks"
 	"word_app/backend/src/mocks/http/auth"
 
@@ -10,11 +11,11 @@ import (
 
 func TestNewAuthHandler(t *testing.T) {
 	// Arrange: Create mocks for dependencies.
-	mockAuthClient := new(auth.MockAuthUsecase)
+	mockAuthClient := new(auth.MockUsecase)
 	mockJWTGenerator := new(mocks.MockJwtGenerator)
 
-	// Act: Create a new AuthHandler instance.
-	handler := NewAuthHandler(mockAuthClient, mockJWTGenerator)
+	// Act: Create a new Handler instance.
+	handler := NewHandler(mockAuthClient, mockJWTGenerator)
 
 	// Assert: Verify that the handler is properly initialized.
 	assert.NotNil(t, handler)

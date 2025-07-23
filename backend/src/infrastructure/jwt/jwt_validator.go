@@ -10,16 +10,16 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"word_app/backend/ent/user"
-	"word_app/backend/src/interfaces/service_interfaces"
+	serviceinterfaces "word_app/backend/src/interfaces/service_interfaces"
 	"word_app/backend/src/utils/contextutil"
 )
 
 type TokenValidator struct {
 	secret []byte
-	client service_interfaces.EntClientInterface
+	client serviceinterfaces.EntClientInterface
 }
 
-func NewJWTValidator(secret string, client service_interfaces.EntClientInterface) *TokenValidator {
+func NewJWTValidator(secret string, client serviceinterfaces.EntClientInterface) *TokenValidator {
 	return &TokenValidator{
 		secret: []byte(secret),
 		client: client,

@@ -1,4 +1,4 @@
-package result_service
+package result
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 // GET /results/:quizNo
-func (s *ResultServiceImpl) GetResultByQuizNo(
+func (s *ServiceImpl) GetByQuizNo(
 	ctx context.Context,
 	userID int,
 	quizNo int,
@@ -56,9 +56,9 @@ func (s *ResultServiceImpl) GetResultByQuizNo(
 			WordID:         qq.WordID,
 			WordName:       qq.WordName,
 			PosID:          qq.PosID,
-			CorrectJpmId:   qq.CorrectJpmID,
+			CorrectJpmID:   qq.CorrectJpmID,
 			ChoicesJpms:    qq.ChoicesJpms,
-			AnswerJpmId:    derefInt(qq.AnswerJpmID),
+			AnswerJpmID:    derefInt(qq.AnswerJpmID),
 			IsCorrect:      isCor,
 			TimeMs:         derefInt(qq.TimeMs),
 			RegisteredWord: models.RegisteredWord{
@@ -83,7 +83,7 @@ func (s *ResultServiceImpl) GetResultByQuizNo(
 			IsIdioms:            q.IsIdioms,
 			IsSpecialCharacters: q.IsSpecialCharacters,
 			AttentionLevelList:  q.AttentionLevelList,
-			ChoicesPosIds:       q.ChoicesPosIds,
+			ChoicesPosIDs:       q.ChoicesPosIds,
 		},
 		ResultQuestions: resultQs,
 	}, nil

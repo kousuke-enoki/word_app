@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestValidateCreateWordRequest(t *testing.T) {
+func TestValidateCreateWordRequest(_ *testing.T) {
 	// tests := []struct {
 	// 	name      string
 	// 	request   *models.CreateWordRequest

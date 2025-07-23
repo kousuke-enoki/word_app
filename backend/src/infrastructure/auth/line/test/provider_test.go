@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha1" // key ID 用
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -65,7 +66,9 @@ func newRSAKey(t *testing.T) (*rsa.PrivateKey, jwkSet, string) {
 	return priv, jwkSet{Keys: []jwkKey{jwk}}, kid
 }
 
-func b64(b []byte) string { return jwt.EncodeSegment(b) }
+func b64(b []byte) string {
+	return base64.RawURLEncoding.EncodeToString(b)
+}
 
 // --- helper: ID Token を RS256 署名 ------------------------------
 
@@ -154,10 +157,10 @@ func TestProvider_Exchange(t *testing.T) {
 				})
 				jwksResp, _ := json.Marshal(jwks)
 
-				mux.HandleFunc("/.well-known/openid-configuration", func(w http.ResponseWriter, r *http.Request) {
+				mux.HandleFunc("/.well-known/openid-configuration", func(w http.ResponseWriter, _ *http.Request) {
 					_, _ = w.Write(confResp)
 				})
-				mux.HandleFunc("/keys", func(w http.ResponseWriter, r *http.Request) {
+				mux.HandleFunc("/keys", func(w http.ResponseWriter, _ *http.Request) {
 					_, _ = w.Write(jwksResp)
 				})
 				mux.HandleFunc("/token", func(w http.ResponseWriter, r *http.Request) {
@@ -194,8 +197,8 @@ func TestProvider_Exchange(t *testing.T) {
 		},
 		{
 			name: "token endpoint 500",
-			setUp: func(t *testing.T) (*line.Provider, func()) {
-				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			setUp: func(_ *testing.T) (*line.Provider, func()) {
+				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 					http.Error(w, "fail", http.StatusInternalServerError)
 				}))
 				p := line.NewTestProvider(
@@ -215,8 +218,8 @@ func TestProvider_Exchange(t *testing.T) {
 		},
 		{
 			name: "id_token missing",
-			setUp: func(t *testing.T) (*line.Provider, func()) {
-				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			setUp: func(_ *testing.T) (*line.Provider, func()) {
+				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 					resp := map[string]interface{}{
 						"access_token": "dummy",
 						"token_type":   "Bearer",
@@ -256,15 +259,15 @@ func TestProvider_Exchange(t *testing.T) {
 				})
 				jwksResp, _ := json.Marshal(jwks)
 
-				mux.HandleFunc("/.well-known/openid-configuration", func(w http.ResponseWriter, r *http.Request) {
+				mux.HandleFunc("/.well-known/openid-configuration", func(w http.ResponseWriter, _ *http.Request) {
 					_, _ = w.Write(confResp)
 				})
-				mux.HandleFunc("/keys", func(w http.ResponseWriter, r *http.Request) {
+				mux.HandleFunc("/keys", func(w http.ResponseWriter, _ *http.Request) {
 					_, _ = w.Write(jwksResp)
 				})
 				// ==== token エンドポイント側だけ *別鍵* で署名 ===
 				privBad, _, kidBad := newRSAKey(t)
-				mux.HandleFunc("/token", func(w http.ResponseWriter, r *http.Request) {
+				mux.HandleFunc("/token", func(w http.ResponseWriter, _ *http.Request) {
 					idTok := signedIDToken(t, privBad, kidBad, issuerURL, "nonce")
 					resp := map[string]any{
 						"access_token": "x",

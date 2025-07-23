@@ -1,4 +1,4 @@
-package word_service
+package word
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (s *WordServiceImpl) SaveMemo(ctx context.Context, SaveMemoRequest *models.SaveMemoRequest) (*models.SaveMemoResponse, error) {
+func (s *ServiceImpl) SaveMemo(ctx context.Context, SaveMemoRequest *models.SaveMemoRequest) (*models.SaveMemoResponse, error) {
 	wordID := SaveMemoRequest.WordID
 	userID := SaveMemoRequest.UserID
 	Memo := SaveMemoRequest.Memo

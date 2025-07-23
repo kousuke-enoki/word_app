@@ -4,22 +4,22 @@ package tx
 import (
 	"context"
 
-	"word_app/backend/src/interfaces/service_interfaces"
+	serviceinterfaces "word_app/backend/src/interfaces/service_interfaces"
 )
 
-type EntTxManager struct {
-	client service_interfaces.EntClientInterface
+type EntManager struct {
+	client serviceinterfaces.EntClientInterface
 }
 
-type TxManager interface {
+type Manager interface {
 	WithTx(ctx context.Context, f func(ctx context.Context) error) error
 }
 
-func NewEntTxManager(client service_interfaces.EntClientInterface) *EntTxManager {
-	return &EntTxManager{client: client}
+func NewEntManager(client serviceinterfaces.EntClientInterface) *EntManager {
+	return &EntManager{client: client}
 }
 
-func (m *EntTxManager) WithTx(ctx context.Context, fn func(ctx context.Context) error) error {
+func (m *EntManager) WithTx(ctx context.Context, fn func(ctx context.Context) error) error {
 	tx, err := m.client.Tx(ctx)
 	if err != nil {
 		return err

@@ -1,11 +1,12 @@
-package user_service
+package user
 
 import (
 	"context"
+
 	"word_app/backend/ent"
 )
 
-func (e *EntUserClient) CreateUser(ctx context.Context, email, name, password string) (*ent.User, error) {
+func (e *EntUserClient) Create(ctx context.Context, email, name, password string) (*ent.User, error) {
 	user, err := e.client.User().
 		Create().
 		SetEmail(email).
@@ -27,7 +28,7 @@ func (e *EntUserClient) CreateUser(ctx context.Context, email, name, password st
 		Save(ctx)
 
 	if err != nil {
-		return nil, ErrCreateUserConfig
+		return nil, ErrCreateConfig
 	}
 
 	return user, nil

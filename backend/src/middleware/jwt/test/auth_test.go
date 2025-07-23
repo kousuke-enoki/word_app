@@ -35,8 +35,8 @@ func TestAuthMiddleware(t *testing.T) {
 
 	t.Run("header missing → 401", func(t *testing.T) {
 		mockVal := middleware.NewMockTokenValidator(t)
-		mw := jwt.NewJwtMiddleware(mockVal).AuthMiddleware()
-		// mw := (&jwt.JwtMiddleware{tokenValidator: mockVal}).AuthMiddleware()
+		mw := jwt.NewMiddleware(mockVal).AuthMiddleware()
+		// mw := (&jwt.Middleware{tokenValidator: mockVal}).AuthMiddleware()
 		r := newRouter(mw)
 
 		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
@@ -54,8 +54,8 @@ func TestAuthMiddleware(t *testing.T) {
 			Validate(mock.Anything, "badtoken").
 			Return(contextutil.UserRoles{}, errors.New("token_invalid parse_error")).
 			Once()
-		mw := jwt.NewJwtMiddleware(mockVal).AuthMiddleware()
-		// mw := (&jwt.JwtMiddleware{tokenValidator: mockVal}).AuthMiddleware()
+		mw := jwt.NewMiddleware(mockVal).AuthMiddleware()
+		// mw := (&jwt.Middleware{tokenValidator: mockVal}).AuthMiddleware()
 		r := newRouter(mw)
 
 		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
@@ -76,7 +76,7 @@ func TestAuthMiddleware(t *testing.T) {
 			Return(contextutil.UserRoles{UserID: 7, IsAdmin: true, IsRoot: false}, nil).
 			Once()
 
-		mw := jwt.NewJwtMiddleware(mockVal).AuthMiddleware()
+		mw := jwt.NewMiddleware(mockVal).AuthMiddleware()
 		r := newRouter(mw)
 
 		req := httptest.NewRequest(http.MethodGet, "/ping", nil)

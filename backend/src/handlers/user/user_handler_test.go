@@ -2,6 +2,7 @@ package user
 
 import (
 	"testing"
+
 	"word_app/backend/src/mocks"
 
 	"github.com/stretchr/testify/assert"
@@ -13,7 +14,7 @@ func TestNewUserHandler(t *testing.T) {
 	mockJWTGenerator := new(mocks.MockJwtGenerator)
 
 	// Act: Create a new UserHandler instance.
-	handler := NewUserHandler(mockUserClient, mockJWTGenerator)
+	handler := NewHandler(mockUserClient, mockJWTGenerator)
 
 	// Assert: Verify that the handler is properly initialized.
 	assert.NotNil(t, handler)

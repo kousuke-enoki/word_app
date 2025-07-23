@@ -1,4 +1,4 @@
-package result_service
+package result
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (s *ResultServiceImpl) GetResultSummaries(
+func (s *ServiceImpl) GetSummaries(
 	ctx context.Context,
 	userID int,
 ) ([]models.ResultSummary, error) {
@@ -36,7 +36,7 @@ func (s *ResultServiceImpl) GetResultSummaries(
 			IsRegisteredWords:   q.IsRegisteredWords,
 			IsIdioms:            q.IsIdioms,
 			IsSpecialCharacters: q.IsSpecialCharacters,
-			ChoicesPosIds:       q.ChoicesPosIds,
+			ChoicesPosIDs:       q.ChoicesPosIds,
 			TotalQuestionsCount: q.TotalQuestionsCount,
 			CorrectCount:        q.CorrectCount,
 			ResultCorrectRate:   q.ResultCorrectRate,

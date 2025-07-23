@@ -1,8 +1,9 @@
 // src/usecase/setting/facade.go
-package settingUc
+package settinguc
 
 import (
 	"context"
+
 	"word_app/backend/src/domain"
 )
 

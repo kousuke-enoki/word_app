@@ -4,6 +4,7 @@ package mocks
 
 import (
 	context "context"
+
 	"word_app/backend/ent"
 	interfaces "word_app/backend/src/interfaces"
 	"word_app/backend/src/models"
@@ -16,8 +17,8 @@ type SampleUserClient struct {
 	mock.Mock
 }
 
-// CreateUser implements interfaces.ClientInterface.
-func (_m *SampleUserClient) CreateUser(ctx context.Context, email string, name string, password string) (*ent.User, error) {
+// Create implements interfaces.ClientInterface.
+func (_m *SampleUserClient) Create(ctx context.Context, email string, name string, password string) (*ent.User, error) {
 	panic("unimplemented")
 }
 
@@ -37,13 +38,13 @@ func (_m *SampleUserClient) EntClient() *ent.Client {
 	return ret.Get(0).(*ent.Client)
 }
 
-// FindUserByEmail implements interfaces.ClientInterface.
-func (_m *SampleUserClient) FindUserByEmail(ctx context.Context, email string) (*ent.User, error) {
+// FindByEmail implements interfaces.ClientInterface.
+func (_m *SampleUserClient) FindByEmail(ctx context.Context, email string) (*ent.User, error) {
 	panic("unimplemented")
 }
 
-// FindUserByID implements interfaces.ClientInterface.
-func (_m *SampleUserClient) FindUserByID(ctx context.Context, id int) (*ent.User, error) {
+// FindByID implements interfaces.ClientInterface.
+func (_m *SampleUserClient) FindByID(ctx context.Context, id int) (*ent.User, error) {
 	panic("unimplemented")
 }
 

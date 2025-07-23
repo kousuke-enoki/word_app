@@ -1,8 +1,9 @@
-package word_service
+package word
 
 import (
 	"context"
 	"errors"
+
 	"word_app/backend/ent"
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/word"
@@ -11,12 +12,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (s *WordServiceImpl) RegisterWords(ctx context.Context, req *models.RegisterWordRequest) (*models.RegisterWordResponse, error) {
+func (s *ServiceImpl) RegisterWords(ctx context.Context, req *models.RegisterWordRequest) (*models.RegisterWordResponse, error) {
 
 	// トランザクション開始
-	tx, err := s.client.Tx(ctx)
-	if err != nil {
-		logrus.Error("Failed to start transaction: ", err)
+	tx, txErr := s.client.Tx(ctx)
+	if txErr != nil {
+		logrus.Error("Failed to start transaction: ", txErr)
 		return nil, errors.New("failed to start transaction")
 	}
 
@@ -24,12 +25,12 @@ func (s *WordServiceImpl) RegisterWords(ctx context.Context, req *models.Registe
 		if r := recover(); r != nil {
 			_ = tx.Rollback()
 			panic(r)
-		} else if err != nil {
+		} else if txErr != nil {
 			_ = tx.Rollback()
 		} else {
-			err = tx.Commit()
-			if err != nil {
-				logrus.Error(err)
+			txErr = tx.Commit()
+			if txErr != nil {
+				logrus.Error(txErr)
 			}
 		}
 	}()
@@ -51,6 +52,9 @@ func (s *WordServiceImpl) RegisterWords(ctx context.Context, req *models.Registe
 
 	// 登録状態の取得
 	registeredWord, err := s.getRegisteredWord(ctx, req.UserID, req.WordID)
+	if err != nil {
+		return nil, err
+	}
 
 	// 登録状態の処理
 	if registeredWord == nil && req.IsRegistered {
@@ -58,11 +62,11 @@ func (s *WordServiceImpl) RegisterWords(ctx context.Context, req *models.Registe
 	}
 
 	if registeredWord == nil && !req.IsRegistered {
-		return nil, errors.New("Failed to unregister: word is not registered")
+		return nil, errors.New("failed to unregister: word is not registered")
 	}
 
 	if registeredWord.IsActive == req.IsRegistered {
-		return nil, errors.New("No change in registration state")
+		return nil, errors.New("no change in registration state")
 	}
 
 	// 更新処理
@@ -70,13 +74,13 @@ func (s *WordServiceImpl) RegisterWords(ctx context.Context, req *models.Registe
 }
 
 // ユーザーが存在するか確認
-func (s *WordServiceImpl) checkUserExists(ctx context.Context, userID int) error {
+func (s *ServiceImpl) checkUserExists(ctx context.Context, userID int) error {
 	_, err := s.client.User().Get(ctx, userID)
 	return err
 }
 
 // 単語を取得
-func (s *WordServiceImpl) getWord(ctx context.Context, wordID int) (*ent.Word, error) {
+func (s *ServiceImpl) getWord(ctx context.Context, wordID int) (*ent.Word, error) {
 	wordEntity, err := s.client.Word().
 		Query().
 		Where(word.ID(wordID)).
@@ -88,7 +92,7 @@ func (s *WordServiceImpl) getWord(ctx context.Context, wordID int) (*ent.Word, e
 }
 
 // 登録状態の取得
-func (s *WordServiceImpl) getRegisteredWord(ctx context.Context, userID, wordID int) (*ent.RegisteredWord, error) {
+func (s *ServiceImpl) getRegisteredWord(ctx context.Context, userID, wordID int) (*ent.RegisteredWord, error) {
 	registeredWord, err := s.client.RegisteredWord().
 		Query().
 		Where(
@@ -108,7 +112,7 @@ func (s *WordServiceImpl) getRegisteredWord(ctx context.Context, userID, wordID 
 }
 
 // 登録単語の新規作成
-func (s *WordServiceImpl) createRegisteredWord(ctx context.Context, req *models.RegisterWordRequest, wordName string) (*models.RegisterWordResponse, error) {
+func (s *ServiceImpl) createRegisteredWord(ctx context.Context, req *models.RegisterWordRequest, wordName string) (*models.RegisterWordResponse, error) {
 	_, err := s.client.RegisteredWord().
 		Create().
 		SetUserID(req.UserID).
@@ -117,26 +121,26 @@ func (s *WordServiceImpl) createRegisteredWord(ctx context.Context, req *models.
 		Save(ctx)
 
 	if err != nil {
-		return nil, errors.New("Failed to create RegisteredWord")
+		return nil, errors.New("failed to create RegisteredWord")
 	}
 
 	return s.generateResponse(ctx, req.WordID, true, wordName, "RegisteredWord created")
 }
 
 // 登録単語の更新
-func (s *WordServiceImpl) updateRegisteredWord(ctx context.Context, registeredWord *ent.RegisteredWord, isActive bool, wordName string) (*models.RegisterWordResponse, error) {
+func (s *ServiceImpl) updateRegisteredWord(ctx context.Context, registeredWord *ent.RegisteredWord, isActive bool, wordName string) (*models.RegisterWordResponse, error) {
 	_, err := registeredWord.Update().
 		SetIsActive(isActive).
 		Save(ctx)
 	if err != nil {
-		return nil, errors.New("Failed to update RegisteredWord")
+		return nil, errors.New("failed to update RegisteredWord")
 	}
 
 	return s.generateResponse(ctx, registeredWord.WordID, isActive, wordName, "RegisteredWord updated")
 }
 
 // レスポンスの生成
-func (s *WordServiceImpl) generateResponse(ctx context.Context, wordID int, isRegistered bool, wordName, message string) (*models.RegisterWordResponse, error) {
+func (s *ServiceImpl) generateResponse(ctx context.Context, wordID int, isRegistered bool, wordName, message string) (*models.RegisterWordResponse, error) {
 	registrationCountResponse, err := s.RegisteredWordCount(ctx, &models.RegisteredWordCountRequest{
 		WordID:       wordID,
 		IsRegistered: isRegistered,

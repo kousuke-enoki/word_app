@@ -27,7 +27,7 @@ func TestGenerateJWT(t *testing.T) {
 	assert.NotEmpty(t, tokenString, "token string must not be empty")
 
 	// 4. パース & 検証
-	tok, err := jwt.ParseWithClaims(tokenString, &jwt_infra.Claims{}, func(tk *jwt.Token) (interface{}, error) {
+	tok, err := jwt.ParseWithClaims(tokenString, &jwt_infra.Claims{}, func(_ *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 	assert.NoError(t, err, "parsing/verification failed")

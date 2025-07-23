@@ -1,13 +1,13 @@
 package quiz
 
 import (
-	"word_app/backend/src/interfaces"
+	"word_app/backend/src/interfaces/http/quiz"
 )
 
-type QuizHandler struct {
-	quizService interfaces.QuizService
+type Handler struct {
+	quizService quiz.Service
 }
 
-func NewQuizHandler(quizService interfaces.QuizService) *QuizHandler {
-	return &QuizHandler{quizService: quizService}
+func NewHandler(quizService quiz.Service) *Handler {
+	return &Handler{quizService: quizService}
 }

@@ -4,15 +4,16 @@ import (
 	"context"
 	"fmt"
 	"time"
+
 	"word_app/backend/src/domain"
 	"word_app/backend/src/interfaces/http/auth"
 )
 
-func (u *AuthUsecase) StartLogin(ctx context.Context, state, nonce string) string {
+func (u *Usecase) StartLogin(_ context.Context, state, nonce string) string {
 	return u.provider.AuthURL(state, nonce)
 }
 
-func (u *AuthUsecase) HandleCallback(ctx context.Context, code, state, nonce string) (*auth.CallbackResult, error) {
+func (u *Usecase) HandleCallback(ctx context.Context, code string) (*auth.CallbackResult, error) {
 	id, err := u.provider.Exchange(ctx, code)
 	if err != nil {
 		return nil, err
@@ -33,7 +34,7 @@ func (u *AuthUsecase) HandleCallback(ctx context.Context, code, state, nonce str
 	}, nil
 }
 
-func (u *AuthUsecase) CompleteSignUp(ctx context.Context, tempToken, pass string) (string, error) {
+func (u *Usecase) CompleteSignUp(ctx context.Context, tempToken, pass string) (string, error) {
 	id, err := u.tempJwtGen.ParseTemp(tempToken)
 	if err != nil {
 		return "", err

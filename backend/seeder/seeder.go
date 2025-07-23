@@ -102,7 +102,7 @@ func SeedWords(ctx context.Context, client interfaces.ClientInterface) {
 	// 単語、品詞、日本語の意味を持つデータセット
 	words := []struct {
 		name           string
-		partOfSpeechId int // 品詞を整数で管理
+		partOfSpeechID int // 品詞を整数で管理
 		japaneseMean   string
 	}{
 		{"able", 4, "できる"},    // 4 = 形容詞
@@ -384,7 +384,7 @@ func SeedWords(ctx context.Context, client interfaces.ClientInterface) {
 		// word_info テーブルに品詞情報を追加
 		wordInfo, err := entClient.WordInfo.Create().
 			SetWordID(createdWord.ID).
-			SetPartOfSpeechID(w.partOfSpeechId).
+			SetPartOfSpeechID(w.partOfSpeechID).
 			Save(ctx)
 		if err != nil {
 			log.Fatalf("failed to create word info: %v", err)

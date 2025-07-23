@@ -4,6 +4,7 @@ package mocks
 
 import (
 	context "context"
+
 	ent "word_app/backend/ent"
 
 	interfaces "word_app/backend/src/interfaces"

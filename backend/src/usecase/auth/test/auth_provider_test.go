@@ -64,17 +64,17 @@ func (m *tempMock) ParseTemp(tok string) (*tempjwt.Identity, error) {
 
 func newUC(
 	p *providerMock,
-	r *mockUser.MockUserRepository,
+	r *mockUser.MockRepository,
 	j *jwtMock,
 	t *tempMock,
 	tHelper testing.TB, // *testing.T を渡すため追加
-) *authUc.AuthUsecase {
+) *authUc.Usecase {
 
 	ext := mockExt.NewMockExternalAuthRepository(tHelper)
 
-	return authUc.NewAuthUsecase(
+	return authUc.NewUsecase(
 		p,   // AuthProvider
-		r,   // UserRepository
+		r,   // Repository
 		ext, // ExternalAuthRepository
 		j,   // JWTGenerator
 		t,   // TempTokenGenerator
@@ -88,7 +88,7 @@ func newUC(
 func TestStartLogin(t *testing.T) {
 	p := &providerMock{}
 	p.On("AuthURL", "st", "no").Return("https://example/auth")
-	uc := newUC(p, mockUser.NewMockUserRepository(t), &jwtMock{}, &tempMock{},
+	uc := newUC(p, mockUser.NewMockRepository(t), &jwtMock{}, &tempMock{},
 		t)
 
 	got := uc.StartLogin(context.Background(), "st", "no")
@@ -110,7 +110,7 @@ func TestHandleCallback(t *testing.T) {
 	}
 	cases := []struct {
 		name     string
-		setup    func(*providerMock, *mockUser.MockUserRepository, *jwtMock, *tempMock)
+		setup    func(*providerMock, *mockUser.MockRepository, *jwtMock, *tempMock)
 		wantErr  bool
 		wantJWT  string
 		wantTemp string
@@ -118,14 +118,14 @@ func TestHandleCallback(t *testing.T) {
 	}{
 		{
 			name: "Exchange error",
-			setup: func(p *providerMock, r *mockUser.MockUserRepository, j *jwtMock, tmp *tempMock) {
+			setup: func(p *providerMock, _ *mockUser.MockRepository, _ *jwtMock, _ *tempMock) {
 				p.On("Exchange", ctx, "code").Return(nil, errors.New("x"))
 			},
 			wantErr: true,
 		},
 		{
 			name: "既存ユーザ → JWT",
-			setup: func(p *providerMock, r *mockUser.MockUserRepository, j *jwtMock, tmp *tempMock) {
+			setup: func(p *providerMock, r *mockUser.MockRepository, j *jwtMock, _ *tempMock) {
 				p.On("Exchange", ctx, "code").Return(idTok, nil)
 				r.On("FindByProvider", ctx, "line", "sub").Return(&domain.User{ID: 123}, nil)
 				j.On("GenerateJWT", "123").Return("JWT123", nil)
@@ -134,7 +134,7 @@ func TestHandleCallback(t *testing.T) {
 		},
 		{
 			name: "新規ユーザ → Temp",
-			setup: func(p *providerMock, r *mockUser.MockUserRepository, j *jwtMock, tmp *tempMock) {
+			setup: func(p *providerMock, r *mockUser.MockRepository, _ *jwtMock, tmp *tempMock) {
 				p.On("Exchange", ctx, "code").Return(idTok, nil)
 				r.On("FindByProvider", ctx, "line", "sub").Return(nil, nil)
 				tmp.On("GenerateTemp", idTok, mock.AnythingOfType("time.Duration")).Return("TMP42", nil)
@@ -146,13 +146,13 @@ func TestHandleCallback(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			p := &providerMock{}
-			r := mockUser.NewMockUserRepository(t)
+			r := mockUser.NewMockRepository(t)
 			j := &jwtMock{}
 			tmp := &tempMock{}
 			tc.setup(p, r, j, tmp)
 
 			uc := newUC(p, r, j, tmp, t)
-			res, err := uc.HandleCallback(ctx, "code", "st", "no")
+			res, err := uc.HandleCallback(ctx, "code")
 
 			if tc.wantErr {
 				assert.Error(t, err)
@@ -183,21 +183,21 @@ func TestCompleteSignUp(t *testing.T) {
 	}
 	cases := []struct {
 		name     string
-		setup    func(*tempMock, *mockUser.MockUserRepository, *jwtMock)
+		setup    func(*tempMock, *mockUser.MockRepository, *jwtMock)
 		tokenArg string
 		wantErr  bool
 		wantJWT  string
 	}{
 		{
 			name: "ParseTemp error",
-			setup: func(tmp *tempMock, r *mockUser.MockUserRepository, j *jwtMock) {
+			setup: func(tmp *tempMock, _ *mockUser.MockRepository, _ *jwtMock) {
 				tmp.On("ParseTemp", "BAD").Return(nil, errors.New("bad"))
 			},
 			tokenArg: "BAD", wantErr: true,
 		},
 		{
 			name: "Repo.Create error",
-			setup: func(tmp *tempMock, r *mockUser.MockUserRepository, j *jwtMock) {
+			setup: func(tmp *tempMock, r *mockUser.MockRepository, _ *jwtMock) {
 				tmp.On("ParseTemp", "OK").Return(idTok, nil)
 				r.On("Create", ctx, mock.Anything, mock.Anything).Return(errors.New("db"))
 			},
@@ -205,7 +205,7 @@ func TestCompleteSignUp(t *testing.T) {
 		},
 		{
 			name: "success",
-			setup: func(tmp *tempMock, r *mockUser.MockUserRepository, j *jwtMock) {
+			setup: func(tmp *tempMock, r *mockUser.MockRepository, j *jwtMock) {
 				tmp.On("ParseTemp", "OK").Return(idTok, nil)
 				r.On("Create", ctx, mock.Anything, mock.Anything).Return(nil)
 				j.On("GenerateJWT", mock.AnythingOfType("string")).Return("JWT_OK", nil)
@@ -217,7 +217,7 @@ func TestCompleteSignUp(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			p := &providerMock{}
-			r := mockUser.NewMockUserRepository(t)
+			r := mockUser.NewMockRepository(t)
 			j := &jwtMock{}
 			tmp := &tempMock{}
 			tc.setup(tmp, r, j)
@@ -242,7 +242,7 @@ func TestCompleteSignUp(t *testing.T) {
 func TestProviderAuthURLDelegation(t *testing.T) {
 	p := &providerMock{}
 	p.On("AuthURL", "s", "n").Return("url")
-	uc := newUC(p, mockUser.NewMockUserRepository(t), &jwtMock{}, &tempMock{}, t)
+	uc := newUC(p, mockUser.NewMockRepository(t), &jwtMock{}, &tempMock{}, t)
 
 	assert.Equal(t, "url", uc.StartLogin(context.Background(), "s", "n"))
 	p.AssertCalled(t, "AuthURL", "s", "n")

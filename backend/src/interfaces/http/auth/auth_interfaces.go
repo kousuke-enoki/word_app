@@ -13,7 +13,7 @@ type CallbackResult struct {
 	SuggestedMail string `json:"suggested_mail,omitempty"`
 }
 
-type AuthHandler interface {
+type Handler interface {
 	LineLogin() gin.HandlerFunc
 	LineCallback() gin.HandlerFunc
 	LineComplete() gin.HandlerFunc
@@ -23,8 +23,8 @@ type JWTGenerator interface {
 	GenerateJWT(userID string) (string, error)
 }
 
-type AuthUsecase interface {
+type Usecase interface {
 	StartLogin(ctx context.Context, state, nonce string) string
-	HandleCallback(ctx context.Context, code, state, nonce string) (*CallbackResult, error)
+	HandleCallback(ctx context.Context, code string) (*CallbackResult, error)
 	CompleteSignUp(ctx context.Context, tempToken, pass string) (string, error)
 }

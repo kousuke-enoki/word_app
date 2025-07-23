@@ -2,12 +2,13 @@
 // github.com/vektra/mockery
 // template: testify
 
-package settingUc
+package settinguc
 
 import (
 	"context"
+
 	"word_app/backend/src/domain"
-	"word_app/backend/src/usecase/setting"
+	settinguc "word_app/backend/src/usecase/setting"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -40,23 +41,23 @@ func (_m *MockGetAuthConfig) EXPECT() *MockGetAuthConfig_Expecter {
 }
 
 // Execute provides a mock function for the type MockGetAuthConfig
-func (_mock *MockGetAuthConfig) Execute(ctx context.Context) (*settingUc.AuthConfigDTO, error) {
+func (_mock *MockGetAuthConfig) Execute(ctx context.Context) (*settinguc.AuthConfigDTO, error) {
 	ret := _mock.Called(ctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Execute")
 	}
 
-	var r0 *settingUc.AuthConfigDTO
+	var r0 *settinguc.AuthConfigDTO
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) (*settingUc.AuthConfigDTO, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context) (*settinguc.AuthConfigDTO, error)); ok {
 		return returnFunc(ctx)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) *settingUc.AuthConfigDTO); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context) *settinguc.AuthConfigDTO); ok {
 		r0 = returnFunc(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*settingUc.AuthConfigDTO)
+			r0 = ret.Get(0).(*settinguc.AuthConfigDTO)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
@@ -91,12 +92,12 @@ func (_c *MockGetAuthConfig_Execute_Call) Run(run func(ctx context.Context)) *Mo
 	return _c
 }
 
-func (_c *MockGetAuthConfig_Execute_Call) Return(authConfigDTO *settingUc.AuthConfigDTO, err error) *MockGetAuthConfig_Execute_Call {
+func (_c *MockGetAuthConfig_Execute_Call) Return(authConfigDTO *settinguc.AuthConfigDTO, err error) *MockGetAuthConfig_Execute_Call {
 	_c.Call.Return(authConfigDTO, err)
 	return _c
 }
 
-func (_c *MockGetAuthConfig_Execute_Call) RunAndReturn(run func(ctx context.Context) (*settingUc.AuthConfigDTO, error)) *MockGetAuthConfig_Execute_Call {
+func (_c *MockGetAuthConfig_Execute_Call) RunAndReturn(run func(ctx context.Context) (*settinguc.AuthConfigDTO, error)) *MockGetAuthConfig_Execute_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -129,26 +130,26 @@ func (_m *MockGetRootConfig) EXPECT() *MockGetRootConfig_Expecter {
 }
 
 // Execute provides a mock function for the type MockGetRootConfig
-func (_mock *MockGetRootConfig) Execute(ctx context.Context, in settingUc.InputGetRootConfig) (*settingUc.OutputGetRootConfig, error) {
+func (_mock *MockGetRootConfig) Execute(ctx context.Context, in settinguc.InputGetRootConfig) (*settinguc.OutputGetRootConfig, error) {
 	ret := _mock.Called(ctx, in)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Execute")
 	}
 
-	var r0 *settingUc.OutputGetRootConfig
+	var r0 *settinguc.OutputGetRootConfig
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, settingUc.InputGetRootConfig) (*settingUc.OutputGetRootConfig, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, settinguc.InputGetRootConfig) (*settinguc.OutputGetRootConfig, error)); ok {
 		return returnFunc(ctx, in)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, settingUc.InputGetRootConfig) *settingUc.OutputGetRootConfig); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, settinguc.InputGetRootConfig) *settinguc.OutputGetRootConfig); ok {
 		r0 = returnFunc(ctx, in)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*settingUc.OutputGetRootConfig)
+			r0 = ret.Get(0).(*settinguc.OutputGetRootConfig)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, settingUc.InputGetRootConfig) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, settinguc.InputGetRootConfig) error); ok {
 		r1 = returnFunc(ctx, in)
 	} else {
 		r1 = ret.Error(1)
@@ -163,20 +164,20 @@ type MockGetRootConfig_Execute_Call struct {
 
 // Execute is a helper method to define mock.On call
 //   - ctx context.Context
-//   - in settingUc.InputGetRootConfig
+//   - in settinguc.InputGetRootConfig
 func (_e *MockGetRootConfig_Expecter) Execute(ctx interface{}, in interface{}) *MockGetRootConfig_Execute_Call {
 	return &MockGetRootConfig_Execute_Call{Call: _e.mock.On("Execute", ctx, in)}
 }
 
-func (_c *MockGetRootConfig_Execute_Call) Run(run func(ctx context.Context, in settingUc.InputGetRootConfig)) *MockGetRootConfig_Execute_Call {
+func (_c *MockGetRootConfig_Execute_Call) Run(run func(ctx context.Context, in settinguc.InputGetRootConfig)) *MockGetRootConfig_Execute_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 settingUc.InputGetRootConfig
+		var arg1 settinguc.InputGetRootConfig
 		if args[1] != nil {
-			arg1 = args[1].(settingUc.InputGetRootConfig)
+			arg1 = args[1].(settinguc.InputGetRootConfig)
 		}
 		run(
 			arg0,
@@ -186,12 +187,12 @@ func (_c *MockGetRootConfig_Execute_Call) Run(run func(ctx context.Context, in s
 	return _c
 }
 
-func (_c *MockGetRootConfig_Execute_Call) Return(outputGetRootConfig *settingUc.OutputGetRootConfig, err error) *MockGetRootConfig_Execute_Call {
+func (_c *MockGetRootConfig_Execute_Call) Return(outputGetRootConfig *settinguc.OutputGetRootConfig, err error) *MockGetRootConfig_Execute_Call {
 	_c.Call.Return(outputGetRootConfig, err)
 	return _c
 }
 
-func (_c *MockGetRootConfig_Execute_Call) RunAndReturn(run func(ctx context.Context, in settingUc.InputGetRootConfig) (*settingUc.OutputGetRootConfig, error)) *MockGetRootConfig_Execute_Call {
+func (_c *MockGetRootConfig_Execute_Call) RunAndReturn(run func(ctx context.Context, in settinguc.InputGetRootConfig) (*settinguc.OutputGetRootConfig, error)) *MockGetRootConfig_Execute_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -224,26 +225,26 @@ func (_m *MockGetUserConfig) EXPECT() *MockGetUserConfig_Expecter {
 }
 
 // Execute provides a mock function for the type MockGetUserConfig
-func (_mock *MockGetUserConfig) Execute(ctx context.Context, in settingUc.InputGetUserConfig) (*settingUc.OutputGetUserConfig, error) {
+func (_mock *MockGetUserConfig) Execute(ctx context.Context, in settinguc.InputGetUserConfig) (*settinguc.OutputGetUserConfig, error) {
 	ret := _mock.Called(ctx, in)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Execute")
 	}
 
-	var r0 *settingUc.OutputGetUserConfig
+	var r0 *settinguc.OutputGetUserConfig
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, settingUc.InputGetUserConfig) (*settingUc.OutputGetUserConfig, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, settinguc.InputGetUserConfig) (*settinguc.OutputGetUserConfig, error)); ok {
 		return returnFunc(ctx, in)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, settingUc.InputGetUserConfig) *settingUc.OutputGetUserConfig); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, settinguc.InputGetUserConfig) *settinguc.OutputGetUserConfig); ok {
 		r0 = returnFunc(ctx, in)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*settingUc.OutputGetUserConfig)
+			r0 = ret.Get(0).(*settinguc.OutputGetUserConfig)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, settingUc.InputGetUserConfig) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, settinguc.InputGetUserConfig) error); ok {
 		r1 = returnFunc(ctx, in)
 	} else {
 		r1 = ret.Error(1)
@@ -258,20 +259,20 @@ type MockGetUserConfig_Execute_Call struct {
 
 // Execute is a helper method to define mock.On call
 //   - ctx context.Context
-//   - in settingUc.InputGetUserConfig
+//   - in settinguc.InputGetUserConfig
 func (_e *MockGetUserConfig_Expecter) Execute(ctx interface{}, in interface{}) *MockGetUserConfig_Execute_Call {
 	return &MockGetUserConfig_Execute_Call{Call: _e.mock.On("Execute", ctx, in)}
 }
 
-func (_c *MockGetUserConfig_Execute_Call) Run(run func(ctx context.Context, in settingUc.InputGetUserConfig)) *MockGetUserConfig_Execute_Call {
+func (_c *MockGetUserConfig_Execute_Call) Run(run func(ctx context.Context, in settinguc.InputGetUserConfig)) *MockGetUserConfig_Execute_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 settingUc.InputGetUserConfig
+		var arg1 settinguc.InputGetUserConfig
 		if args[1] != nil {
-			arg1 = args[1].(settingUc.InputGetUserConfig)
+			arg1 = args[1].(settinguc.InputGetUserConfig)
 		}
 		run(
 			arg0,
@@ -281,12 +282,12 @@ func (_c *MockGetUserConfig_Execute_Call) Run(run func(ctx context.Context, in s
 	return _c
 }
 
-func (_c *MockGetUserConfig_Execute_Call) Return(outputGetUserConfig *settingUc.OutputGetUserConfig, err error) *MockGetUserConfig_Execute_Call {
+func (_c *MockGetUserConfig_Execute_Call) Return(outputGetUserConfig *settinguc.OutputGetUserConfig, err error) *MockGetUserConfig_Execute_Call {
 	_c.Call.Return(outputGetUserConfig, err)
 	return _c
 }
 
-func (_c *MockGetUserConfig_Execute_Call) RunAndReturn(run func(ctx context.Context, in settingUc.InputGetUserConfig) (*settingUc.OutputGetUserConfig, error)) *MockGetUserConfig_Execute_Call {
+func (_c *MockGetUserConfig_Execute_Call) RunAndReturn(run func(ctx context.Context, in settinguc.InputGetUserConfig) (*settinguc.OutputGetUserConfig, error)) *MockGetUserConfig_Execute_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -319,23 +320,23 @@ func (_m *MockSettingFacade) EXPECT() *MockSettingFacade_Expecter {
 }
 
 // GetAuth provides a mock function for the type MockSettingFacade
-func (_mock *MockSettingFacade) GetAuth(ctx context.Context) (*settingUc.AuthConfigDTO, error) {
+func (_mock *MockSettingFacade) GetAuth(ctx context.Context) (*settinguc.AuthConfigDTO, error) {
 	ret := _mock.Called(ctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAuth")
 	}
 
-	var r0 *settingUc.AuthConfigDTO
+	var r0 *settinguc.AuthConfigDTO
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) (*settingUc.AuthConfigDTO, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context) (*settinguc.AuthConfigDTO, error)); ok {
 		return returnFunc(ctx)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) *settingUc.AuthConfigDTO); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context) *settinguc.AuthConfigDTO); ok {
 		r0 = returnFunc(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*settingUc.AuthConfigDTO)
+			r0 = ret.Get(0).(*settinguc.AuthConfigDTO)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
@@ -370,37 +371,37 @@ func (_c *MockSettingFacade_GetAuth_Call) Run(run func(ctx context.Context)) *Mo
 	return _c
 }
 
-func (_c *MockSettingFacade_GetAuth_Call) Return(authConfigDTO *settingUc.AuthConfigDTO, err error) *MockSettingFacade_GetAuth_Call {
+func (_c *MockSettingFacade_GetAuth_Call) Return(authConfigDTO *settinguc.AuthConfigDTO, err error) *MockSettingFacade_GetAuth_Call {
 	_c.Call.Return(authConfigDTO, err)
 	return _c
 }
 
-func (_c *MockSettingFacade_GetAuth_Call) RunAndReturn(run func(ctx context.Context) (*settingUc.AuthConfigDTO, error)) *MockSettingFacade_GetAuth_Call {
+func (_c *MockSettingFacade_GetAuth_Call) RunAndReturn(run func(ctx context.Context) (*settinguc.AuthConfigDTO, error)) *MockSettingFacade_GetAuth_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetRoot provides a mock function for the type MockSettingFacade
-func (_mock *MockSettingFacade) GetRoot(ctx context.Context, in settingUc.InputGetRootConfig) (*settingUc.OutputGetRootConfig, error) {
+func (_mock *MockSettingFacade) GetRoot(ctx context.Context, in settinguc.InputGetRootConfig) (*settinguc.OutputGetRootConfig, error) {
 	ret := _mock.Called(ctx, in)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetRoot")
 	}
 
-	var r0 *settingUc.OutputGetRootConfig
+	var r0 *settinguc.OutputGetRootConfig
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, settingUc.InputGetRootConfig) (*settingUc.OutputGetRootConfig, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, settinguc.InputGetRootConfig) (*settinguc.OutputGetRootConfig, error)); ok {
 		return returnFunc(ctx, in)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, settingUc.InputGetRootConfig) *settingUc.OutputGetRootConfig); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, settinguc.InputGetRootConfig) *settinguc.OutputGetRootConfig); ok {
 		r0 = returnFunc(ctx, in)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*settingUc.OutputGetRootConfig)
+			r0 = ret.Get(0).(*settinguc.OutputGetRootConfig)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, settingUc.InputGetRootConfig) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, settinguc.InputGetRootConfig) error); ok {
 		r1 = returnFunc(ctx, in)
 	} else {
 		r1 = ret.Error(1)
@@ -415,20 +416,20 @@ type MockSettingFacade_GetRoot_Call struct {
 
 // GetRoot is a helper method to define mock.On call
 //   - ctx context.Context
-//   - in settingUc.InputGetRootConfig
+//   - in settinguc.InputGetRootConfig
 func (_e *MockSettingFacade_Expecter) GetRoot(ctx interface{}, in interface{}) *MockSettingFacade_GetRoot_Call {
 	return &MockSettingFacade_GetRoot_Call{Call: _e.mock.On("GetRoot", ctx, in)}
 }
 
-func (_c *MockSettingFacade_GetRoot_Call) Run(run func(ctx context.Context, in settingUc.InputGetRootConfig)) *MockSettingFacade_GetRoot_Call {
+func (_c *MockSettingFacade_GetRoot_Call) Run(run func(ctx context.Context, in settinguc.InputGetRootConfig)) *MockSettingFacade_GetRoot_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 settingUc.InputGetRootConfig
+		var arg1 settinguc.InputGetRootConfig
 		if args[1] != nil {
-			arg1 = args[1].(settingUc.InputGetRootConfig)
+			arg1 = args[1].(settinguc.InputGetRootConfig)
 		}
 		run(
 			arg0,
@@ -438,37 +439,37 @@ func (_c *MockSettingFacade_GetRoot_Call) Run(run func(ctx context.Context, in s
 	return _c
 }
 
-func (_c *MockSettingFacade_GetRoot_Call) Return(outputGetRootConfig *settingUc.OutputGetRootConfig, err error) *MockSettingFacade_GetRoot_Call {
+func (_c *MockSettingFacade_GetRoot_Call) Return(outputGetRootConfig *settinguc.OutputGetRootConfig, err error) *MockSettingFacade_GetRoot_Call {
 	_c.Call.Return(outputGetRootConfig, err)
 	return _c
 }
 
-func (_c *MockSettingFacade_GetRoot_Call) RunAndReturn(run func(ctx context.Context, in settingUc.InputGetRootConfig) (*settingUc.OutputGetRootConfig, error)) *MockSettingFacade_GetRoot_Call {
+func (_c *MockSettingFacade_GetRoot_Call) RunAndReturn(run func(ctx context.Context, in settinguc.InputGetRootConfig) (*settinguc.OutputGetRootConfig, error)) *MockSettingFacade_GetRoot_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetUser provides a mock function for the type MockSettingFacade
-func (_mock *MockSettingFacade) GetUser(ctx context.Context, in settingUc.InputGetUserConfig) (*settingUc.OutputGetUserConfig, error) {
+func (_mock *MockSettingFacade) GetUser(ctx context.Context, in settinguc.InputGetUserConfig) (*settinguc.OutputGetUserConfig, error) {
 	ret := _mock.Called(ctx, in)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetUser")
 	}
 
-	var r0 *settingUc.OutputGetUserConfig
+	var r0 *settinguc.OutputGetUserConfig
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, settingUc.InputGetUserConfig) (*settingUc.OutputGetUserConfig, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, settinguc.InputGetUserConfig) (*settinguc.OutputGetUserConfig, error)); ok {
 		return returnFunc(ctx, in)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, settingUc.InputGetUserConfig) *settingUc.OutputGetUserConfig); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, settinguc.InputGetUserConfig) *settinguc.OutputGetUserConfig); ok {
 		r0 = returnFunc(ctx, in)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*settingUc.OutputGetUserConfig)
+			r0 = ret.Get(0).(*settinguc.OutputGetUserConfig)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, settingUc.InputGetUserConfig) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, settinguc.InputGetUserConfig) error); ok {
 		r1 = returnFunc(ctx, in)
 	} else {
 		r1 = ret.Error(1)
@@ -483,20 +484,20 @@ type MockSettingFacade_GetUser_Call struct {
 
 // GetUser is a helper method to define mock.On call
 //   - ctx context.Context
-//   - in settingUc.InputGetUserConfig
+//   - in settinguc.InputGetUserConfig
 func (_e *MockSettingFacade_Expecter) GetUser(ctx interface{}, in interface{}) *MockSettingFacade_GetUser_Call {
 	return &MockSettingFacade_GetUser_Call{Call: _e.mock.On("GetUser", ctx, in)}
 }
 
-func (_c *MockSettingFacade_GetUser_Call) Run(run func(ctx context.Context, in settingUc.InputGetUserConfig)) *MockSettingFacade_GetUser_Call {
+func (_c *MockSettingFacade_GetUser_Call) Run(run func(ctx context.Context, in settinguc.InputGetUserConfig)) *MockSettingFacade_GetUser_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 settingUc.InputGetUserConfig
+		var arg1 settinguc.InputGetUserConfig
 		if args[1] != nil {
-			arg1 = args[1].(settingUc.InputGetUserConfig)
+			arg1 = args[1].(settinguc.InputGetUserConfig)
 		}
 		run(
 			arg0,
@@ -506,18 +507,18 @@ func (_c *MockSettingFacade_GetUser_Call) Run(run func(ctx context.Context, in s
 	return _c
 }
 
-func (_c *MockSettingFacade_GetUser_Call) Return(outputGetUserConfig *settingUc.OutputGetUserConfig, err error) *MockSettingFacade_GetUser_Call {
+func (_c *MockSettingFacade_GetUser_Call) Return(outputGetUserConfig *settinguc.OutputGetUserConfig, err error) *MockSettingFacade_GetUser_Call {
 	_c.Call.Return(outputGetUserConfig, err)
 	return _c
 }
 
-func (_c *MockSettingFacade_GetUser_Call) RunAndReturn(run func(ctx context.Context, in settingUc.InputGetUserConfig) (*settingUc.OutputGetUserConfig, error)) *MockSettingFacade_GetUser_Call {
+func (_c *MockSettingFacade_GetUser_Call) RunAndReturn(run func(ctx context.Context, in settinguc.InputGetUserConfig) (*settinguc.OutputGetUserConfig, error)) *MockSettingFacade_GetUser_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateRoot provides a mock function for the type MockSettingFacade
-func (_mock *MockSettingFacade) UpdateRoot(ctx context.Context, in settingUc.InputUpdateRootConfig) (*domain.RootConfig, error) {
+func (_mock *MockSettingFacade) UpdateRoot(ctx context.Context, in settinguc.InputUpdateRootConfig) (*domain.RootConfig, error) {
 	ret := _mock.Called(ctx, in)
 
 	if len(ret) == 0 {
@@ -526,17 +527,17 @@ func (_mock *MockSettingFacade) UpdateRoot(ctx context.Context, in settingUc.Inp
 
 	var r0 *domain.RootConfig
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, settingUc.InputUpdateRootConfig) (*domain.RootConfig, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, settinguc.InputUpdateRootConfig) (*domain.RootConfig, error)); ok {
 		return returnFunc(ctx, in)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, settingUc.InputUpdateRootConfig) *domain.RootConfig); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, settinguc.InputUpdateRootConfig) *domain.RootConfig); ok {
 		r0 = returnFunc(ctx, in)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*domain.RootConfig)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, settingUc.InputUpdateRootConfig) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, settinguc.InputUpdateRootConfig) error); ok {
 		r1 = returnFunc(ctx, in)
 	} else {
 		r1 = ret.Error(1)
@@ -551,20 +552,20 @@ type MockSettingFacade_UpdateRoot_Call struct {
 
 // UpdateRoot is a helper method to define mock.On call
 //   - ctx context.Context
-//   - in settingUc.InputUpdateRootConfig
+//   - in settinguc.InputUpdateRootConfig
 func (_e *MockSettingFacade_Expecter) UpdateRoot(ctx interface{}, in interface{}) *MockSettingFacade_UpdateRoot_Call {
 	return &MockSettingFacade_UpdateRoot_Call{Call: _e.mock.On("UpdateRoot", ctx, in)}
 }
 
-func (_c *MockSettingFacade_UpdateRoot_Call) Run(run func(ctx context.Context, in settingUc.InputUpdateRootConfig)) *MockSettingFacade_UpdateRoot_Call {
+func (_c *MockSettingFacade_UpdateRoot_Call) Run(run func(ctx context.Context, in settinguc.InputUpdateRootConfig)) *MockSettingFacade_UpdateRoot_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 settingUc.InputUpdateRootConfig
+		var arg1 settinguc.InputUpdateRootConfig
 		if args[1] != nil {
-			arg1 = args[1].(settingUc.InputUpdateRootConfig)
+			arg1 = args[1].(settinguc.InputUpdateRootConfig)
 		}
 		run(
 			arg0,
@@ -579,13 +580,13 @@ func (_c *MockSettingFacade_UpdateRoot_Call) Return(rootConfig *domain.RootConfi
 	return _c
 }
 
-func (_c *MockSettingFacade_UpdateRoot_Call) RunAndReturn(run func(ctx context.Context, in settingUc.InputUpdateRootConfig) (*domain.RootConfig, error)) *MockSettingFacade_UpdateRoot_Call {
+func (_c *MockSettingFacade_UpdateRoot_Call) RunAndReturn(run func(ctx context.Context, in settinguc.InputUpdateRootConfig) (*domain.RootConfig, error)) *MockSettingFacade_UpdateRoot_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateUser provides a mock function for the type MockSettingFacade
-func (_mock *MockSettingFacade) UpdateUser(ctx context.Context, in settingUc.InputUpdateUserConfig) (*domain.UserConfig, error) {
+func (_mock *MockSettingFacade) UpdateUser(ctx context.Context, in settinguc.InputUpdateUserConfig) (*domain.UserConfig, error) {
 	ret := _mock.Called(ctx, in)
 
 	if len(ret) == 0 {
@@ -594,17 +595,17 @@ func (_mock *MockSettingFacade) UpdateUser(ctx context.Context, in settingUc.Inp
 
 	var r0 *domain.UserConfig
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, settingUc.InputUpdateUserConfig) (*domain.UserConfig, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, settinguc.InputUpdateUserConfig) (*domain.UserConfig, error)); ok {
 		return returnFunc(ctx, in)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, settingUc.InputUpdateUserConfig) *domain.UserConfig); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, settinguc.InputUpdateUserConfig) *domain.UserConfig); ok {
 		r0 = returnFunc(ctx, in)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*domain.UserConfig)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, settingUc.InputUpdateUserConfig) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, settinguc.InputUpdateUserConfig) error); ok {
 		r1 = returnFunc(ctx, in)
 	} else {
 		r1 = ret.Error(1)
@@ -619,20 +620,20 @@ type MockSettingFacade_UpdateUser_Call struct {
 
 // UpdateUser is a helper method to define mock.On call
 //   - ctx context.Context
-//   - in settingUc.InputUpdateUserConfig
+//   - in settinguc.InputUpdateUserConfig
 func (_e *MockSettingFacade_Expecter) UpdateUser(ctx interface{}, in interface{}) *MockSettingFacade_UpdateUser_Call {
 	return &MockSettingFacade_UpdateUser_Call{Call: _e.mock.On("UpdateUser", ctx, in)}
 }
 
-func (_c *MockSettingFacade_UpdateUser_Call) Run(run func(ctx context.Context, in settingUc.InputUpdateUserConfig)) *MockSettingFacade_UpdateUser_Call {
+func (_c *MockSettingFacade_UpdateUser_Call) Run(run func(ctx context.Context, in settinguc.InputUpdateUserConfig)) *MockSettingFacade_UpdateUser_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 settingUc.InputUpdateUserConfig
+		var arg1 settinguc.InputUpdateUserConfig
 		if args[1] != nil {
-			arg1 = args[1].(settingUc.InputUpdateUserConfig)
+			arg1 = args[1].(settinguc.InputUpdateUserConfig)
 		}
 		run(
 			arg0,
@@ -647,7 +648,7 @@ func (_c *MockSettingFacade_UpdateUser_Call) Return(userConfig *domain.UserConfi
 	return _c
 }
 
-func (_c *MockSettingFacade_UpdateUser_Call) RunAndReturn(run func(ctx context.Context, in settingUc.InputUpdateUserConfig) (*domain.UserConfig, error)) *MockSettingFacade_UpdateUser_Call {
+func (_c *MockSettingFacade_UpdateUser_Call) RunAndReturn(run func(ctx context.Context, in settinguc.InputUpdateUserConfig) (*domain.UserConfig, error)) *MockSettingFacade_UpdateUser_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -680,7 +681,7 @@ func (_m *MockUpdateRootConfig) EXPECT() *MockUpdateRootConfig_Expecter {
 }
 
 // Execute provides a mock function for the type MockUpdateRootConfig
-func (_mock *MockUpdateRootConfig) Execute(ctx context.Context, in settingUc.InputUpdateRootConfig) (*domain.RootConfig, error) {
+func (_mock *MockUpdateRootConfig) Execute(ctx context.Context, in settinguc.InputUpdateRootConfig) (*domain.RootConfig, error) {
 	ret := _mock.Called(ctx, in)
 
 	if len(ret) == 0 {
@@ -689,17 +690,17 @@ func (_mock *MockUpdateRootConfig) Execute(ctx context.Context, in settingUc.Inp
 
 	var r0 *domain.RootConfig
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, settingUc.InputUpdateRootConfig) (*domain.RootConfig, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, settinguc.InputUpdateRootConfig) (*domain.RootConfig, error)); ok {
 		return returnFunc(ctx, in)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, settingUc.InputUpdateRootConfig) *domain.RootConfig); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, settinguc.InputUpdateRootConfig) *domain.RootConfig); ok {
 		r0 = returnFunc(ctx, in)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*domain.RootConfig)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, settingUc.InputUpdateRootConfig) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, settinguc.InputUpdateRootConfig) error); ok {
 		r1 = returnFunc(ctx, in)
 	} else {
 		r1 = ret.Error(1)
@@ -714,20 +715,20 @@ type MockUpdateRootConfig_Execute_Call struct {
 
 // Execute is a helper method to define mock.On call
 //   - ctx context.Context
-//   - in settingUc.InputUpdateRootConfig
+//   - in settinguc.InputUpdateRootConfig
 func (_e *MockUpdateRootConfig_Expecter) Execute(ctx interface{}, in interface{}) *MockUpdateRootConfig_Execute_Call {
 	return &MockUpdateRootConfig_Execute_Call{Call: _e.mock.On("Execute", ctx, in)}
 }
 
-func (_c *MockUpdateRootConfig_Execute_Call) Run(run func(ctx context.Context, in settingUc.InputUpdateRootConfig)) *MockUpdateRootConfig_Execute_Call {
+func (_c *MockUpdateRootConfig_Execute_Call) Run(run func(ctx context.Context, in settinguc.InputUpdateRootConfig)) *MockUpdateRootConfig_Execute_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 settingUc.InputUpdateRootConfig
+		var arg1 settinguc.InputUpdateRootConfig
 		if args[1] != nil {
-			arg1 = args[1].(settingUc.InputUpdateRootConfig)
+			arg1 = args[1].(settinguc.InputUpdateRootConfig)
 		}
 		run(
 			arg0,
@@ -742,7 +743,7 @@ func (_c *MockUpdateRootConfig_Execute_Call) Return(rootConfig *domain.RootConfi
 	return _c
 }
 
-func (_c *MockUpdateRootConfig_Execute_Call) RunAndReturn(run func(ctx context.Context, in settingUc.InputUpdateRootConfig) (*domain.RootConfig, error)) *MockUpdateRootConfig_Execute_Call {
+func (_c *MockUpdateRootConfig_Execute_Call) RunAndReturn(run func(ctx context.Context, in settinguc.InputUpdateRootConfig) (*domain.RootConfig, error)) *MockUpdateRootConfig_Execute_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -775,7 +776,7 @@ func (_m *MockUpdateUserConfig) EXPECT() *MockUpdateUserConfig_Expecter {
 }
 
 // Execute provides a mock function for the type MockUpdateUserConfig
-func (_mock *MockUpdateUserConfig) Execute(ctx context.Context, in settingUc.InputUpdateUserConfig) (*domain.UserConfig, error) {
+func (_mock *MockUpdateUserConfig) Execute(ctx context.Context, in settinguc.InputUpdateUserConfig) (*domain.UserConfig, error) {
 	ret := _mock.Called(ctx, in)
 
 	if len(ret) == 0 {
@@ -784,17 +785,17 @@ func (_mock *MockUpdateUserConfig) Execute(ctx context.Context, in settingUc.Inp
 
 	var r0 *domain.UserConfig
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, settingUc.InputUpdateUserConfig) (*domain.UserConfig, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, settinguc.InputUpdateUserConfig) (*domain.UserConfig, error)); ok {
 		return returnFunc(ctx, in)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, settingUc.InputUpdateUserConfig) *domain.UserConfig); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, settinguc.InputUpdateUserConfig) *domain.UserConfig); ok {
 		r0 = returnFunc(ctx, in)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*domain.UserConfig)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, settingUc.InputUpdateUserConfig) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, settinguc.InputUpdateUserConfig) error); ok {
 		r1 = returnFunc(ctx, in)
 	} else {
 		r1 = ret.Error(1)
@@ -809,20 +810,20 @@ type MockUpdateUserConfig_Execute_Call struct {
 
 // Execute is a helper method to define mock.On call
 //   - ctx context.Context
-//   - in settingUc.InputUpdateUserConfig
+//   - in settinguc.InputUpdateUserConfig
 func (_e *MockUpdateUserConfig_Expecter) Execute(ctx interface{}, in interface{}) *MockUpdateUserConfig_Execute_Call {
 	return &MockUpdateUserConfig_Execute_Call{Call: _e.mock.On("Execute", ctx, in)}
 }
 
-func (_c *MockUpdateUserConfig_Execute_Call) Run(run func(ctx context.Context, in settingUc.InputUpdateUserConfig)) *MockUpdateUserConfig_Execute_Call {
+func (_c *MockUpdateUserConfig_Execute_Call) Run(run func(ctx context.Context, in settinguc.InputUpdateUserConfig)) *MockUpdateUserConfig_Execute_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 settingUc.InputUpdateUserConfig
+		var arg1 settinguc.InputUpdateUserConfig
 		if args[1] != nil {
-			arg1 = args[1].(settingUc.InputUpdateUserConfig)
+			arg1 = args[1].(settinguc.InputUpdateUserConfig)
 		}
 		run(
 			arg0,
@@ -837,7 +838,7 @@ func (_c *MockUpdateUserConfig_Execute_Call) Return(userConfig *domain.UserConfi
 	return _c
 }
 
-func (_c *MockUpdateUserConfig_Execute_Call) RunAndReturn(run func(ctx context.Context, in settingUc.InputUpdateUserConfig) (*domain.UserConfig, error)) *MockUpdateUserConfig_Execute_Call {
+func (_c *MockUpdateUserConfig_Execute_Call) RunAndReturn(run func(ctx context.Context, in settinguc.InputUpdateUserConfig) (*domain.UserConfig, error)) *MockUpdateUserConfig_Execute_Call {
 	_c.Call.Return(run)
 	return _c
 }

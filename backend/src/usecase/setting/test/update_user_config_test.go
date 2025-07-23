@@ -1,4 +1,4 @@
-package settingUc_test
+package settinguctest
 
 import (
 	"context"
@@ -49,7 +49,7 @@ func TestUpdateUserConfigInteractor_Execute(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tx := mockTx.NewMockTxManager(t)
+			tx := mockTx.NewMockManager(t)
 			repo := mockRepo.NewMockUserConfigRepository(t)
 			txRet := tt.txErr    // Tx 自体のエラー
 			if tt.txErr == nil { // Tx 開始は成功

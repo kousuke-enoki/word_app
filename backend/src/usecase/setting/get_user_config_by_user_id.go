@@ -1,4 +1,4 @@
-package settingUc
+package settinguc
 
 import (
 	"context"
@@ -17,7 +17,7 @@ type OutputGetUserConfig struct {
 	Config *domain.UserConfig
 }
 
-type getUserConfigInteractor struct {
+type GetUserConfigInteractor struct {
 	repo settingRepo.UserConfigRepository
 }
 
@@ -25,11 +25,11 @@ type GetUserConfig interface {
 	Execute(ctx context.Context, in InputGetUserConfig) (*OutputGetUserConfig, error)
 }
 
-func NewGetUserConfig(r settingRepo.UserConfigRepository) *getUserConfigInteractor {
-	return &getUserConfigInteractor{repo: r}
+func NewGetUserConfig(r settingRepo.UserConfigRepository) *GetUserConfigInteractor {
+	return &GetUserConfigInteractor{repo: r}
 }
 
-func (uc *getUserConfigInteractor) Execute(ctx context.Context, in InputGetUserConfig) (*OutputGetUserConfig, error) {
+func (uc *GetUserConfigInteractor) Execute(ctx context.Context, in InputGetUserConfig) (*OutputGetUserConfig, error) {
 	cfg, err := uc.repo.GetByUserID(ctx, in.UserID)
 	if err != nil {
 		return nil, ErrUserConfigNotFound

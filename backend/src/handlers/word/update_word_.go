@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+
 	"word_app/backend/src/models"
 	"word_app/backend/src/utils/contextutil"
 	"word_app/backend/src/validators/word"
@@ -12,7 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (h *WordHandler) UpdateWordHandler() gin.HandlerFunc {
+func (h *Handler) UpdateHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 		userRoles, err := contextutil.GetUserRoles(c)
@@ -51,7 +52,7 @@ func (h *WordHandler) UpdateWordHandler() gin.HandlerFunc {
 }
 
 // リクエスト構造体を解析
-func (h *WordHandler) parseUpdateWordRequest(c *gin.Context) (*models.UpdateWordRequest, error) {
+func (h *Handler) parseUpdateWordRequest(c *gin.Context) (*models.UpdateWordRequest, error) {
 	var req models.UpdateWordRequest
 
 	// JSONリクエストをバインド

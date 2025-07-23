@@ -5,17 +5,17 @@ import (
 	"context"
 
 	"word_app/backend/src/domain"
-	"word_app/backend/src/interfaces/service_interfaces"
+	serviceinterfaces "word_app/backend/src/interfaces/service_interfaces"
 )
 
 type EntExtAuthRepo struct {
-	client service_interfaces.EntClientInterface
+	client serviceinterfaces.EntClientInterface
 }
 type ExternalAuthRepository interface {
 	Create(ctx context.Context, ext *domain.ExternalAuth) error
 }
 
-func NewEntExtAuthRepo(c service_interfaces.EntClientInterface) *EntExtAuthRepo {
+func NewEntExtAuthRepo(c serviceinterfaces.EntClientInterface) *EntExtAuthRepo {
 	return &EntExtAuthRepo{client: c}
 }
 

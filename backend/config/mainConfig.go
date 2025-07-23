@@ -16,9 +16,9 @@ func LoadEnv() {
 	}
 	envFile := ".env." + env
 	if err := godotenv.Load(envFile); err != nil {
-		// 	log.Printf("No %s file found, using system environment variables", envFile)
-		// } else {
-		// 	log.Printf("Loaded environment file: %s", envFile)
+		log.Printf("No %s file found, using system environment variables", envFile)
+	} else {
+		log.Printf("Loaded environment file: %s", envFile)
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+
 	"word_app/backend/src/models"
 	"word_app/backend/src/utils/contextutil"
 
@@ -13,7 +14,7 @@ import (
 )
 
 // Word削除用ハンドラー
-func (h *WordHandler) DeleteWordHandler() gin.HandlerFunc {
+func (h *Handler) DeleteHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 		userRoles, err := contextutil.GetUserRoles(c)
@@ -43,7 +44,7 @@ func (h *WordHandler) DeleteWordHandler() gin.HandlerFunc {
 	}
 }
 
-func (h *WordHandler) parseDeleteWordRequest(c *gin.Context) (*models.DeleteWordRequest, error) {
+func (h *Handler) parseDeleteWordRequest(c *gin.Context) (*models.DeleteWordRequest, error) {
 	// パラメータの取得と検証
 	wordID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {

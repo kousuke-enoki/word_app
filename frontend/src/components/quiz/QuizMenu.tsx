@@ -47,7 +47,7 @@ const QuizMenu: React.FC = () => {
           setQuizState('setting')
         }
       } catch (error) {
-        console.log(error)
+        console.error(error)
         setQuizState('setting')
       } finally {
         setLoading(false)

@@ -1,29 +1,36 @@
 run:
-  timeout: 2m
-  skip-dirs:
+  timeout: 5m
+issues:
+  exclude-dirs:
     - "opt"
     - "go"
     - "ent"
     - "mocks"
+  exclude-files:
+    - ^src/infrastructure/app_client\.go$
 
 linters-settings:
   goimports:
     local-prefixes: "word_app/backend"
 
   govet:
-    check-shadowing: false
+    check-shadowing: true
+    enable:          # ← ここで shadow アナライザを有効化
+      - shadow
 
   gocyclo:
     min-complexity: 15
 
 linters:
   enable:
-    - govet
     - errcheck
-    - gofmt
     - goimports
+    - gosimple
+    - govet
+    - ineffassign
     - staticcheck
     - gocyclo
+    - revive
 
 output:
   formats:

@@ -1,15 +1,16 @@
-package word_service
+package word
 
 import (
 	"context"
 	"errors"
+
 	"word_app/backend/ent/word"
 	"word_app/backend/src/models"
 
 	"github.com/sirupsen/logrus"
 )
 
-func (s *WordServiceImpl) RegisteredWordCount(ctx context.Context, req *models.RegisteredWordCountRequest) (*models.RegisteredWordCountResponse, error) {
+func (s *ServiceImpl) RegisteredWordCount(ctx context.Context, req *models.RegisteredWordCountRequest) (*models.RegisteredWordCountResponse, error) {
 
 	// トランザクション開始
 	tx, err := s.client.Tx(ctx)

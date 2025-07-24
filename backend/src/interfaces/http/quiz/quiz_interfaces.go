@@ -1,4 +1,4 @@
-package interfaces
+package quiz
 
 import (
 	"context"
@@ -8,13 +8,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type QuizHandler interface {
-	CreateQuizHandler() gin.HandlerFunc
+type Handler interface {
+	CreateHandler() gin.HandlerFunc
 	PostAnswerAndRouteHandler() gin.HandlerFunc
-	GetQuizHandler() gin.HandlerFunc
+	GetHandler() gin.HandlerFunc
 }
 
-type QuizService interface {
+type Service interface {
 	CreateQuiz(ctx context.Context, userID int, CreateQuizRequest *models.CreateQuizReq) (*models.CreateQuizResponse, error)
 	SubmitAnswerAndRoute(ctx context.Context, userID int, in *models.PostAnswerQuestionRequest) (*models.AnswerRouteRes, error)
 	GetNextOrResume(ctx context.Context, userID int, req *models.GetQuizRequest) (*models.GetQuizResponse, error)

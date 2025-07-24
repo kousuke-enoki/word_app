@@ -5,13 +5,14 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+
 	"word_app/backend/src/models"
 	"word_app/backend/src/validators/word"
 
 	"github.com/gin-gonic/gin"
 )
 
-func (h *WordHandler) WordListHandler() gin.HandlerFunc {
+func (h *Handler) ListHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 
@@ -29,29 +30,23 @@ func (h *WordHandler) WordListHandler() gin.HandlerFunc {
 		}
 
 		// サービスの呼び出し
+		var (
+			resp *models.WordListResponse
+		)
 		if req.SortBy == "register" {
-			response, err := h.wordService.GetRegisteredWords(ctx, req)
-			if err == nil {
-				c.JSON(http.StatusOK, response)
-				return
-			} else {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
+			resp, err = h.wordService.GetRegisteredWords(ctx, req)
 		} else {
-			response, err := h.wordService.GetWords(ctx, req)
-			if err == nil {
-				c.JSON(http.StatusOK, response)
-				return
-			} else {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
+			resp, err = h.wordService.GetWords(ctx, req)
 		}
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
-func (h *WordHandler) parseWordListRequest(c *gin.Context) (*models.WordListRequest, error) {
+func (h *Handler) parseWordListRequest(c *gin.Context) (*models.WordListRequest, error) {
 	// クエリパラメータの取得
 	search := c.Query("search")
 	sortBy := c.DefaultQuery("sortBy", "id")

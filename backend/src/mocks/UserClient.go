@@ -4,6 +4,7 @@ package mocks
 
 import (
 	context "context"
+
 	ent "word_app/backend/ent"
 
 	mock "github.com/stretchr/testify/mock"
@@ -14,12 +15,12 @@ type UserClient struct {
 	mock.Mock
 }
 
-// CreateUser provides a mock function with given fields: ctx, email, name, password
-func (_m *UserClient) CreateUser(ctx context.Context, email string, name string, password string) (*ent.User, error) {
+// Create provides a mock function with given fields: ctx, email, name, password
+func (_m *UserClient) Create(ctx context.Context, email string, name string, password string) (*ent.User, error) {
 	ret := _m.Called(ctx, email, name, password)
 
 	if len(ret) == 0 {
-		panic("no return value specified for CreateUser")
+		panic("no return value specified for Create")
 	}
 
 	var r0 *ent.User
@@ -44,12 +45,12 @@ func (_m *UserClient) CreateUser(ctx context.Context, email string, name string,
 	return r0, r1
 }
 
-// FindUserByEmail provides a mock function with given fields: ctx, email
-func (_m *UserClient) FindUserByEmail(ctx context.Context, email string) (*ent.User, error) {
+// FindByEmail provides a mock function with given fields: ctx, email
+func (_m *UserClient) FindByEmail(ctx context.Context, email string) (*ent.User, error) {
 	ret := _m.Called(ctx, email)
 
 	if len(ret) == 0 {
-		panic("no return value specified for FindUserByEmail")
+		panic("no return value specified for FindByEmail")
 	}
 
 	var r0 *ent.User
@@ -74,12 +75,12 @@ func (_m *UserClient) FindUserByEmail(ctx context.Context, email string) (*ent.U
 	return r0, r1
 }
 
-// FindUserByID provides a mock function with given fields: ctx, id
-func (_m *UserClient) FindUserByID(ctx context.Context, id int) (*ent.User, error) {
+// FindByID provides a mock function with given fields: ctx, id
+func (_m *UserClient) FindByID(ctx context.Context, id int) (*ent.User, error) {
 	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
-		panic("no return value specified for FindUserByID")
+		panic("no return value specified for FindByID")
 	}
 
 	var r0 *ent.User

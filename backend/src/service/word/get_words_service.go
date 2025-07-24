@@ -1,4 +1,4 @@
-package word_service
+package word
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 )
 
 // word_list
-func (s *WordServiceImpl) GetWords(ctx context.Context, WordListRequest *models.WordListRequest) (*models.WordListResponse, error) {
+func (s *ServiceImpl) GetWords(ctx context.Context, WordListRequest *models.WordListRequest) (*models.WordListResponse, error) {
 	query := s.client.Word().Query()
 	userID := WordListRequest.UserID
 	search := WordListRequest.Search
@@ -32,10 +32,8 @@ func (s *WordServiceImpl) GetWords(ctx context.Context, WordListRequest *models.
 	// 検索条件の追加
 	query = addSearchFilter(query, search)
 
-	var totalCount int = 0
-
 	// 総レコード数を取得
-	totalCount, err = query.Count(ctx)
+	totalCount, err := query.Count(ctx)
 	if err != nil {
 		return nil, errors.New("failed to count words")
 	}

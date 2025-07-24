@@ -2,113 +2,100 @@ name: CI Pipeline
 
 on:
   pull_request:
-    branches:
-      - main
-      - develop
+    branches: [main, develop]
   push:
-    branches:
-      - main
-      - develop
-      - 'feature/**'
-      - 'hotfix/**'
+    branches: [main, develop, 'feature/**', 'hotfix/**']
   workflow_dispatch:
 
+env:
+  GO_VERSION: "1.24.x"
+  NODE_VERSION: "22.x"
+
 jobs:
+# ---------- Backend ----------
   backend:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:14
+        image: postgres:17
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
           POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.23.2
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Cache Go modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
+          key: ${{ runner.os }}-go${{ env.GO_VERSION }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-go${{ env.GO_VERSION }}-
 
-      - name: Install Backend Dependencies
+      - name: Tidy & Download
         working-directory: ./backend
         run: |
-          set -euxo pipefail
           go mod tidy
           go mod download
 
       - name: Generate Ent code
         working-directory: ./backend
-        run: |
-          set -euxo pipefail
-          go generate ./ent
+        run: go generate ./ent
 
-      - name: Install golangci-lint
-        working-directory: ./backend
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-            | sh -s -- -b $(go env GOPATH)/bin v1.54.2
-        env:
-          GO111MODULE: "on"
+      # --- Lint ---
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: v1.64.2
+          working-directory: ./backend
+          args: -v
 
-      - name: Run Go Linter
+      # --- Vet & Test ---
+      - name: Run go vet
         working-directory: ./backend
-        run: |
-          set -euxo pipefail
-          golangci-lint run --verbose
+        run: go vet ./...
 
       - name: Run Backend Tests
         working-directory: ./backend
-        run: |
-          set -euxo pipefail
-          go test ./... -cover
+        run: go test ./... -cover
 
+# ---------- Frontend ----------
   frontend:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: "./frontend/package-lock.json"
 
-      - name: Cache npm
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Install Frontend Dependencies
+      - name: Install dependencies
         working-directory: ./frontend
-        run: |
-          set -euxo pipefail
-          npm install
+        run: npm ci
 
-      - name: Run Frontend Linter
+      - name: Lint
         working-directory: ./frontend
-        run: |
-          set -euxo pipefail
-          npx eslint src/
+        run: npm run lint          # package.json 側で eslint をラップ
 
-      - name: Run Frontend Tests
+      - name: Test
         working-directory: ./frontend
-        run: |
-          set -euxo pipefail
-          npm test -- --coverage
+        run: npm run test -- --coverage
+
+      - name: Build (Vite)
+        working-directory: ./frontend
+        run: npm run build

@@ -11,16 +11,16 @@ type AuthSettingHandler struct {
 	settingUsecase settingUc.SettingFacade
 }
 
-func NewSettingHandler(client settingUc.SettingFacade) *AuthSettingHandler {
+func NewHandler(client settingUc.SettingFacade) *AuthSettingHandler {
 	return &AuthSettingHandler{
 		settingUsecase: client,
 	}
 }
 
-type SettingHandler interface {
-	GetUserSettingHandler() gin.HandlerFunc
-	SaveUserSettingHandler() gin.HandlerFunc
-	GetRootSettingHandler() gin.HandlerFunc
-	SaveRootSettingHandler() gin.HandlerFunc
-	GetAuthSettingHandler() gin.HandlerFunc
+type Handler interface {
+	GetUserConfigHandler() gin.HandlerFunc
+	SaveUserConfigHandler() gin.HandlerFunc
+	GetRootConfigHandler() gin.HandlerFunc
+	SaveRootConfigHandler() gin.HandlerFunc
+	GetAuthConfigHandler() gin.HandlerFunc
 }

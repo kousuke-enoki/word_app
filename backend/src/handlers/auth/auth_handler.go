@@ -4,16 +4,16 @@ import (
 	"word_app/backend/src/interfaces/http/auth"
 )
 
-type AuthHandler struct {
-	AuthUsecase  auth.AuthUsecase
+type Handler struct {
+	AuthUsecase  auth.Usecase
 	jwtGenerator auth.JWTGenerator
 }
 
-func NewAuthHandler(
-	authUsecase auth.AuthUsecase,
+func NewHandler(
+	authUsecase auth.Usecase,
 	jwtGen auth.JWTGenerator,
-) *AuthHandler {
-	return &AuthHandler{
+) *Handler {
+	return &Handler{
 		AuthUsecase:  authUsecase,
 		jwtGenerator: jwtGen,
 	}

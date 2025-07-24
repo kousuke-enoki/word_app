@@ -1,4 +1,4 @@
-package quiz_service
+package quiz
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 // SubmitAnswerAndRoute = 回答を保存し、次の分岐を判断
-func (s *QuizServiceImpl) SubmitAnswerAndRoute(
+func (s *ServiceImpl) SubmitAnswerAndRoute(
 	ctx context.Context,
 	userID int,
 	in *models.PostAnswerQuestionRequest,
@@ -50,40 +50,38 @@ func (s *QuizServiceImpl) SubmitAnswerAndRoute(
 	}
 
 	// ③ 次問題があるか？
-	if nextQQ, errN := tx.QuizQuestion.
+	nextQQ, errN := tx.QuizQuestion.
 		Query().
 		Where(
 			quizquestion.QuizIDEQ(in.QuizID),
 			quizquestion.QuestionNumber(in.QuestionNumber+1),
 		).
-		Only(ctx); errN == nil {
-		// ---------- 次の問題あり ----------
-		res = &models.AnswerRouteRes{
-			IsFinish: false,
-			NextQuestion: models.NextQuestion{
-				QuizID:         in.QuizID,
-				QuestionNumber: nextQQ.QuestionNumber,
-				WordName:       nextQQ.WordName,
-				ChoicesJpms:    nextQQ.ChoicesJpms,
-			},
-			IsCorrect: isCorrect,
-		}
-		return
-	} else if ent.IsNotFound(errN) {
+		Only(ctx)
+	if ent.IsNotFound(errN) {
 		if finishedErr := s.finishQuizTx(ctx, tx, qq.Edges.Quiz, userID); finishedErr != nil {
 			err = finishedErr
 			return nil, err
 		}
-
 		res = &models.AnswerRouteRes{
 			IsFinish:   true,
 			IsCorrect:  isCorrect,
 			QuizNumber: qq.Edges.Quiz.QuizNumber,
 		}
 		return
-
-	} else {
+	} else if errN != nil {
 		err = errN // defer に渡す
 		return nil, err
 	}
+	// ---------- 次の問題あり ----------
+	res = &models.AnswerRouteRes{
+		IsFinish: false,
+		NextQuestion: models.NextQuestion{
+			QuizID:         in.QuizID,
+			QuestionNumber: nextQQ.QuestionNumber,
+			WordName:       nextQQ.WordName,
+			ChoicesJpms:    nextQQ.ChoicesJpms,
+		},
+		IsCorrect: isCorrect,
+	}
+	return
 }

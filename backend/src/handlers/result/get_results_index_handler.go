@@ -3,6 +3,7 @@ package result
 import (
 	"context"
 	"net/http"
+
 	"word_app/backend/src/utils/contextutil"
 
 	"github.com/gin-gonic/gin"
@@ -10,7 +11,7 @@ import (
 )
 
 // GET /results
-func (h *ResultHandler) GetResultsIndexHandler() gin.HandlerFunc {
+func (h *Handler) GetIndexHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 
@@ -21,7 +22,7 @@ func (h *ResultHandler) GetResultsIndexHandler() gin.HandlerFunc {
 			return
 		}
 
-		list, err := h.resultService.GetResultSummaries(ctx, userID)
+		list, err := h.resultService.GetSummaries(ctx, userID)
 		if err != nil {
 			logrus.Error(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch results"})

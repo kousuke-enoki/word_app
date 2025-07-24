@@ -1,4 +1,4 @@
-package word_service
+package word
 
 import (
 	"context"
@@ -6,51 +6,109 @@ import (
 	"fmt"
 	"strings"
 
+	"word_app/backend/ent"
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/word"
 	"word_app/backend/src/models"
-
-	"github.com/sirupsen/logrus"
 )
 
-const maxBulkRegister = 200 // 1 リクエストで許可する単語数
+const maxBulkRegister = 200
 
-func (s *WordServiceImpl) BulkRegister(ctx context.Context, userID int, words []string) (*models.BulkRegisterResponse, error) {
-	if len(words) == 0 {
-		return nil, errors.New("empty payload")
-	}
-	if len(words) > maxBulkRegister {
-		return nil, fmt.Errorf("too many words: %d > %d", len(words), maxBulkRegister)
+/*==================== public ====================*/
+
+// orchestration だけ残す
+func (s *ServiceImpl) BulkRegister(
+	ctx context.Context,
+	userID int,
+	words []string,
+) (resp *models.BulkRegisterResponse, err error) {
+
+	if err = validatePayload(words); err != nil {
+		return nil, err
 	}
 
-	/* ---------- 正規化＋重複排除 ---------- */
-	set := map[string]struct{}{}
-	norm := make([]string, 0, len(words))
+	// ① 正規化＋重複排除
+	norm := normalizeWords(words)
+
+	// ② master word → map[name]id
+	nameToID, err := s.fetchWordIDs(ctx, norm)
+	if err != nil {
+		return nil, err
+	}
+
+	// ③ 既存 registered_word の活性状態を取得
+	activeMap, err := s.fetchActiveRegs(ctx, userID, nameToID)
+	if err != nil {
+		return nil, err
+	}
+
+	// ④ Tx で upsert
+	okWords, failed, err := s.upsertRegsTx(ctx, userID, norm, nameToID, activeMap)
+	if err != nil {
+		return nil, err
+	}
+
+	// ⑤ 登録回数を +1
+	if err = s.incrementRegCount(ctx, okWords); err != nil {
+		return nil, err
+	}
+
+	return &models.BulkRegisterResponse{Success: okWords, Failed: failed}, nil
+}
+
+/*==================== validation & util ====================*/
+
+func validatePayload(words []string) error {
+	switch l := len(words); {
+	case l == 0:
+		return errors.New("empty payload")
+	case l > maxBulkRegister:
+		return fmt.Errorf("too many words: %d > %d", l, maxBulkRegister)
+	}
+	return nil
+}
+
+func normalizeWords(words []string) []string {
+	set := make(map[string]struct{}, len(words))
+	out := make([]string, 0, len(words))
 	for _, w := range words {
-		if len(norm) >= maxBulkRegister { // max超えていたらここで打ち切り
+		if len(out) >= maxBulkRegister {
 			break
 		}
 		lw := strings.ToLower(w)
 		if _, ok := set[lw]; !ok {
 			set[lw] = struct{}{}
-			norm = append(norm, lw)
+			out = append(out, lw)
 		}
 	}
+	return out
+}
 
-	/* ---------- master word 一括取得 ---------- */
+func (s *ServiceImpl) fetchWordIDs(
+	ctx context.Context,
+	names []string,
+) (map[string]int, error) {
+
 	found, err := s.client.Word().
 		Query().
-		Where(word.NameIn(norm...)).
+		Where(word.NameIn(names...)).
 		All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	nameToID := make(map[string]int)
+	res := make(map[string]int, len(found))
 	for _, w := range found {
-		nameToID[w.Name] = w.ID
+		res[w.Name] = w.ID
 	}
+	return res, nil
+}
 
-	/* ---------- 既存 registered_word 取得 ---------- */
+func (s *ServiceImpl) fetchActiveRegs(
+	ctx context.Context,
+	userID int,
+	nameToID map[string]int,
+) (map[int]bool, error) {
+
 	var ids []int
 	for _, id := range nameToID {
 		ids = append(ids, id)
@@ -64,81 +122,91 @@ func (s *WordServiceImpl) BulkRegister(ctx context.Context, userID int, words []
 	if err != nil {
 		return nil, err
 	}
-	active := map[int]bool{}
+	active := make(map[int]bool, len(regs))
 	for _, r := range regs {
 		active[r.WordID] = r.IsActive
 	}
+	return active, nil
+}
 
-	/* ---------- トランザクション ---------- */
+/*==================== Tx + upsert ====================*/
+
+func (s *ServiceImpl) upsertRegsTx(
+	ctx context.Context,
+	userID int,
+	norm []string,
+	nameToID map[string]int,
+	active map[int]bool,
+) (okWords []string, failed []models.FailedWord, err error) {
+
 	tx, err := s.client.Tx(ctx)
 	if err != nil {
-		return nil, err
+		return
 	}
-	defer func() {
-		if err != nil {
-			_ = tx.Rollback()
-		} else {
-			err = tx.Commit()
-			if err != nil {
-				logrus.Error(err)
-			}
-		}
-	}()
-
-	var okWords []string
-	var failed []models.FailedWord
+	defer finishTxWithLog(&err, tx)
 
 	for _, w := range norm {
-		wordID, ok := nameToID[w]
-		if !ok {
+		wordID, exists := nameToID[w]
+		if !exists {
 			failed = append(failed, models.FailedWord{Word: w, Reason: "not_exists"})
 			continue
 		}
-		if active[wordID] { // すでにアクティブ
+		if active[wordID] {
 			failed = append(failed, models.FailedWord{Word: w, Reason: "already_registered"})
 			continue
 		}
 
-		// 登録または更新
-		if _, exists := active[wordID]; exists {
-			// inactive -> active
-			_, err = tx.RegisteredWord.
-				Update().
-				Where(
-					registeredword.UserIDEQ(userID),
-					registeredword.WordIDEQ(wordID),
-				).
-				SetIsActive(true).
-				Save(ctx)
+		if _, dup := active[wordID]; dup {
+			err = s.activateReg(ctx, tx, userID, wordID)
 		} else {
-			// 新規作成
-			_, err = tx.RegisteredWord.
-				Create().
-				SetUserID(userID).
-				SetWordID(wordID).
-				SetIsActive(true).
-				Save(ctx)
+			err = s.createReg(ctx, tx, userID, wordID)
 		}
 		if err != nil {
 			failed = append(failed, models.FailedWord{Word: w, Reason: "db_error"})
+			err = nil // 1 つ失敗しても続行
 			continue
 		}
 		okWords = append(okWords, w)
 	}
+	return
+}
 
-	/* 4‑B. registration_count を +1 */
-	_, err = s.RegisteredWordsCount(ctx,
-		true,
-		okWords,
-	)
-	if err != nil {
-		return nil, err
-	}
+func (s *ServiceImpl) activateReg(
+	ctx context.Context,
+	tx *ent.Tx,
+	userID, wordID int,
+) error {
+	_, err := tx.RegisteredWord.
+		Update().
+		Where(
+			registeredword.UserIDEQ(userID),
+			registeredword.WordIDEQ(wordID),
+		).
+		SetIsActive(true).
+		Save(ctx)
+	return err
+}
 
-	response := &models.BulkRegisterResponse{
-		Success: okWords,
-		Failed:  failed,
-	}
+func (s *ServiceImpl) createReg(
+	ctx context.Context,
+	tx *ent.Tx,
+	userID, wordID int,
+) error {
+	_, err := tx.RegisteredWord.
+		Create().
+		SetUserID(userID).
+		SetWordID(wordID).
+		SetIsActive(true).
+		Save(ctx)
+	return err
+}
 
-	return response, nil
+/*==================== post process ====================*/
+
+func (s *ServiceImpl) incrementRegCount(
+	ctx context.Context,
+	okWords []string,
+) error {
+	_, err := s.RegisteredWordsCount(ctx, true, okWords)
+	return err
 }

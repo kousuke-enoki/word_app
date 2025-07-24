@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEntUserClient_CreateUser(t *testing.T) {
+func TestEntUserClient_Create(t *testing.T) {
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 	defer client.Close()
 
@@ -28,7 +28,7 @@ func TestEntUserClient_CreateUser(t *testing.T) {
 	password := "password"
 
 	t.Run("Success", func(t *testing.T) {
-		createdUser, err := usrClient.CreateUser(ctx, email, name, password)
+		createdUser, err := usrClient.Create(ctx, email, name, password)
 		assert.NoError(t, err)
 		assert.NotNil(t, createdUser)
 		assert.Equal(t, email, createdUser.Email)
@@ -36,32 +36,32 @@ func TestEntUserClient_CreateUser(t *testing.T) {
 	})
 
 	t.Run("DuplicateEmail", func(t *testing.T) {
-		usrClient := user_service.NewEntUserClient(clientWrapper)
-		ctx := context.Background()
+		entUsrClient := user_service.NewEntUserClient(clientWrapper)
+		// ctx := context.Background()
 
 		// Successで登録したuserと同じメールアドレスで再度作成
-		_, err := usrClient.CreateUser(ctx, email, "Another User", "anotherpassword")
+		_, err := entUsrClient.Create(ctx, email, "Another User", "anotherpassword")
 		assert.ErrorIs(t, err, user_service.ErrDuplicateEmail)
 	})
 
 	t.Run("DatabaseFailure", func(t *testing.T) {
 		// DBクライアントを強制的に無効化してエラーを発生させる
 		client.Close()
-		_, err := usrClient.CreateUser(ctx, "new@example.com", "New User", "newpassword")
+		_, err := usrClient.Create(ctx, "new@example.com", "New User", "newpassword")
 		assert.ErrorIs(t, err, user_service.ErrDatabaseFailure)
 	})
 
 	t.Run("InvalidInput", func(t *testing.T) {
 		// 無効なメールアドレス（空文字列）
-		_, err := usrClient.CreateUser(ctx, "", name, password)
+		_, err := usrClient.Create(ctx, "", name, password)
 		assert.Error(t, err)
 
 		// 無効な名前（空文字列）
-		_, err = usrClient.CreateUser(ctx, email, "", password)
+		_, err = usrClient.Create(ctx, email, "", password)
 		assert.Error(t, err)
 
 		// 無効なパスワード（空文字列）
-		_, err = usrClient.CreateUser(ctx, email, name, "")
+		_, err = usrClient.Create(ctx, email, name, "")
 		assert.Error(t, err)
 	})
 }

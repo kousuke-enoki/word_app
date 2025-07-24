@@ -1,13 +1,11 @@
 package word
 
-import (
-	"word_app/backend/src/interfaces"
-)
+import "word_app/backend/src/interfaces/http/word"
 
-type WordHandler struct {
-	wordService interfaces.WordService
+type Handler struct {
+	wordService word.Service
 }
 
-func NewWordHandler(wordService interfaces.WordService) *WordHandler {
-	return &WordHandler{wordService: wordService}
+func NewHandler(wordService word.Service) *Handler {
+	return &Handler{wordService: wordService}
 }

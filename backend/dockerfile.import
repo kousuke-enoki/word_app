@@ -1,0 +1,9 @@
+# backend/dockerfiles/Import.Dockerfile
+FROM --platform=linux/amd64 scratch AS runtime
+WORKDIR /app
+COPY --from=ghcr.io/your-org/wordapp-builder:latest /out/import_dict /usr/local/bin/import_dict
+
+# CMD or ENTRYPOINT で完結
+ENTRYPOINT ["/usr/local/bin/import_dict"]
+# デフォルト引数を変えたい場合は
+# CMD ["-file=/data/jmdict.json", "-workers=4"]

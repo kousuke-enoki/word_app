@@ -4,6 +4,7 @@ package di
 import (
 	"word_app/backend/config"
 	AuthH "word_app/backend/src/handlers/auth"
+
 	quizH "word_app/backend/src/handlers/quiz"
 	resultH "word_app/backend/src/handlers/result"
 	settingH "word_app/backend/src/handlers/setting"
@@ -13,7 +14,11 @@ import (
 	"word_app/backend/src/interfaces"
 	"word_app/backend/src/interfaces/http/auth"
 	middleware_interface "word_app/backend/src/interfaces/http/middleware"
+	"word_app/backend/src/interfaces/http/quiz"
+	"word_app/backend/src/interfaces/http/result"
 	"word_app/backend/src/interfaces/http/setting"
+	"word_app/backend/src/interfaces/http/user"
+	"word_app/backend/src/interfaces/http/word"
 	jwt_middleware "word_app/backend/src/middleware/jwt"
 
 	quizSvc "word_app/backend/src/service/quiz"
@@ -23,13 +28,13 @@ import (
 )
 
 type Handlers struct {
-	JWTMiD  middleware_interface.JwtMiddleware // JWT ミドルウェアは Handler ではなく、インターフェースとして定義
-	Auth    auth.AuthHandler
-	Setting setting.SettingHandler
-	User    interfaces.UserHandler
-	Word    interfaces.WordHandler
-	Quiz    interfaces.QuizHandler
-	Result  interfaces.ResultHandler
+	JWTMiD  middleware_interface.Middleware // JWT ミドルウェアは Handler ではなく、インターフェースとして定義
+	Auth    auth.Handler
+	Setting setting.Handler
+	User    user.Handler
+	Word    word.Handler
+	Quiz    quiz.Handler
+	Result  result.Handler
 }
 
 func NewHandlers(config *config.Config, uc *UseCases, client interfaces.ClientInterface) *Handlers {
@@ -37,12 +42,12 @@ func NewHandlers(config *config.Config, uc *UseCases, client interfaces.ClientIn
 	authClient := jwt.NewJWTValidator(config.JWT.Secret, client)
 	// 既存のservice 層は “薄い Facade” として存続させる想定
 	return &Handlers{
-		JWTMiD:  jwt_middleware.NewJwtMiddleware(authClient),
-		Auth:    AuthH.NewAuthHandler(uc.Auth, jwtGen),
-		Setting: settingH.NewSettingHandler(uc.Setting),
-		User:    userH.NewUserHandler(userSvc.NewEntUserClient(client), jwtGen),
-		Word:    wordH.NewWordHandler(wordSvc.NewWordService(client)),
-		Quiz:    quizH.NewQuizHandler(quizSvc.NewQuizService(client)),
-		Result:  resultH.NewResultHandler(resultSvc.NewResultService(client)),
+		JWTMiD:  jwt_middleware.NewMiddleware(authClient),
+		Auth:    AuthH.NewHandler(uc.Auth, jwtGen),
+		Setting: settingH.NewHandler(uc.Setting),
+		User:    userH.NewHandler(userSvc.NewEntUserClient(client), jwtGen),
+		Word:    wordH.NewHandler(wordSvc.NewWordService(client)),
+		Quiz:    quizH.NewHandler(quizSvc.NewService(client)),
+		Result:  resultH.NewHandler(resultSvc.NewService(client)),
 	}
 }

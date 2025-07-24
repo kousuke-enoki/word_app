@@ -3,13 +3,14 @@ package result
 import (
 	"net/http"
 	"strconv"
+
 	"word_app/backend/src/utils/contextutil"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
-func (h *ResultHandler) GetResultHandler() gin.HandlerFunc {
+func (h *Handler) GetHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, err := contextutil.MustUserID(c)
 		if err != nil {
@@ -26,7 +27,7 @@ func (h *ResultHandler) GetResultHandler() gin.HandlerFunc {
 		}
 		logrus.Debug(quizNo)
 
-		res, err := h.resultService.GetResultByQuizNo(c.Request.Context(), userID, quizNo)
+		res, err := h.resultService.GetByQuizNo(c.Request.Context(), userID, quizNo)
 		if err != nil {
 			logrus.Error(err)
 			c.JSON(http.StatusNotFound, gin.H{"error": "result not found"})

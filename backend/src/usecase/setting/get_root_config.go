@@ -1,4 +1,4 @@
-package settingUc
+package settinguc
 
 import (
 	"context"
@@ -25,16 +25,16 @@ type GetRootConfig interface {
 	Execute(ctx context.Context, in InputGetRootConfig) (*OutputGetRootConfig, error)
 }
 
-type getRootConfigInteractor struct {
-	userRepo       userRepo.UserRepository
+type GetRootConfigInteractor struct {
+	userRepo       userRepo.Repository
 	rootConfigRepo settingRepo.RootConfigRepository
 }
 
-func NewGetRootConfig(u userRepo.UserRepository, r settingRepo.RootConfigRepository) *getRootConfigInteractor {
-	return &getRootConfigInteractor{userRepo: u, rootConfigRepo: r}
+func NewGetRootConfig(u userRepo.Repository, r settingRepo.RootConfigRepository) *GetRootConfigInteractor {
+	return &GetRootConfigInteractor{userRepo: u, rootConfigRepo: r}
 }
 
-func (uc *getRootConfigInteractor) Execute(ctx context.Context, in InputGetRootConfig) (*OutputGetRootConfig, error) {
+func (uc *GetRootConfigInteractor) Execute(ctx context.Context, in InputGetRootConfig) (*OutputGetRootConfig, error) {
 	user, err := uc.userRepo.FindByID(ctx, in.UserID)
 	if err != nil {
 		return nil, err // ← DB エラーなどはそのまま

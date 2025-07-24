@@ -13,7 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (h *WordHandler) RegisterWordHandler() gin.HandlerFunc {
+func (h *Handler) RegisterHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 		req, err := h.parseRequest(c)
@@ -33,7 +33,7 @@ func (h *WordHandler) RegisterWordHandler() gin.HandlerFunc {
 	}
 }
 
-func (h *WordHandler) parseRequest(c *gin.Context) (*models.RegisterWordRequest, error) {
+func (h *Handler) parseRequest(c *gin.Context) (*models.RegisterWordRequest, error) {
 	// リクエストボディが空の場合をチェック
 	if c.Request.Body == nil {
 		return nil, errors.New("request body is missing")

@@ -33,7 +33,7 @@ type CreateQuizResponse struct {
 type PostAnswerQuestionRequest struct {
 	QuizID         int `json:"quizID"`
 	QuestionNumber int `json:"questionNumber"`
-	AnswerJpmID    int `json:"answerJpmId"`
+	AnswerJpmID    int `json:"answerJpmID"`
 }
 
 // type PostAnswerQuestionResponse struct {
@@ -85,9 +85,9 @@ type ResultQuestion struct {
 	WordName       string         `json:"wordName"`
 	WordID         int            `json:"wordID"`
 	PosID          int            `json:"posID"`
-	CorrectJpmId   int            `json:"correctJpmId"`
+	CorrectJpmID   int            `json:"correctJpmID"`
 	ChoicesJpms    []ChoiceJpm    `json:"choicesJpms"`
-	AnswerJpmId    int            `json:"answerJpmId"`
+	AnswerJpmID    int            `json:"answerJpmID"`
 	IsCorrect      bool           `json:"isCorrect"`
 	TimeMs         int            `json:"timeMs"`
 	RegisteredWord RegisteredWord `json:"registeredWord"`
@@ -107,7 +107,7 @@ type ResultSetting struct {
 	IsIdioms            int   `json:"isIdioms"`
 	IsSpecialCharacters int   `json:"isSpecialCharacters"`
 	AttentionLevelList  []int `json:"attentionLevelList"`
-	ChoicesPosIds       []int `json:"choicesPosIds"`
+	ChoicesPosIDs       []int `json:"choicesPosIds"`
 }
 
 type ResultSummary struct {
@@ -116,7 +116,7 @@ type ResultSummary struct {
 	IsRegisteredWords   int       `json:"isRegisteredWords"`
 	IsIdioms            int       `json:"isIdioms"`
 	IsSpecialCharacters int       `json:"isSpecialCharacters"`
-	ChoicesPosIds       []int     `json:"choicesPosIds"`
+	ChoicesPosIDs       []int     `json:"choicesPosIds"`
 	TotalQuestionsCount int       `json:"totalQuestionsCount"`
 	CorrectCount        int       `json:"correctCount"`
 	ResultCorrectRate   float64   `json:"resultCorrectRate"`

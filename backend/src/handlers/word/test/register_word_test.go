@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestRegisterWordHandler(t *testing.T) {
+func TestRegisterHandler(_ *testing.T) {
 	// gin.SetMode(gin.TestMode)
 	// // mockWordService := new(mocks.WordService)
 
@@ -39,7 +39,7 @@ func TestRegisterWordHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware()) // テスト用ミドルウェア
-	// 	router.POST("/words/register", wordHandler.RegisterWordHandler())
+	// 	router.POST("/words/register", wordHandler.RegisterHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -75,7 +75,7 @@ func TestRegisterWordHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware()) // テスト用ミドルウェア
-	// 	router.POST("/words/register", wordHandler.RegisterWordHandler())
+	// 	router.POST("/words/register", wordHandler.RegisterHandler())
 
 	// 	// テスト実行
 	// 	router.ServeHTTP(w, req)
@@ -101,7 +101,7 @@ func TestRegisterWordHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware())
-	// 	router.POST("/words/register", wordHandler.RegisterWordHandler())
+	// 	router.POST("/words/register", wordHandler.RegisterHandler())
 
 	// 	router.ServeHTTP(w, req)
 	// 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -122,7 +122,7 @@ func TestRegisterWordHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware())
-	// 	router.POST("/words/register", wordHandler.RegisterWordHandler())
+	// 	router.POST("/words/register", wordHandler.RegisterHandler())
 
 	// 	router.ServeHTTP(w, req)
 	// 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -150,7 +150,7 @@ func TestRegisterWordHandler(t *testing.T) {
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
 	// 	router.Use(mocks.MockAuthMiddleware())
-	// 	router.POST("/words/register", wordHandler.RegisterWordHandler())
+	// 	router.POST("/words/register", wordHandler.RegisterHandler())
 
 	// 	router.ServeHTTP(w, req)
 	// 	assert.Equal(t, http.StatusInternalServerError, w.Code)
@@ -176,7 +176,7 @@ func TestRegisterWordHandler(t *testing.T) {
 
 	// 	w := httptest.NewRecorder()
 	// 	router := gin.Default()
-	// 	router.POST("/words/register", wordHandler.RegisterWordHandler()) // Middlewareなし
+	// 	router.POST("/words/register", wordHandler.RegisterHandler()) // Middlewareなし
 
 	// 	router.ServeHTTP(w, req)
 	// 	assert.Equal(t, http.StatusBadRequest, w.Code)

@@ -32,13 +32,13 @@ func TestAuthLineHandler(t *testing.T) {
 		}
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				mockUC := new(auth_mock.MockAuthUsecase)
+				mockUC := new(auth_mock.MockUsecase)
 				mockUC.
 					On("StartLogin", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("string")).
 					Return(tt.redirectURL)
 
 				mockJWTGen := new(auth_mock.MockJWTGenerator)
-				h := auth_handler.NewAuthHandler(mockUC, mockJWTGen)
+				h := auth_handler.NewHandler(mockUC, mockJWTGen)
 
 				w := httptest.NewRecorder()
 				c, _ := gin.CreateTestContext(w)
@@ -90,16 +90,16 @@ func TestAuthLineHandler(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				mockUC := new(auth_mock.MockAuthUsecase)
+				mockUC := new(auth_mock.MockUsecase)
 				mockUC.
-					On("HandleCallback", mock.Anything, "abc", "xyz", mock.Anything).
+					On("HandleCallback", mock.Anything, "abc", mock.Anything).
 					Return(tt.mockReturn, tt.mockErr)
 				mockJWTGenerator := new(auth_mock.MockJWTGenerator)
 
-				userHandler := auth_handler.NewAuthHandler(mockUC, mockJWTGenerator)
-				// h := &auth.AuthHandler{AuthUsecase: mockUC, jwtGenerator: mockJWTGenerator}
+				userHandler := auth_handler.NewHandler(mockUC, mockJWTGenerator)
+				// h := &auth.Handler{Usecase: mockUC, jwtGenerator: mockJWTGenerator}
 
-				//  := &auth.AuthHandler{AuthUsecase: mockUC}
+				//  := &auth.Handler{Usecase: mockUC}
 
 				w := httptest.NewRecorder()
 				c, _ := gin.CreateTestContext(w)
@@ -162,7 +162,7 @@ func TestAuthLineHandler(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				mockUC := new(auth_mock.MockAuthUsecase)
+				mockUC := new(auth_mock.MockUsecase)
 				// Bind エラーケースでは CompleteSignUp は呼ばれない想定
 				if tt.name != "json_bind_error" {
 					mockUC.
@@ -171,8 +171,8 @@ func TestAuthLineHandler(t *testing.T) {
 				}
 				mockJWTGenerator := new(auth_mock.MockJWTGenerator)
 
-				userHandler := auth_handler.NewAuthHandler(mockUC, mockJWTGenerator)
-				// h := &auth.AuthHandler{AuthUsecase: mockUC}
+				userHandler := auth_handler.NewHandler(mockUC, mockJWTGenerator)
+				// h := &auth.Handler{Usecase: mockUC}
 
 				w := httptest.NewRecorder()
 				c, _ := gin.CreateTestContext(w)

@@ -2,12 +2,13 @@ package middleware
 
 import (
 	"context"
+
 	"word_app/backend/src/utils/contextutil"
 
 	"github.com/gin-gonic/gin"
 )
 
-type JwtMiddleware interface {
+type Middleware interface {
 	AuthMiddleware() gin.HandlerFunc
 	JwtCheckMiddleware() gin.HandlerFunc
 }

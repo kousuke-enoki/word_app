@@ -24,7 +24,7 @@ func TestMyPageHandler(t *testing.T) {
 	mockClient := new(mocks.UserClient)
 	mockJWTGen := &mocks.MockJwtGenerator{}
 
-	userHandler := user.NewUserHandler(mockClient, mockJWTGen)
+	userHandler := user.NewHandler(mockClient, mockJWTGen)
 
 	// 正常時
 	t.Run("Success", func(t *testing.T) {
@@ -34,7 +34,7 @@ func TestMyPageHandler(t *testing.T) {
 			Name:    "Test User",
 			IsAdmin: true,
 		}
-		mockClient.On("FindUserByID", mock.Anything, userID).Return(mockUser, nil)
+		mockClient.On("FindByID", mock.Anything, userID).Return(mockUser, nil)
 
 		// HTTPリクエストとレスポンスのセットアップ
 		w := httptest.NewRecorder()
@@ -49,7 +49,7 @@ func TestMyPageHandler(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		// レスポンスボディの内容を確認（小文字の"admin"と"name"に変更）
-		expectedResponse := `{"user":{"id":0, "isAdmin":true, "isRoot":false, "name":"Test User"}}`
+		expectedResponse := `{"user":{"id":0, "isAdmin":true, "isRoot":false, "name":"Test User"}, "isLogin":true}`
 		assert.JSONEq(t, expectedResponse, w.Body.String())
 
 		mockClient.AssertExpectations(t)
@@ -63,7 +63,7 @@ func TestMyPageHandler(t *testing.T) {
 			Name:    "Test User",
 			IsAdmin: true,
 		}
-		mockClient.On("FindUserByID", mock.MatchedBy(func(c context.Context) bool {
+		mockClient.On("FindByID", mock.MatchedBy(func(c context.Context) bool {
 			// コンテキストの確認
 			return c != nil
 		}), userID).Return(mockUser, nil)
@@ -104,8 +104,8 @@ func TestMyPageHandler(t *testing.T) {
 	// データベースエラーが発生した場合
 	t.Run("Database_error", func(t *testing.T) {
 
-		// Mock設定: FindUserByIDがエラーを返すようにする
-		mockClient.On("FindUserByID", mock.Anything, 123).
+		// Mock設定: FindByIDがエラーを返すようにする
+		mockClient.On("FindByID", mock.Anything, 123).
 			Return(nil, errors.New("some database error"))
 		// Ginのテストコンテキスト作成
 		recorder := httptest.NewRecorder()

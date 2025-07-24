@@ -2,17 +2,17 @@
 package user
 
 import (
-	"word_app/backend/src/interfaces"
 	"word_app/backend/src/interfaces/http/auth"
+	"word_app/backend/src/interfaces/http/user"
 )
 
-type UserHandler struct {
-	userClient   interfaces.UserClient
+type Handler struct {
+	userClient   user.Client
 	jwtGenerator auth.JWTGenerator
 }
 
-func NewUserHandler(client interfaces.UserClient, jwtGen auth.JWTGenerator) *UserHandler {
-	return &UserHandler{
+func NewHandler(client user.Client, jwtGen auth.JWTGenerator) *Handler {
+	return &Handler{
 		userClient:   client,
 		jwtGenerator: jwtGen,
 	}

@@ -71,7 +71,7 @@ bash docker.sh exec backend
 ルートで
 mockery
 
-# interfacesがあるディレクトリで（v2） 
+# interfacesがあるディレクトリで（v2）
 mockery --name=UserClient --output=./../mocks
 
 # goimport

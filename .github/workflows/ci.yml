@@ -59,16 +59,16 @@ jobs:
         uses: golangci/golangci-lint-action@v4
         with:
           version: v1.64.2
-          working-directory: ./backend
+          # working-directory: ./backend
           args: -v
 
       # --- Vet & Test ---
       - name: Run go vet
-        working-directory: ./backend
+        # working-directory: ./backend
         run: go vet ./...
 
       - name: Run Backend Tests
-        working-directory: ./backend
+        # working-directory: ./backend
         run: go test ./... -cover
 
 # ---------- Frontend ----------

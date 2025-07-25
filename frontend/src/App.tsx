@@ -1,7 +1,9 @@
-import React from 'react'
 import './App.css'
-import AppRouter from './routes/AppRouter'
 import './styles/global.css'
+
+import React from 'react'
+
+import AppRouter from './routes/AppRouter'
 
 const App: React.FC = () => {
   return (

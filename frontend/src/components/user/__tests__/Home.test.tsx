@@ -1,7 +1,8 @@
 // src/components/user/Home.test.tsx
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
+
 import Home from '../Home'
 
 /* ThemeContext をモック */

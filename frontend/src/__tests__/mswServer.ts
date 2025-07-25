@@ -1,5 +1,5 @@
-import { setupServer } from 'msw/node'
 import { rest } from 'msw'
+import { setupServer } from 'msw/node'
 
 export const server = setupServer(
   // 共通で使う GET /setting/user_config

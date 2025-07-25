@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import axiosInstance from '../../axiosConfig';
-import { QuizQuestion, ChoiceJpm, AnswerRouteRes } from '../../types/quiz';
 import '../../styles/components/quiz/QuizQuestionView.css'
+
+import React, { useEffect,useState } from 'react';
+
+import axiosInstance from '../../axiosConfig';
+import { AnswerRouteRes,ChoiceJpm, QuizQuestion } from '../../types/quiz';
 
 interface Props {
   /** 表示・回答対象の問題 */

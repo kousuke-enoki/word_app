@@ -8,10 +8,10 @@ vi.mock('react-router-dom', async () => {
 });
 
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 /* -------------------- モック -------------------- */
 // axiosInstance.get を好きなレスポンスに差し替えられるようにする
@@ -21,8 +21,9 @@ vi.mock('@/axiosConfig', () => ({
   },
 }))
 
-import MyPage from '../MyPage'
 import axiosInstance from '@/axiosConfig'
+
+import MyPage from '../MyPage'
 
 /* -------------------- 共通セットアップ -------------------- */
 beforeEach(() => {

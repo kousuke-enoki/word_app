@@ -2,10 +2,11 @@
 /* -------------------------------------------------
  * 事前：ルータ／axios／ThemeContext を全部モック
  * ------------------------------------------------- */
-import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
+
 import SignIn from '../SignIn'
 
 /* ---------- react-router の useNavigate をスパイ ---------- */

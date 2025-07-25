@@ -4,10 +4,11 @@
  * - Vitest + @testing-library/react
  * - useAuth をケースごとにモックして挙動を検証する
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { render, screen } from '@testing-library/react'
 import React from 'react'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
+
 import PrivateRoute from '../PrivateRoute'
 
 /* ------------------------------------------------------------------ */

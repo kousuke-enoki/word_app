@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+
 import axiosInstance from '../../axiosConfig'
+import { AnswerRouteRes, ChoiceJpm, QuizQuestion, QuizSettingsType } from '../../types/quiz';
+import QuizQuestionView from './QuizQuestionView'
 import QuizSettings from './QuizSettings'
 import QuizStart from './QuizStart'
-import QuizQuestionView from './QuizQuestionView'
-import { QuizQuestion, ChoiceJpm, AnswerRouteRes, QuizSettingsType } from '../../types/quiz';
 
 type QuizState = 'pause' | 'setting' | 'create' | 'running'
 

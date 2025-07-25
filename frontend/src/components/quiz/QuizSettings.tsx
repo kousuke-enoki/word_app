@@ -1,15 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import '../../styles/ui.css'
+
+import clsx from 'clsx';
 import React, { useState } from 'react';
+
 import { getPartOfSpeech } from '../../service/word/GetPartOfSpeech';
 import { QuizSettingsType } from '../../types/quiz';
-import { MySwitch } from '../myUi/MySwitch';
-import { MyNumberInput } from '../myUi/MyNumberInput';
-import { MySelect } from '../myUi/MySelect';
 import { MyCheckbox } from '../myUi/MyCheckBox';
-import { MySegment } from '../myUi/MySegment';
 import { MyCollapsible } from '../myUi/MyCollapsible';
-import clsx from 'clsx';
-import '../../styles/ui.css'
+import { MyNumberInput } from '../myUi/MyNumberInput';
+import { MySegment } from '../myUi/MySegment';
+import { MySelect } from '../myUi/MySelect';
+import { MySwitch } from '../myUi/MySwitch';
 
 const targetOptions = [
   { value: 0, label: '全単語' },
@@ -28,7 +30,7 @@ const isSpecialCharactersTargetOptions = [
   { value: 2, label: '含まない' },
 ];
 
-const attentionLevels = [1,2,3,4,5]; 
+const attentionLevels = [1,2,3,4,5];
 
 type QuizSettingsProps = {
   settings: QuizSettingsType
@@ -47,6 +49,7 @@ const QuizSettings: React.FC<QuizSettingsProps> = ({
   const isRegisteredMode = localSettings.isRegisteredWords === 1;
 
   const upd = (k: keyof QuizSettingsType, v: any)=> setLocalSettings(p=>({...p,[k]:v}));
+  const removeCollapsedGap = true
 
   return (
     <div className="ui-card max-w-lg mx-auto">
@@ -84,26 +87,45 @@ const QuizSettings: React.FC<QuizSettingsProps> = ({
       <section className={clsx("ui-section", !isRegisteredMode && "ui-disabled")}>
         <span className="ui-heading">登録単語オプション</span>
 
-        {/* 正解率 */}
-          <MyCollapsible title="正解率" disabled={!isRegisteredMode}>
+      {/* 正解率 */}
+        <MyCollapsible
+          title="正解率"
+          disabled={!isRegisteredMode}
+          defaultOpen={isRegisteredMode}      // 有効時は最初から開いておく
+          removeCollapsedGap={removeCollapsedGap}                  // 閉じている時の余白を消す
+        >
           <div className="flex items-center gap-2">
-            <MyNumberInput value={localSettings.correctRate} min={0} max={100}
-                           onChange={v=>upd('correctRate',v)} />
+            <MyNumberInput
+              value={localSettings.correctRate}
+              min={0}
+              max={100}
+              onChange={v => upd('correctRate', v)}
+            />
             <span className="text-sm">% 以下</span>
           </div>
         </MyCollapsible>
 
-        {/* 注意レベル */}
-          <MyCollapsible title="注意レベル" disabled={!isRegisteredMode}>
+      {/* 注意レベル */}
+        <MyCollapsible
+          title="注意レベル"
+          disabled={!isRegisteredMode}
+          removeCollapsedGap={removeCollapsedGap}
+        >
           <div className="grid grid-cols-5 gap-2">
-            {attentionLevels.map(l=>(
-              <MyCheckbox key={l}
-                label={l+''}
+            {attentionLevels.map(l => (
+              <MyCheckbox
+                key={l}
+                label={String(l)}
                 checked={localSettings.attentionLevelList.includes(l)}
-                onChange={()=>upd('attentionLevelList',
-                  localSettings.attentionLevelList.includes(l)
-                    ? localSettings.attentionLevelList.filter(x=>x!==l)
-                    : [...localSettings.attentionLevelList,l])}/>
+                onChange={() =>
+                  upd(
+                    'attentionLevelList',
+                    localSettings.attentionLevelList.includes(l)
+                      ? localSettings.attentionLevelList.filter(x => x !== l)
+                      : [...localSettings.attentionLevelList, l]
+                  )
+                }
+              />
             ))}
           </div>
         </MyCollapsible>
@@ -112,17 +134,23 @@ const QuizSettings: React.FC<QuizSettingsProps> = ({
       <section className="ui-section">
         <span className="ui-heading">その他</span>
 
-        {/* 品詞 */}
-        <MyCollapsible title="出題する品詞" disabled={false}>
+      {/* 品詞 */}
+        <MyCollapsible title="出題する品詞" disabled={false} removeCollapsedGap={removeCollapsedGap}>
           <div className="grid grid-cols-2 gap-2">
-            {getPartOfSpeech.map(p=>(
-              <MyCheckbox key={p.id}
+            {getPartOfSpeech.map(p => (
+              <MyCheckbox
+                key={p.id}
                 label={p.name}
                 checked={localSettings.partsOfSpeeches.includes(p.id)}
-                onChange={()=>upd('partsOfSpeeches',
-                  localSettings.partsOfSpeeches.includes(p.id)
-                    ? localSettings.partsOfSpeeches.filter(x=>x!==p.id)
-                    : [...localSettings.partsOfSpeeches,p.id])}/>
+                onChange={() =>
+                  upd(
+                    'partsOfSpeeches',
+                    localSettings.partsOfSpeeches.includes(p.id)
+                      ? localSettings.partsOfSpeeches.filter(x => x !== p.id)
+                      : [...localSettings.partsOfSpeeches, p.id]
+                  )
+                }
+              />
             ))}
           </div>
         </MyCollapsible>
@@ -141,7 +169,7 @@ const QuizSettings: React.FC<QuizSettingsProps> = ({
       </section>
 
       {/* ── ボタン ───────────────────────────── */}
-      <button 
+      <button
         onClick={handleSave}
               className="mt-6 w-full rounded-md bg-primary py-2 text-white font-semibold
                          hover:bg-primary/90 transition">

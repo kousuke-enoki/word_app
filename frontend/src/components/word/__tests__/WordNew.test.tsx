@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter, Route,Routes } from 'react-router-dom'
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { queryClient,renderWithClient } from '@/__tests__/testUtils'
+
 import WordNew from '../WordNew'
-import { renderWithClient, queryClient } from '@/__tests__/testUtils'
 
 /* axios モック */
 vi.mock('@/axiosConfig', () => ({

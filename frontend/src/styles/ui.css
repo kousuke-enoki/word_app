@@ -1,148 +1,524 @@
-.ui-card     { @apply bg-surface border border-gray-300 rounded-card shadow-sm p-5; }
-.ui-heading  { @apply font-semibold text-gray-700 text-sm uppercase tracking-wider}
-.ui-section  { @apply mt-4 space-y-2; }
-.ui-label    { @apply text-gray-700 text-sm font-medium; }
-.ui-disabled { @apply opacity-40 pointer-events-none select-none; }
-/* ---------- 基本カード ---------- */
-/* ---------- 基本カード ---------- */
-.ui-card{
+/* --------------------------------------------
+   ui.css
+   共通UIコンポーネント / フォーム / ユーティリティ
+   -------------------------------------------- */
+
+/* ========== 1. Utilities (Tailwind代替の最低限) ========== */
+.flex { display: flex; }
+.grid { display: grid; }
+.inline-flex { display: inline-flex; }
+
+.items-center { align-items: center; }
+.items-start  { align-items: flex-start; }
+.items-end    { align-items: flex-end; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+
+.gap-1 { gap: 0.25rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+
+.mx-auto { margin-left: auto; margin-right: auto; }
+.w-full { width: 100%; }
+.max-w-lg { max-width: 32rem; }
+
+.text-center { text-align: center; }
+.text-sm { font-size: 0.875rem; }
+.text-lg { font-size: 1.125rem; }
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+
+.rounded-md { border-radius: 0.375rem; }
+.rounded-lg { border-radius: 0.5rem; }
+.rounded-full { border-radius: 9999px; }
+
+.bg-primary { background: var(--primary); }
+.text-white { color: #fff; }
+
+.transition { transition: all .15s ease; }
+
+/* ========== 2. Card / Section / Heading ========== */
+
+.ui-card {
   background: var(--container_bg);
-  color:      var(--container_c);
-  border: 1px solid var(--container_bd);
-  border-radius: .75rem;
-  padding: 1.75rem 1.5rem;
-  box-shadow: 0 4px 10px var(--shadow);
-  transition: background .3s,color .3s;
+  color: var(--container_c);
+  border: var(--bd-container);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px var(--shadow);
+  padding: 24px;
 }
 
-/* ---------- 見出し ---------- */
-.ui-card h2{
-  font-size: 1.125rem;        /* ≒ text-lg */
-  font-weight: 700;           /* ≒ font-bold */
-  margin-bottom: 1rem;
-  color: var(--h1_fg);        /* ダークでも読める */
+.ui-section + .ui-section { margin-top: 32px; }
+
+.ui-heading {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--h1_fg);
+  text-align: center;
+  font-size: 0.95rem;
 }
 
-/* ---------- セクション使い回し ---------- */
-.ui-section{ 
-  margin-top: 1.75rem;
-  padding-top: 1.25rem;
-  border-top: 1px dashed var(--border);
-}
-.ui-heading{
+.ui-label {
   font-weight: 600;
-  color: var(--primary);
-  font-size: .95rem;
-}
-.dark .ui-heading{
-  color:#60a5fa;
-  font-weight:700;
+  color: var(--container_c);
 }
 
-/* ---------- ラベル & フォーム ---------- */
-.ui-label{ 
-  font-weight: 500;
-  color: var(--fg);
+/* セクション無効時 */
+.ui-disabled {
+  opacity: .45;
+  pointer-events: none;
+  filter: grayscale(0.2);
 }
-input[type="number"],
-select{
+
+/* ========== 3. Form base (.ui-form 内でだけ反映) ========== */
+.ui-form input,
+.ui-form select,
+.ui-form textarea {
+  font: inherit;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.375rem;
+  outline: none;
+  transition: background .15s, color .15s, border-color .15s;
+}
+
+/* input */
+.ui-form input {
+  background-color: var(--input);
+  color: var(--input_c);
+  border: var(--bd-input);
+}
+
+/* select (ネイティブ) */
+.ui-form select {
+  background-color: var(--select);
+  color: var(--select_c);
+  border: var(--bd-select);
+}
+
+/* textarea */
+.ui-form textarea {
+  background-color: var(--textarea_bg);
+  color: var(--textarea_c);
+  border: var(--bd-textarea);
+}
+
+/* focus-visible */
+.ui-form input:focus-visible,
+.ui-form select:focus-visible,
+.ui-form textarea:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ========== 4. Buttons ========== */
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .25rem;
+  padding: .5rem .75rem;
+  border-radius: 0.375rem;
+  border: var(--bd-button);
+  background-color: var(--button_bg);
+  color: var(--button);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s, opacity .15s;
+}
+
+.ui-btn:hover:not(:disabled) {
+  opacity: .9;
+}
+
+.ui-btn:disabled {
+  background-color: var(--button_bg_disabled);
+  color: var(--button_disabled);
+  border: var(--bd-button-disabled);
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+/* ========== 5. MySelect ========== */
+/* 想定DOM:
+  <div class="my-select">
+    <select class="my-select__control">...</select>
+  </div>
+*/
+.my-select {
+  position: relative;
+  display: inline-block;
+  width: 12rem;
+}
+.my-select__control {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  padding-right: 2.2rem;               /* 矢印分 */
+  background-color: var(--select);
+  color: var(--select_c);
+  border: var(--bd-select);
+  border-radius: 0.375rem;
+  line-height: 1.4;
+}
+.my-select__control:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.my-select::after {
+  content: "";
+  position: absolute;
+  right: .65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.6rem;
+  height: 0.35rem;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ffffff' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: .8;
+}
+.dark .my-select::after {
+  /* 明るい矢印が見づらければ色変える */
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23000' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+/* ========== 6. MyNumberInput ========== */
+/* 想定DOM:
+  <input type="number" class="my-number" />
+*/
+.my-number {
+  width: 5rem;
+  text-align: right;
   background: var(--input);
   color: var(--input_c);
-  border: 1px solid var(--input_bd);
-  border-radius: .375rem;
-  padding: .25rem .5rem;
+  border: var(--bd-input);
+  border-radius: 0.375rem;
 }
-.dark input[type="number"],
-.dark select{
-  background: var(--select);      /* ダーク時は var(--select) の暗色 */
-  color: var(--select_c);
+.my-number::-webkit-outer-spin-button,
+.my-number::-webkit-inner-spin-button {
+  margin: 0;
 }
-
-/* ---------- Segment / Switch を並べる用 ---------- */
-.my-segment-item{             /* MySegment 側で付与している想定 */
-  padding:.25rem .75rem;
-  border-radius:.375rem;
-  border:1px solid var(--border);
-  background:var(--input);
-  color:var(--fg);
-  cursor:pointer;
-  transition:all .15s;
-}
-.my-segment-item.active{
-  background:var(--primary);
-  color:#fff;
-  border-color:var(--primary);
+.my-number[type=number] {
+  -moz-appearance: textfield; /* Firefox */
 }
 
-/* ---------- Collapsible ---------- */
-.my-collapsible-trigger{
-  display:flex;align-items:center;
-  width:100%;
-  justify-content:space-between;
-  font-weight:500;
-  padding:.5rem .25rem;
-  cursor:pointer;
-  color:var(--fg);
+/* ========== 7. MyCheckbox ========== */
+/* 想定DOM:
+  <label class=\"my-checkbox\">
+    <input type=\"checkbox\" class=\"my-checkbox__input\" />
+    <span class=\"my-checkbox__box\"></span>
+    <span class=\"my-checkbox__label\">label</span>
+  </label>
+*/
+.my-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  cursor: pointer;
+  user-select: none;
+  font-size: .875rem;
 }
-.my-collapsible-content{
-  margin-top:.75rem;
+.my-checkbox__input {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+.my-checkbox__box {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 0.25rem;
+  border: var(--bd-input);
+  background: var(--input);
+  position: relative;
+  transition: background .15s, border-color .15s;
+}
+.my-checkbox__input:checked + .my-checkbox__box {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.my-checkbox__input:checked + .my-checkbox__box::after {
+  content: '';
+  position: absolute;
+  left: 0.3rem;
+  top: 0.05rem;
+  width: 0.35rem;
+  height: 0.7rem;
+  border: 2px solid var(--pagination); /* 白など */
+  border-top: 0;
+  border-left: 0;
+  transform: rotate(45deg);
+}
+.my-checkbox__label {
+  color: var(--fg);
 }
 
-/* ---------- disabled セクション ---------- */
-.ui-disabled{
-  opacity:.55;
-  pointer-events:none;
-  filter:grayscale(.1);
+/* ========== 8. MySwitch ========== */
+/* 想定DOM:
+  <label class=\"my-switch\">
+    <input type=\"checkbox\" class=\"my-switch__input\" />
+    <span class=\"my-switch__track\">
+      <span class=\"my-switch__thumb\"></span>
+    </span>
+  </label>
+*/
+.my-switch {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.my-switch__input {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+.my-switch__track {
+  width: 44px;
+  height: 24px;
+  background: var(--border);
+  border-radius: 12px;
+  position: relative;
+  transition: background .15s;
+}
+.my-switch__thumb {
+  width: 20px;
+  height: 20px;
+  background: var(--button);
+  border-radius: 50%;
+  position: absolute;
+  top: 2px; left: 2px;
+  transition: transform .15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,.25);
+}
+.my-switch__input:checked + .my-switch__track {
+  background: var(--primary);
+}
+.my-switch__input:checked + .my-switch__track .my-switch__thumb {
+  transform: translateX(20px);
 }
 
-/* ---------- Flash message ---------- */
-.rs-flash{
-  position:fixed;
-  bottom:1rem;
-  right:1rem;
-  background:var(--success_pop_bc);
-  color:#fff;
-  padding:.75rem 1.25rem;
-  border-radius:.5rem;
-  box-shadow:0 3px 10px rgba(0,0,0,.25);
+/* ========== 9. MySegment (2択/多択ボタン群) ========== */
+/* 想定DOM:
+  <div class=\"my-segment\">
+    <button class=\"my-segment__btn is-active\">A</button>
+    <button class=\"my-segment__btn\">B</button>
+  </div>
+*/
+.my-segment {
+  display: inline-flex;
+  border: var(--bd-button);
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+.my-segment__btn {
+  flex: 1;
+  padding: 0.4rem 0.75rem;
+  background: var(--button_bg_disabled);
+  color: var(--button_disabled);
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.my-segment__btn + .my-segment__btn {
+  border-left: var(--bd-button);
+}
+.my-segment__btn:hover { opacity: .9; }
+.my-segment__btn.is-active {
+  background: var(--primary);
+  color: var(--pagination);
 }
 
-/* ---------- ページサイズボタン ---------- */
-.rs-page-btn{
-  padding:.25rem .75rem;
-  border:1px solid var(--border);
-  border-radius:.375rem;
-  background:#e5e7eb;       /* gray-200 */
-  color:#1f2937;            /* gray-800 */
-  font-size:.875rem;
-  transition:background .15s;
+/* ========== 10. MyCollapsible ========== */
+/* 想定DOM:
+  <div class=\"my-collapsible\">
+    <button class=\"my-collapsible__trigger\">タイトル</button>
+    <div class=\"my-collapsible__content\">...</div>
+  </div>
+*/
+.my-collapsible {
+  margin-top: .75rem;
+  border: var(--bd-container);
+  border-radius: 0.375rem;
+  background: var(--container_bg);
 }
-.rs-page-btn:hover{ background:#d1d5db; }
-.rs-page-btn.active{
-  background:#2563eb;       /* blue-600 */
-  color:#fff;
+.my-collapsible__trigger {
+  width: 100%;
+  text-align: left;
+  padding: .5rem .75rem;
+  background: transparent;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
 }
-.dark .rs-page-btn{ 
-  background:#374151;       /* neutral-700 */
-  color:#e5e7eb;
-  border-color:#4b5563;
+.my-collapsible__trigger::after {
+  content: '';
+  position: absolute;
+  right: .75rem;
+  top: 50%;
+  width: 0.5rem;
+  height: 0.3rem;
+  transform: translateY(-50%) rotate(0deg);
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23000' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  transition: transform .15s;
 }
-.dark .rs-page-btn:hover{ background:#4b5563; }
-.dark .rs-page-btn.active{ background:#3b82f6; }
+.dark .my-collapsible__trigger::after {
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23fff' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+.my-collapsible[open] .my-collapsible__trigger::after {
+  transform: translateY(-50%) rotate(180deg);
+}
+.my-collapsible__content {
+  padding: .75rem .85rem .9rem;
+  border-top: var(--bd-container);
+}
 
-/* ---------- テーブル縞模様 ---------- */
-.rs-table thead th{
-  background:var(--table_th);
-  color:var(--table_th_c);
-  font-weight:600;
+/* disabled風 */
+.my-collapsible[disabled] {
+  opacity: .4;
+  pointer-events: none;
 }
-.rs-table tbody tr:nth-child(odd){ background:#ffffff; }
-.rs-table tbody tr:nth-child(even){ background:#f3f4f6; }  /* gray-100 */
-.dark .rs-table tbody tr:nth-child(odd){ background:#1f2937; } /* neutral-800 */
-.dark .rs-table tbody tr:nth-child(even){ background:#374151; } /* neutral-700 */
-.rs-table td, .rs-table th{
-  border:1px solid var(--border);
-  padding:.25rem .5rem;
-  text-align:center;
-  transition:background .2s;
+
+/* ========== 11. Question button (再掲/調整) ========== */
+.question-button {
+  width: 100%;
+  height: 5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 1rem;
+  line-height: 1.2;
+  font-weight: 600;
+  border: 2px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--select);
+  color: var(--fg);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease,
+    transform 0.05s ease;
+}
+.question-button:hover:not(:disabled) {
+  background-color: var(--primary);
+  color: var(--pagination);
+  border-color: var(--primary);
+}
+.question-button:active:not(:disabled) { transform: scale(0.97); }
+.question-button.selected {
+  background-color: var(--primary);
+  color: var(--pagination);
+  border-color: var(--primary);
+}
+.question-button:disabled {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+  color: transparent;
+}
+.dark .question-button {
+  background-color: var(--input);
+  border-color: var(--border);
+}
+.dark .question-button:hover:not(:disabled),
+.dark .question-button.selected {
+  background-color: var(--button_bg);
+  border-color: var(--button_bg);
+  color: var(--button);
+}
+
+/* ========== 12. Animations ========== */
+
+@keyframes fadeInOut {
+  0%   { opacity: 0; transform: translateY(-10px); }
+  10%  { opacity: 1; transform: translateY(0); }
+  90%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .transition, .ui-btn, .question-button, .my-switch__thumb, .my-collapsible__trigger::after {
+    transition: none !important;
+  }
+  .success-popup { animation: none !important; }
+}
+
+/* Collapsible base */
+.collapsible {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: .6rem;
+  background: var(--container_bg);
+  color: var(--container_c);
+}
+
+/* header */
+.collapsible__header {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding: .3rem .9rem;
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: color-mix(in srgb, var(--primary) 12%, var(--container_bg));
+  color: var(--fg);
+  transition: background .15s, color .15s;
+}
+.collapsible__header:hover:not([aria-expanded="true"]) {
+  background: color-mix(in srgb, var(--primary) 22%, var(--container_bg));
+}
+
+.collapsible[data-open="true"] .collapsible__header {
+  background: var(--primary);
+  color: var(--pagination);
+}
+
+/* arrow icon */
+.collapsible__icon {
+  width: 1rem; height: 1rem;
+  transition: transform .2s;
+}
+.collapsible[data-open="true"] .collapsible__icon {
+  transform: rotate(180deg);
+}
+
+/* content: grid trick to animate height without max-height magic */
+.collapsible__content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows .25s ease;
+}
+.collapsible[data-open="true"] .collapsible__content {
+  grid-template-rows: 1fr;
+}
+.collapsible__inner {
+  overflow: hidden;
+  padding: 0;              /* closed default */
+  margin: .4rem;
+}
+.collapsible[data-open="true"] .collapsible__inner {
+  padding: .3rem .4rem .4rem;
+}
+
+/* disabled */
+.collapsible[aria-disabled="true"] {
+  opacity: .45;
+  pointer-events: none;
 }

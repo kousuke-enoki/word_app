@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import AppRouter from '../AppRouter';          // ←テスト対象
 import { act } from 'react-dom/test-utils';
+import { beforeEach,describe, expect, it, vi } from 'vitest';
+
+import AppRouter from '../AppRouter';          // ←テスト対象
 
 /* ------------------------------------------------------------------ */
 /* ❶ ルート配下の各ページ/ヘッダーを「プレースホルダ」にモック           */

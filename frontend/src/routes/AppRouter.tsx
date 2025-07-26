@@ -1,28 +1,29 @@
 import React from 'react'
 import {
   BrowserRouter as Router,
+  Navigate,
   Route,
   Routes,
-  Navigate,
 } from 'react-router-dom'
-import PrivateRoute from './PrivateRoute'
-import PublicRoute from './PublicRoute'
-import Home from '../components/user/Home'
-import MyPage from '../components/user/MyPage'
-import UserSetting from '../components/setting/UserSetting'
+
+import Header from '../components/Header'
+import QuizMenu from '../components/quiz/QuizMenu'
+import ResultIndex  from '../components/result/ResultIndex';
+import ResultShow   from '../components/result/ResultShow/ResultShow';
 import RootSetting from '../components/setting/RootSetting'
+import UserSetting from '../components/setting/UserSetting'
+import Home from '../components/user/Home'
+import LineCallback from '../components/user/LineCallback'
+import MyPage from '../components/user/MyPage'
 import SignIn from '../components/user/SignIn'
 import SignUp from '../components/user/SignUp'
-import LineCallback from '../components/user/LineCallback'
-import WordNew from '../components/word/WordNew'
+import WordBulkRegister from '../components/word/WordBulkRegister'
 import WordEdit from '../components/word/WordEdit'
 import WordList from '../components/word/WordList'
+import WordNew from '../components/word/WordNew'
 import WordShow from '../components/word/WordShow'
-import WordBulkRegister from '../components/word/WordBulkRegister'
-import QuizMenu from '../components/quiz/QuizMenu'
-import Header from '../components/Header'
-import ResultShow   from '../components/result/ResultShow/ResultShow';
-import ResultIndex  from '../components/result/ResultIndex';
+import PrivateRoute from './PrivateRoute'
+import PublicRoute from './PublicRoute'
 // import Dashboard from '../components/Dashboard';
 // import Footer from '../components/Footer';
 

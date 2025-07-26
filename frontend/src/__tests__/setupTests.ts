@@ -1,6 +1,8 @@
-import { vi } from 'vitest'
-import { server } from './mswServer'
 import { TextEncoder } from 'node:util'
+
+import { vi } from 'vitest'
+
+import { server } from './mswServer'
 
 globalThis.TextEncoder = TextEncoder as never
 

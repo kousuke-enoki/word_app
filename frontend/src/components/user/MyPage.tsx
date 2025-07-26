@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import axiosInstance from '@/axiosConfig'
 import { Link, useNavigate } from 'react-router-dom'
+
+import axiosInstance from '@/axiosConfig'
+
 import { User } from '../../types/userTypes'
 
 const MyPage: React.FC = () => {

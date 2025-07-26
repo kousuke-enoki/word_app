@@ -1,0 +1,94 @@
+/* src/styles/3_components.css */
+
+/* 旧 App.css より */
+.App {
+  text-align: center;
+}
+
+/* コンテナ */
+div.container {
+  background-color: var(--container_bg);
+  border: var(--bd-container);
+  color: var(--container_c);
+  padding: 16px;
+  border-radius: 4px;
+}
+
+/* ラベル共通 */
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: var(--container_c);
+}
+
+/* ボタン */
+button {
+  color: var(--button);
+  border: var(--bd-button);
+  background-color: var(--button_bg);
+  margin-left: 5px;
+  cursor: pointer;
+}
+button:disabled {
+  color: var(--button_disabled);
+  border: var(--bd-button-disabled);
+  background-color: var(--button_bg_disabled);
+  cursor: not-allowed;
+}
+
+/* 登録ボタン */
+.register-button {
+  background-color: var(--register_button);
+}
+.register-button.registered {
+  background-color: var(--register_button_registered);
+}
+
+/* 成功ポップアップ */
+.success-popup {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: var(--success_pop_bc);
+  color: var(--fg);
+  padding: 10px 20px;
+  border-radius: 5px;
+  box-shadow: 0px 4px 6px var(--shadow);
+  font-size: 16px;
+  z-index: 1000;
+  animation: fadeInOut 3s ease-in-out;
+}
+
+/* ページネーション */
+.pagination-container {
+  margin-top: 20px;
+  margin-right: 30px;
+}
+
+.select-limit { margin-left: 10px; }
+
+/* 入力系 */
+input {
+  background-color: var(--input);
+  color: var(--input_c);
+  border: var(--bd-input);
+}
+
+select {
+  background-color: var(--select);
+  color: var(--select_c);
+  border: var(--bd-select);
+}
+
+textarea {
+  background-color: var(--textarea_bg);
+  color: var(--textarea_c);
+  border: var(--bd-textarea);
+}
+
+/* リンク */
+.App-link { color: var(--link-accent); }
+
+/* テーブル拡張（必要なら） */
+.table-striped tr:nth-child(even) { background: var(--table_tr_e); }

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* ---------------- はじめに：useNavigate を先モック ---------------- */
-import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 const navigateMock = vi.fn()
 vi.mock('react-router-dom', async () => {
@@ -22,8 +22,9 @@ vi.mock('@/contexts/ThemeContext', () => ({
 
 /* ---------------- テストに必要な依存 ---------------- */
 import { render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
+
 import SignUp from '../SignUp'
 
 /* ---------------- 毎回きれいな状態で開始 ---------------- */

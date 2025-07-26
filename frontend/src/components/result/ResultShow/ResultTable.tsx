@@ -1,5 +1,6 @@
-import { ResultQuestion } from '@/types/quiz';
 import clsx from 'clsx';
+
+import { ResultQuestion } from '@/types/quiz';
 
 type Props = {
   rows:            ResultQuestion[];

@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react'
-import axiosInstance from '@/axiosConfig'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { Word, WordInfo, JapaneseMean } from '@/types/wordTypes'
-import { registerWord } from '@/service/word/RegisterWord'
-import { getPartOfSpeech } from '@/service/word/GetPartOfSpeech'
 import '@/styles/components/word/WordList.css'
+
+import React, { useEffect,useState } from 'react'
+import { useLocation,useNavigate } from 'react-router-dom'
+
+import axiosInstance from '@/axiosConfig'
+import { getPartOfSpeech } from '@/service/word/GetPartOfSpeech'
+import { registerWord } from '@/service/word/RegisterWord'
+import { JapaneseMean,Word, WordInfo } from '@/types/wordTypes'
 
 const WordList: React.FC = () => {
   const [words, setWords] = useState<Word[]>([])

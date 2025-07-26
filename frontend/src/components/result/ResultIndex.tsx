@@ -1,9 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axiosInstance           from '@/axiosConfig';
-import { ResultSummary }       from '@/types/result';
 import '@/styles/components/result/_common.css';
 import '@/styles/components/result/ResultIndex.css';
+
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import axiosInstance           from '@/axiosConfig';
+import { ResultSummary }       from '@/types/result';
 
 /* 品詞 ID → 名称の簡易マップ（必要に応じて拡張） */
 const POS_MAP: Record<number, string> = {

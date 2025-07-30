@@ -12,6 +12,9 @@ FROM build-base AS prod-build
 RUN CGO_ENABLED=0 go build -o /out/server      ./cmd/server && \
     CGO_ENABLED=0 go build -o /out/import_dict ./cmd/import_dict
 
+# ---------- linter stage ----------
+FROM golangci/golangci-lint:v2.3.0 AS lint
+
 # ---------- development (hot‑reload) ----------
 FROM golang:1.24.3 AS dev
 WORKDIR /app
@@ -19,7 +22,6 @@ WORKDIR /app
 RUN go install entgo.io/ent/cmd/ent@latest \
  && go install github.com/air-verse/air@latest
 
-RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.2
 
 COPY --from=build-base /src .
 

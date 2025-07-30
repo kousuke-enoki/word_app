@@ -1,38 +1,37 @@
+version: 2
+
 run:
   timeout: 5m
 issues:
   exclude-dirs:
-    - "opt"
-    - "go"
-    - "ent"
-    - "mocks"
+    - opt
+    - go
+    - ent
+    - mocks
   exclude-files:
     - ^src/infrastructure/app_client\.go$
 
 linters-settings:
-  goimports:
-    local-prefixes: "word_app/backend"
-
-  govet:
-    check-shadowing: true
-    enable:          # ← ここで shadow アナライザを有効化
-      - shadow
-
   gocyclo:
     min-complexity: 15
+  # govet の個別設定が不要なら空 or 削除
+  govet: {}
 
 linters:
   enable:
     - errcheck
-    - goimports
-    - gosimple
     - govet
     - ineffassign
     - staticcheck
     - gocyclo
     - revive
 
+formatters:
+  enable:
+    - goimports
+  goimports:
+    local-prefixes: word_app/backend
+
 output:
-  formats:
-    colored-line-number
+  format: colored-line-number
   sort-results: true

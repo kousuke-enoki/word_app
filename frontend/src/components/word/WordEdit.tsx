@@ -1,6 +1,7 @@
+import { useMutation,useQuery } from '@tanstack/react-query'
 import React, { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useNavigate,useParams } from 'react-router-dom'
+
 import axiosInstance from '@/axiosConfig'
 import {
   getPartOfSpeech,

@@ -1,0 +1,150 @@
+/* src/styles/1_tokens.css */
+
+:root {
+  /* Background / Foreground */
+  --bg: #ffffff;
+  --fg: #222222;
+  --h1_fg: #111;
+
+  /* Containers */
+  --container_bg: #eee;
+  --container_bd-color: #ccc;
+  --container_c: #000;
+
+  /* App header */
+  --app_header: #282c34;
+
+  /* Table */
+  --thbc: #f2f2f2;
+  --thbd-color: #ddd;
+  --table_th: #007bff;
+  --table_th_c: #fff;
+  --table_tr_e: #f2f2f2;
+
+  /* Inputs */
+  --input: #eee;
+  --input_bd-color: #666;
+  --input_c: #000;
+
+  /* Textarea */
+  --textarea_bg: #fff;
+  --textarea_bd-color: #555;
+  --textarea_c: #000;
+
+  /* Select */
+  --select: #fff;
+  --select_bd-color: #fff;
+  --select_c: #000;
+
+  /* Buttons */
+  --button: #fff;
+  --button_border-color: #444;
+  --button_bg: #0077ff;
+  --button_disabled: #ffffff;
+  --button_border_disabled-color: #262626;
+  --button_bg_disabled: #7da8d8;
+
+  /* Links */
+  --link-accent: #61dafb; /* 旧 --aplk */
+
+  /* Pagination */
+  --pagination_bg: #007bff;
+  --pagination: #fff;
+  --pagination_bd-color: #ccc;
+  --pagination_bg_disabled: #ccc;
+
+  /* Success popup */
+  --success_pop_bc: #4caf50;
+
+  /* Register buttons */
+  --register_button: #4caf50;
+  --register_button_registered: #f44336;
+
+  /* Delete buttons */
+  --jpm_delete_button: #dc3545;
+  --jpm_delete_button_hover: #b02a37;
+  --pos_delete_button: #dc3572;
+  --pos_delete_button_hover: #b02a4e;
+
+  /* Save buttons */
+  --save_button: #2196f3;
+  --save_button_hover: #1976d2;
+
+  /* Shadows */
+  --shadow: rgba(0, 0, 0, 0.1);
+
+  /* Etc */
+  --word_i_sec: #ddd;
+
+  /* Derived borders (幅+スタイル+色) */
+  --bd: 1px solid var(--border);
+  --border: #ddd;
+  --bd-container: 1px solid var(--container_bd-color);
+  --bd-input: 1px solid var(--input_bd-color);
+  --bd-textarea: 1px solid var(--textarea_bd-color);
+  --bd-select: 1px solid var(--select_bd-color);
+  --bd-button: 1px solid var(--button_border-color);
+  --bd-button-disabled: 1px solid var(--button_border_disabled-color);
+  --bd-pagination: 1px solid var(--pagination_bd-color);
+  --bd-table: 1px solid var(--thbd-color);
+}
+
+.dark {
+  --bg: #1a1a1a;
+  --fg: #fff;
+  --h1_fg: #eee;
+
+  --container_bg: #333;
+  --container_bd-color: #000;
+  --container_c: #fff;
+
+  --app_header: #8aa4d8;
+
+  --input: #000;
+  --input_c: #fff;
+  --input_bd-color: #ccc;
+
+  --textarea_bg: #737373;
+  --textarea_bd-color: #666;
+  --textarea_c: #fff;
+
+  --select: #333;
+  --select_bd-color: #666;
+  --select_c: #fff;
+
+  --button: #000;
+  --button_border-color: #aaa;
+  --button_bg: #248aff;
+  --button_disabled: #888888;
+  --button_border_disabled-color: #262626;
+  --button_bg_disabled: #223852;
+
+  --link-accent: #92e5fc;
+
+  --border: #444;
+
+  --pagination_bg: #2487f1;
+  --pagination: #f0f0f0;
+  --pagination_bd-color: #333;
+  --pagination_bg_disabled: #333;
+
+  --table_th: #2e00ac;
+  --table_th_c: #ccc;
+  --table_tr_e: #2f2f2f;
+
+  --success_pop_bc: #0e7811;
+  --register_button: #00815c;
+  --register_button_registered: #a20023;
+
+  --jpm_delete_button: #b31f2e;
+  --jpm_delete_button_hover: #84131e;
+  --pos_delete_button: #b31f4e;
+  --pos_delete_button_hover: #841337;
+
+  --save_button: #1c75bd;
+  --save_button_hover: #115c9a;
+
+  --shadow: rgba(0, 0, 0, 0.3);
+
+  --word_i_sec: #424242;
+}

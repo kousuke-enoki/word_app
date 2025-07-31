@@ -1,14 +1,16 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import '@/styles/components/result/_common.css';
+import '@/styles/components/result/ResultShow.css';
+
+import React, { useCallback,useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useQuizResult }  from '@/hooks/result/useQuizResult';
+
+import Pagination         from '@/components/common/Pagination';
 import ResultHeader       from '@/components/result/ResultShow/ResultHeader';
 import ResultSettingCard  from '@/components/result/ResultShow/ResultSettingCard';
 import ResultTable        from '@/components/result/ResultShow/ResultTable';
-import Pagination         from '@/components/common/Pagination';
-import { ResultQuestion } from '@/types/quiz';
+import { useQuizResult }  from '@/hooks/result/useQuizResult';
 import { registerWord }   from '@/service/word/RegisterWord';
-import '@/styles/components/result/_common.css';
-import '@/styles/components/result/ResultShow.css';
+import { ResultQuestion } from '@/types/quiz';
 
 
 const pageSizes = [10,30,50,100] as const;

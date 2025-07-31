@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-  afterEach,
-} from 'vitest'
 import { screen, waitFor } from '@testing-library/react'
-import { MemoryRouter, Routes, Route } from 'react-router-dom'
-import { renderWithClient, queryClient } from '@/__tests__/testUtils'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter, Route,Routes } from 'react-router-dom'
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest'
+
+import { queryClient,renderWithClient } from '@/__tests__/testUtils'
 
 vi.mock('@/axiosConfig', () => ({
   default: {

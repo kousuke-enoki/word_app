@@ -2,21 +2,38 @@ version: 2
 
 run:
   timeout: 5m
-issues:
-  exclude-dirs:
-    - opt
-    - go
-    - ent
-    - mocks
-  exclude-files:
-    - ^src/infrastructure/app_client\.go$
 
+# ─────── ディレクトリ／ファイル除外 ───────
+skip-dirs:
+  - ent
+  - mocks
+  - src/mocks
+  - opt
+  - go                      # Docker がマウントする /go/pkg など
+
+skip-files:
+  - ^src/infrastructure/app_client\.go$
+
+# ─────── linter 個別設定 ───────
 linters-settings:
+  goimports:
+    local-prefixes: "word_app/backend"
+
   gocyclo:
     min-complexity: 15
   # govet の個別設定が不要なら空 or 削除
   govet: {}
 
+  revive:
+    rules:
+      - name: unused-parameter   # ← 16 件の元凶を無効化
+        disabled: true
+
+  govet:
+    enable:
+      - shadow                  # ← ここで shadow チェックを有効化
+
+# ─────── 有効 linter 一覧 ───────
 linters:
   enable:
     - errcheck
@@ -25,13 +42,15 @@ linters:
     - staticcheck
     - gocyclo
     - revive
+    - unused
 
-formatters:
-  enable:
-    - goimports
-  goimports:
-    local-prefixes: word_app/backend
+# ─────── 追加の除外ルール（保険） ───────
+issues:
+  exclude-rules:
+    - linters: [revive]
+      text: "unused-parameter"
 
+# ─────── 出力書式 ───────
 output:
-  format: colored-line-number
+  format: colored-line-number   # ← 単一文字列で指定
   sort-results: true

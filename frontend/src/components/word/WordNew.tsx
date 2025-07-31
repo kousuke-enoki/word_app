@@ -1,12 +1,14 @@
+import '@/styles/components/word/WordNew.css'
+
+import { useMutation } from '@tanstack/react-query'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
+
 import axiosInstance from '@/axiosConfig'
 import {
   getPartOfSpeech,
   PartOfSpeechOption,
 } from '@/service/word/GetPartOfSpeech'
-import '@/styles/components/word/WordNew.css'
 
 export type WordForNew = {
   name: string

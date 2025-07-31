@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef,useState } from 'react';
+
 import axiosInstance from '../../axiosConfig';
-import { QuizQuestion, QuizSettingsType, CreateQuizResponse } from '../../types/quiz';
+import { CreateQuizResponse,QuizQuestion, QuizSettingsType } from '../../types/quiz';
 
 interface Props {
   settings: QuizSettingsType;

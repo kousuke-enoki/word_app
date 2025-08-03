@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
 	"word_app/backend/ent/enttest"
@@ -37,7 +38,11 @@ func makeToken(t *testing.T, uid string, exp time.Duration, key []byte) string {
 func TestTokenValidator_Validate(t *testing.T) {
 	// ❶ in-memory SQLite
 	ec := enttest.Open(t, "sqlite3", "file:memdb?mode=memory&cache=shared&_fk=1")
-	defer ec.Close()
+	defer func() {
+		if cerr := ec.Close(); cerr != nil {
+			logrus.Error("close file:", cerr)
+		}
+	}()
 
 	// ❷ テーブルごとにセットアップ
 	mustCreate := func(isAdmin, isRoot bool) {

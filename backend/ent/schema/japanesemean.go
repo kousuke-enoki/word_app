@@ -1,3 +1,5 @@
+// Package schema contains Ent entity definitions used to generate
+// the application's database models.
 package schema
 
 import (

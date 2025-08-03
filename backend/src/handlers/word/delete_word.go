@@ -48,7 +48,7 @@ func (h *Handler) parseDeleteWordRequest(c *gin.Context) (*models.DeleteWordRequ
 	// パラメータの取得と検証
 	wordID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return nil, errors.New("Invalid word ID")
+		return nil, errors.New("invalid word ID")
 	}
 
 	// ユーザーIDをコンテキストから取得

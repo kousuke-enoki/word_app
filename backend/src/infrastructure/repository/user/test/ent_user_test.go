@@ -12,6 +12,7 @@ import (
 	"word_app/backend/src/test"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,7 +40,11 @@ func seedUserWithAuth(t *testing.T, ec *ent.Client, email, provider, sub string)
 
 func TestEntUserRepo_FindByProvider(t *testing.T) {
 	ec := enttest.Open(t, "sqlite3", "file:memdb1?mode=memory&_fk=1")
-	defer ec.Close()
+	defer func() {
+		if cerr := ec.Close(); cerr != nil {
+			logrus.Error("close file:", cerr)
+		}
+	}()
 	repo := repo.NewEntUserRepo(test.RealEntClient{Client: ec})
 	ctx := context.Background()
 
@@ -60,7 +65,11 @@ func TestEntUserRepo_FindByProvider(t *testing.T) {
 
 func TestEntUserRepo_Create(t *testing.T) {
 	ec := enttest.Open(t, "sqlite3", "file:memdb2?mode=memory&_fk=1&_busy_timeout=10000")
-	defer ec.Close()
+	defer func() {
+		if cerr := ec.Close(); cerr != nil {
+			logrus.Error("close file:", cerr)
+		}
+	}()
 	r := repo.NewEntUserRepo(test.RealEntClient{Client: ec})
 	ctx := context.Background()
 
@@ -89,7 +98,11 @@ func TestEntUserRepo_Create(t *testing.T) {
 	})
 
 	t.Run("tx begin failure", func(t *testing.T) {
-		ec.Close() // 強制クローズで Tx() を失敗させる
+		defer func() {
+			if cerr := ec.Close(); cerr != nil {
+				logrus.Error("close file:", cerr)
+			}
+		}()
 		err := r.Create(ctx, u, ext)
 		require.Error(t, err)
 	})

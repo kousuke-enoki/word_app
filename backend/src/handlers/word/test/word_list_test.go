@@ -90,7 +90,7 @@ func TestWordList(_ *testing.T) {
 	// t.Run("error: invalid query parameters", func(t *testing.T) {
 	// 	// モックの戻り値設定
 	// 	mockWordService := new(mocks.WordService)
-	// 	mockWordService.On("GetWords", mock.Anything, mock.Anything).Return(nil, errors.New("Invalid 'page' query parameter: must be a positive integer"))
+	// 	mockWordService.On("GetWords", mock.Anything, mock.Anything).Return(nil, errors.New("invalid 'page' query parameter: must be a positive integer"))
 	// 	wordHandler := word.NewWordHandler(mockWordService)
 
 	// 	// リクエスト準備
@@ -113,7 +113,7 @@ func TestWordList(_ *testing.T) {
 	// 	var resp map[string]string
 	// 	err = json.Unmarshal(w.Body.Bytes(), &resp)
 	// 	assert.NoError(t, err)
-	// 	assert.Equal(t, "Invalid 'page' query parameter: must be a positive integer", resp["error"])
+	// 	assert.Equal(t, "invalid 'page' query parameter: must be a positive integer", resp["error"])
 	// })
 
 	// t.Run("error: userID not found in context", func(t *testing.T) {

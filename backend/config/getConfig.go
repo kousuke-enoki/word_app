@@ -1,3 +1,6 @@
+// Package config centralizes application configuration loaded from
+// environment variables and provides a single struct (Config) that is
+// easy to pass through dependency injection.
 package config
 
 import (
@@ -6,16 +9,18 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// ─── サブ構造体 ──────────────────────────────
+// AppCfg holds runtime application settings.
+// Env is the current environment name (e.g. "development", "production").
+// Port is the TCP port the HTTP server listens on.
 type AppCfg struct {
 	Env  string
 	Port string
 }
 
-// type TempJWT struct {
-// 	secret []byte
-// }
-
+// JWTCfg defines secrets and default expiration for JWTs issued by the app.
+// Secret is the primary signing key.
+// TempSecret is intended for short-lived/temporary flows (e.g. email link).
+// ExpireHour and ExpireMinute together define the default token TTL.
 type JWTCfg struct {
 	Secret       string
 	TempSecret   string
@@ -23,17 +28,23 @@ type JWTCfg struct {
 	ExpireMinute int // 例: 30
 }
 
+// DBCfg contains database connectivity settings.
+// DSN is a full connection string consumable by the Ent client / driver.
 type DBCfg struct {
 	DSN string
 }
 
+// LineOAuthCfg holds LINE Login (OAuth) client configuration.
+// ClientID and ClientSecret are the app credentials issued by LINE.
+// RedirectURI must match the one registered with the provider.
 type LineOAuthCfg struct {
 	ClientID     string
 	ClientSecret string
 	RedirectURI  string
 }
 
-// ─── 集約構造体 ──────────────────────────────
+// Config aggregates all sub-config sections used across the application.
+// It is designed to be constructed once in main and passed into modules.
 type Config struct {
 	App  AppCfg
 	JWT  JWTCfg
@@ -41,7 +52,12 @@ type Config struct {
 	Line LineOAuthCfg
 }
 
-// ─── Public constructor ─────────────────────
+// NewConfig reads environment variables, applies sane defaults, and returns
+// a Config. It terminates the process (logrus.Fatalf) if required variables
+// are missing. If you need testability without process exit, consider a
+// constructor that returns (Config, error) instead.
+// NOTE: TempSecret currently reads JWT_SECRET as well. If you intend a
+// separate key for temporary tokens, change it to read TEMP_JWT_SECRET.
 func NewConfig() *Config {
 	// ♦ 1. 必須値を取得
 	jwtSecret := must("JWT_SECRET")
@@ -80,9 +96,9 @@ func NewConfig() *Config {
 	}
 }
 
-/*──────────────── ヘルパ ────────────────*/
+/*──────────────── helpers ────────────────*/
 
-// 必須変数: 空なら Fatal
+// must fetches an environment variable and fatally exits if it is empty.
 func must(key string) string {
 	val := os.Getenv(key)
 	if val == "" {
@@ -91,7 +107,8 @@ func must(key string) string {
 	return val
 }
 
-// 任意変数: 空なら default
+// getenv returns the value of an environment variable, or the provided
+// default if the variable is unset or empty.
 func getenv(key, def string) string {
 	if v := os.Getenv(key); v != "" {
 		return v

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
 	"word_app/backend/ent/enttest"
@@ -43,7 +44,11 @@ func TestEntTxManager_WithTx(t *testing.T) {
 			name: "fn エラー→Rollback→返却",
 			setupMocks: func(cli *mockCli.MockEntClientInterface) {
 				realCli := enttest.Open(t, "sqlite3", "file:mem?mode=memory&_fk=1")
-				defer realCli.Close()
+				defer func() {
+					if cerr := realCli.Close(); cerr != nil {
+						logrus.Error("close file:", cerr)
+					}
+				}()
 				txObj, _ := realCli.Tx(ctx)
 				cli.On("Tx", ctx).Return(txObj, nil)
 			},
@@ -54,7 +59,11 @@ func TestEntTxManager_WithTx(t *testing.T) {
 			name: "fn panic→Rollback→panic 伝播",
 			setupMocks: func(cli *mockCli.MockEntClientInterface) {
 				realCli := enttest.Open(t, "sqlite3", "file:mem?mode=memory&_fk=1")
-				defer realCli.Close()
+				defer func() {
+					if cerr := realCli.Close(); cerr != nil {
+						logrus.Error("close file:", cerr)
+					}
+				}()
 				txObj, _ := realCli.Tx(ctx)
 				cli.On("Tx", ctx).Return(txObj, nil)
 			},

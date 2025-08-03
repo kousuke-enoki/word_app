@@ -50,13 +50,15 @@ func TestEntUserClient_Create(t *testing.T) {
 	})
 
 	t.Run("DatabaseFailure", func(t *testing.T) {
-		// DBクライアントを強制的に無効化してエラーを発生させる
-		defer func() {
-			if cerr := client.Close(); cerr != nil {
-				logrus.Error("failed to close ent test client:", cerr)
-			}
-		}()
-		_, err := usrClient.Create(ctx, "new@example.com", "New User", "newpassword")
+		badClient := enttest.Open(t, "sqlite3", "file:bad?mode=memory&cache=shared&_fk=1")
+		badWrapper := infrastructure.NewAppClient(badClient)
+		badSvc := user_service.NewEntUserClient(badWrapper)
+
+		// ここで先に閉じる（重要）
+		_ = badClient.Close()
+
+		_, err := badSvc.Create(ctx, "new@example.com", "New User", "newpassword")
+		assert.Error(t, err)
 		assert.ErrorIs(t, err, user_service.ErrDatabaseFailure)
 	})
 

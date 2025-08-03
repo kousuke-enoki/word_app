@@ -8,9 +8,15 @@
   box-shadow: 0 4px 6px var(--shadow);
 }
 
-.word-name {
+.word-name .word-name-link {
+  text-decoration: underline;
+  cursor: pointer;
   text-align: center;
   font-size: 20px;
+}
+.word-name .word-name-link:focus {
+  outline: 2px solid #94c3ff; /* 適宜 */
+  outline-offset: 2px;
 }
 
 h1 {

@@ -54,14 +54,14 @@ func TestEntUserClient_FindByID(t *testing.T) {
 	})
 
 	t.Run("DatabaseFailure", func(t *testing.T) {
-		// 異常系: データベース接続エラー
-		// クライアントを閉じて強制的にエラーを発生させる
-		defer func() {
-			if cerr := client.Close(); cerr != nil {
-				logrus.Error("failed to close ent test client:", cerr)
-			}
-		}()
-		foundUser, err := usrClient.FindByID(ctx, createdUser.ID)
+		badClient := enttest.Open(t, "sqlite3", "file:bad?mode=memory&cache=shared&_fk=1")
+		badWrapper := infrastructure.NewAppClient(badClient)
+		badSvc := user_service.NewEntUserClient(badWrapper)
+
+		// ここで先に閉じる（重要）
+		_ = badClient.Close()
+
+		foundUser, err := badSvc.FindByID(ctx, createdUser.ID)
 		assert.Nil(t, foundUser)
 		assert.Error(t, err)
 	})

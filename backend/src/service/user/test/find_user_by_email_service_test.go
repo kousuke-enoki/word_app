@@ -9,12 +9,17 @@ import (
 	user_service "word_app/backend/src/service/user"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestEntUserClient_FindByEmail(t *testing.T) {
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
-	defer client.Close()
+	defer func() {
+		if cerr := client.Close(); cerr != nil {
+			logrus.Error("failed to close ent test client:", cerr)
+		}
+	}()
 
 	clientWrapper := infrastructure.NewAppClient(client)
 
@@ -49,13 +54,17 @@ func TestEntUserClient_FindByEmail(t *testing.T) {
 	})
 
 	t.Run("DatabaseFailure", func(t *testing.T) {
-		// 異常系: データベースクライアントを強制的に閉じる
-		client.Close()
-		_, err := usrClient.FindByEmail(ctx, email)
+		badClient := enttest.Open(t, "sqlite3", "file:bad?mode=memory&cache=shared&_fk=1")
+		badWrapper := infrastructure.NewAppClient(badClient)
+		badSvc := user_service.NewEntUserClient(badWrapper)
+
+		// ここで先に閉じる（重要）
+		_ = badClient.Close()
+
+		_, err := badSvc.FindByEmail(ctx, email)
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, user_service.ErrUserNotFound)
 	})
-
 	t.Run("InvalidInput", func(t *testing.T) {
 		// 異常系: 空のメールアドレス
 		emptyEmail := ""

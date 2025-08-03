@@ -14,6 +14,7 @@ import (
 	"log"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/sirupsen/logrus"
 )
 
 // ImportJMdict は巨大な JMdictJSON を並列インポートするエントリポイント
@@ -22,7 +23,11 @@ func ImportJMdict(ctx context.Context, path string, cli *ent.Client, opt Options
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			logrus.Fatalf("failed to close ent client: %v", err)
+		}
+	}()
 
 	dec := json.NewDecoder(f)
 	var root JMdictJSON

@@ -41,7 +41,11 @@ func initializeServer() {
 	appEnv, appPort, corsOrigin := config.LoadAppConfig()
 	database.InitEntClient()
 	entClient := database.GetEntClient()
-	defer entClient.Close()
+	defer func() {
+		if err := entClient.Close(); err != nil {
+			logrus.Fatalf("failed to close ent client: %v", err)
+		}
+	}()
 
 	client := infrastructure.NewAppClient(entClient)
 	setupDatabase(client)

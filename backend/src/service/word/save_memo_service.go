@@ -73,7 +73,7 @@ func (s *ServiceImpl) SaveMemo(ctx context.Context, SaveMemoRequest *models.Save
 			SetMemo(Memo).
 			Save(ctx)
 		if err != nil {
-			return nil, errors.New("Failed to create RegisteredWord")
+			return nil, errors.New("failed to create RegisteredWord")
 		}
 
 		response := &models.SaveMemoResponse{
@@ -87,7 +87,7 @@ func (s *ServiceImpl) SaveMemo(ctx context.Context, SaveMemoRequest *models.Save
 
 	if err != nil {
 		// その他のエラー
-		return nil, errors.New("Failed to query RegisteredWord")
+		return nil, errors.New("failed to query RegisteredWord")
 	}
 
 	// 既存の登録がある場合、is_active(登録or解除)は変えず、メモのみ更新
@@ -95,7 +95,7 @@ func (s *ServiceImpl) SaveMemo(ctx context.Context, SaveMemoRequest *models.Save
 		SetMemo(Memo).
 		Save(ctx)
 	if err != nil {
-		return nil, errors.New("Failed to update RegisteredWord")
+		return nil, errors.New("failed to update RegisteredWord")
 	}
 
 	response := &models.SaveMemoResponse{

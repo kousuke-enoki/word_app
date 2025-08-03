@@ -14,13 +14,18 @@ import (
 	repo "word_app/backend/src/infrastructure/repository/auth"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 )
 
 func TestEntExtAuthRepo_Create(t *testing.T) {
 	// ❶ メモリ DB
 	client := enttest.Open(t, "sqlite3", "file:memdb?mode=memory&_fk=1")
-	defer client.Close()
+	defer func() {
+		if cerr := client.Close(); cerr != nil {
+			logrus.Error("failed to close ent test client:", cerr)
+		}
+	}()
 	ctx := context.Background()
 
 	// ❷ ユーザーを 1 行だけ作成
@@ -70,7 +75,11 @@ func TestEntExtAuthRepo_Create(t *testing.T) {
 	})
 
 	t.Run("db failure (client closed)", func(t *testing.T) {
-		client.Close() // 強制クローズ
+		defer func() {
+			if cerr := client.Close(); cerr != nil {
+				logrus.Error("failed to close ent test client:", cerr)
+			}
+		}()
 		err := repo.Create(ctx, valid)
 		require.Error(t, err)
 	})

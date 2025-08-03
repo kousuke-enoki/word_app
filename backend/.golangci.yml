@@ -1,54 +1,47 @@
+version: "2"
+
 run:
   timeout: 5m
 
-# ─────── ディレクトリ／ファイル除外 ───────
-skip-dirs:
-  - ent
-  - mocks
-  - src/mocks
-  - opt
-  - go                      # Docker がマウントする /go/pkg など
-
-skip-files:
-  - ^src/infrastructure/app_client\.go$
-
-# ─────── linter 個別設定 ───────
-linters-settings:
-  goimports:
-    local-prefixes: "word_app/backend"
-
-  gocyclo:
-    min-complexity: 15
-
-  revive:
-    rules:
-      - name: unused-parameter   # ← 16 件の元凶を無効化
-        disabled: true
-
-  govet:
-    enable:
-      - shadow                  # ← ここで shadow チェックを有効化
-
-# ─────── 有効 linter 一覧 ───────
 linters:
   enable:
     - errcheck
-    - goimports
-    - gosimple
     - govet
     - ineffassign
     - staticcheck
     - gocyclo
-    - revive
     - unused
+    # - revive
+  settings:
+    gocyclo:
+      min-complexity: 15
 
-# ─────── 追加の除外ルール（保険） ───────
-issues:
-  exclude-rules:
-    - linters: [revive]
-      text: "unused-parameter"
+  # v2 での除外指定（フォーマッタ以外の全リンターに適用）
+  exclusions:
+    # 生成ファイルの扱い。mockery のヘッダが標準なら strict でも除外されます
+    generated: strict
+    # ディレクトリ/ファイルのパス除外（正規表現）
+    paths:
+      - ^ent($|/)                   # ent 配下は除外
+      - ^src/mocks($|/)             # mockery の自動生成を丸ごと除外
+      - ^src/infrastructure/app_client\.go$  # 当面スキップしたいファイル
 
-# ─────── 出力書式 ───────
+    # さらに特定リンターを特定パスだけ無視したい時は rules を使う
+    # rules:
+    #   - path: ^src/mocks/
+    #     linters: [staticcheck, errcheck]
+
+formatters:
+  enable:
+    - goimports
+  goimports:
+    local-prefixes: word_app/backend
+
+  exclusions:
+    paths:
+      - ^ent($|/)
+      - ^src/mocks($|/)
+
 output:
-  format: colored-line-number   # ← 単一文字列で指定
+  format: colored-line-number
   sort-results: true

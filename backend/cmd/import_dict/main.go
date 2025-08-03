@@ -10,8 +10,10 @@ import (
 
 	"word_app/backend/config"
 	"word_app/backend/database"
-	"word_app/backend/internal/dictimport" // ← 取込ロジック（別途実装）
+	"word_app/backend/internal/dictimport"
 	"word_app/backend/logger"
+
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -32,9 +34,13 @@ func main() {
 	logger.InitLogger() // logrus 設定
 	database.InitEntClient()
 	cli := database.GetEntClient()
-	defer cli.Close()
+	defer func() {
+		if err := cli.Close(); err != nil {
+			logrus.Fatalf("failed to close ent client: %v", err)
+		}
+	}()
 
-	// ★ 追加: スキーマを作成（存在すれば no‑op）
+	// スキーマを作成（存在すれば no‑op）
 	if err := cli.Schema.Create(context.Background()); err != nil {
 		log.Fatalf("schema create failed: %v", err)
 	}

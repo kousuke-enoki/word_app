@@ -67,7 +67,7 @@ func validateUserPassword(password string) []*models.FieldError {
 			hasSpecial = true
 		}
 	}
-	if !(hasUpper && hasLower && hasNumber && hasSpecial) {
+	if !hasUpper || !hasLower || !hasNumber || !hasSpecial {
 		fieldErrors = append(fieldErrors, &models.FieldError{Field: "password", Message: "password must include at least one uppercase letter, one lowercase letter, one number, and one special character"})
 	}
 	return fieldErrors

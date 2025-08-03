@@ -72,7 +72,7 @@ func TestShowHandler(_ *testing.T) {
 
 	// 	// レスポンス検証
 	// 	assert.Equal(t, http.StatusBadRequest, w.Code)
-	// 	assert.Contains(t, w.Body.String(), "Invalid word ID")
+	// 	assert.Contains(t, w.Body.String(), "invalid word ID")
 	// })
 
 	// t.Run("UnauthorizedUser_MissingUserID", func(t *testing.T) {

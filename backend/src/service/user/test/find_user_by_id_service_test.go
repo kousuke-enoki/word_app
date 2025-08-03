@@ -9,12 +9,17 @@ import (
 	user_service "word_app/backend/src/service/user"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestEntUserClient_FindByID(t *testing.T) {
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
-	defer client.Close()
+	defer func() {
+		if cerr := client.Close(); cerr != nil {
+			logrus.Error("failed to close ent test client:", cerr)
+		}
+	}()
 
 	clientWrapper := infrastructure.NewAppClient(client)
 
@@ -50,7 +55,12 @@ func TestEntUserClient_FindByID(t *testing.T) {
 
 	t.Run("DatabaseFailure", func(t *testing.T) {
 		// 異常系: データベース接続エラー
-		client.Close() // クライアントを閉じて強制的にエラーを発生させる
+		// クライアントを閉じて強制的にエラーを発生させる
+		defer func() {
+			if cerr := client.Close(); cerr != nil {
+				logrus.Error("failed to close ent test client:", cerr)
+			}
+		}()
 		foundUser, err := usrClient.FindByID(ctx, createdUser.ID)
 		assert.Nil(t, foundUser)
 		assert.Error(t, err)

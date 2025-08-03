@@ -54,12 +54,12 @@ func (h *Handler) parseWordListRequest(c *gin.Context) (*models.WordListRequest,
 
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil || page <= 0 {
-		return nil, errors.New("Invalid 'page' query parameter: must be a positive integer")
+		return nil, errors.New("invalid 'page' query parameter: must be a positive integer")
 	}
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	if err != nil || limit <= 0 {
-		return nil, errors.New("Invalid 'limit' query parameter: must be a positive integer")
+		return nil, errors.New("invalid 'limit' query parameter: must be a positive integer")
 	}
 
 	// ユーザーIDをコンテキストから取得

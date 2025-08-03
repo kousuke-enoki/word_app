@@ -37,7 +37,7 @@ func (h *Handler) parseWordShowRequest(c *gin.Context) (*models.WordShowRequest,
 	// パラメータの取得と検証
 	wordID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return nil, errors.New("Invalid word ID")
+		return nil, errors.New("invalid word ID")
 	}
 
 	// ユーザーIDをコンテキストから取得

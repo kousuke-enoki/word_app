@@ -9,12 +9,17 @@ import (
 	user_service "word_app/backend/src/service/user"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestEntUserClient_Create(t *testing.T) {
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
-	defer client.Close()
+	defer func() {
+		if cerr := client.Close(); cerr != nil {
+			logrus.Error("failed to close ent test client:", cerr)
+		}
+	}()
 
 	clientWrapper := infrastructure.NewAppClient(client)
 
@@ -46,7 +51,11 @@ func TestEntUserClient_Create(t *testing.T) {
 
 	t.Run("DatabaseFailure", func(t *testing.T) {
 		// DBクライアントを強制的に無効化してエラーを発生させる
-		client.Close()
+		defer func() {
+			if cerr := client.Close(); cerr != nil {
+				logrus.Error("failed to close ent test client:", cerr)
+			}
+		}()
 		_, err := usrClient.Create(ctx, "new@example.com", "New User", "newpassword")
 		assert.ErrorIs(t, err, user_service.ErrDatabaseFailure)
 	})

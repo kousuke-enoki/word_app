@@ -1,7 +1,7 @@
 import '@/styles/components/result/_common.css';
 import '@/styles/components/result/ResultShow.css';
 
-import React, { useCallback,useMemo, useState } from 'react';
+import React, { useCallback,useEffect,useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import Pagination         from '@/components/common/Pagination';
@@ -25,27 +25,51 @@ export default function ResultShow() {
   const [size,setSize] = useState<PageSize>(10);
   const [page,setPage] = useState(0);
 
+  // 表示用のローカル state を持つ
+  const [view, setView] = useState<typeof result | null>(null);
+
+  // 初回取得 or quizNo 変化時に view を同期
+  useEffect(() => {
+    setView(result ?? null);
+  }, [result]);
+
   /** 表示対象行（memo） */
   const rows = useMemo(()=>{
-    if (!result) return [];
+    if (!view) return [];
     const start = page*size;
-    return result.resultQuestions.slice(start,start+size);
-  },[result,page,size]);
+    return view.resultQuestions.slice(start, start+size);
+  },[view, page, size]); // ← result ではなく view を依存に
 
   /* --- 行操作コールバック -------------------------------- */
   const toggleRegister = useCallback( async (row:ResultQuestion)=>{
     try{
       const u = await registerWord(row.wordID,!row.registeredWord.isRegistered);
-      row.registeredWord.isRegistered = u.isRegistered;
-      row.registeredWord.quizCount    = u.quizCount    ?? row.registeredWord.quizCount;
-      row.registeredWord.correctCount = u.correctCount ?? row.registeredWord.correctCount;
-      // → Immer や Redux Toolkit を使う場合はここで dispatch
+      setView(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          resultQuestions: prev.resultQuestions.map(q =>
+            q.wordID === row.wordID
+              ? {
+                  ...q,
+                  registeredWord: {
+                    ...q.registeredWord,
+                    isRegistered: u.isRegistered,
+                    quizCount:    u.quizCount    ?? q.registeredWord.quizCount,
+                    correctCount: u.correctCount ?? q.registeredWord.correctCount,
+                  },
+                }
+              : q
+          ),
+        };
+      });
+      console.log(u)
     }catch(e){ console.error(e); }
   },[]);
 
-  const changeAttention = useCallback( async (row:ResultQuestion)=>{
-    try{ await registerWord(row.wordID,true); }catch(e){ console.error(e); }
-  },[]);
+  // const changeAttention = useCallback( async (row:ResultQuestion)=>{
+  //   try{ await registerWord(row.wordID,true); }catch(e){ console.error(e); }
+  // },[]);
 
   /* --- サイズ候補 (問題数以下のみ) ------------------------ */
   const sizeCandidates: PageSize[] = useMemo(()=>{
@@ -71,7 +95,7 @@ export default function ResultShow() {
       <ResultTable
         rows={rows}
         onToggleRegister={toggleRegister}
-        onChangeAtten={changeAttention}
+        // onChangeAtten={changeAttention}
       />
 
       <Pagination

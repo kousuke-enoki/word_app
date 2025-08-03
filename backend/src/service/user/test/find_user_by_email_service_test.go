@@ -54,17 +54,17 @@ func TestEntUserClient_FindByEmail(t *testing.T) {
 	})
 
 	t.Run("DatabaseFailure", func(t *testing.T) {
-		// 異常系: データベースクライアントを強制的に閉じる
-		defer func() {
-			if cerr := client.Close(); cerr != nil {
-				logrus.Error("failed to close ent test client:", cerr)
-			}
-		}()
-		_, err := usrClient.FindByEmail(ctx, email)
+		badClient := enttest.Open(t, "sqlite3", "file:bad?mode=memory&cache=shared&_fk=1")
+		badWrapper := infrastructure.NewAppClient(badClient)
+		badSvc := user_service.NewEntUserClient(badWrapper)
+
+		// ここで先に閉じる（重要）
+		_ = badClient.Close()
+
+		_, err := badSvc.FindByEmail(ctx, email)
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, user_service.ErrUserNotFound)
 	})
-
 	t.Run("InvalidInput", func(t *testing.T) {
 		// 異常系: 空のメールアドレス
 		emptyEmail := ""

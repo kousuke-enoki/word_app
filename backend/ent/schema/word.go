@@ -1,3 +1,5 @@
+// Package schema contains Ent entity definitions used to generate
+// the application's database models.
 package schema
 
 import (
@@ -25,7 +27,7 @@ func (Word) Fields() []ent.Field {
 				if !valid(name) {
 					return errors.New("invalid word name")
 				}
-				if len(name) < 0 || len(name) > 100 {
+				if len(name) == 0 || len(name) > 100 {
 					return errors.New("name must be between 0 and 100 characters")
 				}
 				return nil

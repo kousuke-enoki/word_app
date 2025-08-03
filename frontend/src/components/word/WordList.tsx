@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react'
-import axiosInstance from '@/axiosConfig'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { Word, WordInfo, JapaneseMean } from '@/types/wordTypes'
-import { registerWord } from '@/service/word/RegisterWord'
-import { getPartOfSpeech } from '@/service/word/GetPartOfSpeech'
 import '@/styles/components/word/WordList.css'
+
+import React, { useEffect,useState } from 'react'
+import { Link,useLocation } from 'react-router-dom'
+
+import axiosInstance from '@/axiosConfig'
+import { getPartOfSpeech } from '@/service/word/GetPartOfSpeech'
+import { registerWord } from '@/service/word/RegisterWord'
+import { JapaneseMean,Word, WordInfo } from '@/types/wordTypes'
 
 const WordList: React.FC = () => {
   const [words, setWords] = useState<Word[]>([])
@@ -15,7 +17,6 @@ const WordList: React.FC = () => {
   const [page, setPage] = useState<number>(location.state?.page || 1)
   const [totalPages, setTotalPages] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
-  const navigate = useNavigate()
   const [isInitialized, setIsInitialized] = useState<boolean>(false)
   const [successMessage, setSuccessMessage] = useState<string>('')
 
@@ -66,11 +67,6 @@ const WordList: React.FC = () => {
   // ページング処理
   const handlePageChange = (newPage: React.SetStateAction<number>) => {
     setPage(newPage)
-  }
-
-  // 詳細ページに遷移する関数
-  const handleDetailClick = (id: number) => {
-    navigate(`/words/${id}`, { state: { search, sortBy, order, page, limit } })
   }
 
   const handleRegister = async (word: Word) => {
@@ -144,13 +140,20 @@ const WordList: React.FC = () => {
             <th>品詞</th>
             <th>登録数</th>
             <th>登録</th>
-            <th>詳細</th>
           </tr>
         </thead>
         <tbody>
           {words.map((word) => (
             <tr key={word.id}>
-              <td className={`word-name`}>{word.name}</td>
+              <td className="word-name">
+                <Link
+                  to={`/words/${word.id}`}
+                  state={{ search, sortBy, order, page, limit }}
+                  className="word-name-link"
+                >
+                  {word.name}
+                </Link>
+              </td>
               <td>
                 {word.wordInfos
                   .map((info: WordInfo) =>
@@ -178,13 +181,6 @@ const WordList: React.FC = () => {
                     onClick={() => handleRegister(word)}
                   >
                     {word.isRegistered ? '解除' : '登録'}
-                  </button>
-                </div>
-              </td>
-              <td>
-                <div>
-                  <button onClick={() => handleDetailClick(word.id)}>
-                    詳細
                   </button>
                 </div>
               </td>

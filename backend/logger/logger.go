@@ -1,3 +1,7 @@
+// Package logger centralizes application-wide logging setup.
+// It configures logrus with a level derived from the LOG_LEVEL environment
+// variable and a rotating file sink powered by lumberjack.
+// Typical usage is to call InitLogger() once during application startup.
 package logger
 
 import (
@@ -10,7 +14,14 @@ import (
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 )
 
-// ロガーを初期化
+// InitLogger initializes logrus for the application.
+// It reads LOG_LEVEL (e.g. "debug", "info", "warn", "error") and falls back
+// to "info" when unset. The function configures a human-readable TextFormatter
+// with full timestamps and routes output to a size-rotated file sink.
+// It terminates the process if LOG_LEVEL is invalid.
+//
+// Note: By default this replaces logrus' output with a file writer.
+// If you want to log to both stdout and a file, consider using io.MultiWriter.
 func InitLogger() {
 	logLevel := os.Getenv("LOG_LEVEL")
 	if logLevel == "" {
@@ -40,11 +51,21 @@ func setupFileLogger() {
 		}
 	}
 
+	// setupFileLogger configures a lumberjack rotating file writer and directs
+	// logrus output to it. Logs are written to "log/app.log". The directory is
+	// created when it does not exist. Rotation rules are:
+	//   - MaxSize:    3 MB per file
+	//   - MaxBackups: keep at most 3 old files
+	//   - MaxAge:     30 days
+	//   - Compress:   gzip-compress old files
+	//
+	// Consider making the path and rotation policy configurable via environment
+	// variables if you need different behavior per environment.
 	logFile := &lumberjack.Logger{
 		Filename:   logPath,
-		MaxSize:    3,
-		MaxBackups: 3,
-		MaxAge:     30,
+		MaxSize:    3,  // megabytes
+		MaxBackups: 3,  // number of files
+		MaxAge:     30, // days
 		Compress:   true,
 	}
 

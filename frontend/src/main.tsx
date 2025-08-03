@@ -1,12 +1,15 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
 // import ReactDOM from 'react-dom/client'
 import './index.css'
-import App from './App'
+
 // import reportWebVitals from './reportWebVitals'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+
 // ダークモード等の切り替え用
 import { ThemeProvider } from '@/contexts/ThemeProvider'
+
+import App from './App'
 
 // const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 const queryClient = new QueryClient()

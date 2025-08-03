@@ -71,7 +71,7 @@ bash docker.sh exec backend
 ルートで
 mockery
 
-# interfacesがあるディレクトリで（v2） 
+# interfacesがあるディレクトリで（v2）
 mockery --name=UserClient --output=./../mocks
 
 # goimport
@@ -97,7 +97,9 @@ go test ./...
 
 #  eslint
 cd frontend
-npm run eslint
+npm run lint
+### 自動修正
+npm run lint:fix 
 
 # フロントエンドライブラリインストール
 cd frontend

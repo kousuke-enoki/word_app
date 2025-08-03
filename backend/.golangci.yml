@@ -1,38 +1,47 @@
+version: "2"
+
 run:
   timeout: 5m
-issues:
-  exclude-dirs:
-    - "opt"
-    - "go"
-    - "ent"
-    - "mocks"
-  exclude-files:
-    - ^src/infrastructure/app_client\.go$
-
-linters-settings:
-  goimports:
-    local-prefixes: "word_app/backend"
-
-  govet:
-    check-shadowing: true
-    enable:          # ← ここで shadow アナライザを有効化
-      - shadow
-
-  gocyclo:
-    min-complexity: 15
 
 linters:
   enable:
     - errcheck
-    - goimports
-    - gosimple
     - govet
     - ineffassign
     - staticcheck
     - gocyclo
-    - revive
+    - unused
+    # - revive
+  settings:
+    gocyclo:
+      min-complexity: 15
+
+  # v2 での除外指定（フォーマッタ以外の全リンターに適用）
+  exclusions:
+    # 生成ファイルの扱い。mockery のヘッダが標準なら strict でも除外されます
+    generated: strict
+    # ディレクトリ/ファイルのパス除外（正規表現）
+    paths:
+      - ^ent($|/)                   # ent 配下は除外
+      - ^src/mocks($|/)             # mockery の自動生成を丸ごと除外
+      - ^src/infrastructure/app_client\.go$  # 当面スキップしたいファイル
+
+    # さらに特定リンターを特定パスだけ無視したい時は rules を使う
+    # rules:
+    #   - path: ^src/mocks/
+    #     linters: [staticcheck, errcheck]
+
+formatters:
+  enable:
+    - goimports
+  goimports:
+    local-prefixes: word_app/backend
+
+  exclusions:
+    paths:
+      - ^ent($|/)
+      - ^src/mocks($|/)
 
 output:
-  formats:
-    colored-line-number
+  format: colored-line-number
   sort-results: true

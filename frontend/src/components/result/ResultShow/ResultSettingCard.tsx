@@ -1,5 +1,5 @@
-import { QuizSettingsType } from '@/types/quiz';
 import { QuizStatus } from '@/lib/QuizStatus';
+import { QuizSettingsType } from '@/types/quiz';
 
 type Props = { setting: QuizSettingsType };
 

@@ -35,7 +35,8 @@ export class DbStack extends Stack {
       }),
       instanceType: ec2.InstanceType.of(
         ec2.InstanceClass.T4G, ec2.InstanceSize.MICRO),
-      credentials: rds.Credentials.fromSecret(this.secret),
+      credentials: rds.Credentials.fromSecret(this.secret, 'postgres'),
+      databaseName: 'postgres',
       allocatedStorage: 20,
       removalPolicy: RemovalPolicy.DESTROY,   // 検証用
       backupRetention: Duration.days(1),

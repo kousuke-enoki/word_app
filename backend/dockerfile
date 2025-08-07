@@ -26,10 +26,8 @@ COPY --from=lint /usr/bin/golangci-lint /usr/local/bin/golangci-lint
 
 COPY --from=build-base /src .
 
-# ★ 生成ステップを追加
+# ent のコード生成
 RUN go generate ./ent
-#   もしくは  ↓
-# RUN ent generate ./ent/schema --feature sql/execquery,sql/upsert
 
 # Air の設定ファイルがあれば一緒にコピー
 COPY .air.toml .

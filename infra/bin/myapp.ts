@@ -9,8 +9,9 @@ import { OpsStack } from '../lib/ops-stack';
 const app  = new App();
 const env  = { account: process.env.CDK_DEFAULT_ACCOUNT,
                region : process.env.CDK_DEFAULT_REGION };
+const natEnabled = app.node.tryGetContext('natEnabled') === 'true';
 
-const net = new NetworkStack(app,'NetStack',{ env });
+const net = new NetworkStack(app,'NetStack',{ natEnabled, env });
 const db  = new DbStack(app,'DbStack',{ env, vpc: net.vpc });
 // AppStack は VPC と DB を参照する
 // そのため、net と db の後に定義する必要がある
@@ -20,6 +21,7 @@ new AppStack(app,'AppStack',{
   secret: db.secret,
   db: db.db,
   lambdaSg: db.lambdaToDbSecurityGroup,
+  natEnabled: natEnabled, // ネットワーク設定を渡す
 });
 
 new OpsStack(app,'OpsStack',{

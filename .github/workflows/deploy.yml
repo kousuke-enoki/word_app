@@ -1,12 +1,13 @@
 name: CDK deploy
 on:
-  workflow_run:                    # ★build 完了後に発火
+  workflow_run:                    # build 完了後に発火
     workflows: ["Build images"]
     types: [completed]             # success / failure の判定用
 env:
   CDK_APP: "npx ts-node infra/bin/myapp.ts"
 jobs:
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions: { contents: read, id-token: write }
     steps:
@@ -17,7 +18,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region:            ap-northeast-1
       - uses: actions/setup-node@v4
-        with: { node-version: 18 }
+        with: { node-version: 22 }
       - run: npm ci --prefix infra
       - name: CDK Deploy
         run: npx cdk deploy --app "$CDK_APP" --all --require-approval never

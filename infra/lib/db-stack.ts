@@ -22,7 +22,7 @@ export class DbStack extends Stack {
     /* ① Secrets */
     this.secret = new rds.DatabaseSecret(this,'Secret',{ username:'postgres' });
     const lambdaToDbSg = new ec2.SecurityGroup(this,'LambdaToDbSG',{
-      vpc, description: 'SG for Lambda -> RDS', allowAllOutbound: true,
+      vpc, description: 'SG for Lambda to RDS', allowAllOutbound: true,
     });
 
     /* ② RDS インスタンス */

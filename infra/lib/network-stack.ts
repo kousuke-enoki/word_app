@@ -10,7 +10,6 @@ export interface NetworkStackProps extends StackProps {
  * VPC を定義し、他のスタックから参照できるようにする
  */
 export class NetworkStack extends Stack {
-  /** 他スタックから参照するため公開 */
   public readonly vpc: ec2.Vpc;
 
   constructor(scope: Construct, id: string, props: NetworkStackProps) {
@@ -19,7 +18,6 @@ export class NetworkStack extends Stack {
     this.vpc = new ec2.Vpc(this, 'Vpc', {
       maxAzs: 2,
       natGateways: props.natEnabled ? 1 : 0, // NAT ゲートウェイを有効にするかどうか
-      // サブネットの設定
       subnetConfiguration: [
         { name: 'Public', subnetType: ec2.SubnetType.PUBLIC, cidrMask: 24 },
         props.natEnabled
@@ -28,5 +26,23 @@ export class NetworkStack extends Stack {
         { name: 'DbIsolated', subnetType: ec2.SubnetType.PRIVATE_ISOLATED, cidrMask: 24 },
       ],
     });
+
+    // NATなしで AWS API(Secrets Manager) を叩くための VPC Endpoint
+    const vpceSg = new ec2.SecurityGroup(this, 'VpceSg', {
+      vpc: this.vpc,
+      description: 'VPC endpoints for private AWS APIs',
+      allowAllOutbound: true,
+    });
+    this.vpc.addInterfaceEndpoint('SecretsManagerEndpoint', {
+      service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
+      subnets: {
+        subnetGroupName: props.natEnabled ? 'AppPrivate' : 'AppIsolated',
+      },
+      securityGroups: [vpceSg],
+    });
+    // ついでに SSM / STS も使うなら追加（任意）
+    // this.vpc.addInterfaceEndpoint('SsmEndpoint', { service: ec2.InterfaceVpcEndpointAwsService.SSM, subnets:{ subnetGroupName: ... }, securityGroups:[vpceSg] });
+    // this.vpc.addInterfaceEndpoint('StsEndpoint', { service: ec2.InterfaceVpcEndpointAwsService.STS, subnets:{ subnetGroupName: ... }, securityGroups:[vpceSg] });
   }
 }
+

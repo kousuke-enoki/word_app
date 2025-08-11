@@ -4,9 +4,11 @@ go 1.24.3
 
 require (
 	entgo.io/ent v0.14.4
+	github.com/aws/aws-lambda-go v1.49.0
 	github.com/aws/aws-sdk-go-v2 v1.37.2
 	github.com/aws/aws-sdk-go-v2/config v1.30.3
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.37.0
+	github.com/awslabs/aws-lambda-go-api-proxy v0.16.2
 	github.com/coreos/go-oidc/v3 v3.14.1
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.10.1

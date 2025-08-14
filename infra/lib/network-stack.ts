@@ -28,17 +28,31 @@ export class NetworkStack extends Stack {
     });
 
     // NATなしで AWS API(Secrets Manager) を叩くための VPC Endpoint
-    const vpceSg = new ec2.SecurityGroup(this, 'VpceSg', {
-      vpc: this.vpc,
-      description: 'VPC endpoints for private AWS APIs',
-      allowAllOutbound: true,
-    });
-    this.vpc.addInterfaceEndpoint('SecretsManagerEndpoint', {
+    // const vpceSg = new ec2.SecurityGroup(this, 'VpceSg', {
+    //   vpc: this.vpc,
+    //   description: 'VPC endpoints for private AWS APIs',
+    //   allowAllOutbound: true,
+    // });
+    const endpointSg = new ec2.SecurityGroup(this,'VpceSg',{ vpc: this.vpc, allowAllOutbound: true });
+
+    // this.vpc.addInterfaceEndpoint('SecretsManagerEndpoint', {
+    //   service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
+    //   subnets: {
+    //     subnetGroupName: props.natEnabled ? 'AppPrivate' : 'AppIsolated',
+    //   },
+    //   securityGroups: [vpceSg],
+    // });
+    this.vpc.addInterfaceEndpoint('SecretsManagerVPCE', {
       service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
-      subnets: {
-        subnetGroupName: props.natEnabled ? 'AppPrivate' : 'AppIsolated',
-      },
-      securityGroups: [vpceSg],
+      securityGroups: [endpointSg],
+      subnets: { subnetType: props.natEnabled ? ec2.SubnetType.PRIVATE_WITH_EGRESS
+                                              : ec2.SubnetType.PRIVATE_ISOLATED },
+    });
+    this.vpc.addInterfaceEndpoint('KmsVPCE', {
+      service: ec2.InterfaceVpcEndpointAwsService.KMS,
+      securityGroups: [endpointSg],
+      subnets: { subnetType: props.natEnabled ? ec2.SubnetType.PRIVATE_WITH_EGRESS
+                                              : ec2.SubnetType.PRIVATE_ISOLATED },
     });
     // ついでに SSM / STS も使うなら追加（任意）
     // this.vpc.addInterfaceEndpoint('SsmEndpoint', { service: ec2.InterfaceVpcEndpointAwsService.SSM, subnets:{ subnetGroupName: ... }, securityGroups:[vpceSg] });

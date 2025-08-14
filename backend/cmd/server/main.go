@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"os"
+	"sync"
 
 	"word_app/backend/config"
 	"word_app/backend/database"
@@ -14,6 +16,10 @@ import (
 	"word_app/backend/src/interfaces"
 	"word_app/backend/src/validators"
 
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
+	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -21,38 +27,65 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var (
+	once      sync.Once
+	ginLambda *ginadapter.GinLambda // Lambda 用
+)
+
 func main() {
-	// サーバーの初期化
-	initializeServer()
+	if isLambda() {
+		// Lambda: コールドスタート時に 1 度だけ初期化
+		once.Do(func() {
+			router, _, _, _ := mustInitServer(false) // cleanupしない
+			ginLambda = ginadapter.New(router)
+		})
+		lambda.Start(func(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+			return ginLambda.ProxyWithContext(ctx, req)
+		})
+		return
+	}
+
+	// Local
+	router, port, env, cleanup := mustInitServer(true)
+	defer cleanup()
+	startServer(router, port, env)
+}
+
+func isLambda() bool {
+	return os.Getenv("AWS_LAMBDA_RUNTIME_API") != ""
 }
 
 // サーバーの初期化関数
-func initializeServer() {
+// func initializeServer() {
+func mustInitServer(needCleanup bool) (*gin.Engine, string, string, func()) {
 	defer func() {
 		if p := recover(); p != nil {
 			logrus.Fatalf("PANIC caught in main: %v\n", p)
 		}
 	}()
 	config.LoadEnv()
-
 	config.ConfigureGinMode()
 	logger.InitLogger()
 
 	appEnv, appPort, corsOrigin := config.LoadAppConfig()
 	database.InitEntClient()
 	entClient := database.GetEntClient()
-	defer func() {
-		if err := entClient.Close(); err != nil {
-			logrus.Fatalf("failed to close ent client: %v", err)
+	// cleanup は呼ぶタイミングを呼び出し側に委譲
+	cleanup := func() {}
+	if needCleanup {
+		cleanup = func() {
+			if err := entClient.Close(); err != nil {
+				logrus.Errorf("failed to close ent client: %v", err)
+			}
 		}
-	}()
+	}
 
 	client := infrastructure.NewAppClient(entClient)
 	setupDatabase(client)
 
 	router := setupRouter(client, corsOrigin)
 
-	startServer(router, appPort, appEnv)
+	return router, appPort, appEnv, cleanup
 }
 
 // データベースのセットアップ
@@ -66,13 +99,11 @@ func setupDatabase(client interfaces.ClientInterface) {
 	if err := entClient.Schema.Create(ctx); err != nil {
 		logrus.Fatalf("Failed to create schema: %v", err)
 	}
-
 	// Admin の存在を確認
 	adminExists, err := entClient.User.Query().Where(user.Email("root@example.com")).Exist(ctx)
 	if err != nil {
 		logrus.Fatalf("Failed to check admin existence: %v", err)
 	}
-
 	// Seeder の実行
 	if !adminExists {
 		logrus.Info("Running initial seeder...")
@@ -85,7 +116,6 @@ func setupDatabase(client interfaces.ClientInterface) {
 
 func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engine {
 	router := gin.New()
-
 	router.Use(gin.Recovery())
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{corsOrigin},
@@ -94,13 +124,6 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
-
-	// // Handler の初期化
-	// jwtSecret := os.Getenv("JWT_SECRET")
-	// if jwtSecret == "" {
-	// 	logrus.Fatal("JWT_SECRET environment variable is required")
-	// }
-	// jwtGen := jwt.NewMyJWTGenerator(jwtSecret)
 
 	// ルータのセットアップ
 	cfg := config.NewConfig() // ← env 読み取りなど 1 箇所に集約
@@ -111,9 +134,6 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 	}
 
 	handlers := di.NewHandlers(cfg, ucs, client)
-	// jwtMw := jwtMwPkg.NewJwtMiddleware(cfg.JWTValidator)
-	// authClient := jwt.NewJWTValidator(jwtSecret, client)
-	// JwtMiddleware := JwtMiddlewarePackage.NewJwtMiddleware(authClient)
 
 	routerImpl := routerConfig.NewRouter(
 		handlers.JWTMiD, handlers.Auth, handlers.User,
@@ -125,7 +145,6 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 
 	validators.Init()
 	binding.Validator = &validators.GinValidator{Validate: validators.V}
-
 	return router
 }
 

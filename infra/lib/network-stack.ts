@@ -3,12 +3,9 @@ import { Construct } from 'constructs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 export interface NetworkStackProps extends StackProps {
-    natEnabled: boolean;
+  natEnabled: boolean;
 }
-/**
- * ネットワークスタック
- * VPC を定義し、他のスタックから参照できるようにする
- */
+
 export class NetworkStack extends Stack {
   public readonly vpc: ec2.Vpc;
 
@@ -17,7 +14,7 @@ export class NetworkStack extends Stack {
 
     this.vpc = new ec2.Vpc(this, 'Vpc', {
       maxAzs: 2,
-      natGateways: props.natEnabled ? 1 : 0, // NAT ゲートウェイを有効にするかどうか
+      natGateways: props.natEnabled ? 1 : 0,
       subnetConfiguration: [
         { name: 'Public', subnetType: ec2.SubnetType.PUBLIC, cidrMask: 24 },
         props.natEnabled
@@ -27,36 +24,32 @@ export class NetworkStack extends Stack {
       ],
     });
 
-    // NATなしで AWS API(Secrets Manager) を叩くための VPC Endpoint
-    // const vpceSg = new ec2.SecurityGroup(this, 'VpceSg', {
-    //   vpc: this.vpc,
-    //   description: 'VPC endpoints for private AWS APIs',
-    //   allowAllOutbound: true,
-    // });
-    const endpointSg = new ec2.SecurityGroup(this,'VpceSg',{ vpc: this.vpc, allowAllOutbound: true });
+    const endpointSg = new ec2.SecurityGroup(this, 'VpceSg', {
+      vpc: this.vpc,
+      allowAllOutbound: true,
+      description: 'VPC endpoints for private AWS APIs',
+    });
 
-    // this.vpc.addInterfaceEndpoint('SecretsManagerEndpoint', {
-    //   service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
-    //   subnets: {
-    //     subnetGroupName: props.natEnabled ? 'AppPrivate' : 'AppIsolated',
-    //   },
-    //   securityGroups: [vpceSg],
-    // });
-    this.vpc.addInterfaceEndpoint('SecretsManagerVPCE', {
-      service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
-      securityGroups: [endpointSg],
-      subnets: { subnetType: props.natEnabled ? ec2.SubnetType.PRIVATE_WITH_EGRESS
-                                              : ec2.SubnetType.PRIVATE_ISOLATED },
-    });
-    this.vpc.addInterfaceEndpoint('KmsVPCE', {
-      service: ec2.InterfaceVpcEndpointAwsService.KMS,
-      securityGroups: [endpointSg],
-      subnets: { subnetType: props.natEnabled ? ec2.SubnetType.PRIVATE_WITH_EGRESS
-                                              : ec2.SubnetType.PRIVATE_ISOLATED },
-    });
-    // ついでに SSM / STS も使うなら追加（任意）
-    // this.vpc.addInterfaceEndpoint('SsmEndpoint', { service: ec2.InterfaceVpcEndpointAwsService.SSM, subnets:{ subnetGroupName: ... }, securityGroups:[vpceSg] });
-    // this.vpc.addInterfaceEndpoint('StsEndpoint', { service: ec2.InterfaceVpcEndpointAwsService.STS, subnets:{ subnetGroupName: ... }, securityGroups:[vpceSg] });
+    // ← ここが重要：NATが無効のときだけ作成、かつコンテキストで切替可能に
+    const createAwsApiEndpoints =
+      (this.node.tryGetContext('createAwsApiEndpoints') ?? !props.natEnabled) as boolean;
+
+    if (createAwsApiEndpoints) {
+      // App側のサブネットみに限定（DbIsolated には作らない）
+      const appSubnetGroup = props.natEnabled ? 'AppPrivate' : 'AppIsolated';
+
+      this.vpc.addInterfaceEndpoint('SecretsManagerVPCE', {
+        service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
+        securityGroups: [endpointSg],
+        subnets: { subnetGroupName: appSubnetGroup },   // ここを subnetType から subnetGroupName に
+        // privateDnsEnabled: true が既定（重複があると今回のエラー）
+      });
+
+      this.vpc.addInterfaceEndpoint('KmsVPCE', {
+        service: ec2.InterfaceVpcEndpointAwsService.KMS,
+        securityGroups: [endpointSg],
+        subnets: { subnetGroupName: appSubnetGroup },
+      });
+    }
   }
 }
-

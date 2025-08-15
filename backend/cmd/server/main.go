@@ -33,10 +33,17 @@ var (
 )
 
 func main() {
+	bootstrapMode := os.Getenv("APP_BOOTSTRAP_MODE") // "HEALTH_ONLY" / "FULL" など
+
 	if isLambda() {
-		// Lambda: コールドスタート時に 1 度だけ初期化
 		once.Do(func() {
-			router, _, _, _ := mustInitServer(false) // cleanupしない
+			if bootstrapMode == "HEALTH_ONLY" {
+				// DB初期化なし・/healthのみ
+				ginLambda = ginadapter.New(healthOnlyRouter())
+				return
+			}
+			// 従来どおりフル起動
+			router, _, _, _ := mustInitServer(false)
 			ginLambda = ginadapter.New(router)
 		})
 		lambda.Start(func(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -49,6 +56,14 @@ func main() {
 	router, port, env, cleanup := mustInitServer(true)
 	defer cleanup()
 	startServer(router, port, env)
+}
+
+// ヘルスだけの薄いルータ（デプロイ確認用）
+func healthOnlyRouter() *gin.Engine {
+	r := gin.New()
+	r.Use(gin.Recovery())
+	r.GET("/health", func(c *gin.Context) { c.JSON(200, gin.H{"ok": true}) })
+	return r
 }
 
 func isLambda() bool {

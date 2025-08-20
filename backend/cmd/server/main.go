@@ -32,23 +32,40 @@ var (
 	ginLambda *ginadapter.GinLambda // Lambda 用
 )
 
+func fastHealthResponse() (events.APIGatewayProxyResponse, error) {
+	return events.APIGatewayProxyResponse{
+		StatusCode: 200,
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		Body:       `{"ok":true,"mode":"health-only","fast":true}`,
+	}, nil
+}
+
 func main() {
-	bootstrapMode := os.Getenv("APP_BOOTSTRAP_MODE") // "HEALTH_ONLY" / "FULL" など
+	// bootstrapMode := os.Getenv("APP_BOOTSTRAP_MODE") // "HEALTH_ONLY" / "FULL" など
 
 	if isLambda() {
-		once.Do(func() {
-			if bootstrapMode == "HEALTH_ONLY" {
-				// DB初期化なし・/healthのみ
-				ginLambda = ginadapter.New(healthOnlyRouter())
-				return
+		// ★ aws-lambda-go の Start に渡す"外側"で、即返すルートを作る
+		handler := func(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+			// ① 非常停止パス：環境変数が HEALTH_ONLY なら /health は即返す
+			if req.Path == "/health" || req.Resource == "/health" {
+				return fastHealthResponse()
 			}
-			// 従来どおりフル起動
-			router, _, _, _ := mustInitServer(false)
-			ginLambda = ginadapter.New(router)
-		})
-		lambda.Start(func(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+
+			// ② （初回だけ）重い初期化（HEALTH_ONLY なら healthOnlyRouter に限定）
+			once.Do(func() {
+				if os.Getenv("APP_BOOTSTRAP_MODE") == "HEALTH_ONLY" {
+					ginLambda = ginadapter.New(healthOnlyRouter())
+				} else {
+					router, _, _, _ := mustInitServer(false) // ← ここが重い
+					ginLambda = ginadapter.New(router)
+				}
+			})
+
+			// ③ 通常処理
 			return ginLambda.ProxyWithContext(ctx, req)
-		})
+		}
+
+		lambda.Start(handler)
 		return
 	}
 

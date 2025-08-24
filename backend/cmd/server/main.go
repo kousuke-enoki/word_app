@@ -44,7 +44,7 @@ func main() {
 	// bootstrapMode := os.Getenv("APP_BOOTSTRAP_MODE") // "HEALTH_ONLY" / "FULL" など
 
 	if isLambda() {
-		// ★ aws-lambda-go の Start に渡す"外側"で、即返すルートを作る
+		// aws-lambda-go の Start に渡す"外側"で、即返すルートを作る
 		handler := func(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 			// ① 非常停止パス：環境変数が HEALTH_ONLY なら /health は即返す
 			if req.Path == "/health" || req.Resource == "/health" {
@@ -95,7 +95,11 @@ func mustInitServer(needCleanup bool) (*gin.Engine, string, string, func()) {
 			logrus.Fatalf("PANIC caught in main: %v\n", p)
 		}
 	}()
-	config.LoadEnv()
+
+	if !isLambda() {
+		config.LoadEnv()
+	}
+
 	config.ConfigureGinMode()
 	logger.InitLogger()
 

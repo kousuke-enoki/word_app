@@ -47,9 +47,18 @@ func initEntClientWithContext(ctx context.Context) error {
 		return err
 	}
 
+	sslMode := getenv("DB_SSLMODE", "")
+	if sslMode == "" {
+		if isLambda() {
+			sslMode = "require" // 本番(Lambda)のデフォルト
+		} else {
+			sslMode = "disable" // ローカルのデフォルト
+		}
+	}
+
 	dsn := fmt.Sprintf(
-		"host=%s port=%d user=%s dbname=%s password=%s sslmode=disable",
-		cfg.Host, cfg.Port, cfg.User, cfg.Name, cfg.Pass,
+		"host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
+		cfg.Host, cfg.Port, cfg.User, cfg.Name, cfg.Pass, sslMode,
 	)
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
@@ -79,6 +88,17 @@ type dbCfg struct {
 	User string
 	Pass string
 	Name string
+}
+
+func isLambda() bool {
+	return os.Getenv("AWS_LAMBDA_RUNTIME_API") != ""
+}
+
+func getenv(k, def string) string {
+	if v := os.Getenv(k); v != "" {
+		return v
+	}
+	return def
 }
 
 func loadDbConfig(ctx context.Context) (*dbCfg, error) {

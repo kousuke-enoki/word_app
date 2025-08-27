@@ -53,9 +53,10 @@ func NewRouter(
 	}
 }
 
-func (r *Implementation) SetupRouter(router *gin.Engine) {
+// ルートを取り付ける関数
+func (r *Implementation) MountRoutes(router *gin.Engine) {
 	router.Use(requestLoggerMiddleware())
-	router.Use(CORSMiddleware())
+
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "healthy"})
 	})
@@ -104,26 +105,27 @@ func (r *Implementation) SetupRouter(router *gin.Engine) {
 	}
 }
 
-func CORSMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+// カスタム用cors
+// func CORSMiddleware() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+// 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+// 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
+// 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 
-		// OPTIONSリクエスト（プリフライトリクエスト）の処理
-		if c.Request.Method == "OPTIONS" {
-			logrus.WithFields(logrus.Fields{
-				"method": c.Request.Method,
-				"path":   c.Request.URL.Path,
-			}).Info("Handling CORS preflight request")
-			c.AbortWithStatus(204)
-			return
-		}
+// 		// OPTIONSリクエスト（プリフライトリクエスト）の処理
+// 		if c.Request.Method == "OPTIONS" {
+// 			logrus.WithFields(logrus.Fields{
+// 				"method": c.Request.Method,
+// 				"path":   c.Request.URL.Path,
+// 			}).Info("Handling CORS preflight request")
+// 			c.AbortWithStatus(204)
+// 			return
+// 		}
 
-		c.Next()
-	}
-}
+// 		c.Next()
+// 	}
+// }
 
 // リクエストの詳細をログに出力するミドルウェア
 func requestLoggerMiddleware() gin.HandlerFunc {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 	"sync"
@@ -119,11 +120,67 @@ func mustInitServer(needCleanup bool) (*gin.Engine, string, string, func()) {
 	}
 
 	client := infrastructure.NewAppClient(entClient)
-	setupDatabase(client)
+	// setupDatabase(client)
+
+	runMig := shouldRun("RUN_MIGRATION")
+	runSeed := shouldRun("RUN_SEEDER")
+	if !isLambda() && os.Getenv("RUN_MIGRATION") == "" {
+		runMig = true
+	}
+
+	if runMig {
+		if err := runMigration(client); err != nil {
+			logrus.Fatalf("migration failed: %v", err)
+		}
+	} else {
+		logrus.Info("Skip migration on boot")
+	}
+
+	if runSeed {
+		if err := runSeederIfNeeded(client); err != nil {
+			logrus.Fatalf("seeder failed: %v", err)
+		}
+	} else {
+		logrus.Info("Skip seeder on boot")
+	}
 
 	router := setupRouter(client, corsOrigin)
 
 	return router, appPort, appEnv, cleanup
+}
+
+func shouldRun(key string) bool {
+	v := strings.ToLower(os.Getenv(key))
+	return v == "1" || v == "true" || v == "yes"
+}
+
+func runMigration(client interfaces.ClientInterface) error {
+	ctx := context.Background()
+	entClient := client.EntClient()
+	if entClient == nil {
+		return fmt.Errorf("ent.Client is nil")
+	}
+	return entClient.Schema.Create(ctx)
+}
+
+func runSeederIfNeeded(client interfaces.ClientInterface) error {
+	ctx := context.Background()
+	entClient := client.EntClient()
+	if entClient == nil {
+		return fmt.Errorf("ent.Client is nil")
+	}
+	adminExists, err := entClient.User.Query().Where(user.Email("root@example.com")).Exist(ctx)
+	if err != nil {
+		return fmt.Errorf("admin check failed: %w", err)
+	}
+	if !adminExists {
+		logrus.Info("Running initial seeder...")
+		seeder.RunSeeder(ctx, client)
+		logrus.Info("Seeder completed.")
+	} else {
+		logrus.Info("Seed data already exists, skipping.")
+	}
+	return nil
 }
 
 // データベースのセットアップ

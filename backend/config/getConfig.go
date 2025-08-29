@@ -92,24 +92,31 @@ func NewConfig() *Config {
 	// dbPort := getenv("DB_PORT", "5432")
 	// dbName := must("DB_NAME")
 	lambdaRuntime := getenv("AWS_LAMBDA_RUNTIME_API", "")
+	jwtSecret := getenv("JWT_SECRET", "")
+	lineID := getenv("LINE_CLIENT_ID", "")
+	lineSec := getenv("LINE_CLIENT_SECRET", "")
+	lineRedirect := getenv("LINE_REDIRECT_URI", "")
 
 	// 3) Secrets Manager から読み出し（存在すれば）
-	var jwtSecret, lineID, lineSec, lineRedirect string
-	if arn := os.Getenv("APP_SECRET_ARN"); arn != "" {
-		if s, err := fetchSecretJSON[appSecret](context.Background(), arn); err != nil {
+	// 未設定の時だけ Secrets Manager を使いたい場合はフォールバック
+	if (jwtSecret == "" || lineID == "" || lineSec == "" || lineRedirect == "") && os.Getenv("APP_SECRET_ARN") != "" {
+		// 必須の一部がない時だけ取りに行く
+		s, err := fetchSecretJSON[appSecret](context.Background(), os.Getenv("APP_SECRET_ARN"))
+		if err != nil {
 			logrus.Fatalf("read APP_SECRET_ARN: %v", err)
-		} else {
+		}
+		if jwtSecret == "" {
 			jwtSecret = s.JWTSecret
+		}
+		if lineID == "" {
 			lineID = s.LineClientID
+		}
+		if lineSec == "" {
 			lineSec = s.LineClientSecret
+		}
+		if lineRedirect == "" {
 			lineRedirect = s.LineRedirectURI
 		}
-	} else {
-		// Secrets を使わない運用なら従来どおり env から
-		jwtSecret = must("JWT_SECRET")
-		lineID = must("LINE_CLIENT_ID")
-		lineSec = must("LINE_CLIENT_SECRET")
-		lineRedirect = must("LINE_REDIRECT_URI")
 	}
 
 	// // 4) DB 認証（ユーザー/パス）は Secrets Manager

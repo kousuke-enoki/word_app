@@ -5,8 +5,6 @@ import (
 
 	"word_app/backend/src/domain"
 	settingRepo "word_app/backend/src/infrastructure/repository/setting"
-
-	"github.com/sirupsen/logrus"
 )
 
 type InputGetUserConfig struct {
@@ -34,6 +32,5 @@ func (uc *GetUserConfigInteractor) Execute(ctx context.Context, in InputGetUserC
 	if err != nil {
 		return nil, ErrUserConfigNotFound
 	}
-	logrus.Info(cfg, " retrieved successfully")
 	return &OutputGetUserConfig{Config: cfg}, nil
 }

@@ -21,15 +21,18 @@ export class DbStack extends Stack {
 
     /* ① Secrets */
     this.secret = new rds.DatabaseSecret(this,'Secret',{ username:'postgres' });
-    const lambdaToDbSg = new ec2.SecurityGroup(this,'LambdaToDbSG',{
-      vpc, description: 'SG for Lambda to RDS', allowAllOutbound: true,
+    // const lambdaToDbSg = new ec2.SecurityGroup(this,'LambdaToDbSG',{
+    //   vpc, description: 'SG for Lambda to RDS', allowAllOutbound: true,
+    // });
+    const dbSg        = new ec2.SecurityGroup(this,'DbSg',{ vpc, allowAllOutbound:true });
+    const lambdaToDbSg= new ec2.SecurityGroup(this,'LambdaToDbSG',{
+      vpc, description:'SG for Lambda to RDS', allowAllOutbound:true,
     });
-
     /* ② RDS インスタンス */
     this.db = new rds.DatabaseInstance(this,'Rds',{
       vpc,
       vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_ISOLATED },
-      securityGroups: [lambdaToDbSg],
+      securityGroups: [dbSg],
       engine: rds.DatabaseInstanceEngine.postgres({
         version: rds.PostgresEngineVersion.VER_15,
       }),
@@ -41,6 +44,7 @@ export class DbStack extends Stack {
       removalPolicy: RemovalPolicy.DESTROY,   // 検証用
       backupRetention: Duration.days(1),
     });
+    // this.db.connections.allowDefaultPortFrom(lambdaToDbSg, 'Lambda access');
     this.db.connections.allowDefaultPortFrom(lambdaToDbSg, 'Lambda access');
 
     this.lambdaToDbSecurityGroup = lambdaToDbSg;   // ← export

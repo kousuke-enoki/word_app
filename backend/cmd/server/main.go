@@ -32,16 +32,40 @@ var (
 	ginLambda *ginadapter.GinLambda // Lambda 用
 )
 
+func fastHealthResponse() (events.APIGatewayProxyResponse, error) {
+	return events.APIGatewayProxyResponse{
+		StatusCode: 200,
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		Body:       `{"ok":true,"mode":"health-only","fast":true}`,
+	}, nil
+}
+
 func main() {
+	// bootstrapMode := os.Getenv("APP_BOOTSTRAP_MODE") // "HEALTH_ONLY" / "FULL" など
+
 	if isLambda() {
-		// Lambda: コールドスタート時に 1 度だけ初期化
-		once.Do(func() {
-			router, _, _, _ := mustInitServer(false) // cleanupしない
-			ginLambda = ginadapter.New(router)
-		})
-		lambda.Start(func(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+		// aws-lambda-go の Start に渡す"外側"で、即返すルートを作る
+		handler := func(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+			// ① 非常停止パス：環境変数が HEALTH_ONLY なら /health は即返す
+			if req.Path == "/health" || req.Resource == "/health" {
+				return fastHealthResponse()
+			}
+
+			// ② （初回だけ）重い初期化（HEALTH_ONLY なら healthOnlyRouter に限定）
+			once.Do(func() {
+				if os.Getenv("APP_BOOTSTRAP_MODE") == "HEALTH_ONLY" {
+					ginLambda = ginadapter.New(healthOnlyRouter())
+				} else {
+					router, _, _, _ := mustInitServer(false) // ← ここが重い
+					ginLambda = ginadapter.New(router)
+				}
+			})
+
+			// ③ 通常処理
 			return ginLambda.ProxyWithContext(ctx, req)
-		})
+		}
+
+		lambda.Start(handler)
 		return
 	}
 
@@ -51,24 +75,38 @@ func main() {
 	startServer(router, port, env)
 }
 
+// ヘルスだけの薄いルータ（デプロイ確認用）
+func healthOnlyRouter() *gin.Engine {
+	r := gin.New()
+	r.Use(gin.Recovery())
+	r.GET("/health", func(c *gin.Context) { c.JSON(200, gin.H{"ok": true}) })
+	return r
+}
+
 func isLambda() bool {
 	return os.Getenv("AWS_LAMBDA_RUNTIME_API") != ""
 }
 
 // サーバーの初期化関数
-// func initializeServer() {
 func mustInitServer(needCleanup bool) (*gin.Engine, string, string, func()) {
 	defer func() {
 		if p := recover(); p != nil {
 			logrus.Fatalf("PANIC caught in main: %v\n", p)
 		}
 	}()
-	config.LoadEnv()
+
+	if !isLambda() {
+		config.LoadEnv()
+	}
+
 	config.ConfigureGinMode()
 	logger.InitLogger()
 
 	appEnv, appPort, corsOrigin := config.LoadAppConfig()
-	database.InitEntClient()
+	err := database.InitEntClient()
+	if err != nil {
+		logrus.Error(err)
+	}
 	entClient := database.GetEntClient()
 	// cleanup は呼ぶタイミングを呼び出し側に委譲
 	cleanup := func() {}

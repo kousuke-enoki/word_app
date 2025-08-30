@@ -19,7 +19,6 @@ func RunSeeder(ctx context.Context, client interfaces.ClientInterface) {
 	SeedAdminUsers(ctx, client)
 	SeedRootConfig(ctx, client)
 	SeedPartOfSpeech(ctx, client)
-	SeedWords(ctx, client)
 }
 
 // SeedAdminUsers シードデータを流す

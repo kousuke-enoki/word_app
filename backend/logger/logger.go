@@ -35,14 +35,32 @@ func InitLogger() {
 	}
 
 	logrus.SetLevel(level)
+
+	if inLambda() {
+		// Lambda は「標準出力」に JSON で出す（/aws/lambda/<fn> に流れる）
+		logrus.SetFormatter(&logrus.JSONFormatter{})
+		logrus.SetOutput(os.Stdout)
+		logrus.WithField("level", level.String()).Info("logger initialized (lambda stdout)")
+		return
+	}
+
 	logrus.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
 	setupFileLogger()
 	logrus.Info("Logger initialized successfully ", logLevel)
 }
 
+// lambdaでの動作かどうか
+func inLambda() bool {
+	return os.Getenv("AWS_LAMBDA_FUNCTION_NAME") != "" || os.Getenv("LAMBDA_TASK_ROOT") != ""
+}
+
 // ログファイルの設定
 func setupFileLogger() {
-	logPath := "log/app.log"
+	// ローカル等のみファイル出力（失敗しても落とさない）
+	logPath := os.Getenv("LOG_FILE")
+	if logPath == "" {
+		logPath = "log/app.log"
+	}
 	logDir := filepath.Dir(logPath)
 
 	if _, err := os.Stat(logDir); os.IsNotExist(err) {

@@ -10,6 +10,11 @@ import (
 )
 
 func LoadEnv() {
+	if inLambda() {
+		// Lambda では .env を読まない（環境変数だけ使う）
+		return
+	}
+
 	env := os.Getenv("APP_ENV")
 	if env == "" {
 		env = "development"
@@ -21,6 +26,8 @@ func LoadEnv() {
 		log.Printf("Loaded environment file: %s", envFile)
 	}
 }
+
+func inLambda() bool { return os.Getenv("AWS_LAMBDA_RUNTIME_API") != "" }
 
 func ConfigureGinMode() {
 	ginMode := os.Getenv("GIN_MODE")

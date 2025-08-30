@@ -24,7 +24,6 @@ type Implementation struct {
 	WordHandler    word.Handler
 	QuizHandler    quiz.Handler
 	ResultHandler  result.Handler
-	// JWTSecret      string
 }
 
 func NewRouter(
@@ -36,10 +35,6 @@ func NewRouter(
 	quizHandler quiz.Handler,
 	resultHandler result.Handler,
 ) *Implementation {
-	// jwtSecret := os.Getenv("JWT_SECRET")
-	// if jwtSecret == "" {
-	// 	logrus.Fatal("JWT_SECRET environment variable is required")
-	// }
 
 	return &Implementation{
 		JwtMiddleware:  jwtMiddleware,
@@ -49,7 +44,6 @@ func NewRouter(
 		WordHandler:    wordHandler,
 		QuizHandler:    quizHandler,
 		ResultHandler:  resultHandler,
-		// JWTSecret:      jwtSecret,
 	}
 }
 

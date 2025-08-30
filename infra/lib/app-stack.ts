@@ -48,19 +48,15 @@ export class AppStack extends Stack {
       vpcSubnets: subnets,
       securityGroups: [lambdaSg],
       memorySize: 256,
-      timeout: Duration.seconds(10),
+      timeout: Duration.seconds(30), // ← 少し余裕を持たせる
       logRetention: logs.RetentionDays.THREE_DAYS,
       environment:{
         APP_ENV: 'production',
-
-        // DB 接続構成（ホスト/ポート/DB名は環境変数で）
         DB_HOST: db.instanceEndpoint.hostname,
         DB_PORT: db.instanceEndpoint.port.toString(),
         DB_NAME: 'postgres',
-
-        // シークレットの ARN（値ではない）
         DB_SECRET_ARN: secret.secretArn,
-        APP_SECRET_ARN: appSecret.secretArn,
+        APP_SECRET_ARN: appSecret.secretArn, // ←ここは将来 既存SecretのARNに差し替える
       },
     });
 

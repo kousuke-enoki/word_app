@@ -4,7 +4,15 @@
 package config
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/url"
 	"os"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awscfg "github.com/aws/aws-sdk-go-v2/config"
+	sm "github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 
 	"github.com/sirupsen/logrus"
 )
@@ -46,10 +54,27 @@ type LineOAuthCfg struct {
 // Config aggregates all sub-config sections used across the application.
 // It is designed to be constructed once in main and passed into modules.
 type Config struct {
-	App  AppCfg
-	JWT  JWTCfg
-	DB   DBCfg
-	Line LineOAuthCfg
+	App    AppCfg
+	JWT    JWTCfg
+	DB     DBCfg
+	Line   LineOAuthCfg
+	Lambda LambdaCfg
+}
+
+type dbSecret struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type appSecret struct {
+	JWTSecret        string `json:"JWT_SECRET"`
+	LineClientID     string `json:"LINE_CLIENT_ID"`
+	LineClientSecret string `json:"LINE_CLIENT_SECRET"`
+	LineRedirectURI  string `json:"LINE_REDIRECT_URI"`
+}
+
+type LambdaCfg struct {
+	LambdaRuntime string `json:"LambdaRuntime"`
 }
 
 // NewConfig reads environment variables, applies sane defaults, and returns
@@ -59,40 +84,63 @@ type Config struct {
 // NOTE: TempSecret currently reads JWT_SECRET as well. If you intend a
 // separate key for temporary tokens, change it to read TEMP_JWT_SECRET.
 func NewConfig() *Config {
-	// ♦ 1. 必須値を取得
-	jwtSecret := must("JWT_SECRET")
-	tempSecret := must("JWT_SECRET")
-	// tempJwt := tempjwt.New(os.Getenv("TEMP_JWT_SECRET"))
-	lineClientID := must("LINE_CLIENT_ID")
-	lineClientSec := must("LINE_CLIENT_SECRET")
-	lineRedirect := must("LINE_REDIRECT_URI")
+	// 1) 非秘匿は環境変数
+	appEnv := getenv("APP_ENV", "production")
+	appPort := getenv("APP_PORT", "8080") // Lambda では未使用でもOK
 
-	// ♦ 2. オプション値を取得（デフォルトあり）
-	appEnv := getenv("APP_ENV", "development")
-	appPort := getenv("APP_PORT", "8080")
-	dbDSN := getenv("DB_DSN",
-		"postgres://postgres:password@db:5432/db?sslmode=disable")
+	// 2) DB ホスト/ポート/DB名（必須）
+	dbHost := must("DB_HOST")
+	dbPort := getenv("DB_PORT", "5432")
+	dbName := must("DB_NAME")
+	lambdaRuntime := getenv("AWS_LAMBDA_RUNTIME_API", "")
+
+	// 3) Secrets Manager から読み出し（存在すれば）
+	var jwtSecret, lineID, lineSec, lineRedirect string
+	if arn := os.Getenv("APP_SECRET_ARN"); arn != "" {
+		if s, err := fetchSecretJSON[appSecret](context.Background(), arn); err != nil {
+			logrus.Fatalf("read APP_SECRET_ARN: %v", err)
+		} else {
+			jwtSecret = s.JWTSecret
+			lineID = s.LineClientID
+			lineSec = s.LineClientSecret
+			lineRedirect = s.LineRedirectURI
+		}
+	} else {
+		// Secrets を使わない運用なら従来どおり env から
+		jwtSecret = must("JWT_SECRET")
+		lineID = must("LINE_CLIENT_ID")
+		lineSec = must("LINE_CLIENT_SECRET")
+		lineRedirect = must("LINE_REDIRECT_URI")
+	}
+
+	// 4) DB 認証（ユーザー/パス）は Secrets Manager
+	var dbUser, dbPass string
+	if arn := os.Getenv("DB_SECRET_ARN"); arn != "" {
+		s, err := fetchSecretJSON[dbSecret](context.Background(), arn)
+		if err != nil {
+			logrus.Fatalf("read DB_SECRET_ARN: %v", err)
+		}
+		dbUser, dbPass = s.Username, s.Password
+	} else {
+		// フォールバック（テスト用）
+		dbUser = getenv("DB_USER", "postgres")
+		dbPass = getenv("DB_PASSWORD", "password")
+	}
+
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		url.QueryEscape(dbUser), url.QueryEscape(dbPass),
+		dbHost, dbPort, dbName,
+	)
 
 	// ♦ 3. 構造体に詰めて返す
 	return &Config{
-		App: AppCfg{
-			Env:  appEnv,
-			Port: appPort,
-		},
-		JWT: JWTCfg{
-			Secret:       jwtSecret,
-			TempSecret:   tempSecret,
-			ExpireHour:   1, // 固定値でも OK。env にしても良い
-			ExpireMinute: 30,
-		},
-		DB: DBCfg{
-			DSN: dbDSN,
-		},
+		App: AppCfg{Env: appEnv, Port: appPort},
+		JWT: JWTCfg{Secret: jwtSecret, TempSecret: jwtSecret, ExpireHour: 1, ExpireMinute: 30},
+		DB:  DBCfg{DSN: dsn},
 		Line: LineOAuthCfg{
-			ClientID:     lineClientID,
-			ClientSecret: lineClientSec,
-			RedirectURI:  lineRedirect,
+			ClientID: lineID, ClientSecret: lineSec, RedirectURI: lineRedirect,
 		},
+		Lambda: LambdaCfg{LambdaRuntime: lambdaRuntime},
 	}
 }
 
@@ -114,4 +162,33 @@ func getenv(key, def string) string {
 		return v
 	}
 	return def
+}
+
+func fetchSecretJSON[T any](ctx context.Context, arn string) (T, error) {
+	var zero T
+
+	cfg, err := awscfg.LoadDefaultConfig(ctx)
+	// リージョンを強制したいなら:
+	// cfg, err := awscfg.LoadDefaultConfig(ctx, awscfg.WithRegion("ap-northeast-1"))
+	if err != nil {
+		return zero, fmt.Errorf("load aws config: %w", err)
+	}
+
+	client := sm.NewFromConfig(cfg)
+
+	out, err := client.GetSecretValue(ctx, &sm.GetSecretValueInput{
+		SecretId: aws.String(arn),
+	})
+	if err != nil {
+		return zero, fmt.Errorf("get secret value: %w", err)
+	}
+	if out.SecretString == nil {
+		return zero, fmt.Errorf("secret %s has no SecretString (maybe binary)", arn)
+	}
+
+	var v T
+	if err := json.Unmarshal([]byte(*out.SecretString), &v); err != nil {
+		return zero, fmt.Errorf("unmarshal secret json: %w", err)
+	}
+	return v, nil
 }

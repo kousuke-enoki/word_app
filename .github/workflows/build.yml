@@ -23,8 +23,8 @@ jobs:
 
       - name: Debug paths (optional)
         run: |
-          ls -la backend/dockerfiles
-          test -f backend/dockerfiles/Lambda.Dockerfile || (echo "Lambda.Dockerfile missing" && exit 1)
+          ls -la backend
+          test -f backend/Lambda.Dockerfile || (echo "Lambda.Dockerfile missing" && exit 1)
 
       - uses: docker/setup-buildx-action@v3
       - name: Build & push Lambda image

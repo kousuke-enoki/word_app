@@ -1,24 +1,73 @@
 name: CDK deploy
+
 on:
-  workflow_run:                    # build 完了後に発火
-    workflows: ["Build images"]
-    types: [completed]             # success / failure の判定用
-env:
-  CDK_APP: "npx ts-node infra/bin/myapp.ts"
+  push:
+    branches: [ main ]
+    paths:
+      - "backend/**"
+      - "infra/**"
+      - ".github/workflows/**"
+
+concurrency:
+  group: cdk-deploy-${{ github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
-  deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  build_push:
     runs-on: ubuntu-latest
     permissions: { contents: read, id-token: write }
+    outputs:
+      image_digest: ${{ steps.get_digest.outputs.digest }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: aws-actions/configure-aws-credentials@v4
         with:
+          aws-region: ap-northeast-1
+          # role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/<GITHUB_OIDC_ROLE>
           aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region:            ap-northeast-1
+
+      - uses: aws-actions/amazon-ecr-login@v2
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build & push Lambda image (:lambda)
+        run: |
+          docker build -f backend/Lambda.Dockerfile \
+            -t ${{ secrets.ECR_REPO }}:lambda backend
+          docker push ${{ secrets.ECR_REPO }}:lambda
+
+      - name: Get pushed digest
+        id: get_digest
+        run: |
+          REPO_NAME=$(echo "${{ secrets.ECR_REPO }}" | awk -F'/' '{print $2}')
+          DIGEST=$(aws ecr describe-images \
+            --repository-name "$REPO_NAME" \
+            --image-ids imageTag=lambda \
+            --query 'imageDetails[0].imageDigest' --output text)
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+
+  cdk_deploy:
+    needs: build_push
+    runs-on: ubuntu-latest
+    permissions: { contents: read, id-token: write }
+    env:
+      CDK_APP: "npx ts-node infra/bin/myapp.ts"
+    steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 22 }
+        with: { node-version: 20 }
       - run: npm ci --prefix infra
-      - name: CDK Deploy
-        run: npx cdk deploy --app "$CDK_APP" --all --require-approval never
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ap-northeast-1
+          # role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/<GITHUB_OIDC_ROLE>
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: CDK Deploy (pin digest)
+        run: |
+          npx cdk deploy --app "$CDK_APP" --all \
+            -c imageDigest=${{ needs.build_push.outputs.image_digest }} \
+            --require-approval never

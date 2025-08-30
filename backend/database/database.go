@@ -47,9 +47,18 @@ func initEntClientWithContext(ctx context.Context) error {
 		return err
 	}
 
+	sslMode := getenv("DB_SSLMODE", "")
+	if sslMode == "" {
+		if isLambda() {
+			sslMode = "require" // 本番(Lambda)のデフォルト
+		} else {
+			sslMode = "disable" // ローカルのデフォルト
+		}
+	}
+
 	dsn := fmt.Sprintf(
-		"host=%s port=%d user=%s dbname=%s password=%s sslmode=disable",
-		cfg.Host, cfg.Port, cfg.User, cfg.Name, cfg.Pass,
+		"host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
+		cfg.Host, cfg.Port, cfg.User, cfg.Name, cfg.Pass, sslMode,
 	)
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
@@ -81,8 +90,37 @@ type dbCfg struct {
 	Name string
 }
 
+func isLambda() bool {
+	return os.Getenv("AWS_LAMBDA_RUNTIME_API") != ""
+}
+
+func getenv(k, def string) string {
+	if v := os.Getenv(k); v != "" {
+		return v
+	}
+	return def
+}
+
 func loadDbConfig(ctx context.Context) (*dbCfg, error) {
-	// 1) RDS のシークレット優先（CDK で DB_SECRET_ARN を渡している想定）
+	// 0) まず環境変数優先
+	if host := os.Getenv("DB_HOST"); host != "" &&
+		os.Getenv("DB_USER") != "" && os.Getenv("DB_PASSWORD") != "" && os.Getenv("DB_NAME") != "" {
+		port := 5432
+		if v := os.Getenv("DB_PORT"); v != "" {
+			if p, err := strconv.Atoi(v); err == nil {
+				port = p
+			}
+		}
+		return &dbCfg{
+			Host: host,
+			Port: port,
+			User: os.Getenv("DB_USER"),
+			Pass: os.Getenv("DB_PASSWORD"),
+			Name: os.Getenv("DB_NAME"),
+		}, nil
+	}
+
+	// 1) 環境変数が足りなければ Secrets Manager へ
 	if arn := os.Getenv("DB_SECRET_ARN"); arn != "" {
 		awsCfg, err := config.LoadDefaultConfig(ctx)
 		if err != nil {
@@ -120,21 +158,7 @@ func loadDbConfig(ctx context.Context) (*dbCfg, error) {
 		}, nil
 	}
 
-	// 2) フォールバック：環境変数から全部読む
-	host := os.Getenv("DB_HOST")
-	user := os.Getenv("DB_USER")
-	pass := os.Getenv("DB_PASSWORD")
-	name := os.Getenv("DB_NAME")
-	if host == "" || user == "" || pass == "" || name == "" {
-		return nil, fmt.Errorf("DB envs missing (need DB_HOST/DB_USER/DB_PASSWORD/DB_NAME or DB_SECRET_ARN)")
-	}
-	port := 5432
-	if v := os.Getenv("DB_PORT"); v != "" {
-		if p, err := strconv.Atoi(v); err == nil {
-			port = p
-		}
-	}
-	return &dbCfg{Host: host, Port: port, User: user, Pass: pass, Name: name}, nil
+	return nil, fmt.Errorf("DB envs missing (need DB_HOST/DB_USER/DB_PASSWORD/DB_NAME or DB_SECRET_ARN)")
 }
 
 func firstNonEmpty(a, b string) string {

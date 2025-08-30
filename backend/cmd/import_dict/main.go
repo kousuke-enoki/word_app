@@ -32,7 +32,10 @@ func main() {
 	// -------- 共通初期化 --------
 	config.LoadEnv()    // .env 読み込み
 	logger.InitLogger() // logrus 設定
-	database.InitEntClient()
+	err := database.InitEntClient()
+	if err != nil {
+		logrus.Error(err)
+	}
 	cli := database.GetEntClient()
 	defer func() {
 		if err := cli.Close(); err != nil {

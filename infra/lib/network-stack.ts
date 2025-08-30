@@ -3,14 +3,10 @@ import { Construct } from 'constructs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 export interface NetworkStackProps extends StackProps {
-    natEnabled: boolean;
+  natEnabled: boolean;
 }
-/**
- * ネットワークスタック
- * VPC を定義し、他のスタックから参照できるようにする
- */
+
 export class NetworkStack extends Stack {
-  /** 他スタックから参照するため公開 */
   public readonly vpc: ec2.Vpc;
 
   constructor(scope: Construct, id: string, props: NetworkStackProps) {
@@ -18,8 +14,7 @@ export class NetworkStack extends Stack {
 
     this.vpc = new ec2.Vpc(this, 'Vpc', {
       maxAzs: 2,
-      natGateways: props.natEnabled ? 1 : 0, // NAT ゲートウェイを有効にするかどうか
-      // サブネットの設定
+      natGateways: props.natEnabled ? 1 : 0,
       subnetConfiguration: [
         { name: 'Public', subnetType: ec2.SubnetType.PUBLIC, cidrMask: 24 },
         props.natEnabled
@@ -28,5 +23,33 @@ export class NetworkStack extends Stack {
         { name: 'DbIsolated', subnetType: ec2.SubnetType.PRIVATE_ISOLATED, cidrMask: 24 },
       ],
     });
+
+    const endpointSg = new ec2.SecurityGroup(this, 'VpceSg', {
+      vpc: this.vpc,
+      allowAllOutbound: true,
+      description: 'VPC endpoints for private AWS APIs',
+    });
+
+    // ← ここが重要：NATが無効のときだけ作成、かつコンテキストで切替可能に
+    const createAwsApiEndpoints =
+      (this.node.tryGetContext('createAwsApiEndpoints') ?? !props.natEnabled) as boolean;
+
+    if (createAwsApiEndpoints) {
+      // App側のサブネットみに限定（DbIsolated には作らない）
+      const appSubnetGroup = props.natEnabled ? 'AppPrivate' : 'AppIsolated';
+
+      this.vpc.addInterfaceEndpoint('SecretsManagerVPCE', {
+        service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
+        securityGroups: [endpointSg],
+        subnets: { subnetGroupName: appSubnetGroup },   // ここを subnetType から subnetGroupName に
+        // privateDnsEnabled: true が既定（重複があると今回のエラー）
+      });
+
+      this.vpc.addInterfaceEndpoint('KmsVPCE', {
+        service: ec2.InterfaceVpcEndpointAwsService.KMS,
+        securityGroups: [endpointSg],
+        subnets: { subnetGroupName: appSubnetGroup },
+      });
+    }
   }
 }

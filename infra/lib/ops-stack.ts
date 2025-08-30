@@ -75,11 +75,13 @@ export class OpsStack extends Stack {
     const topic = new sns.Topic(this, 'BillingTopic');
     topic.addSubscription(new subs.EmailSubscription('billing@example.com'));
 
+    const currency = this.node.tryGetContext('billingCurrency') ?? 'USD';
+
     new budgets.CfnBudget(this, 'CostBudget', {
       budget: {
         budgetType : 'COST',
         timeUnit   : 'MONTHLY',
-        budgetLimit: { amount: 1000, unit: 'JPY' },
+        budgetLimit: { amount: 10, unit: currency }, // 10 USD など
       },
       notificationsWithSubscribers: [{
         notification: {

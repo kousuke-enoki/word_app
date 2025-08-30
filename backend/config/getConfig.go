@@ -54,10 +54,11 @@ type LineOAuthCfg struct {
 // Config aggregates all sub-config sections used across the application.
 // It is designed to be constructed once in main and passed into modules.
 type Config struct {
-	App  AppCfg
-	JWT  JWTCfg
-	DB   DBCfg
-	Line LineOAuthCfg
+	App    AppCfg
+	JWT    JWTCfg
+	DB     DBCfg
+	Line   LineOAuthCfg
+	Lambda LambdaCfg
 }
 
 type dbSecret struct {
@@ -70,6 +71,10 @@ type appSecret struct {
 	LineClientID     string `json:"LINE_CLIENT_ID"`
 	LineClientSecret string `json:"LINE_CLIENT_SECRET"`
 	LineRedirectURI  string `json:"LINE_REDIRECT_URI"`
+}
+
+type LambdaCfg struct {
+	LambdaRuntime string `json:"LambdaRuntime"`
 }
 
 // NewConfig reads environment variables, applies sane defaults, and returns
@@ -87,6 +92,7 @@ func NewConfig() *Config {
 	dbHost := must("DB_HOST")
 	dbPort := getenv("DB_PORT", "5432")
 	dbName := must("DB_NAME")
+	lambdaRuntime := getenv("AWS_LAMBDA_RUNTIME_API", "")
 
 	// 3) Secrets Manager から読み出し（存在すれば）
 	var jwtSecret, lineID, lineSec, lineRedirect string
@@ -134,6 +140,7 @@ func NewConfig() *Config {
 		Line: LineOAuthCfg{
 			ClientID: lineID, ClientSecret: lineSec, RedirectURI: lineRedirect,
 		},
+		Lambda: LambdaCfg{LambdaRuntime: lambdaRuntime},
 	}
 }
 

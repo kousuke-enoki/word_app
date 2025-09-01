@@ -60,11 +60,6 @@ type Config struct {
 	Lambda LambdaCfg
 }
 
-type dbSecret struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
 type appSecret struct {
 	JWTSecret        string `json:"JWT_SECRET"`
 	LineClientID     string `json:"LINE_CLIENT_ID"`
@@ -151,15 +146,6 @@ func NewConfig() *Config {
 }
 
 /*──────────────── helpers ────────────────*/
-
-// must fetches an environment variable and fatally exits if it is empty.
-func must(key string) string {
-	val := os.Getenv(key)
-	if val == "" {
-		logrus.Fatalf("environment variable %s is required", key)
-	}
-	return val
-}
 
 // getenv returns the value of an environment variable, or the provided
 // default if the variable is unset or empty.

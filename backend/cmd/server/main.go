@@ -192,7 +192,7 @@ func runSeederIfNeeded(client interfaces.ClientInterface) error {
 	} else {
 		logrus.Info("Seed data already exists, skipping.")
 	}
-	if !runSeedForWords && seedWordExists {
+	if runSeedForWords && !seedWordExists {
 		logrus.Info("Running initial seeder for words...")
 		seeder.SeedWords(ctx, client)
 		logrus.Info("Seeder for words completed.")

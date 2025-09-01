@@ -44,8 +44,6 @@ func fastHealthResponse() (events.APIGatewayProxyResponse, error) {
 }
 
 func main() {
-	// bootstrapMode := os.Getenv("APP_BOOTSTRAP_MODE") // "HEALTH_ONLY" / "FULL" など
-
 	if isLambda() {
 		// aws-lambda-go の Start に渡す"外側"で、即返すルートを作る
 		handler := func(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {

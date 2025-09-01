@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -61,11 +60,6 @@ type Config struct {
 	Lambda LambdaCfg
 }
 
-type dbSecret struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
 type appSecret struct {
 	JWTSecret        string `json:"JWT_SECRET"`
 	LineClientID     string `json:"LINE_CLIENT_ID"`
@@ -88,55 +82,62 @@ func NewConfig() *Config {
 	appEnv := getenv("APP_ENV", "production")
 	appPort := getenv("APP_PORT", "8080") // Lambda では未使用でもOK
 
-	// 2) DB ホスト/ポート/DB名（必須）
-	dbHost := must("DB_HOST")
-	dbPort := getenv("DB_PORT", "5432")
-	dbName := must("DB_NAME")
+	// // 2) DB ホスト/ポート/DB名（必須）
+	// dbHost := must("DB_HOST")
+	// dbPort := getenv("DB_PORT", "5432")
+	// dbName := must("DB_NAME")
 	lambdaRuntime := getenv("AWS_LAMBDA_RUNTIME_API", "")
+	jwtSecret := getenv("JWT_SECRET", "")
+	lineID := getenv("LINE_CLIENT_ID", "")
+	lineSec := getenv("LINE_CLIENT_SECRET", "")
+	lineRedirect := getenv("LINE_REDIRECT_URI", "")
 
 	// 3) Secrets Manager から読み出し（存在すれば）
-	var jwtSecret, lineID, lineSec, lineRedirect string
-	if arn := os.Getenv("APP_SECRET_ARN"); arn != "" {
-		if s, err := fetchSecretJSON[appSecret](context.Background(), arn); err != nil {
+	// 未設定の時だけ Secrets Manager を使いたい場合はフォールバック
+	if (jwtSecret == "" || lineID == "" || lineSec == "" || lineRedirect == "") && os.Getenv("APP_SECRET_ARN") != "" {
+		// 必須の一部がない時だけ取りに行く
+		s, err := fetchSecretJSON[appSecret](context.Background(), os.Getenv("APP_SECRET_ARN"))
+		if err != nil {
 			logrus.Fatalf("read APP_SECRET_ARN: %v", err)
-		} else {
+		}
+		if jwtSecret == "" {
 			jwtSecret = s.JWTSecret
+		}
+		if lineID == "" {
 			lineID = s.LineClientID
+		}
+		if lineSec == "" {
 			lineSec = s.LineClientSecret
+		}
+		if lineRedirect == "" {
 			lineRedirect = s.LineRedirectURI
 		}
-	} else {
-		// Secrets を使わない運用なら従来どおり env から
-		jwtSecret = must("JWT_SECRET")
-		lineID = must("LINE_CLIENT_ID")
-		lineSec = must("LINE_CLIENT_SECRET")
-		lineRedirect = must("LINE_REDIRECT_URI")
 	}
 
-	// 4) DB 認証（ユーザー/パス）は Secrets Manager
-	var dbUser, dbPass string
-	if arn := os.Getenv("DB_SECRET_ARN"); arn != "" {
-		s, err := fetchSecretJSON[dbSecret](context.Background(), arn)
-		if err != nil {
-			logrus.Fatalf("read DB_SECRET_ARN: %v", err)
-		}
-		dbUser, dbPass = s.Username, s.Password
-	} else {
-		// フォールバック（テスト用）
-		dbUser = getenv("DB_USER", "postgres")
-		dbPass = getenv("DB_PASSWORD", "password")
-	}
+	// // 4) DB 認証（ユーザー/パス）は Secrets Manager
+	// // var dbUser, dbPass string
+	// if arn := os.Getenv("DB_SECRET_ARN"); arn != "" {
+	// 	s, err := fetchSecretJSON[dbSecret](context.Background(), arn)
+	// 	if err != nil {
+	// 		logrus.Fatalf("read DB_SECRET_ARN: %v", err)
+	// 	}
+	// 	dbUser, dbPass = s.Username, s.Password
+	// } else {
+	// 	// フォールバック（テスト用）
+	// 	dbUser = getenv("DB_USER", "postgres")
+	// 	dbPass = getenv("DB_PASSWORD", "password")
+	// }
 
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		url.QueryEscape(dbUser), url.QueryEscape(dbPass),
-		dbHost, dbPort, dbName,
-	)
+	// dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+	// 	url.QueryEscape(dbUser), url.QueryEscape(dbPass),
+	// 	dbHost, dbPort, dbName,
+	// )
 
 	// ♦ 3. 構造体に詰めて返す
 	return &Config{
 		App: AppCfg{Env: appEnv, Port: appPort},
 		JWT: JWTCfg{Secret: jwtSecret, TempSecret: jwtSecret, ExpireHour: 1, ExpireMinute: 30},
-		DB:  DBCfg{DSN: dsn},
+		// DB:  DBCfg{DSN: dsn},
 		Line: LineOAuthCfg{
 			ClientID: lineID, ClientSecret: lineSec, RedirectURI: lineRedirect,
 		},
@@ -145,15 +146,6 @@ func NewConfig() *Config {
 }
 
 /*──────────────── helpers ────────────────*/
-
-// must fetches an environment variable and fatally exits if it is empty.
-func must(key string) string {
-	val := os.Getenv(key)
-	if val == "" {
-		logrus.Fatalf("environment variable %s is required", key)
-	}
-	return val
-}
 
 // getenv returns the value of an environment variable, or the provided
 // default if the variable is unset or empty.

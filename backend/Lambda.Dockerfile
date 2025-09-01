@@ -5,7 +5,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 
-# ← ここが肝。デフォルト server、必要なら health に切替可
+# デフォルト server、必要なら health に切替可
 ARG TARGET=server
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -trimpath -ldflags="-s -w" -o /main ./cmd/${TARGET}

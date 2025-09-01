@@ -2,12 +2,16 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"strings"
 	"sync"
+	"time"
 
 	"word_app/backend/config"
 	"word_app/backend/database"
 	"word_app/backend/ent/user"
+	"word_app/backend/ent/word"
 	"word_app/backend/internal/di"
 	"word_app/backend/logger"
 	routerConfig "word_app/backend/router"
@@ -41,8 +45,6 @@ func fastHealthResponse() (events.APIGatewayProxyResponse, error) {
 }
 
 func main() {
-	// bootstrapMode := os.Getenv("APP_BOOTSTRAP_MODE") // "HEALTH_ONLY" / "FULL" など
-
 	if isLambda() {
 		// aws-lambda-go の Start に渡す"外側"で、即返すルートを作る
 		handler := func(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -119,30 +121,70 @@ func mustInitServer(needCleanup bool) (*gin.Engine, string, string, func()) {
 	}
 
 	client := infrastructure.NewAppClient(entClient)
-	setupDatabase(client)
+
+	runMig := shouldRun("RUN_MIGRATION")
+	runSeed := shouldRun("RUN_SEEDER")
+
+	if !isLambda() && os.Getenv("RUN_MIGRATION") == "" {
+		// ローカルのデフォルト：Migrationは On、Seeder は Off
+		runMig = true
+	}
+
+	if runMig {
+		if err := runMigration(client); err != nil {
+			logrus.Fatalf("migration failed: %v", err)
+		}
+	} else {
+		logrus.Info("Skip migration on boot")
+	}
+
+	if runSeed {
+		if err := runSeederIfNeeded(client); err != nil {
+			logrus.Fatalf("seeder failed: %v", err)
+		}
+	} else {
+		logrus.Info("Skip seeder on boot")
+	}
 
 	router := setupRouter(client, corsOrigin)
-
 	return router, appPort, appEnv, cleanup
 }
 
-// データベースのセットアップ
-func setupDatabase(client interfaces.ClientInterface) {
+func shouldRun(key string) bool {
+	v := strings.ToLower(os.Getenv(key))
+	return v == "1" || v == "true" || v == "yes"
+}
+
+func runMigration(client interfaces.ClientInterface) error {
 	ctx := context.Background()
 	entClient := client.EntClient()
 	if entClient == nil {
-		logrus.Fatalf("ent.Client is nil")
+		return fmt.Errorf("ent.Client is nil")
 	}
-	// Schema を作成
-	if err := entClient.Schema.Create(ctx); err != nil {
-		logrus.Fatalf("Failed to create schema: %v", err)
+	return entClient.Schema.Create(ctx)
+}
+
+func runSeederIfNeeded(client interfaces.ClientInterface) error {
+	ctx := context.Background()
+	entClient := client.EntClient()
+	runSeedForWords := shouldRun("RUN_SEEDER_FOR_WORDS")
+	if entClient == nil {
+		return fmt.Errorf("ent.Client is nil")
 	}
-	// Admin の存在を確認
-	adminExists, err := entClient.User.Query().Where(user.Email("root@example.com")).Exist(ctx)
+	adminExists, err := entClient.User.Query().
+		Where(user.Email("root@example.com")).
+		Exist(ctx)
 	if err != nil {
-		logrus.Fatalf("Failed to check admin existence: %v", err)
+		return fmt.Errorf("admin check failed by user: %w", err)
 	}
-	// Seeder の実行
+
+	seedWordExists, err := entClient.Word.Query().
+		Where(word.ID(1)).
+		Exist(ctx)
+	if err != nil {
+		return fmt.Errorf("admin check failed by words: %w", err)
+	}
+
 	if !adminExists {
 		logrus.Info("Running initial seeder...")
 		seeder.RunSeeder(ctx, client)
@@ -150,33 +192,58 @@ func setupDatabase(client interfaces.ClientInterface) {
 	} else {
 		logrus.Info("Seed data already exists, skipping.")
 	}
+	if runSeedForWords && !seedWordExists {
+		logrus.Info("Running initial seeder for words...")
+		seeder.SeedWords(ctx, client)
+		logrus.Info("Seeder for words completed.")
+	} else {
+		logrus.Info("Seed words data already exists, skipping.")
+	}
+	return nil
 }
 
 func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery())
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{corsOrigin},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+
+	// 1) CORS: 環境変数（カンマ区切り）→ スライス
+	allowed := []string{}
+	for _, o := range strings.Split(corsOrigin, ",") {
+		o = strings.TrimSpace(o)
+		if o != "" {
+			allowed = append(allowed, o)
+		}
+	}
+
+	cfg := cors.Config{
+		AllowOrigins:     allowed,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
-	}))
+		MaxAge:           12 * time.Hour,
+	}
+	// 2) もし *.vercel.app を許可したい場合（合わせ技OK）
+	cfg.AllowOriginFunc = func(origin string) bool {
+		return strings.HasSuffix(origin, ".vercel.app")
+	}
+
+	router.Use(cors.New(cfg))
 
 	// ルータのセットアップ
-	cfg := config.NewConfig() // ← env 読み取りなど 1 箇所に集約
+	cfgObj := config.NewConfig() // ← env 読み取りなど 1 箇所に集約
 	repos := di.NewRepositories(client)
-	ucs, err := di.NewUseCases(cfg, repos)
+	ucs, err := di.NewUseCases(cfgObj, repos)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
-	handlers := di.NewHandlers(cfg, ucs, client)
+	handlers := di.NewHandlers(cfgObj, ucs, client)
 
 	routerImpl := routerConfig.NewRouter(
 		handlers.JWTMiD, handlers.Auth, handlers.User,
 		handlers.Setting, handlers.Word, handlers.Quiz, handlers.Result)
-	routerImpl.SetupRouter(router)
+	routerImpl.MountRoutes(router)
 	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
 		logrus.Fatalf("Failed to set trusted proxies: %v", err)
 	}

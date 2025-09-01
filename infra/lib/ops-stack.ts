@@ -8,6 +8,7 @@ import * as events  from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as rds     from 'aws-cdk-lib/aws-rds';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as logs    from 'aws-cdk-lib/aws-logs';
 
 export interface OpsStackProps extends StackProps {
   db: rds.DatabaseInstance;              // DbStack から渡す
@@ -33,30 +34,32 @@ export class OpsStack extends Stack {
       description: 'Stop RDS at night, start in the morning (JST)',
       code: lambda.Code.fromInline(`
         import boto3, os, datetime
-        rds = boto3.client('rds')
-        DB  = os.environ['DB_ID']
-        STOP = int(os.environ['STOP_HOUR'])
+        rds   = boto3.client('rds')
+        DB    = os.environ['DB_ID']
+        STOP  = int(os.environ['STOP_HOUR'])
         START = int(os.environ['START_HOUR'])
 
-        def handler(event, _):
-            # JST = UTC+9
-            jst_hour = (datetime.datetime.utcnow().hour + 9) % 24
+        def jst_hour_now():
+          # JST = UTC+9（レイヤ不要の簡易換算）
+          return (datetime.datetime.utcnow().hour + 9) % 24
 
-            if STOP <= jst_hour < START:
-                print(f"Stopping {DB}")
-                rds.stop_db_instance(DBInstanceIdentifier=DB)
-            elif jst_hour == START:
-                print(f"Starting {DB}")
-                rds.start_db_instance(DBInstanceIdentifier=DB)
-            else:
-                print(f"No action needed at {jst_hour} JST")
+        def handler(event, _):
+          h = jst_hour_now()
+          if STOP <= h < START:
+            print(f"Stopping {DB} at {h} JST")
+            rds.stop_db_instance(DBInstanceIdentifier=DB)
+          elif h == START:
+            print(f"Starting {DB} at {h} JST")
+            rds.start_db_instance(DBInstanceIdentifier=DB)
+          else:
+            print(f"No action at {h} JST")
         `),
       environment: {
         DB_ID      : props.db.instanceIdentifier,
         STOP_HOUR  : stopAt.toString(),
         START_HOUR : startAt.toString(),
       },
-      logRetention: 3,  // 日数 / aws-logs RetentionDays enum でも可
+      logRetention: logs.RetentionDays.THREE_DAYS,
     });
 
     /* ② 必要 IAM 権限を Lambda に付与 */
@@ -95,36 +98,6 @@ export class OpsStack extends Stack {
           address        : topic.topicArn,
         }],
       }],
-    });
-
-    /* 2. RDS 自動停止／起動 Lambda */
-    const schedFn = new lambda.Function(this, 'RdsScheduler', {
-      runtime : lambda.Runtime.PYTHON_3_12,
-      code    : lambda.Code.fromInline(`
-        import boto3, os, datetime, pytz
-        rds = boto3.client('rds')
-        DB = os.environ['DB_ID']
-        TZ = pytz.timezone('Asia/Tokyo')
-        def handler(e,_):
-            h = datetime.datetime.now(TZ).hour
-            if 0 <= h < 8:
-                rds.stop_db_instance(DBInstanceIdentifier=DB)
-            elif h == 9:
-                rds.start_db_instance(DBInstanceIdentifier=DB)
-        `),
-      handler : 'index.handler',
-      timeout : Duration.seconds(60),
-      environment: { DB_ID: props.db.instanceIdentifier },
-    });
-    schedFn.addToRolePolicy(new iam.PolicyStatement({
-      actions: ['rds:StartDBInstance', 'rds:StopDBInstance'],
-      resources: [props.db.instanceArn],      // その DB インスタンスのみ
-    }));
-    // db.grantStopStart(schedFn);
-
-    new events.Rule(this, 'Hourly', {
-      schedule: events.Schedule.rate(Duration.hours(1)),
-      targets : [new targets.LambdaFunction(schedFn)],
     });
   }
 }

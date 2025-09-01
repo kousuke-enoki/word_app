@@ -171,7 +171,6 @@ func runSeederIfNeeded(client interfaces.ClientInterface) error {
 	if entClient == nil {
 		return fmt.Errorf("ent.Client is nil")
 	}
-
 	adminExists, err := entClient.User.Query().
 		Where(user.Email("root@example.com")).
 		Exist(ctx)

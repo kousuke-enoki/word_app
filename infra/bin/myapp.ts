@@ -22,6 +22,7 @@ new AppStack(app,'AppStack',{
   db: db.db,
   lambdaSg: db.lambdaToDbSecurityGroup,
   natEnabled: natEnabled, // ネットワーク設定を渡す
+  createSmVpce: false,
 });
 
 new OpsStack(app,'OpsStack',{

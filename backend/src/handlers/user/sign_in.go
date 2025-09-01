@@ -14,13 +14,11 @@ import (
 
 func (h *Handler) SignInHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		var req models.SignInRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(400, gin.H{"error": "Invalid request"})
 			return
 		}
-
 		validationErrors := user.ValidateSignIn(&req)
 		if len(validationErrors) > 0 {
 			c.JSON(400, gin.H{"error": "Invalid request"})

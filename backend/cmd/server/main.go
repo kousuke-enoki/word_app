@@ -107,7 +107,10 @@ func mustInitServer(needCleanup bool) (*gin.Engine, string, string, func()) {
 	logger.InitLogger()
 
 	appEnv, appPort, corsOrigin := config.LoadAppConfig()
-	database.InitEntClient()
+	err := database.InitEntClient()
+	if err != nil {
+		logrus.Error(err)
+	}
 	entClient := database.GetEntClient()
 	// cleanup は呼ぶタイミングを呼び出し側に委譲
 	cleanup := func() {}

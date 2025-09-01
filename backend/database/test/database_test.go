@@ -18,7 +18,10 @@ func TestInitEntClient(t *testing.T) {
 	t.Setenv("DB_NAME", "test_db")
 
 	// 初期化
-	database.InitEntClient()
+	err := database.InitEntClient()
+	if err != nil {
+		logrus.Error(err)
+	}
 	assert.NoError(t, nil, "Database initialization should not return an error")
 
 	// クライアント取得

@@ -35,10 +35,14 @@ export class AppStack extends Stack {
       ? { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS }
       : { subnetType: ec2.SubnetType.PRIVATE_ISOLATED };
 
+    const imageTagOrDigest =
+      this.node.tryGetContext('imageDigest') ??
+      this.node.tryGetContext('imageTag') ?? 'lambda';
+
     // ECR イメージ → Lambda
     const repo = ecr.Repository.fromRepositoryName(this,'Repo','wordapp-backend');
     const fn = new lambda.DockerImageFunction(this,'ApiFn',{
-      code: lambda.DockerImageCode.fromEcr(repo,{ tagOrDigest: 'latest' }),
+      code: lambda.DockerImageCode.fromEcr(repo,{ tagOrDigest: imageTagOrDigest }),
       vpc,
       vpcSubnets: subnets,
       securityGroups: [lambdaSg],

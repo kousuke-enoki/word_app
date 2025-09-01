@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -88,10 +87,10 @@ func NewConfig() *Config {
 	appEnv := getenv("APP_ENV", "production")
 	appPort := getenv("APP_PORT", "8080") // Lambda では未使用でもOK
 
-	// 2) DB ホスト/ポート/DB名（必須）
-	dbHost := must("DB_HOST")
-	dbPort := getenv("DB_PORT", "5432")
-	dbName := must("DB_NAME")
+	// // 2) DB ホスト/ポート/DB名（必須）
+	// dbHost := must("DB_HOST")
+	// dbPort := getenv("DB_PORT", "5432")
+	// dbName := must("DB_NAME")
 	lambdaRuntime := getenv("AWS_LAMBDA_RUNTIME_API", "")
 
 	// 3) Secrets Manager から読み出し（存在すれば）
@@ -113,30 +112,30 @@ func NewConfig() *Config {
 		lineRedirect = must("LINE_REDIRECT_URI")
 	}
 
-	// 4) DB 認証（ユーザー/パス）は Secrets Manager
-	var dbUser, dbPass string
-	if arn := os.Getenv("DB_SECRET_ARN"); arn != "" {
-		s, err := fetchSecretJSON[dbSecret](context.Background(), arn)
-		if err != nil {
-			logrus.Fatalf("read DB_SECRET_ARN: %v", err)
-		}
-		dbUser, dbPass = s.Username, s.Password
-	} else {
-		// フォールバック（テスト用）
-		dbUser = getenv("DB_USER", "postgres")
-		dbPass = getenv("DB_PASSWORD", "password")
-	}
+	// // 4) DB 認証（ユーザー/パス）は Secrets Manager
+	// // var dbUser, dbPass string
+	// if arn := os.Getenv("DB_SECRET_ARN"); arn != "" {
+	// 	s, err := fetchSecretJSON[dbSecret](context.Background(), arn)
+	// 	if err != nil {
+	// 		logrus.Fatalf("read DB_SECRET_ARN: %v", err)
+	// 	}
+	// 	dbUser, dbPass = s.Username, s.Password
+	// } else {
+	// 	// フォールバック（テスト用）
+	// 	dbUser = getenv("DB_USER", "postgres")
+	// 	dbPass = getenv("DB_PASSWORD", "password")
+	// }
 
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		url.QueryEscape(dbUser), url.QueryEscape(dbPass),
-		dbHost, dbPort, dbName,
-	)
+	// dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+	// 	url.QueryEscape(dbUser), url.QueryEscape(dbPass),
+	// 	dbHost, dbPort, dbName,
+	// )
 
 	// ♦ 3. 構造体に詰めて返す
 	return &Config{
 		App: AppCfg{Env: appEnv, Port: appPort},
 		JWT: JWTCfg{Secret: jwtSecret, TempSecret: jwtSecret, ExpireHour: 1, ExpireMinute: 30},
-		DB:  DBCfg{DSN: dsn},
+		// DB:  DBCfg{DSN: dsn},
 		Line: LineOAuthCfg{
 			ClientID: lineID, ClientSecret: lineSec, RedirectURI: lineRedirect,
 		},

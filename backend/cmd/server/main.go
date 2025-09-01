@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"word_app/backend/config"
 	"word_app/backend/database"
@@ -202,57 +203,48 @@ func runSeederIfNeeded(client interfaces.ClientInterface) error {
 	return nil
 }
 
-// // データベースのセットアップ
-// func setupDatabase(client interfaces.ClientInterface) {
-// 	ctx := context.Background()
-// 	entClient := client.EntClient()
-// 	if entClient == nil {
-// 		logrus.Fatalf("ent.Client is nil")
-// 	}
-// 	// Schema を作成
-// 	if err := entClient.Schema.Create(ctx); err != nil {
-// 		logrus.Fatalf("Failed to create schema: %v", err)
-// 	}
-// 	// Admin の存在を確認
-// 	adminExists, err := entClient.User.Query().Where(user.Email("root@example.com")).Exist(ctx)
-// 	if err != nil {
-// 		logrus.Fatalf("Failed to check admin existence: %v", err)
-// 	}
-// 	// Seeder の実行
-// 	if !adminExists {
-// 		logrus.Info("Running initial seeder...")
-// 		seeder.RunSeeder(ctx, client)
-// 		logrus.Info("Seeder completed.")
-// 	} else {
-// 		logrus.Info("Seed data already exists, skipping.")
-// 	}
-// }
-
 func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery())
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{corsOrigin},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+
+	// 1) CORS: 環境変数（カンマ区切り）→ スライス
+	allowed := []string{}
+	for _, o := range strings.Split(corsOrigin, ",") {
+		o = strings.TrimSpace(o)
+		if o != "" {
+			allowed = append(allowed, o)
+		}
+	}
+
+	cfg := cors.Config{
+		AllowOrigins:     allowed,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
-	}))
+		MaxAge:           12 * time.Hour,
+	}
+	// 2) もし *.vercel.app を許可したい場合（合わせ技OK）
+	cfg.AllowOriginFunc = func(origin string) bool {
+		return strings.HasSuffix(origin, ".vercel.app")
+	}
+
+	router.Use(cors.New(cfg))
 
 	// ルータのセットアップ
-	cfg := config.NewConfig() // ← env 読み取りなど 1 箇所に集約
+	cfgObj := config.NewConfig() // ← env 読み取りなど 1 箇所に集約
 	repos := di.NewRepositories(client)
-	ucs, err := di.NewUseCases(cfg, repos)
+	ucs, err := di.NewUseCases(cfgObj, repos)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
-	handlers := di.NewHandlers(cfg, ucs, client)
+	handlers := di.NewHandlers(cfgObj, ucs, client)
 
 	routerImpl := routerConfig.NewRouter(
 		handlers.JWTMiD, handlers.Auth, handlers.User,
 		handlers.Setting, handlers.Word, handlers.Quiz, handlers.Result)
-	routerImpl.SetupRouter(router)
+	routerImpl.MountRoutes(router)
 	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
 		logrus.Fatalf("Failed to set trusted proxies: %v", err)
 	}

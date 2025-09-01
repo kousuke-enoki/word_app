@@ -11,6 +11,7 @@ import (
 	"word_app/backend/config"
 	"word_app/backend/database"
 	"word_app/backend/ent/user"
+	"word_app/backend/ent/word"
 	"word_app/backend/internal/di"
 	"word_app/backend/logger"
 	routerConfig "word_app/backend/router"
@@ -123,7 +124,6 @@ func mustInitServer(needCleanup bool) (*gin.Engine, string, string, func()) {
 	}
 
 	client := infrastructure.NewAppClient(entClient)
-	// setupDatabase(client)
 
 	runMig := shouldRun("RUN_MIGRATION")
 	runSeed := shouldRun("RUN_SEEDER")
@@ -169,12 +169,21 @@ func runMigration(client interfaces.ClientInterface) error {
 func runSeederIfNeeded(client interfaces.ClientInterface) error {
 	ctx := context.Background()
 	entClient := client.EntClient()
+	runSeedForWords := shouldRun("RUN_SEEDER_FOR_WORDS")
 	if entClient == nil {
 		return fmt.Errorf("ent.Client is nil")
 	}
-	adminExists, err := entClient.User.Query().Where(user.Email("root@example.com")).Exist(ctx)
+	adminExists, err := entClient.User.Query().
+		Where(user.Email("root@example.com")).
+		Exist(ctx)
 	if err != nil {
-		return fmt.Errorf("admin check failed: %w", err)
+		return fmt.Errorf("admin check failed by user: %w", err)
+	}
+	seedWordExists, err := entClient.Word.Query().
+		Where(word.ID(1)).
+		Exist(ctx)
+	if err != nil {
+		return fmt.Errorf("admin check failed by words: %w", err)
 	}
 	if !adminExists {
 		logrus.Info("Running initial seeder...")
@@ -182,34 +191,15 @@ func runSeederIfNeeded(client interfaces.ClientInterface) error {
 		logrus.Info("Seeder completed.")
 	} else {
 		logrus.Info("Seed data already exists, skipping.")
+	}
+	if !runSeedForWords && seedWordExists {
+		logrus.Info("Running initial seeder for words...")
+		seeder.SeedWords(ctx, client)
+		logrus.Info("Seeder for words completed.")
+	} else {
+		logrus.Info("Seed words data already exists, skipping.")
 	}
 	return nil
-}
-
-// データベースのセットアップ
-func setupDatabase(client interfaces.ClientInterface) {
-	ctx := context.Background()
-	entClient := client.EntClient()
-	if entClient == nil {
-		logrus.Fatalf("ent.Client is nil")
-	}
-	// Schema を作成
-	if err := entClient.Schema.Create(ctx); err != nil {
-		logrus.Fatalf("Failed to create schema: %v", err)
-	}
-	// Admin の存在を確認
-	adminExists, err := entClient.User.Query().Where(user.Email("root@example.com")).Exist(ctx)
-	if err != nil {
-		logrus.Fatalf("Failed to check admin existence: %v", err)
-	}
-	// Seeder の実行
-	if !adminExists {
-		logrus.Info("Running initial seeder...")
-		seeder.RunSeeder(ctx, client)
-		logrus.Info("Seeder completed.")
-	} else {
-		logrus.Info("Seed data already exists, skipping.")
-	}
 }
 
 // ルートを構築する関数

@@ -69,8 +69,9 @@ export class AppStack extends Stack {
         // その他必要な env があればここへ
         CORS_ORIGIN: 'https://word-app-opal.vercel.app',
         // 起動時の重さ回避
-        RUN_MIGRATION: 'false',
-        RUN_SEEDER:    'false',
+        RUN_MIGRATION: 'true',
+        RUN_SEEDER:    'true',
+        RUN_SEEDER_FOR_WORDS:    'true',
         APP_BOOTSTRAP_MODE: 'FULL',
       },
     });

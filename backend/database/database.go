@@ -100,7 +100,6 @@ func getenv(k, def string) string {
 	}
 	return def
 }
-
 func loadDbConfig(ctx context.Context) (*dbCfg, error) {
 	// 0) まず環境変数優先
 	if host := os.Getenv("DB_HOST"); host != "" &&

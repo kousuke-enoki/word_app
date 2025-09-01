@@ -32,3 +32,5 @@ frontend/.env.test
 # # IDEの設定ファイル
 .vscode/
 .DS_Store
+
+env.json

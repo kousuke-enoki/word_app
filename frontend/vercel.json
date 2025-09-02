@@ -1,11 +1,6 @@
 {
   "version": 2,
-  "name": "wordapp-frontend",
-  "rootDirectory": "frontend",
-  "builds": [
-    { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } }
-  ],
-  "routes": [
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/:path*", "destination": "/index.html" }
   ]
 }

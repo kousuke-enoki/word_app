@@ -1,14 +1,20 @@
-import { defineConfig } from 'vitest/config';   // ← そのまま
-import { loadEnv } from 'vite';                 // ★ 追加
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
+import { loadEnv } from 'vite';
 import checker from 'vite-plugin-checker';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig(({ mode }) => {
   /* .env / Vercel の環境変数を読み込む */
   const env = loadEnv(mode, process.cwd());      // mode = 'development' | 'production'
 
   return {
+    base: '/',                 // ← Vercel 配信はこれでOK（サブパス配信ならそのパスに）
+    build: {
+      outDir: 'dist',          // ← Vercel の dist と一致
+      emptyOutDir: true,
+      assetsDir: 'assets',     // 既定だが明示しておくと安心
+    },
     plugins: [
       react(),
       checker({
@@ -25,12 +31,10 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
-        react: path.resolve(__dirname, 'node_modules/react'),
-        'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
         '@': path.resolve(__dirname, 'src'),
       },
     },
-    /* ★ ビルド時に API URL を注入 */
+    /* ビルド時に API URL を注入 */
     define: {
       __API_URL__: JSON.stringify(env.VITE_API_URL ?? ''),
     },

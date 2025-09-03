@@ -99,28 +99,6 @@ func (r *Implementation) MountRoutes(router *gin.Engine) {
 	}
 }
 
-// カスタム用cors
-// func CORSMiddleware() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-// 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-// 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
-// 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-
-// 		// OPTIONSリクエスト（プリフライトリクエスト）の処理
-// 		if c.Request.Method == "OPTIONS" {
-// 			logrus.WithFields(logrus.Fields{
-// 				"method": c.Request.Method,
-// 				"path":   c.Request.URL.Path,
-// 			}).Info("Handling CORS preflight request")
-// 			c.AbortWithStatus(204)
-// 			return
-// 		}
-
-// 		c.Next()
-// 	}
-// }
-
 // リクエストの詳細をログに出力するミドルウェア
 func requestLoggerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {

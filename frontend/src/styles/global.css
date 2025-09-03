@@ -19,7 +19,8 @@ table {
   border-collapse: collapse;
 }
 
-th, td {
+th,
+td {
   border: 1px solid var(--thbd);
   padding: 8px;
   text-align: center;
@@ -46,9 +47,6 @@ th {
   margin-left: 10px;
 }
 
-button {
-  margin-left: 5px;
-}
 .register-button {
   background-color: var(--register_button);
 }
@@ -62,10 +60,10 @@ button {
   top: 20px;
   right: 20px;
   background-color: var(--success_pop_bc);
-  color:  var(--fg);
+  color: var(--fg);
   padding: 10px 20px;
   border-radius: 5px;
-  box-shadow: 0px 4px 6px  var(--shadow);
+  box-shadow: 0px 4px 6px var(--shadow);
   font-size: 16px;
   z-index: 1000;
   animation: fadeInOut 3s ease-in-out;

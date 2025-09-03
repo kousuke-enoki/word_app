@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Input } from '@headlessui/react'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -9,8 +10,8 @@ import { PageShell } from '@/components/PageShell'
 import { Button } from '@/components/ui'
 
 const SignIn: React.FC = () => {
-  const [email, setEmail] = useState('root@example.com')
-  const [password, setPassword] = useState('Password123$')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
@@ -29,8 +30,10 @@ const SignIn: React.FC = () => {
         localStorage.setItem('token', token)
       }
       navigate('/my_page')
-    } catch {
-      // setError(err?.response?.data?.message || 'サインインに失敗しました')
+    } catch (error: any) {
+      const fieldError: string =
+        error.response?.data?.message || 'サインインに失敗しました'
+      setError(fieldError)
     } finally {
       setLoading(false)
     }

@@ -81,7 +81,7 @@ table th {
 }
 
 table tr:nth-child(even) {
-  background-color: var(--table_tr_e)
+  background-color: var(--table_tr_e);
 }
 
 .pagination-container {
@@ -102,10 +102,28 @@ table tr:nth-child(even) {
 
 .pagination-container button {
   background-color: var(--pagination_bg);
-  color:  var(--pagination);
+  color: var(--pagination);
 }
 
 .pagination-container button[disabled] {
   background-color: var(--pagination_bg_disabled);
   cursor: not-allowed;
 }
+
+:root {
+  --button: #ffffff;
+  --button_border: #3567ff;
+  --button_bg: #3b82f6;
+  --pagination_bg: #3b82f6;
+  --pagination: #ffffff;
+  --pagination_bd: #cfd4dc;
+  --select_bd: var(--input_bd);
+  }
+  .dark {
+  --button: #ffffff;
+  --button_border: #5b8cff;
+  --button_bg: #3b82f6;
+  --pagination_bg: #3b82f6;
+  --pagination: #ffffff;
+  --pagination_bd: #343a46;
+  }

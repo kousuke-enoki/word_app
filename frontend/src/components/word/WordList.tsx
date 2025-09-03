@@ -1,232 +1,227 @@
-import '@/styles/components/word/WordList.css'
-
-import React, { useEffect,useState } from 'react'
-import { Link,useLocation } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 
 import axiosInstance from '@/axiosConfig'
+import { Badge, Card, Input, PageContainer } from '@/components/card'
+import { PageShell } from '@/components/PageShell'
+import { Button } from '@/components/ui'
 import { getPartOfSpeech } from '@/service/word/GetPartOfSpeech'
 import { registerWord } from '@/service/word/RegisterWord'
-import { JapaneseMean,Word, WordInfo } from '@/types/wordTypes'
+import type { JapaneseMean, Word, WordInfo } from '@/types/wordTypes'
+import '@/styles/components/word/WordList.css'
 
 const WordList: React.FC = () => {
   const [words, setWords] = useState<Word[]>([])
-  const [search, setSearch] = useState<string>('')
-  const [sortBy, setSortBy] = useState<string>('name')
-  const [order, setOrder] = useState<string>('asc')
+  const [search, setSearch] = useState('')
+  const [sortBy, setSortBy] = useState('name')
+  const [order, setOrder] = useState<'asc' | 'desc'>('asc')
   const location = useLocation()
   const [page, setPage] = useState<number>(location.state?.page || 1)
-  const [totalPages, setTotalPages] = useState<number>(1)
-  const [limit, setLimit] = useState<number>(10)
-  const [isInitialized, setIsInitialized] = useState<boolean>(false)
-  const [successMessage, setSuccessMessage] = useState<string>('')
+  const [totalPages, setTotalPages] = useState(1)
+  const [limit, setLimit] = useState(10)
+  const [isInitialized, setIsInitialized] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
 
-  // IDから品詞名を取得するヘルパー関数
-  const getPartOfSpeechName = (id: number): string => {
-    const partOfSpeech = getPartOfSpeech.find((pos) => pos.id === id)
-    return partOfSpeech ? partOfSpeech.name : '未定義'
-  }
+  const getPartOfSpeechName = (id: number) =>
+    getPartOfSpeech.find((pos) => pos.id === id)?.name ?? '未定義'
 
-  // APIからデータを取得する関数
   useEffect(() => {
-    // location.state から値を復元（初回のみ実行）
     if (location.state) {
       setSearch(location.state.search || '')
       setSortBy(location.state.sortBy || 'name')
-      setOrder(location.state.order || 'asc')
+      setOrder((location.state.order as 'asc' | 'desc') || 'asc')
       setPage(location.state.page || 1)
       setLimit(location.state.limit || 10)
     }
-    setIsInitialized(true) // 初期化完了をマーク
+    setIsInitialized(true)
   }, [location.state])
 
-  // 初回レンダリング時と依存する値が変わったときにデータを取得
   useEffect(() => {
-    if (!isInitialized) return // 初期化が完了していなければ実行しない
-
-    // APIからデータを取得する関数
+    if (!isInitialized) return
     const fetchWords = async () => {
       try {
-        const response = await axiosInstance.get('words', {
-          params: {
-            search,
-            sortBy,
-            order,
-            page,
-            limit,
-          },
+        const { data } = await axiosInstance.get('words', {
+          params: { search, sortBy, order, page, limit },
         })
-        setWords(response.data.words)
-        setTotalPages(response.data.totalPages)
-      } catch (error) {
-        console.error('Failed to fetch words:', error)
+        setWords(data.words)
+        setTotalPages(data.totalPages)
+      } catch (e) {
+        console.error('Failed to fetch words:', e)
       }
     }
     fetchWords()
   }, [search, sortBy, order, page, limit, isInitialized])
 
-  // ページング処理
-  const handlePageChange = (newPage: React.SetStateAction<number>) => {
-    setPage(newPage)
-  }
-
   const handleRegister = async (word: Word) => {
-    if (!word) return
     try {
-      // API呼び出しから新しい登録状態と登録数を取得
-      const updatedWord = await registerWord(word.id, !word.isRegistered)
-
-      // 単語の登録状態を更新
-      setWords((prevWords) =>
-        prevWords.map((w) =>
+      const updated = await registerWord(word.id, !word.isRegistered)
+      setWords((prev) =>
+        prev.map((w) =>
           w.id === word.id
             ? {
                 ...w,
-                isRegistered: updatedWord.isRegistered,
-                registrationCount: updatedWord.registrationCount,
+                isRegistered: updated.isRegistered,
+                registrationCount: updated.registrationCount,
               }
             : w,
         ),
       )
-      const registeredWordName = updatedWord.name
-      if (updatedWord.isRegistered) {
-        setSuccessMessage(registeredWordName + ' を登録しました。')
-        setTimeout(() => setSuccessMessage(''), 3000)
-      } else {
-        setSuccessMessage(registeredWordName + ' を登録解除しました。')
-        setTimeout(() => setSuccessMessage(''), 3000)
-      }
-    } catch (error) {
-      console.error('Error registering word:', error)
+      setSuccessMessage(
+        `${updated.name} を${updated.isRegistered ? '登録しました' : '登録解除しました'}。`,
+      )
+      setTimeout(() => setSuccessMessage(''), 3000)
+    } catch (e) {
+      console.error('Error registering word:', e)
     }
   }
 
-  return (
-    <div className="wordList-container">
-      <h1>単語一覧</h1>
-
-      {/* 検索フォーム */}
-      <input
-        type="text"
-        placeholder="単語検索"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
-
-      {/* ソート選択 */}
+  const Toolbar = (
+    <div className="mb-4 flex flex-wrap items-center gap-3">
+      <div className="flex-1 min-w-[200px]">
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="単語検索"
+        />
+      </div>
       <select
+        className="rounded-xl border border-[var(--input_bd)] bg-[var(--select)] px-3 py-2 text-[var(--select_c)]"
         value={sortBy}
         onChange={(e) => {
-          const newSortBy = e.target.value
-          if (newSortBy === 'register' && sortBy !== 'register') {
-            setPage(1)
-          }
-          setSortBy(newSortBy)
+          const v = e.target.value
+          if (v === 'register' && sortBy !== 'register') setPage(1)
+          setSortBy(v)
         }}
       >
         <option value="name">単語名</option>
         <option value="registrationCount">登録数</option>
         <option value="register">登録</option>
       </select>
-      <button onClick={() => setOrder(order === 'asc' ? 'desc' : 'asc')}>
+      <Button
+        variant="outline"
+        onClick={() => setOrder(order === 'asc' ? 'desc' : 'asc')}
+      >
         {order === 'asc' ? '昇順' : '降順'}
-      </button>
-
-      {/* 単語のリスト表示 */}
-      <table>
-        <thead>
-          <tr>
-            <th>単語名</th>
-            <th>日本語訳</th>
-            <th>品詞</th>
-            <th>登録数</th>
-            <th>登録</th>
-          </tr>
-        </thead>
-        <tbody>
-          {words.map((word) => (
-            <tr key={word.id}>
-              <td className="word-name">
-                <Link
-                  to={`/words/${word.id}`}
-                  state={{ search, sortBy, order, page, limit }}
-                  className="word-name-link"
-                >
-                  {word.name}
-                </Link>
-              </td>
-              <td>
-                {word.wordInfos
-                  .map((info: WordInfo) =>
-                    info.japaneseMeans
-                      .map((japaneseMean: JapaneseMean) => japaneseMean.name)
-                      .join(', '),
-                  )
-                  .join(', ')}
-              </td>
-              <td>
-                {word.wordInfos
-                  .map((info: WordInfo) =>
-                    getPartOfSpeechName(info.partOfSpeechId),
-                  )
-                  .join(', ')}
-              </td>
-              <td> {word.registrationCount} </td>
-              <td>
-                {successMessage && (
-                  <div className="success-popup">{successMessage}</div>
-                )}
-                <div>
-                  <button
-                    className={`register-button ${word.isRegistered ? 'registered' : ''}`}
-                    onClick={() => handleRegister(word)}
-                  >
-                    {word.isRegistered ? '解除' : '登録'}
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <div className="pagination-container">
-        <select
-          className="select-limit"
-          value={limit}
-          onChange={(e) => setLimit(Number(e.target.value))}
-        >
-          <option value="10">10</option>
-          <option value="20">20</option>
-          <option value="30">30</option>
-          <option value="50">50</option>
-        </select>
-
-        <button onClick={() => handlePageChange(1)} disabled={page === 1}>
-          最初へ
-        </button>
-        <button
-          onClick={() => handlePageChange(page - 1)}
-          disabled={page === 1}
-        >
-          前へ
-        </button>
-        <span>
-          ページ {page} / {totalPages}
-        </span>
-        <button
-          onClick={() => handlePageChange(page + 1)}
-          disabled={page === totalPages}
-        >
-          次へ
-        </button>
-        <button
-          onClick={() => handlePageChange(totalPages)}
-          disabled={page === totalPages}
-        >
-          最後へ
-        </button>
-      </div>
+      </Button>
+      <Badge>総ページ: {totalPages}</Badge>
     </div>
+  )
+
+  const Pagination = (
+    <div className="mt-4 flex flex-wrap items-center gap-2">
+      <select
+        className="rounded-xl border border-[var(--input_bd)] bg-[var(--select)] px-3 py-2 text-[var(--select_c)]"
+        value={limit}
+        onChange={(e) => setLimit(Number(e.target.value))}
+      >
+        {[10, 20, 30, 50].map((n) => (
+          <option key={n} value={n}>
+            {n}
+          </option>
+        ))}
+      </select>
+      <Button onClick={() => setPage(1)} disabled={page === 1}>
+        最初へ
+      </Button>
+      <Button onClick={() => setPage(page - 1)} disabled={page === 1}>
+        前へ
+      </Button>
+      <span className="px-2 text-sm opacity-80">
+        ページ {page} / {totalPages}
+      </span>
+      <Button onClick={() => setPage(page + 1)} disabled={page === totalPages}>
+        次へ
+      </Button>
+      <Button
+        onClick={() => setPage(totalPages)}
+        disabled={page === totalPages}
+      >
+        最後へ
+      </Button>
+    </div>
+  )
+
+  return (
+    <PageShell>
+      <PageContainer>
+        <div className="mb-4 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-[var(--h1_fg)]">単語一覧</h1>
+          <Link to="/words/new">
+            <Button>新規登録</Button>
+          </Link>
+        </div>
+
+        {successMessage && (
+          <div className="mb-4 rounded-xl border-l-4 border-[var(--success_pop_bc)] bg-[var(--container_bg)] px-4 py-3 text-sm">
+            {successMessage}
+          </div>
+        )}
+
+        <Card className="p-4">
+          {Toolbar}
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="bg-[var(--thbc)] text-left">
+                  {['単語名', '日本語訳', '品詞', '登録数', '登録'].map(
+                    (th) => (
+                      <th
+                        key={th}
+                        className="border-b border-[var(--thbd)] px-3 py-2 text-[var(--fg)]"
+                      >
+                        {th}
+                      </th>
+                    ),
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {words.map((w) => (
+                  <tr key={w.id} className="even:bg-[var(--table_tr_e)]">
+                    <td className="px-3 py-2">
+                      <Link
+                        to={`/words/${w.id}`}
+                        state={{ search, sortBy, order, page, limit }}
+                        className="underline"
+                      >
+                        {w.name}
+                      </Link>
+                    </td>
+                    <td className="px-3 py-2">
+                      {w.wordInfos
+                        .map((info: WordInfo) =>
+                          info.japaneseMeans
+                            .map((jm: JapaneseMean) => jm.name)
+                            .join(', '),
+                        )
+                        .join(', ')}
+                    </td>
+                    <td className="px-3 py-2">
+                      {w.wordInfos
+                        .map((info: WordInfo) =>
+                          getPartOfSpeechName(info.partOfSpeechId),
+                        )
+                        .join(', ')}
+                    </td>
+                    <td className="px-3 py-2">{w.registrationCount}</td>
+                    <td className="px-3 py-2">
+                      <Button
+                        className="min-w-[80px]"
+                        variant={w.isRegistered ? 'outline' : 'primary'}
+                        onClick={() => handleRegister(w)}
+                      >
+                        {w.isRegistered ? '解除' : '登録'}
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {Pagination}
+        </Card>
+      </PageContainer>
+    </PageShell>
   )
 }
 

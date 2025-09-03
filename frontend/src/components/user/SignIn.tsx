@@ -1,114 +1,103 @@
-import React, { useEffect, useState } from 'react'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Input } from '@headlessui/react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 
 import axiosInstance from '@/axiosConfig'
-import { useTheme } from '@/contexts/themeContext'
-
-
-type SettingResponse = {
-  is_line_auth: boolean;
-};
+import { Card, PageContainer } from '@/components/card'
+import { PageShell } from '@/components/PageShell'
+import { Button } from '@/components/ui'
 
 const SignIn: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [message, setMessage] = useState('')
-  const [lineAuthEnabled, setLineAuthEnabled] = useState<boolean>(false);
-  const [loadingSetting,  setLoadingSetting]  = useState<boolean>(true);
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const navigate = useNavigate()
-  const { setTheme } = useTheme()
 
-  useEffect(() => {
-    let isMounted = true;                         // アンマウント対策
-
-    (async () => {
-      try {
-        const { data } = await axiosInstance.get<SettingResponse>(
-          '/setting/auth',
-        );
-        if (!isMounted) return;
-        setLineAuthEnabled(data.is_line_auth);
-      } catch(e) {
-        console.log(e)
-      } finally {
-        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-        isMounted && setLoadingSetting(false);
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [setTheme]);
-
-  const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setLoading(true)
+    setError('')
     try {
-      const response = await axiosInstance.post('/users/sign_in', {
+      const res = await axiosInstance.post('/users/sign_in', {
         email,
         password,
       })
-      const token = response.data.token
-      localStorage.setItem('token', token)
-      localStorage.setItem('logoutMessage', 'サインイン成功！')
-      const { data } = await axiosInstance.get('/setting/user_config')
-      setTheme(data.Config.is_dark_mode ? 'dark' : 'light')
-
-      setTimeout(() => {
-        navigate('/mypage')
-      })
-    } catch {
-      setMessage('Sign in failed. Please try again.')
+      const token = res.data?.token
+      if (token) {
+        localStorage.setItem('token', token)
+      }
+      navigate('/my_page')
+    } catch (error: any) {
+      const fieldError: string =
+        error.response?.data?.message || 'サインインに失敗しました'
+      setError(fieldError)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleLineLogin = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/users/auth/line/login`;
-  };
-
-  if (loadingSetting) return <p>Loading…</p>;
-
   return (
-    <div>
-      <h1>サインイン</h1>
-      <form onSubmit={handleSignIn}>
-        <div>
-          <label htmlFor="email">Email:</label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+    <PageShell>
+      <PageContainer>
+        <div className="mx-auto max-w-md">
+          <div className="mb-8 text-center">
+            <h1 className="text-2xl font-bold text-[var(--h1_fg)]">
+              サインイン
+            </h1>
+            <p className="mt-1 text-sm opacity-70">
+              メールアドレスとパスワードを入力してください。
+            </p>
+          </div>
+
+          <Card className="p-6">
+            <form onSubmit={onSubmit} className="space-y-5">
+              <div>
+                <label className="mb-1 block text-sm font-medium">Email</label>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">
+                  Password
+                </label>
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+
+              {error && (
+                <div className="rounded-lg border-l-4 border-red-500 bg-[var(--container_bg)] px-3 py-2 text-sm text-red-600">
+                  {error}
+                </div>
+              )}
+
+              <Button disabled={loading} className="w-full">
+                {loading ? 'サインイン中…' : 'サインイン'}
+              </Button>
+            </form>
+          </Card>
+
+          <p className="mt-4 text-center text-sm opacity-80">
+            アカウント未作成ですか？{' '}
+            <Link className="underline" to="/sign_up">
+              サインアップ
+            </Link>
+          </p>
         </div>
-        <div>
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">サインイン</button>
-      </form>
-      {message && <p>{message}</p>}
-      <div>
-        {lineAuthEnabled && (
-          <button type="button" onClick={handleLineLogin}>
-            LINEでログイン
-          </button>
-        )}
-      </div>
-      <div>
-        <p>
-          <Link to="/sign_up">サインアップはここから！</Link>
-        </p>
-      </div>
-    </div>
+      </PageContainer>
+    </PageShell>
   )
 }
 

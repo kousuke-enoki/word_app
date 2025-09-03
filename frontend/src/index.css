@@ -1,18 +1,18 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family:
+    source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 /* index.css */
-:root {
+ :root {
   --bg: #ffffff;
   --container_bg: #eee;
   --container_bd: #ccc;
@@ -20,28 +20,28 @@ code {
   --fg: #222222;
   --h1_fg: #111;
   --app_header: #282c34;
-  --thbc:  #f2f2f2;
-  --thbd:  #ddd;
-  --input:  #eee;
-  --input_bd:  #666;
-  --input_c:  #000;
-  --textarea_bg:  #fff;
-  --textarea_c:  #000;
-  --select:  #fff;
-  --select_bd:  #fff;
-  --select_c:  #000;
-  --button:  #fff;
-  --button_border:  #444;
-  --button_bg:  #0077ff;
-  --button_disabled:  #ffffff;
-  --button_border_disabled:  #262626;
-  --button_bg_disabled:  #7da8d8;
-  --aplk:  #61dafb;
+  --thbc: #f2f2f2;
+  --thbd: #ddd;
+  --input: #eee;
+  --input_bd: #666;
+  --input_c: #000;
+  --textarea_bg: #fff;
+  --textarea_c: #000;
+  --select: #fff;
+  --select_bd: #var(--input_bd);
+  --select_c: #000;
+  --button: #ffffff;
+  --button_border: #3567ff;
+  --button_bg: #3b82f6;
+  --button_disabled: #ffffff;
+  --button_border_disabled: #262626;
+  --button_bg_disabled: #7da8d8;
+  --aplk: #61dafb;
   --primary: #007bff;
   --border: #ddd;
-  --pagination_bg: #007bff;
-  --pagination: #fff;
-  --pagination_bd: #ccc;
+  --pagination_bg: #3b82f6;
+  --pagination: #ffffff;
+  --pagination_bd: #cfd4dc;
   --pagination_bg_disabled: #ccc;
   --table_th: #007bff;
   --table_th_c: #fff;
@@ -67,29 +67,29 @@ code {
   --fg: #fff;
   --h1_fg: #eee;
   --app_header: #8aa4d8;
-  --thbc:  #f2f2f2;
-  --thbd:  #ddd;
-  --input:  #000;
-  --input_c:  #fff;
-  --input_bd:  #ccc;
-  --textarea_bg:  #737373;
-  --textarea_bd:  #666;
-  --textarea_c:  #fff;
-  --select:  #333;
-  --select_bd:  #666;
-  --select_c:  #fff;
-  --button:  #000;
-  --button_border:  #aaa;
-  --button_bg:  #248aff;
-  --button_disabled:  #888888;
-  --button_border_disabled:  #262626;
-  --button_bg_disabled:  #223852;
-  --aplk:  #92e5fc;
+  --thbc: #f2f2f2;
+  --thbd: #ddd;
+  --input: #000;
+  --input_c: #fff;
+  --input_bd: #ccc;
+  --textarea_bg: #737373;
+  --textarea_bd: #666;
+  --textarea_c: #fff;
+  --select: #333;
+  --select_bd: #666;
+  --select_c: #fff;
+  --button: #ffffff;
+  --button_border: #5b8cff;
+  --button_bg: #3b82f6;
+  --button_disabled: #888888;
+  --button_border_disabled: #262626;
+  --button_bg_disabled: #223852;
+  --aplk: #92e5fc;
   --primary: #002559;
   --border: #444;
-  --pagination_bg: #2487f1;
-  --pagination: #f0f0f0;
-  --pagination_bd: #333;
+  --pagination_bg: #3b82f6;
+  --pagination: #ffffff;
+  --pagination_bd: #343a46;
   --pagination_bg_disabled: #333;
   --table_th: #2e00ac;
   --table_th_c: #ccc;
@@ -140,11 +140,11 @@ label {
   color: var(--container_c);
 }
 
-button {
+/* button {
   color: var(--button);
   border: var(--button_border);
   background-color: var(--button_bg);
-}
+} */
 button:disabled {
   color: var(--button_disabled);
   border: var(--button_border_disabled);
@@ -156,7 +156,6 @@ button:disabled {
   border: var(--button_border_disabled);
   background-color: var(--button_bg_disabled);
 } */
-
 
 @tailwind base;
 @tailwind components;

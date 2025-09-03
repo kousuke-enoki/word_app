@@ -1,3 +1,6 @@
+// これがないと toBeInTheDocument / toHaveAttribute が未定義扱いになる
+import '@testing-library/jest-dom/vitest'
+
 import { TextEncoder } from 'node:util'
 
 import { vi } from 'vitest'

@@ -1,12 +1,16 @@
-import { Listbox, Transition } from '@headlessui/react';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { Fragment } from 'react';
+import { Listbox, Transition } from '@headlessui/react'
+import { Check, ChevronsUpDown } from 'lucide-react'
+import { Fragment } from 'react'
 
-type Option<T> = { value: T; label: string };
-type Props<T> = { options: Option<T>[]; value: T; onChange: (v: T) => void };
+type Option<T> = { value: T; label: string }
+type Props<T> = { options: Option<T>[]; value: T; onChange: (v: T) => void }
 
-export function MySelect<T extends string | number>({ options, value, onChange }: Props<T>) {
-  const selected = options.find(o => o.value === value)!;
+export function MySelect<T extends string | number>({
+  options,
+  value,
+  onChange,
+}: Props<T>) {
+  const selected = options.find((o) => o.value === value)!
 
   return (
     <Listbox value={value} onChange={onChange}>
@@ -41,7 +45,7 @@ export function MySelect<T extends string | number>({ options, value, onChange }
               dark:bg-gray-700
             "
           >
-            {options.map(opt => (
+            {options.map((opt) => (
               <Listbox.Option
                 key={opt.value}
                 value={opt.value}
@@ -55,7 +59,9 @@ export function MySelect<T extends string | number>({ options, value, onChange }
               >
                 {({ selected }) => (
                   <>
-                    <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                    <span
+                      className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}
+                    >
                       {opt.label}
                     </span>
                     {selected && (
@@ -71,5 +77,5 @@ export function MySelect<T extends string | number>({ options, value, onChange }
         </Transition>
       </div>
     </Listbox>
-  );
+  )
 }

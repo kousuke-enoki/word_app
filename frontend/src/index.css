@@ -12,7 +12,7 @@ code {
     source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 /* index.css */
- :root {
+:root {
   --bg: #ffffff;
   --container_bg: #eee;
   --container_bd: #ccc;
@@ -28,7 +28,7 @@ code {
   --textarea_bg: #fff;
   --textarea_c: #000;
   --select: #fff;
-  --select_bd: #var(--input_bd);
+  --select_bd: #cfd4dc;
   --select_c: #000;
   --button: #ffffff;
   --button_border: #3567ff;
@@ -68,7 +68,7 @@ code {
   --h1_fg: #eee;
   --app_header: #8aa4d8;
   --thbc: #f2f2f2;
-  --thbd: #ddd;
+  --thbd: #555;
   --input: #000;
   --input_c: #fff;
   --input_bd: #ccc;

@@ -20,7 +20,7 @@ export const Button: React.FC<ButtonProps> = ({
     ghost:
       'bg-transparent text-[var(--fg)] border border-transparent hover:bg-[var(--container_bg)]',
     outline:
-      'bg-transparent text-[var(--fg)] !border !border-[var(--border)] hover:bg-[var(--container_bg)]',
+      '!bg-[var(--btn-subtle-bg)] text-[var(--fg)] !border !border-[var(--btn-subtle-bd)] hover:opacity-95',
   }
   return (
     <button

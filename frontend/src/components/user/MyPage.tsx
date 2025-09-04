@@ -95,7 +95,9 @@ const MyPage: React.FC = () => {
             <Card className="h-full p-5 transition hover:shadow-md">
               <div className="mb-1 text-sm opacity-70">📥</div>
               <div className="text-base font-semibold">まとめて登録</div>
-              <p className="mt-1 text-sm opacity-70">CSVや複数入力に対応</p>
+              <p className="mt-1 text-sm opacity-70">
+                英文のコピペで楽に登録可能
+              </p>
             </Card>
           </Link>
 
@@ -131,7 +133,7 @@ const MyPage: React.FC = () => {
             <Card className="h-full p-5 transition hover:shadow-md">
               <div className="mb-1 text-sm opacity-70">⚙️</div>
               <div className="text-base font-semibold">ユーザー設定</div>
-              <p className="mt-1 text-sm opacity-70">テーマ・メール認証など</p>
+              <p className="mt-1 text-sm opacity-70">テーマ設定など</p>
             </Card>
           </Link>
 

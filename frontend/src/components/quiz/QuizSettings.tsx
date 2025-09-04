@@ -1,182 +1,199 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import '../../styles/ui.css'
+import clsx from 'clsx'
+import React, { useState } from 'react'
 
-import clsx from 'clsx';
-import React, { useState } from 'react';
+import { Badge, Card } from '@/components/card'
+import { Button } from '@/components/ui'
+import { getPartOfSpeech } from '@/service/word/GetPartOfSpeech'
+import { QuizSettingsType } from '@/types/quiz'
 
-import { getPartOfSpeech } from '../../service/word/GetPartOfSpeech';
-import { QuizSettingsType } from '../../types/quiz';
-import { MyCheckbox } from '../myUi/MyCheckBox';
-import { MyCollapsible } from '../myUi/MyCollapsible';
-import { MyNumberInput } from '../myUi/MyNumberInput';
-import { MySegment } from '../myUi/MySegment';
-import { MySelect } from '../myUi/MySelect';
-import { MySwitch } from '../myUi/MySwitch';
+import { MyCheckbox } from '../myUi/MyCheckBox'
+import { MyCollapsible } from '../myUi/MyCollapsible'
+import { MyNumberInput } from '../myUi/MyNumberInput'
+import { MySegment } from '../myUi/MySegment'
+import { MySelect } from '../myUi/MySelect'
+import { MySwitch } from '../myUi/MySwitch'
 
 const targetOptions = [
   { value: 0, label: '全単語' },
   { value: 1, label: '登録単語のみ' },
-];
-
+]
 const idiomsTargetOptions = [
   { value: 0, label: '全て' },
   { value: 1, label: '含む' },
   { value: 2, label: '含まない' },
-];
-
+]
 const isSpecialCharactersTargetOptions = [
   { value: 0, label: '全て' },
   { value: 1, label: '含む' },
   { value: 2, label: '含まない' },
-];
+]
+const attentionLevels = [1, 2, 3, 4, 5]
 
-const attentionLevels = [1,2,3,4,5];
-
-type QuizSettingsProps = {
+type Props = {
   settings: QuizSettingsType
-  onSaveSettings: (v: QuizSettingsType) => void;
-};
+  onSaveSettings: (v: QuizSettingsType) => void
+}
 
-const QuizSettings: React.FC<QuizSettingsProps> = ({
-  settings,
-  onSaveSettings,
-}) => {
-  const [localSettings, setLocalSettings] = useState<QuizSettingsType>(settings);
+const QuizSettings: React.FC<Props> = ({ settings, onSaveSettings }) => {
+  const [localSettings, setLocalSettings] = useState<QuizSettingsType>(settings)
+  const isRegisteredMode = localSettings.isRegisteredWords === 1
+  const upd = (k: keyof QuizSettingsType, v: any) =>
+    setLocalSettings((p) => ({ ...p, [k]: v }))
 
   const handleSave = () => {
-    onSaveSettings({ ...localSettings, quizSettingCompleted: true });
-  };
-  const isRegisteredMode = localSettings.isRegisteredWords === 1;
-
-  const upd = (k: keyof QuizSettingsType, v: any)=> setLocalSettings(p=>({...p,[k]:v}));
-  const removeCollapsedGap = true
+    onSaveSettings({ ...localSettings, quizSettingCompleted: true })
+  }
 
   return (
-    <div className="ui-card max-w-lg mx-auto">
-      <h2 className="text-lg font-bold mb-4">テスト設定</h2>
+    <div className="mx-auto max-w-2xl">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-[var(--h1_fg)]">テスト設定</h1>
+        <Badge>クイズ</Badge>
+      </div>
 
-      {/* ── 必須項目 ────────────────────────────── */}
-      <section className="ui-section">
-        <span className="ui-heading">必須</span>
+      <Card className="p-6 space-y-6">
+        {/* 必須 */}
+        <section>
+          <h2 className="mb-3 text-sm font-semibold opacity-80">必須</h2>
 
-        {/* 問題数 */}
-        <div className="flex items-center gap-3">
-          <label className="ui-label shrink-0">問題数</label>
-          <MyNumberInput value={localSettings.questionCount} min={10} max={100}
-                         onChange={v=>upd('questionCount',v)} />
-          <span className="text-sm">問</span>
-        </div>
-
-        {/* 対象単語 */}
-        <div className="flex items-center gap-3">
-          <label className="ui-label shrink-0">対象</label>
-          <MySegment value={localSettings.isRegisteredWords}
-                     onChange={v=>upd('isRegisteredWords',Number(v))}
-                     targets={targetOptions}/>
-        </div>
-
-        {/* 成績保存 */}
-        <div className="flex items-center gap-3">
-          <label className="ui-label shrink-0">成績保存</label>
-          <MySwitch id="saveRes" checked={localSettings.isSaveResult}
-                    onChange={v=>upd('isSaveResult',v)} />
-        </div>
-      </section>
-
-      {/* ── 登録単語用オプション ───────────────── */}
-      <section className={clsx("ui-section", !isRegisteredMode && "ui-disabled")}>
-        <span className="ui-heading">登録単語オプション</span>
-
-      {/* 正解率 */}
-        <MyCollapsible
-          title="正解率"
-          disabled={!isRegisteredMode}
-          defaultOpen={isRegisteredMode}      // 有効時は最初から開いておく
-          removeCollapsedGap={removeCollapsedGap}                  // 閉じている時の余白を消す
-        >
-          <div className="flex items-center gap-2">
-            <MyNumberInput
-              value={localSettings.correctRate}
-              min={0}
-              max={100}
-              onChange={v => upd('correctRate', v)}
-            />
-            <span className="text-sm">% 以下</span>
-          </div>
-        </MyCollapsible>
-
-      {/* 注意レベル */}
-        <MyCollapsible
-          title="注意レベル"
-          disabled={!isRegisteredMode}
-          removeCollapsedGap={removeCollapsedGap}
-        >
-          <div className="grid grid-cols-5 gap-2">
-            {attentionLevels.map(l => (
-              <MyCheckbox
-                key={l}
-                label={String(l)}
-                checked={localSettings.attentionLevelList.includes(l)}
-                onChange={() =>
-                  upd(
-                    'attentionLevelList',
-                    localSettings.attentionLevelList.includes(l)
-                      ? localSettings.attentionLevelList.filter(x => x !== l)
-                      : [...localSettings.attentionLevelList, l]
-                  )
-                }
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* 問題数 */}
+            <div className="flex items-center gap-3">
+              <label className="shrink-0 text-sm opacity-80">問題数</label>
+              <MyNumberInput
+                value={localSettings.questionCount}
+                min={10}
+                max={100}
+                onChange={(v) => upd('questionCount', v)}
               />
-            ))}
-          </div>
-        </MyCollapsible>
-      </section>
+              <span className="text-sm opacity-70">問</span>
+            </div>
 
-      <section className="ui-section">
-        <span className="ui-heading">その他</span>
-
-      {/* 品詞 */}
-        <MyCollapsible title="出題する品詞" disabled={false} removeCollapsedGap={removeCollapsedGap}>
-          <div className="grid grid-cols-2 gap-2">
-            {getPartOfSpeech.map(p => (
-              <MyCheckbox
-                key={p.id}
-                label={p.name}
-                checked={localSettings.partsOfSpeeches.includes(p.id)}
-                onChange={() =>
-                  upd(
-                    'partsOfSpeeches',
-                    localSettings.partsOfSpeeches.includes(p.id)
-                      ? localSettings.partsOfSpeeches.filter(x => x !== p.id)
-                      : [...localSettings.partsOfSpeeches, p.id]
-                  )
-                }
+            {/* 対象単語 */}
+            <div className="flex items-center gap-3">
+              <label className="shrink-0 text-sm opacity-80">対象</label>
+              <MySegment
+                value={localSettings.isRegisteredWords}
+                onChange={(v) => upd('isRegisteredWords', Number(v))}
+                targets={targetOptions}
               />
-            ))}
+            </div>
+
+            {/* 成績保存 */}
+            <div className="flex items-center gap-3">
+              <label className="shrink-0 text-sm opacity-80">成績保存</label>
+              <MySwitch
+                id="saveRes"
+                checked={localSettings.isSaveResult}
+                onChange={(v) => upd('isSaveResult', v)}
+              />
+            </div>
           </div>
-        </MyCollapsible>
+        </section>
 
-        {/* 慣用句 / 特殊文字 */}
-        <div className="flex items-center gap-3">
-          <label className="ui-label">慣用句</label>
-          <MySelect options={idiomsTargetOptions} value={localSettings.isIdioms}
-                    onChange={v=>upd('isIdioms',v)}/>
-        </div>
-        <div className="flex items-center gap-3">
-          <label className="ui-label">特殊文字</label>
-          <MySelect options={isSpecialCharactersTargetOptions} value={localSettings.isSpecialCharacters}
-                    onChange={v=>upd('isSpecialCharacters',v)}/>
-        </div>
-      </section>
+        {/* 登録単語オプション */}
+        <section className={clsx(!isRegisteredMode && 'opacity-60')}>
+          <h2 className="mb-3 text-sm font-semibold opacity-80">
+            登録単語オプション
+          </h2>
 
-      {/* ── ボタン ───────────────────────────── */}
-      <button
-        onClick={handleSave}
-              className="mt-6 w-full rounded-md bg-primary py-2 text-white font-semibold
-                         hover:bg-primary/90 transition">
-        上記の設定でテスト開始
-      </button>
+          <MyCollapsible
+            title="正解率"
+            disabled={!isRegisteredMode}
+            defaultOpen={isRegisteredMode}
+            removeCollapsedGap
+          >
+            <div className="flex items-center gap-2">
+              <MyNumberInput
+                value={localSettings.correctRate}
+                min={0}
+                max={100}
+                onChange={(v) => upd('correctRate', v)}
+              />
+              <span className="text-sm opacity-70">% 以下</span>
+            </div>
+          </MyCollapsible>
+
+          <MyCollapsible
+            title="注意レベル"
+            disabled={!isRegisteredMode}
+            removeCollapsedGap
+          >
+            <div className="grid grid-cols-5 gap-2">
+              {attentionLevels.map((l) => (
+                <MyCheckbox
+                  key={l}
+                  label={String(l)}
+                  checked={localSettings.attentionLevelList.includes(l)}
+                  onChange={() =>
+                    upd(
+                      'attentionLevelList',
+                      localSettings.attentionLevelList.includes(l)
+                        ? localSettings.attentionLevelList.filter(
+                            (x) => x !== l,
+                          )
+                        : [...localSettings.attentionLevelList, l],
+                    )
+                  }
+                />
+              ))}
+            </div>
+          </MyCollapsible>
+        </section>
+
+        {/* その他 */}
+        <section>
+          <h2 className="mb-3 text-sm font-semibold opacity-80">その他</h2>
+
+          <MyCollapsible title="出題する品詞" removeCollapsedGap>
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
+              {getPartOfSpeech.map((p) => (
+                <MyCheckbox
+                  key={p.id}
+                  label={p.name}
+                  checked={localSettings.partsOfSpeeches.includes(p.id)}
+                  onChange={() =>
+                    upd(
+                      'partsOfSpeeches',
+                      localSettings.partsOfSpeeches.includes(p.id)
+                        ? localSettings.partsOfSpeeches.filter(
+                            (x) => x !== p.id,
+                          )
+                        : [...localSettings.partsOfSpeeches, p.id],
+                    )
+                  }
+                />
+              ))}
+            </div>
+          </MyCollapsible>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className="flex items-center gap-3">
+              <label className="text-sm opacity-80">慣用句</label>
+              <MySelect
+                options={idiomsTargetOptions}
+                value={localSettings.isIdioms}
+                onChange={(v) => upd('isIdioms', v)}
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="text-sm opacity-80">特殊文字</label>
+              <MySelect
+                options={isSpecialCharactersTargetOptions}
+                value={localSettings.isSpecialCharacters}
+                onChange={(v) => upd('isSpecialCharacters', v)}
+              />
+            </div>
+          </div>
+        </section>
+
+        <Button className="w-full" onClick={handleSave}>
+          上記の設定でテスト開始
+        </Button>
+      </Card>
     </div>
-  );
-};
+  )
+}
 
-export default QuizSettings;
+export default QuizSettings

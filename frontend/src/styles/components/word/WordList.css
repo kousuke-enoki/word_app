@@ -51,7 +51,7 @@ button {
   color: var(--button);
   background-color: var(--button_bg);
 
-  border: none;
+  border: #5b8cff;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -118,12 +118,16 @@ table tr:nth-child(even) {
   --pagination: #ffffff;
   --pagination_bd: #cfd4dc;
   --select_bd: var(--input_bd);
-  }
-  .dark {
+  --btn-subtle-bg: rgba(59, 130, 246, 0.1); /* blue-500 の 10% */
+  --btn-subtle-bd: #9ab9ff; /* うすめの青境界 */
+}
+.dark {
   --button: #ffffff;
   --button_border: #5b8cff;
   --button_bg: #3b82f6;
   --pagination_bg: #3b82f6;
   --pagination: #ffffff;
   --pagination_bd: #343a46;
-  }
+  --btn-subtle-bg: rgba(59, 130, 246, 0.18);
+  --btn-subtle-bd: #82a6ff;
+}

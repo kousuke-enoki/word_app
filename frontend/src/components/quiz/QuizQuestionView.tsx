@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 
 import axiosInstance from '@/axiosConfig'
-import { Badge, Card } from '@/components/card'
-import { Button } from '@/components/ui'
+import { Badge, Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/ui'
 import type { AnswerRouteRes, ChoiceJpm, QuizQuestion } from '@/types/quiz'
 
 type Props = {

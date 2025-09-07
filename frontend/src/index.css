@@ -58,6 +58,8 @@ code {
   --shadow: rgba(0, 0, 0, 0.1);
 
   --word_i_sec: #ddd;
+  --table_row_hover: #61646a;
+  --table_row_active:#e0ecff;
 }
 .dark {
   --bg: #1a1a1a;
@@ -106,6 +108,8 @@ code {
   --shadow: rgba(0, 0, 0, 0.3);
 
   --word_i_sec: #424242;
+  --table_row_hover: #273142;
+  --table_row_active:#202a3a;
 }
 
 /* 任意のコンポーネント */

@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react'
 
 import axiosInstance from '@/axiosConfig'
-import { Badge, Card, Input, PageContainer } from '@/components/card'
-import { PageShell } from '@/components/PageShell'
-import { Button } from '@/components/ui'
+import { Badge, Card, Input, PageContainer } from '@/components/ui/card'
+import { PageShell } from '@/components/ui/PageShell'
+import { Button } from '@/components/ui/ui'
 
 type Token = { word: string; checked: boolean }
 

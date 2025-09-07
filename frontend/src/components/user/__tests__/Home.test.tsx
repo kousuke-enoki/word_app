@@ -12,12 +12,12 @@ vi.mock('@/contexts/themeContext', () => ({
 }))
 
 /* 外部 UI を薄くモック（レンダリング安定化） */
-vi.mock('@/components/PageShell', () => ({
+vi.mock('@/components/ui/PageShell', () => ({
   PageShell: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="PageShell">{children}</div>
   ),
 }))
-vi.mock('@/components/card', () => ({
+vi.mock('@/components/ui/card', () => ({
   Card: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="Card">{children}</div>
   ),
@@ -25,7 +25,7 @@ vi.mock('@/components/card', () => ({
     <div data-testid="PageContainer">{children}</div>
   ),
 }))
-vi.mock('@/components/ui', () => ({
+vi.mock('@/components/ui/ui', () => ({
   // Link 内に入れても role=link の名前計算に使われるよう、span でOK
   Button: ({ children, ...rest }: any) => <span {...rest}>{children}</span>,
 }))

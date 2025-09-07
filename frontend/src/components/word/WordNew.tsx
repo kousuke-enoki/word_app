@@ -2,9 +2,9 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import axiosInstance from '@/axiosConfig'
-import { Badge, Card, Input, PageContainer } from '@/components/card'
-import { PageShell } from '@/components/PageShell'
-import { Button } from '@/components/ui'
+import { Badge, Card, Input, PageContainer } from '@/components/ui/card'
+import { PageShell } from '@/components/ui/PageShell'
+import { Button } from '@/components/ui/ui'
 import {
   getPartOfSpeech,
   PartOfSpeechOption,

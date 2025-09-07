@@ -2,8 +2,8 @@
 import clsx from 'clsx'
 import React, { useState } from 'react'
 
-import { Badge, Card } from '@/components/card'
-import { Button } from '@/components/ui'
+import { Badge, Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/ui'
 import { getPartOfSpeech } from '@/service/word/GetPartOfSpeech'
 import { QuizSettingsType } from '@/types/quiz'
 

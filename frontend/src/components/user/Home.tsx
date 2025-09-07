@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { Card,PageContainer } from '@/components/card'
-import { PageShell } from '@/components/PageShell'
-import { Button } from '@/components/ui'
+import { Card,PageContainer } from '@/components/ui/card'
+import { PageShell } from '@/components/ui/PageShell'
+import { Button } from '@/components/ui/ui'
 import { useTheme } from '@/contexts/themeContext'
 
 const Home: React.FC = () => {

@@ -2,9 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import axiosInstance from '@/axiosConfig'
-import type { ResultSummary } from '@/types/result'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/ui'
+import type { ResultSummary } from '@/types/result'
 
 /* 品詞 ID → 名称 */
 const POS_MAP: Record<number, string> = {
@@ -21,8 +21,7 @@ const ResultIndex: React.FC = () => {
   const nav = useNavigate()
 
   const [list, setList] = useState<ResultSummary[]>([])
-  const [pageSize, setPageSize] =
-    useState<(typeof PAGE_SIZES)[number]>(10)
+  const [pageSize, setPageSize] = useState<(typeof PAGE_SIZES)[number]>(10)
   const [page, setPage] = useState(0) // 0-based
   const [loading, setLoading] = useState(true)
   const [errMsg, setErrMsg] = useState('')
@@ -33,7 +32,8 @@ const ResultIndex: React.FC = () => {
         const res = await axiosInstance.get<ResultSummary[]>('/results')
         setList(
           res.data.sort(
-            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
           ),
         )
       } catch (e) {
@@ -88,7 +88,7 @@ const ResultIndex: React.FC = () => {
               {list.length === 0 ? '0' : `${start + 1}`}–{end} / {list.length}
             </span>
             <Button
-              variant="outline"
+              variant={page + 1 >= totalPages ? 'outline' : 'primary'}
               disabled={page === 0}
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               className="px-3"
@@ -96,7 +96,7 @@ const ResultIndex: React.FC = () => {
               Prev
             </Button>
             <Button
-              variant="outline"
+              variant={page + 1 >= totalPages ? 'outline' : 'primary'}
               disabled={page + 1 >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               className="px-3"
@@ -111,15 +111,21 @@ const ResultIndex: React.FC = () => {
           <table className="min-w-[720px] w-full border-collapse text-sm">
             <thead>
               <tr className="bg-[var(--table_th)] text-[var(--table_th_c)]">
-                <th className="px-3 py-2 text-left font-semibold rounded-l-lg">#</th>
-                <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">日付</th>
+                <th className="px-3 py-2 text-left font-semibold rounded-l-lg">
+                  #
+                </th>
+                <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">
+                  日付
+                </th>
                 <th className="px-3 py-2 text-left font-semibold">登録単語</th>
                 <th className="px-3 py-2 text-left font-semibold">慣用句</th>
                 <th className="px-3 py-2 text-left font-semibold">特殊</th>
                 <th className="px-3 py-2 text-left font-semibold">品詞</th>
                 <th className="px-3 py-2 text-right font-semibold">問題</th>
                 <th className="px-3 py-2 text-right font-semibold">正解</th>
-                <th className="px-3 py-2 text-right font-semibold rounded-r-lg">正解率</th>
+                <th className="px-3 py-2 text-right font-semibold rounded-r-lg">
+                  正解率
+                </th>
               </tr>
             </thead>
 
@@ -143,23 +149,34 @@ const ResultIndex: React.FC = () => {
                       active:[&>td]:bg-[var(--table_row_active)]
                       focus-visible:[&>td]:bg-[var(--table_row_hover)]
                     "
-                    onKeyDown={(e) => { if (e.key === 'Enter') nav(`/results/${r.quizNumber}`) }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') nav(`/results/${r.quizNumber}`)
+                    }}
                   >
                     <td className="px-3 py-2 group-hover:bg-[var(--table_row_hover)] active:bg-[var(--table_row_active)] even:bg-[var(--table_tr_e)]">
                       {r.quizNumber}
                     </td>
 
-
                     <td className="px-3 py-2 whitespace-nowrap">
                       {new Date(r.createdAt).toLocaleString()}
                     </td>
-                    <td className="px-3 py-2">{['全', '登録のみ', '未登録のみ'][r.isRegisteredWords]}</td>
-                    <td className="px-3 py-2">{['全て', '含む', '含まない'][r.isIdioms]}</td>
-                    <td className="px-3 py-2">{['全て', '含む', '含まない'][r.isSpecialCharacters]}</td>
                     <td className="px-3 py-2">
-                      {r.choicesPosIds.map((id) => POS_MAP[id] ?? id).join(', ')}
+                      {['全', '登録のみ', '未登録のみ'][r.isRegisteredWords]}
                     </td>
-                    <td className="px-3 py-2 text-right">{r.totalQuestionsCount}</td>
+                    <td className="px-3 py-2">
+                      {['全て', '含む', '含まない'][r.isIdioms]}
+                    </td>
+                    <td className="px-3 py-2">
+                      {['全て', '含む', '含まない'][r.isSpecialCharacters]}
+                    </td>
+                    <td className="px-3 py-2">
+                      {r.choicesPosIds
+                        .map((id) => POS_MAP[id] ?? id)
+                        .join(', ')}
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      {r.totalQuestionsCount}
+                    </td>
                     <td className="px-3 py-2 text-right">{r.correctCount}</td>
                     <td className="px-3 py-2 text-right">
                       {r.resultCorrectRate.toFixed(1)}%
@@ -171,11 +188,10 @@ const ResultIndex: React.FC = () => {
           </table>
         </div>
 
-
         {/* 下部ページャ（モバイル用補助） */}
         <div className="mt-4 flex items-center justify-center gap-2 sm:justify-end">
           <Button
-            variant="outline"
+            variant={page + 1 >= totalPages ? 'outline' : 'primary'}
             disabled={page === 0}
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             className="px-3"
@@ -186,7 +202,7 @@ const ResultIndex: React.FC = () => {
             {page + 1} / {totalPages}
           </span>
           <Button
-            variant="outline"
+            variant={page + 1 >= totalPages ? 'outline' : 'primary'}
             disabled={page + 1 >= totalPages}
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             className="px-3"

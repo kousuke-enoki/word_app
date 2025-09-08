@@ -58,8 +58,10 @@ code {
   --shadow: rgba(0, 0, 0, 0.1);
 
   --word_i_sec: #ddd;
-  --table_row_hover: #61646a;
-  --table_row_active:#e0ecff;
+  --table_row_hover: #eef2ff;
+  --table_row_active: #e0e7ff;
+  --btn-subtle-bg: #f3f4f6;
+  --btn-subtle-bd: #d1d5db;
 }
 .dark {
   --bg: #1a1a1a;
@@ -108,8 +110,10 @@ code {
   --shadow: rgba(0, 0, 0, 0.3);
 
   --word_i_sec: #424242;
-  --table_row_hover: #273142;
-  --table_row_active:#202a3a;
+  --table_row_hover: #2b3443;
+  --table_row_active: #353f52;
+  --btn-subtle-bg: #262b36;
+  --btn-subtle-bd: #3a4252;
 }
 
 /* 任意のコンポーネント */

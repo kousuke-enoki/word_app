@@ -5,6 +5,6 @@ import App from './App'
 
 test('renders the main heading', () => {
   render(<App />)
-  const linkElement = screen.getByText(/word app/i)
+  const linkElement = screen.getByText(/DictQuiz/i)
   expect(linkElement)
 })

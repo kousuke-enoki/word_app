@@ -3,8 +3,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import axiosInstance from '@/axiosConfig'
-import { Card, Input, PageContainer } from '@/components/ui/card'
-import { PageShell } from '@/components/ui/PageShell'
+import { Card, Input } from '@/components/ui/card'
 import { Button } from '@/components/ui/ui'
 import { useTheme } from '@/contexts/themeContext'
 
@@ -63,96 +62,84 @@ const SignUp: React.FC = () => {
       ))
 
   return (
-    <PageShell>
-      <PageContainer>
-        <div className="mx-auto max-w-md">
-          <div className="mb-8 text-center">
-            <h1 className="text-2xl font-bold text-[var(--h1_fg)]">
-              サインアップ
-            </h1>
-            <p className="mt-1 text-sm opacity-70">
-              アカウントを作成して学習を始めましょう。
-            </p>
+    <div className="mx-auto max-w-md">
+      <div className="mb-8 text-center">
+        <h1 className="text-2xl font-bold text-[var(--h1_fg)]">サインアップ</h1>
+        <p className="mt-1 text-sm opacity-70">
+          アカウントを作成して学習を始めましょう。
+        </p>
+      </div>
+
+      <Card className="p-6">
+        <form onSubmit={handleSignUp} className="space-y-5">
+          <div>
+            <label className="mb-1 block text-sm font-medium" htmlFor="name">
+              Name
+            </label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your Name"
+              required
+            />
+            {getErrorMessages('name')}
           </div>
 
-          <Card className="p-6">
-            <form onSubmit={handleSignUp} className="space-y-5">
-              <div>
-                <label
-                  className="mb-1 block text-sm font-medium"
-                  htmlFor="name"
-                >
-                  Name
-                </label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Your Name"
-                  required
-                />
-                {getErrorMessages('name')}
-              </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium" htmlFor="email">
+              Email
+            </label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+            />
+            {getErrorMessages('email')}
+          </div>
 
-              <div>
-                <label
-                  className="mb-1 block text-sm font-medium"
-                  htmlFor="email"
-                >
-                  Email
-                </label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  required
-                />
-                {getErrorMessages('email')}
-              </div>
+          <div>
+            <label
+              className="mb-1 block text-sm font-medium"
+              htmlFor="password"
+            >
+              Password
+            </label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+            />
+            {getErrorMessages('password')}
+          </div>
 
-              <div>
-                <label
-                  className="mb-1 block text-sm font-medium"
-                  htmlFor="password"
-                >
-                  Password
-                </label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                />
-                {getErrorMessages('password')}
-              </div>
+          {message && (
+            <div
+              className={`rounded-lg border-l-4 ${errors.length ? 'border-red-500 text-red-600' : 'border-[var(--success_pop_bc)]'} bg-[var(--container_bg)] px-3 py-2 text-sm`}
+            >
+              {message}
+            </div>
+          )}
 
-              {message && (
-                <div
-                  className={`rounded-lg border-l-4 ${errors.length ? 'border-red-500 text-red-600' : 'border-[var(--success_pop_bc)]'} bg-[var(--container_bg)] px-3 py-2 text-sm`}
-                >
-                  {message}
-                </div>
-              )}
+          <Button disabled={loading} className="w-full">
+            {loading ? 'サインアップ中…' : 'サインアップ'}
+          </Button>
+        </form>
+      </Card>
 
-              <Button disabled={loading} className="w-full">
-                {loading ? 'サインアップ中…' : 'サインアップ'}
-              </Button>
-            </form>
-          </Card>
-
-          <p className="mt-4 text-center text-sm opacity-80">
-            すでにアカウントをお持ちですか？{' '}
-            <Link className="underline" to="/sign_in">
-              サインイン
-            </Link>
-          </p>
-        </div>
-      </PageContainer>
-    </PageShell>
+      <p className="mt-4 text-center text-sm opacity-80">
+        すでにアカウントをお持ちですか？{' '}
+        <Link className="underline" to="/sign_in">
+          サインイン
+        </Link>
+      </p>
+    </div>
   )
 }
 

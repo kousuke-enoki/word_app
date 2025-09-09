@@ -1,16 +1,16 @@
+import '@/styles/components/word/WordList.css'
+
 import { useMutation, useQuery } from '@tanstack/react-query'
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import axiosInstance from '@/axiosConfig'
-import { Badge, Card, Input, PageContainer } from '@/components/ui/card'
-import { PageShell } from '@/components/ui/PageShell'
+import { Badge, Card, Input } from '@/components/ui/card'
 import { Button } from '@/components/ui/ui'
 import {
   getPartOfSpeech,
   PartOfSpeechOption,
 } from '@/service/word/GetPartOfSpeech'
-import '@/styles/components/word/WordList.css'
 
 export type WordForUpdate = {
   id: number
@@ -129,147 +129,119 @@ const WordEdit: React.FC = () => {
     return getPartOfSpeech.filter((o) => !selected.includes(o.id))
   }
 
-  if (isLoading)
-    return (
-      <PageShell>
-        <PageContainer>
-          <p>読み込み中…</p>
-        </PageContainer>
-      </PageShell>
-    )
+  if (isLoading) return <p>読み込み中…</p>
   if (isError)
     return (
-      <PageShell>
-        <PageContainer>
-          <div className="rounded-xl border-l-4 border-red-500 bg-[var(--container_bg)] px-4 py-3 text-sm text-red-600">
-            単語情報の取得中にエラーが発生しました。{' '}
-            <Button
-              variant="outline"
-              className="ml-2"
-              onClick={() => refetch()}
-            >
-              再取得
-            </Button>
-          </div>
-        </PageContainer>
-      </PageShell>
+      <div className="rounded-xl border-l-4 border-red-500 bg-[var(--container_bg)] px-4 py-3 text-sm text-red-600">
+        単語情報の取得中にエラーが発生しました。{' '}
+        <Button variant="outline" className="ml-2" onClick={() => refetch()}>
+          再取得
+        </Button>
+      </div>
     )
-  if (!word)
-    return (
-      <PageShell>
-        <PageContainer>
-          <p>データが存在しません。</p>
-        </PageContainer>
-      </PageShell>
-    )
+  if (!word) return <p>データが存在しません。</p>
 
   return (
-    <PageShell>
-      <PageContainer>
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-[var(--h1_fg)]">単語更新</h1>
-          <Badge>🛠️ Edit</Badge>
+    <div>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-[var(--h1_fg)]">単語更新</h1>
+        <Badge>🛠️ Edit</Badge>
+      </div>
+
+      {errorMessage && (
+        <div className="mb-4 rounded-xl border-l-4 border-red-500 bg-[var(--container_bg)] px-4 py-3 text-sm text-red-600">
+          {errorMessage}
         </div>
+      )}
 
-        {errorMessage && (
-          <div className="mb-4 rounded-xl border-l-4 border-red-500 bg-[var(--container_bg)] px-4 py-3 text-sm text-red-600">
-            {errorMessage}
+      <Card className="p-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="mb-1 block text-sm font-medium">単語名</label>
+            <Input value={word.name} onChange={handleWordNameChange} required />
+            {validationErrors.name && (
+              <p className="mt-1 text-sm text-red-600">
+                {validationErrors.name}
+              </p>
+            )}
           </div>
-        )}
 
-        <Card className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="mb-1 block text-sm font-medium">単語名</label>
-              <Input
-                value={word.name}
-                onChange={handleWordNameChange}
-                required
-              />
-              {validationErrors.name && (
-                <p className="mt-1 text-sm text-red-600">
-                  {validationErrors.name}
-                </p>
-              )}
-            </div>
-
-            {word.wordInfos.map((wi, wiIndex) => {
-              const infoErr = validationErrors.wordInfos?.[wiIndex]
-              return (
-                <Card key={wi.id} className="p-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className="mb-1 block text-sm font-medium">
-                        品詞
-                      </label>
-                      <select
-                        className="w-full rounded-xl border border-[var(--input_bd)] bg-[var(--select)] px-3 py-2 text-[var(--select_c)]"
-                        value={wi.partOfSpeechId}
-                        onChange={(e) =>
-                          handlePartOfSpeechChange(wiIndex, e.target.value)
-                        }
-                        required
-                      >
-                        <option value={0}>選択してください</option>
-                        {getAvailablePartOfSpeechOptions(wiIndex).map((o) => (
-                          <option key={o.id} value={o.id}>
-                            {o.name}
-                          </option>
-                        ))}
-                      </select>
-                      {infoErr?.partOfSpeech && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {infoErr.partOfSpeech}
-                        </p>
-                      )}
-                    </div>
+          {word.wordInfos.map((wi, wiIndex) => {
+            const infoErr = validationErrors.wordInfos?.[wiIndex]
+            return (
+              <Card key={wi.id} className="p-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">
+                      品詞
+                    </label>
+                    <select
+                      className="w-full rounded-xl border border-[var(--input_bd)] bg-[var(--select)] px-3 py-2 text-[var(--select_c)]"
+                      value={wi.partOfSpeechId}
+                      onChange={(e) =>
+                        handlePartOfSpeechChange(wiIndex, e.target.value)
+                      }
+                      required
+                    >
+                      <option value={0}>選択してください</option>
+                      {getAvailablePartOfSpeechOptions(wiIndex).map((o) => (
+                        <option key={o.id} value={o.id}>
+                          {o.name}
+                        </option>
+                      ))}
+                    </select>
+                    {infoErr?.partOfSpeech && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {infoErr.partOfSpeech}
+                      </p>
+                    )}
                   </div>
+                </div>
 
-                  <div className="mt-4 space-y-3">
-                    {wi.japaneseMeans.map((m, mi) => (
-                      <div key={m.id} className="grid gap-2 sm:grid-cols-1">
-                        <div>
-                          <label className="mb-1 block text-sm font-medium">
-                            日本語訳
-                          </label>
-                          <Input
-                            value={m.name}
-                            onChange={(e) =>
-                              handleJapaneseMeanChange(
-                                wiIndex,
-                                mi,
-                                e.target.value,
-                              )
-                            }
-                            required
-                          />
-                          {infoErr?.japaneseMeans?.[mi] && (
-                            <p className="mt-1 text-sm text-red-600">
-                              {infoErr.japaneseMeans[mi]}
-                            </p>
-                          )}
-                        </div>
+                <div className="mt-4 space-y-3">
+                  {wi.japaneseMeans.map((m, mi) => (
+                    <div key={m.id} className="grid gap-2 sm:grid-cols-1">
+                      <div>
+                        <label className="mb-1 block text-sm font-medium">
+                          日本語訳
+                        </label>
+                        <Input
+                          value={m.name}
+                          onChange={(e) =>
+                            handleJapaneseMeanChange(
+                              wiIndex,
+                              mi,
+                              e.target.value,
+                            )
+                          }
+                          required
+                        />
+                        {infoErr?.japaneseMeans?.[mi] && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {infoErr.japaneseMeans[mi]}
+                          </p>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                </Card>
-              )
-            })}
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )
+          })}
 
-            <div className="flex flex-wrap items-center gap-3">
-              <Button type="submit">単語を更新</Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate(`/words/${word.id}`)}
-              >
-                単語詳細に戻る
-              </Button>
-            </div>
-          </form>
-        </Card>
-      </PageContainer>
-    </PageShell>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit">単語を更新</Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate(`/words/${word.id}`)}
+            >
+              単語詳細に戻る
+            </Button>
+          </div>
+        </form>
+      </Card>
+    </div>
   )
 }
 

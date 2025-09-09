@@ -1,8 +1,8 @@
-// src/components/user/__tests__/Home.test.tsx
-import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
+import React from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import Home from '../Home'
 
 /* ThemeContext をモック */
@@ -27,7 +27,12 @@ vi.mock('@/components/ui/card', () => ({
 }))
 vi.mock('@/components/ui/ui', () => ({
   // Link 内に入れても role=link の名前計算に使われるよう、span でOK
-  Button: ({ children, ...rest }: any) => <span {...rest}>{children}</span>,
+  Button: ({
+    children,
+    ...rest
+  }: React.PropsWithChildren<React.HTMLAttributes<HTMLSpanElement>>) => (
+    <span {...rest}>{children}</span>
+  ),
 }))
 
 beforeEach(() => {
@@ -58,9 +63,7 @@ describe('Home', () => {
     )
 
     // logoutMessage はない
-    expect(
-      screen.queryByText(/サインアウトしました/),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText(/サインアウトしました/)).not.toBeInTheDocument()
 
     // useEffect の呼び出しを待つ
     await waitFor(() => expect(setThemeMock).toHaveBeenCalledWith('light'))
@@ -104,8 +107,6 @@ describe('Home', () => {
     // 再マウント（次回訪問想定）
     unmount()
     renderHome()
-    expect(
-      screen.queryByText('サインアウトしました'),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText('サインアウトしました')).not.toBeInTheDocument()
   })
 })

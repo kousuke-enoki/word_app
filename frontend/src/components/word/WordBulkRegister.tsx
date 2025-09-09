@@ -1,8 +1,7 @@
 import React, { useMemo, useState } from 'react'
 
 import axiosInstance from '@/axiosConfig'
-import { Badge, Card, Input, PageContainer } from '@/components/ui/card'
-import { PageShell } from '@/components/ui/PageShell'
+import { Badge, Card, Input } from '@/components/ui/card'
 import { Button } from '@/components/ui/ui'
 
 type Token = { word: string; checked: boolean }
@@ -112,153 +111,145 @@ const WordBulkRegister: React.FC = () => {
     setTokens((prev) => prev.map((p) => ({ ...p, checked: next })))
 
   return (
-    <PageShell>
-      <PageContainer>
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-[var(--h1_fg)]">
-            単語一括登録
-          </h1>
-          <Badge>β</Badge>
+    <div>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-[var(--h1_fg)]">単語一括登録</h1>
+        <Badge>β</Badge>
+      </div>
+
+      {/* 入力カード */}
+      <Card className="mb-6 p-6">
+        <div className="mb-3 flex items-center justify-between text-sm opacity-80">
+          <span>英語の長文を貼り付けてください（{MAX_LEN} 文字まで）</span>
+          <span>
+            {text.length}/{MAX_LEN}
+          </span>
         </div>
 
-        {/* 入力カード */}
-        <Card className="mb-6 p-6">
-          <div className="mb-3 flex items-center justify-between text-sm opacity-80">
-            <span>英語の長文を貼り付けてください（{MAX_LEN} 文字まで）</span>
-            <span>
-              {text.length}/{MAX_LEN}
+        <textarea
+          className="w-full rounded-xl border border-[var(--textarea_bd,var(--input_bd))] bg-[var(--textarea_bg)] p-3 text-[var(--textarea_c)] outline-none focus:ring-2 ring-[var(--button_bg)]"
+          rows={8}
+          maxLength={MAX_LEN}
+          placeholder="Paste your English paragraph here..."
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Button onClick={handleExtract} disabled={loading || !text.trim()}>
+            {loading ? '抽出中…' : '抽出'}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleReset}
+            disabled={loading && !tokens.length}
+          >
+            初期化
+          </Button>
+
+          {msg && (
+            <span className="ml-auto rounded-lg border-l-4 border-[var(--success_pop_bc)] bg-[var(--container_bg)] px-3 py-1.5 text-sm">
+              {msg}
             </span>
-          </div>
+          )}
+        </div>
+      </Card>
 
-          <textarea
-            className="w-full rounded-xl border border-[var(--textarea_bd,var(--input_bd))] bg-[var(--textarea_bg)] p-3 text-[var(--textarea_c)] outline-none focus:ring-2 ring-[var(--button_bg)]"
-            rows={8}
-            maxLength={MAX_LEN}
-            placeholder="Paste your English paragraph here..."
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-          />
-
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <Button onClick={handleExtract} disabled={loading || !text.trim()}>
-              {loading ? '抽出中…' : '抽出'}
+      {/* 候補カード */}
+      {tokens.length > 0 && (
+        <Card className="mb-6 p-6">
+          {/* ツールバー */}
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <div className="min-w-[220px] flex-1">
+              <Input
+                placeholder="検索..."
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+              />
+            </div>
+            <Badge>候補: {sorted.length}</Badge>
+            <Badge>選択: {checkedCount} / 200</Badge>
+            <Button variant="outline" onClick={() => toggleAll(true)}>
+              全選択
+            </Button>
+            <Button variant="outline" onClick={() => toggleAll(false)}>
+              全解除
             </Button>
             <Button
-              variant="outline"
-              onClick={handleReset}
-              disabled={loading && !tokens.length}
+              className="ml-auto"
+              onClick={handleRegister}
+              disabled={loading || checkedCount === 0}
             >
-              初期化
+              {loading ? '登録中…' : 'まとめて登録'}
             </Button>
+          </div>
 
-            {msg && (
-              <span className="ml-auto rounded-lg border-l-4 border-[var(--success_pop_bc)] bg-[var(--container_bg)] px-3 py-1.5 text-sm">
-                {msg}
-              </span>
-            )}
+          {/* 候補一覧 */}
+          <div className="max-h-[360px] overflow-y-auto rounded-xl border border-[var(--border)] p-3">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+              {sorted.map((t) => (
+                <label
+                  key={t.word}
+                  className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                    t.checked
+                      ? 'border-[var(--btn-subtle-bd)] bg-[var(--btn-subtle-bg)]'
+                      : 'border-[var(--border)] bg-[var(--container_bg)]'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={t.checked}
+                    onChange={() =>
+                      setTokens((prev) =>
+                        prev.map((p) =>
+                          p.word === t.word ? { ...p, checked: !p.checked } : p,
+                        ),
+                      )
+                    }
+                  />
+                  <span className="truncate">{t.word}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {registedMsg && (
+            <div className="mt-4 rounded-lg border-l-4 border-[var(--success_pop_bc)] bg-[var(--container_bg)] px-3 py-2 text-sm">
+              {registedMsg}
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* 補助情報 */}
+      {registeredWords.length > 0 && (
+        <Card className="mb-4 p-5">
+          <div className="mb-2 text-sm font-semibold">すでに登録済みの単語</div>
+          <div className="max-h-40 overflow-y-auto">
+            <div className="flex flex-wrap gap-2">
+              {registeredWords.map((w) => (
+                <Badge key={`reg-${w}`}>{w}</Badge>
+              ))}
+            </div>
           </div>
         </Card>
+      )}
 
-        {/* 候補カード */}
-        {tokens.length > 0 && (
-          <Card className="mb-6 p-6">
-            {/* ツールバー */}
-            <div className="mb-4 flex flex-wrap items-center gap-3">
-              <div className="min-w-[220px] flex-1">
-                <Input
-                  placeholder="検索..."
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                />
-              </div>
-              <Badge>候補: {sorted.length}</Badge>
-              <Badge>選択: {checkedCount} / 200</Badge>
-              <Button variant="outline" onClick={() => toggleAll(true)}>
-                全選択
-              </Button>
-              <Button variant="outline" onClick={() => toggleAll(false)}>
-                全解除
-              </Button>
-              <Button
-                className="ml-auto"
-                onClick={handleRegister}
-                disabled={loading || checkedCount === 0}
-              >
-                {loading ? '登録中…' : 'まとめて登録'}
-              </Button>
+      {notExistWords.length > 0 && (
+        <Card className="mb-4 p-5">
+          <div className="mb-2 text-sm font-semibold">
+            データが存在しないため登録できない単語
+          </div>
+          <div className="max-h-40 overflow-y-auto">
+            <div className="flex flex-wrap gap-2">
+              {notExistWords.map((w) => (
+                <Badge key={`no-${w}`}>{w}</Badge>
+              ))}
             </div>
-
-            {/* 候補一覧 */}
-            <div className="max-h-[360px] overflow-y-auto rounded-xl border border-[var(--border)] p-3">
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-                {sorted.map((t) => (
-                  <label
-                    key={t.word}
-                    className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
-                      t.checked
-                        ? 'border-[var(--btn-subtle-bd)] bg-[var(--btn-subtle-bg)]'
-                        : 'border-[var(--border)] bg-[var(--container_bg)]'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={t.checked}
-                      onChange={() =>
-                        setTokens((prev) =>
-                          prev.map((p) =>
-                            p.word === t.word
-                              ? { ...p, checked: !p.checked }
-                              : p,
-                          ),
-                        )
-                      }
-                    />
-                    <span className="truncate">{t.word}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {registedMsg && (
-              <div className="mt-4 rounded-lg border-l-4 border-[var(--success_pop_bc)] bg-[var(--container_bg)] px-3 py-2 text-sm">
-                {registedMsg}
-              </div>
-            )}
-          </Card>
-        )}
-
-        {/* 補助情報 */}
-        {registeredWords.length > 0 && (
-          <Card className="mb-4 p-5">
-            <div className="mb-2 text-sm font-semibold">
-              すでに登録済みの単語
-            </div>
-            <div className="max-h-40 overflow-y-auto">
-              <div className="flex flex-wrap gap-2">
-                {registeredWords.map((w) => (
-                  <Badge key={`reg-${w}`}>{w}</Badge>
-                ))}
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {notExistWords.length > 0 && (
-          <Card className="mb-4 p-5">
-            <div className="mb-2 text-sm font-semibold">
-              データが存在しないため登録できない単語
-            </div>
-            <div className="max-h-40 overflow-y-auto">
-              <div className="flex flex-wrap gap-2">
-                {notExistWords.map((w) => (
-                  <Badge key={`no-${w}`}>{w}</Badge>
-                ))}
-              </div>
-            </div>
-          </Card>
-        )}
-      </PageContainer>
-    </PageShell>
+          </div>
+        </Card>
+      )}
+    </div>
   )
 }
 

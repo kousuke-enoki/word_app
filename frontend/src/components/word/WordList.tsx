@@ -1,14 +1,14 @@
+import '@/styles/components/word/WordList.css'
+
 import React, { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 import axiosInstance from '@/axiosConfig'
-import { Badge, Card, Input, PageContainer } from '@/components/ui/card'
-import { PageShell } from '@/components/ui/PageShell'
+import { Badge, Card, Input } from '@/components/ui/card'
 import { Button } from '@/components/ui/ui'
 import { getPartOfSpeech } from '@/service/word/GetPartOfSpeech'
 import { registerWord } from '@/service/word/RegisterWord'
 import type { JapaneseMean, Word, WordInfo } from '@/types/wordTypes'
-import '@/styles/components/word/WordList.css'
 
 const WordList: React.FC = () => {
   const [words, setWords] = useState<Word[]>([])
@@ -142,86 +142,82 @@ const WordList: React.FC = () => {
   )
 
   return (
-    <PageShell>
-      <PageContainer>
-        <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-[var(--h1_fg)]">単語一覧</h1>
-          <Link to="/words/new">
-            <Button>新規登録</Button>
-          </Link>
+    <div>
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-[var(--h1_fg)]">単語一覧</h1>
+        <Link to="/words/new">
+          <Button>新規登録</Button>
+        </Link>
+      </div>
+
+      {successMessage && (
+        <div className="mb-4 rounded-xl border-l-4 border-[var(--success_pop_bc)] bg-[var(--container_bg)] px-4 py-3 text-sm">
+          {successMessage}
         </div>
+      )}
 
-        {successMessage && (
-          <div className="mb-4 rounded-xl border-l-4 border-[var(--success_pop_bc)] bg-[var(--container_bg)] px-4 py-3 text-sm">
-            {successMessage}
-          </div>
-        )}
-
-        <Card className="p-4">
-          {Toolbar}
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="bg-[var(--thbc)] text-left">
-                  {['単語名', '日本語訳', '品詞', '登録数', '登録'].map(
-                    (th) => (
-                      <th
-                        key={th}
-                        className="border-b border-[var(--thbd)] px-3 py-2 text-[var(--fg)]"
-                      >
-                        {th}
-                      </th>
-                    ),
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {words.map((w) => (
-                  <tr key={w.id} className="even:bg-[var(--table_tr_e)]">
-                    <td className="px-3 py-2">
-                      <Link
-                        to={`/words/${w.id}`}
-                        state={{ search, sortBy, order, page, limit }}
-                        className="underline"
-                      >
-                        {w.name}
-                      </Link>
-                    </td>
-                    <td className="px-3 py-2">
-                      {w.wordInfos
-                        .map((info: WordInfo) =>
-                          info.japaneseMeans
-                            .map((jm: JapaneseMean) => jm.name)
-                            .join(', '),
-                        )
-                        .join(', ')}
-                    </td>
-                    <td className="px-3 py-2">
-                      {w.wordInfos
-                        .map((info: WordInfo) =>
-                          getPartOfSpeechName(info.partOfSpeechId),
-                        )
-                        .join(', ')}
-                    </td>
-                    <td className="px-3 py-2">{w.registrationCount}</td>
-                    <td className="px-3 py-2">
-                      <Button
-                        className="min-w-[80px]"
-                        variant={w.isRegistered ? 'outline' : 'primary'}
-                        onClick={() => handleRegister(w)}
-                      >
-                        {w.isRegistered ? '解除' : '登録'}
-                      </Button>
-                    </td>
-                  </tr>
+      <Card className="p-4">
+        {Toolbar}
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="bg-[var(--thbc)] text-left">
+                {['単語名', '日本語訳', '品詞', '登録数', '登録'].map((th) => (
+                  <th
+                    key={th}
+                    className="border-b border-[var(--thbd)] px-3 py-2 text-[var(--fg)]"
+                  >
+                    {th}
+                  </th>
                 ))}
-              </tbody>
-            </table>
-          </div>
-          {Pagination}
-        </Card>
-      </PageContainer>
-    </PageShell>
+              </tr>
+            </thead>
+            <tbody>
+              {words.map((w) => (
+                <tr key={w.id} className="even:bg-[var(--table_tr_e)]">
+                  <td className="px-3 py-2">
+                    <Link
+                      to={`/words/${w.id}`}
+                      state={{ search, sortBy, order, page, limit }}
+                      className="underline"
+                    >
+                      {w.name}
+                    </Link>
+                  </td>
+                  <td className="px-3 py-2">
+                    {w.wordInfos
+                      .map((info: WordInfo) =>
+                        info.japaneseMeans
+                          .map((jm: JapaneseMean) => jm.name)
+                          .join(', '),
+                      )
+                      .join(', ')}
+                  </td>
+                  <td className="px-3 py-2">
+                    {w.wordInfos
+                      .map((info: WordInfo) =>
+                        getPartOfSpeechName(info.partOfSpeechId),
+                      )
+                      .join(', ')}
+                  </td>
+                  <td className="px-3 py-2">{w.registrationCount}</td>
+                  <td className="px-3 py-2">
+                    <Button
+                      className="min-w-[80px]"
+                      variant={w.isRegistered ? 'outline' : 'primary'}
+                      onClick={() => handleRegister(w)}
+                    >
+                      {w.isRegistered ? '解除' : '登録'}
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {Pagination}
+      </Card>
+    </div>
   )
 }
 

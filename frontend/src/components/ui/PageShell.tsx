@@ -2,7 +2,9 @@ import { Link } from 'react-router-dom'
 
 import { useTheme } from '@/contexts/themeContext'
 
-export const PageShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const PageShell: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
       <Header />
@@ -17,12 +19,9 @@ const Header: React.FC = () => {
     <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--bg)]/80 backdrop-blur">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3">
         <Link to="/" className="text-lg font-bold tracking-wide">
-          <span className="mr-1">📘</span> word app
+          <span className="mr-1">📘</span> DictQuiz
         </Link>
         <nav className="flex items-center gap-2">
-          <Link className="rounded-lg px-3 py-1.5 text-sm hover:bg-[var(--container_bg)]" to="/sign_in">
-            サインイン
-          </Link>
           <ThemeToggle />
         </nav>
       </div>
@@ -31,8 +30,8 @@ const Header: React.FC = () => {
 }
 
 const ThemeToggle: React.FC = () => {
-const { theme, setTheme } = useTheme()
-const next = theme === 'dark' ? 'light' : 'dark'
+  const { theme, setTheme } = useTheme()
+  const next = theme === 'dark' ? 'light' : 'dark'
   return (
     <button
       onClick={() => setTheme(next)}
@@ -45,12 +44,10 @@ const next = theme === 'dark' ? 'light' : 'dark'
   )
 }
 
-
-
 const Footer: React.FC = () => (
   <footer className="mt-16 border-t border-[var(--border)]">
     <div className="mx-auto max-w-5xl px-4 py-8 text-xs opacity-70">
-      © {new Date().getFullYear()} DictQuiz / word app
+      © {new Date().getFullYear()} DictQuiz / Designed by EK
     </div>
   </footer>
 )

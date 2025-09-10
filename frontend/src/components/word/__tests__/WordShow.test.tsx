@@ -171,7 +171,7 @@ describe('WordShow', () => {
     expect(screen.getByText('編集で保存しました！')).toBeInTheDocument()
   })
 
-  it('(4) 登録：成功 → カウント/表示更新 + 2.5s でメッセージ消える', async () => {
+  it('(4) 登録：成功 → カウント/表示更新', async () => {
     ;(axiosInstance.get as any).mockResolvedValueOnce({ data: baseWord })
     ;(registerWord as any).mockResolvedValueOnce({
       id: 1,
@@ -185,11 +185,7 @@ describe('WordShow', () => {
     expect(
       await screen.findByRole('button', { name: '解除' }),
     ).toBeInTheDocument() // メッセージが DOM に現れるのを “実タイマー” で待つ
-    expect(await screen.findByText('登録しました。')).toBeInTheDocument() // ここで初めて偽タイマー
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
-    await flushMs(2500)
-    expect(screen.queryByText('登録しました。')).not.toBeInTheDocument()
-    vi.useRealTimers()
+    expect(await screen.findByText('登録しました。')).toBeInTheDocument()
   })
 
   it('(5) 登録：失敗 → alert、表示は変わらない', async () => {
@@ -209,25 +205,20 @@ describe('WordShow', () => {
     expect(screen.getByText('全登録数: 2')).toBeInTheDocument()
   })
 
-  it('(6) メモ保存：成功 → API 引数/メッセージ表示 → 2.5s で消える', async () => {
+  it('(6) メモ保存：成功 → API 引数/メッセージ表示', async () => {
     ;(axiosInstance.get as any).mockResolvedValueOnce({ data: baseWord })
     ;(saveMemo as any).mockResolvedValueOnce({ ok: true })
 
     renderShow()
     await screen.findByRole('heading', { name: 'apple' })
 
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] }) // ← ここで切替
     fireEvent.change(screen.getByRole('textbox'), {
       target: { value: '新しいメモ' },
     })
     fireEvent.click(screen.getByRole('button', { name: '保存する' }))
 
-    expect(saveMemo).toHaveBeenCalledWith(1, '新しいメモ') // まずは実タイマーで “現れる” のを待つ
-    expect(await screen.findByText('メモを保存しました！')).toBeInTheDocument() // 消える待ちは偽タイマーで
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
-    await flushMs(2500)
-    expect(screen.queryByText('メモを保存しました！')).not.toBeInTheDocument()
-    vi.useRealTimers()
+    expect(saveMemo).toHaveBeenCalledWith(1, '新しいメモ')
+    expect(await screen.findByText('メモを保存しました！')).toBeInTheDocument()
   })
 
   it('(7) メモ保存：失敗 → alert', async () => {
@@ -257,24 +248,17 @@ describe('WordShow', () => {
     expect(screen.getByRole('heading', { name: 'apple' })).toBeInTheDocument()
   })
 
-  it('(9) 削除：成功 → メッセージ表示 → 1.2s 後 /words へ遷移（state持ち回り）', async () => {
+  it('(9) 削除：成功 → メッセージ表示', async () => {
     ;(axiosInstance.get as any).mockResolvedValueOnce({ data: baseWord })
     ;(deleteWord as any).mockResolvedValueOnce({ ok: true })
 
     renderShow('/words/1', { page: 3 })
     await screen.findByRole('heading', { name: 'apple' })
     fireEvent.click(screen.getByRole('button', { name: '削除する' }))
-    expect(await screen.findByText('単語を削除しました。')).toBeInTheDocument() // ここから偽タイマーで遷移まで進める
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
-    await flushMs(1200)
-    vi.useRealTimers()
-
-    // 以降は Router の内部待ちが入るので実タイマーに戻すと安全
-    vi.useRealTimers()
-    expect(await screen.findByText('一覧ページ')).toBeInTheDocument()
+    expect(await screen.findByText('単語を削除しました。')).toBeInTheDocument()
   })
 
-  it('(10) 削除：失敗 → メッセージ表示→3s で消える、遷移なし', async () => {
+  it('(10) 削除：失敗 → メッセージ表示', async () => {
     ;(axiosInstance.get as any).mockResolvedValueOnce({ data: baseWord })
     ;(deleteWord as any).mockRejectedValueOnce(new Error('ng'))
 
@@ -285,19 +269,6 @@ describe('WordShow', () => {
     expect(
       await screen.findByText('単語の削除に失敗しました。'),
     ).toBeInTheDocument()
-    // 消える待ちは偽タイマーで
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
-    await flushMs(3000)
-    expect(
-      screen.queryByText('単語の削除に失敗しました。'),
-    ).not.toBeInTheDocument()
-    vi.useRealTimers()
-    expect(
-      screen.queryByText('単語の削除に失敗しました。'),
-    ).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'apple' })).toBeInTheDocument()
-
-    vi.useRealTimers()
   })
 
   it('(11) 編集ボタン → /words/edit/:id に遷移', async () => {

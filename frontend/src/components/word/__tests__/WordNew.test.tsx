@@ -1,33 +1,48 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route,Routes } from 'react-router-dom'
-import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { queryClient,renderWithClient } from '@/__tests__/testUtils'
+import { queryClient, renderWithClient } from '@/__tests__/testUtils'
 
 import WordNew from '../WordNew'
 
-/* axios モック */
+/* axios をモック */
 vi.mock('@/axiosConfig', () => ({
   default: { post: vi.fn() },
 }))
 import axiosInstance from '@/axiosConfig'
 
-/* useNavigate モック */
+/* 品詞データを固定（テストが壊れないように） */
+vi.mock('@/service/word/GetPartOfSpeech', () => {
+  return {
+    getPartOfSpeech: [
+      { id: 1, name: '名詞' },
+      { id: 2, name: '動詞' },
+      { id: 3, name: '形容詞' },
+    ],
+  }
+})
+
+/* useNavigate をモック */
 const navigateMock = vi.fn()
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>(
-    'react-router-dom',
-  )
+  const actual =
+    await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
   return { ...actual, useNavigate: () => navigateMock }
 })
 
 beforeEach(() => {
   vi.clearAllMocks()
   localStorage.clear()
+  // バリデーションの alert を無害化
+  vi.spyOn(window, 'alert').mockImplementation(() => {})
 })
-afterEach(() => queryClient.clear())
+afterEach(() => {
+  queryClient.clear()
+  vi.restoreAllMocks()
+})
 
 /* ---------------- テスト本体 ----------------------- */
 describe('WordNew Component', () => {
@@ -41,11 +56,22 @@ describe('WordNew Component', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByRole('heading', { name: '単語登録フォーム' }))
-    // 単語名 input 空
-    expect(screen.getByLabelText('単語名:'),(''))
-    // 品詞は “選択してください” (value 0)
-    expect(screen.getByRole('combobox'),('0'))
+    // 見出し
+    expect(
+      screen.getByRole('heading', { name: '単語登録' }),
+    ).toBeInTheDocument()
+
+    // 単語名 input は空（placeholder=example）
+    const nameInput = screen.getByPlaceholderText('example') as HTMLInputElement
+    expect(nameInput).toHaveValue('')
+
+    // 品詞は “選択してください”(value 0)
+    const posSelect = screen.getByRole('combobox') as HTMLSelectElement
+    expect(posSelect).toHaveValue('0')
+
+    // 日本語訳 input も空（placeholder=意味）
+    const jpInput = screen.getByPlaceholderText('意味') as HTMLInputElement
+    expect(jpInput).toHaveValue('')
   })
 
   /* 2) バリデーション */
@@ -57,22 +83,27 @@ describe('WordNew Component', () => {
         </Routes>
       </MemoryRouter>,
     )
-  
-    // 数字を入力 → input の中身は '' のまま
-    await userEvent.type(screen.getByLabelText('単語名:'), '1234')
-  
-    // form 要素を直接 submit させてブラウザ検証を回避
-    const form = screen.getByRole('form')   // name フィルタを外す
+
+    // 数字を入力 → ハンドラで拒否され、値は '' のまま
+    const nameInput = screen.getByPlaceholderText('example') as HTMLInputElement
+    await userEvent.type(nameInput, '1234')
+    expect(nameInput).toHaveValue('')
+
+    // form を送信（ブラウザネイティブ検証は避ける）
+    const form = screen.getByRole('form', { name: 'word-create-form' })
     fireEvent.submit(form)
-  
+
+    // エラーが表示され、POST は呼ばれない
     expect(
-      await screen.findByText('単語名は半角アルファベットのみ入力できます。'))
+      await screen.findByText('単語名は半角アルファベットのみ入力できます。'),
+    ).toBeInTheDocument()
+
+    // 追加のエラー（品詞/日本語訳）も出ているはずだが、最低限の主張のみ検証
     expect(axiosInstance.post).not.toHaveBeenCalled()
   })
 
   /* 3) 登録成功フロー */
   it('正しい値で送信すると POST → /words/:id へ遷移', async () => {
-    // axios.post 成功レスポンス
     ;(axiosInstance.post as any).mockResolvedValueOnce({
       data: { id: 99, name: 'apple' },
     })
@@ -86,18 +117,17 @@ describe('WordNew Component', () => {
     )
 
     // --- フォーム入力 ---
-    await userEvent.type(screen.getByLabelText('単語名:'), 'apple')
-    await userEvent.selectOptions(screen.getByRole('combobox'), '1') // 名詞など
-    await userEvent.type(screen.getByLabelText('日本語訳:'), 'りんご')
+    await userEvent.type(screen.getByPlaceholderText('example'), 'apple')
+    await userEvent.selectOptions(screen.getByRole('combobox'), '1') // 名詞
+    await userEvent.type(screen.getByPlaceholderText('意味'), 'りんご')
+
     await userEvent.click(screen.getByRole('button', { name: '単語を登録' }))
 
     // POST されたこと
     await waitFor(() =>
       expect(axiosInstance.post).toHaveBeenCalledWith('/words/new', {
         name: 'apple',
-        wordInfos: [
-          { partOfSpeechId: 1, japaneseMeans: [{ name: 'りんご' }] },
-        ],
+        wordInfos: [{ partOfSpeechId: 1, japaneseMeans: [{ name: 'りんご' }] }],
       }),
     )
 
@@ -119,13 +149,14 @@ describe('WordNew Component', () => {
       </MemoryRouter>,
     )
 
-    await userEvent.type(screen.getByLabelText('単語名:'), 'apple')
+    await userEvent.type(screen.getByPlaceholderText('example'), 'apple')
     await userEvent.selectOptions(screen.getByRole('combobox'), '1')
-    await userEvent.type(screen.getByLabelText('日本語訳:'), 'りんご')
+    await userEvent.type(screen.getByPlaceholderText('意味'), 'りんご')
     await userEvent.click(screen.getByRole('button', { name: '単語を登録' }))
 
     expect(
-      await screen.findByText('単語の登録中にエラーが発生しました。'))
+      await screen.findByText('単語の登録中にエラーが発生しました。'),
+    ).toBeInTheDocument()
     expect(navigateMock).not.toHaveBeenCalled()
   })
 })

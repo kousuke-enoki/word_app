@@ -1,26 +1,29 @@
-import react from '@vitejs/plugin-react-swc';
-import path from 'path';
-import { loadEnv } from 'vite';
-import checker from 'vite-plugin-checker';
-import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react-swc'
+import path from 'path'
+import { loadEnv } from 'vite'
+import checker from 'vite-plugin-checker'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig(({ mode }) => {
   /* .env / Vercel の環境変数を読み込む */
-  const env = loadEnv(mode, process.cwd());      // mode = 'development' | 'production'
+  const env = loadEnv(mode, process.cwd()) // mode = 'development' | 'production'
 
   return {
-    base: '/',                 // ← Vercel 配信はこれでOK（サブパス配信ならそのパスに）
+    base: '/', // ← Vercel 配信はこれでOK（サブパス配信ならそのパスに）
     build: {
-      outDir: 'dist',          // ← Vercel の dist と一致
+      outDir: 'dist', // ← Vercel の dist と一致
       emptyOutDir: true,
-      assetsDir: 'assets',     // 既定だが明示しておくと安心
+      assetsDir: 'assets', // 既定だが明示しておくと安心
     },
     plugins: [
       react(),
       checker({
         typescript: true,
         eslint: {
-          lintCommand: ' "./src/**/*.{js,jsx,ts,tsx}"',
+          // Flat Config を使うことを明示
+          useFlatConfig: true,
+          // ← ここ、元設定は ' "..."' になっていて eslint コマンド名が抜けていたので修正
+          lintCommand: 'eslint "./src/**/*.{js,jsx,ts,tsx}"',
         },
       }),
     ],
@@ -47,8 +50,8 @@ export default defineConfig(({ mode }) => {
       coverage: {
         provider: 'v8',
         reporter: ['text', 'lcov'],
-        reportsDirectory: './coverage'
-      }
+        reportsDirectory: './coverage',
+      },
     },
-  };
-});
+  }
+})

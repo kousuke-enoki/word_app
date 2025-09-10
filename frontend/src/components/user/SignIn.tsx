@@ -110,16 +110,18 @@ const SignIn: React.FC = () => {
         </form>
 
         {/* 区切り */}
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-[var(--border)]" />
+        {!loadingSetting && lineAuthEnabled && (
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-[var(--border)]" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-[var(--bg)] px-3 text-xs opacity-60">
+                または
+              </span>
+            </div>
           </div>
-          <div className="relative flex justify-center">
-            <span className="bg-[var(--bg)] px-3 text-xs opacity-60">
-              または
-            </span>
-          </div>
-        </div>
+        )}
 
         {/* LINE ログイン（設定が有効時のみ） */}
         {!loadingSetting && lineAuthEnabled && (
@@ -159,11 +161,11 @@ const SignIn: React.FC = () => {
             LINEでログイン
           </button>
         )}
-        {!loadingSetting && !lineAuthEnabled && (
+        {/* {!loadingSetting && !lineAuthEnabled && (
           <div className="text-center text-xs opacity-60">
             現在、LINEログインは無効です。
           </div>
-        )}
+        )} */}
       </Card>
 
       <p className="mt-4 text-center text-sm opacity-80">

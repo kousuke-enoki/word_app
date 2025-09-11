@@ -4,7 +4,6 @@ import { render, screen, within } from '@testing-library/react'
 import { fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
-import { act } from 'react-dom/test-utils'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -73,13 +72,6 @@ const renderShow = (initialPath = '/words/1', state?: any) =>
       </Routes>
     </MemoryRouter>,
   )
-
-async function flushMs(ms: number) {
-  await act(async () => {
-    await vi.advanceTimersByTimeAsync(ms)
-    await vi.runOnlyPendingTimersAsync()
-  })
-}
 
 /* ---- テスト用データ ---- */
 const baseWord = {

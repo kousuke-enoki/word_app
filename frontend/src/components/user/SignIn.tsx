@@ -77,8 +77,12 @@ const SignIn: React.FC = () => {
         {/* メール/パスワード */}
         <form onSubmit={onSubmit} className="space-y-5">
           <div>
-            <label className="mb-1 block text-sm font-medium">Email</label>
+            <label htmlFor="email" className="mb-1 block text-sm font-medium">
+              Email
+            </label>
             <Input
+              id="email"
+              name="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -88,8 +92,15 @@ const SignIn: React.FC = () => {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">Password</label>
+            <label
+              htmlFor="password"
+              className="mb-1 block text-sm font-medium"
+            >
+              Password
+            </label>
             <Input
+              id="password"
+              name="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

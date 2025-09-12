@@ -8,7 +8,7 @@ vi.mock('react-router-dom', async () => {
   return { ...actual, useNavigate: () => navigateMock }
 })
 
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -19,6 +19,8 @@ vi.mock('@/axiosConfig', () => ({
     get: vi.fn(),
   },
 }))
+
+import userEvent from '@testing-library/user-event'
 
 import axiosInstance from '@/axiosConfig'
 
@@ -49,17 +51,18 @@ describe('MyPage Component', () => {
       </MemoryRouter>,
     )
 
-    // fetch → state 更新を待つ
-    expect(await screen.findByText('ようこそ、Test Userさん！'))
+    // ユーザー名の表示（空白/改行を無視）
+    await screen.findByText(textEq('TestUserさん'))
 
-    // 管理/ルート用メッセージは出ない
-    expect(screen.queryByText('管理ユーザーでログインしています。')).toBeNull()
-    expect(
-      screen.queryByText('ルートユーザーでログインしています。'),
-    ).toBeNull()
+    // Admin/Root 専用リンクがないことを確認（存在しない固定文言は使わない）
+    expect(screen.queryByRole('link', { name: /単語登録/ })).toBeNull()
+    expect(screen.queryByRole('link', { name: /管理設定/ })).toBeNull()
+
+    // 任意：Userバッジの確認
+    expect(screen.getByText(/👤\s*User/)).toBeInTheDocument()
   })
 
-  it('管理ユーザーには管理メッセージとリンクが表示される', async () => {
+  it('管理ユーザーには Admin バッジと「単語登録」カードリンクが表示', async () => {
     ;(axiosInstance.get as any).mockResolvedValueOnce({
       data: { user: { id: 2, name: 'Admin', isAdmin: true, isRoot: false } },
     })
@@ -70,9 +73,17 @@ describe('MyPage Component', () => {
       </MemoryRouter>,
     )
 
-    expect(await screen.findByText('管理ユーザーでログインしています。'))
-    expect(screen.getByRole('link', { name: '単語登録画面' }))
+    // ユーザー名（空白/改行を無視）
+    await screen.findByText(textEq('Adminさん'))
+
+    // バッジの存在確認
+    expect(screen.getByText(/🔧\s*Admin/)).toBeInTheDocument()
+
+    // カードリンクの確認（部分一致でOK）
+    const adminLink = await screen.findByRole('link', { name: /単語登録/ })
+    expect(adminLink).toHaveAttribute('href', '/words/new')
   })
+
   it('管理ユーザーには Admin バッジと「単語登録」カードリンクが表示', async () => {
     ;(axiosInstance.get as any).mockResolvedValueOnce({
       data: { user: { id: 2, name: 'Admin', isAdmin: true, isRoot: false } },
@@ -124,5 +135,26 @@ describe('MyPage Component', () => {
     await screen.findByText('ユーザー情報がありません。')
     expect(localStorage.getItem('token')).toBeNull()
     expect(localStorage.getItem('logoutMessage')).toBe('ログインしてください')
+  })
+  it('サインアウトで token が消え、トップへ navigate', async () => {
+    ;(axiosInstance.get as any).mockResolvedValueOnce({
+      data: { user: { id: 1, name: 'Test', isAdmin: false, isRoot: false } },
+    })
+    localStorage.setItem('token', 'dummy')
+
+    render(
+      <MemoryRouter>
+        <MyPage />
+      </MemoryRouter>,
+    )
+
+    await screen.findByText(textEq('Testさん'))
+
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'サインアウト' }))
+
+    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/'))
+    expect(localStorage.getItem('token')).toBeNull()
+    expect(localStorage.getItem('logoutMessage')).toBe('ログアウトしました')
   })
 })

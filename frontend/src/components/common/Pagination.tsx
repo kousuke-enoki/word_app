@@ -1,68 +1,74 @@
+// src/components/common/Pagination.tsx
 import React from 'react'
 
 import { Button } from '@/components/ui/ui'
 
-const PAGE_SIZES = [10, 30, 50, 100] as const
-type PageSize = (typeof PAGE_SIZES)[number]
-
 type Props = {
-  sizes?: readonly PageSize[]
-  size: number
+  /** 1-based current page */
   page: number
-  total: number
-  onSize: (s: PageSize) => void
-  onPrev: () => void
-  onNext: () => void
+  /** total pages (>=1) */
+  totalPages: number
+  /** page change handler（1-basedで受け取ります） */
+  onPageChange: (page: number) => void
+
+  /** 現在のページサイズ（任意・指定時にドロップダウン表示） */
+  pageSize?: number
+  /** ページサイズ変更（任意） */
+  onPageSizeChange?: (size: number) => void
+  /** ページサイズ候補（任意, 例: [10,20,30,50]） */
+  pageSizeOptions?: number[]
+
+  className?: string
 }
 
-const Pagination = ({
-  sizes = PAGE_SIZES,
-  size,
+const Pagination: React.FC<Props> = ({
   page,
-  total,
-  onSize,
-  onPrev,
-  onNext,
-}: Props) => (
-  <div className="flex items-center justify-between">
-    {/* ▼ ページサイズ（セグメント） */}
-    <div className="inline-flex rounded-xl bg-[var(--btn-subtle-bd)] p-0.5 gap-0.5">
-      {sizes.map((s) => (
-        <Button
-          key={s}
-          variant={s === size ? 'primary' : 'ghost'}
-          className="rounded-lg px-3 py-1.5 min-w-12 text-center"
-          onClick={() => onSize(s)}
-        >
-          {s}
-        </Button>
-      ))}
-    </div>
+  totalPages,
+  onPageChange,
+  pageSize,
+  onPageSizeChange,
+  pageSizeOptions = [10, 20, 30, 50],
+  className = '',
+}) => {
+  const clamp = (p: number) => Math.max(1, Math.min(totalPages, p))
+  const go = (p: number) => onPageChange(clamp(p))
 
-    {/* ▼ Prev / Next */}
-    <div className="rs-pager space-x-2">
-      <Button
-        variant="outline"
-        disabled={page === 0}
-        onClick={onPrev}
-        className="px-3"
-      >
-        Prev
+  return (
+    <div className={`mt-4 flex flex-wrap items-center gap-2 ${className}`}>
+      {/* ページサイズ切り替え（指定時のみ表示） */}
+      {onPageSizeChange && typeof pageSize === 'number' && (
+        <select
+          className="rounded-xl border border-[var(--input_bd)] bg-[var(--select)] px-3 py-2 text-[var(--select_c)]"
+          value={pageSize}
+          onChange={(e) => onPageSizeChange(Number(e.target.value))}
+        >
+          {pageSizeOptions.map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
+      )}
+
+      <Button onClick={() => go(1)} disabled={page === 1}>
+        最初へ
       </Button>
-      <Button
-        variant={
-          page + 1 >= Math.max(1, Math.ceil(total / size))
-            ? 'outline'
-            : 'primary'
-        }
-        disabled={page + 1 >= Math.max(1, Math.ceil(total / size))}
-        onClick={onNext}
-        className="px-3"
-      >
-        Next
+      <Button onClick={() => go(page - 1)} disabled={page === 1}>
+        前へ
+      </Button>
+
+      <span className="px-2 text-sm opacity-80">
+        ページ {page} / {totalPages}
+      </span>
+
+      <Button onClick={() => go(page + 1)} disabled={page === totalPages}>
+        次へ
+      </Button>
+      <Button onClick={() => go(totalPages)} disabled={page === totalPages}>
+        最後へ
       </Button>
     </div>
-  </div>
-)
+  )
+}
 
 export default Pagination

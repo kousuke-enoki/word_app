@@ -11,15 +11,15 @@ import { useQuizResult } from '@/hooks/result/useQuizResult'
 import { registerWord } from '@/service/word/RegisterWord'
 import { ResultQuestion } from '@/types/quiz'
 
-const pageSizes = [10, 30, 50, 100] as const
-type PageSize = (typeof pageSizes)[number]
+// const pageSizes = [10, 30, 50, 100] as const
+// type PageSize = (typeof pageSizes)[number]
 
 export default function ResultShow() {
   const { quizNo } = useParams<{ quizNo?: string }>()
   const nav = useNavigate()
   const { loading, error, result } = useQuizResult(quizNo)
 
-  const [size, setSize] = useState<PageSize>(10)
+  const [size, setSize] = useState(10)
   const [page, setPage] = useState(0)
   const [view, setView] = useState<typeof result | null>(null)
 
@@ -59,12 +59,12 @@ export default function ResultShow() {
     }
   }, [])
 
-  const sizeCandidates: PageSize[] = useMemo(() => {
-    if (!result) return []
-    return pageSizes.filter(
-      (s): s is PageSize => s <= result.totalQuestionsCount,
-    )
-  }, [result])
+  // const sizeCandidates: PageSize[] = useMemo(() => {
+  //   if (!result) return []
+  //   return pageSizes.filter(
+  //     (s): s is PageSize => s <= result.totalQuestionsCount,
+  //   )
+  // }, [result])
 
   if (loading) return <p className="py-10 text-center">Loading...</p>
   if (error)
@@ -86,16 +86,13 @@ export default function ResultShow() {
       {/* ページング */}
       <Card className="mt-4 p-4">
         <Pagination
-          sizes={sizeCandidates}
-          size={size}
+          className="mt-4"
           page={page}
-          total={result.resultQuestions.length}
-          onSize={(s: PageSize) => {
-            setSize(s)
-            setPage(0)
-          }}
-          onPrev={() => setPage((p) => Math.max(0, p - 1))}
-          onNext={() => setPage((p) => p + 1)}
+          totalPages={size}
+          onPageChange={(p) => setPage(p)}
+          pageSize={page}
+          onPageSizeChange={(n) => setSize(n)}
+          pageSizeOptions={[10, 20, 30, 50]}
         />
 
         {/* 下部ナビ */}

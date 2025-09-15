@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/ui'
 import { getPartOfSpeech } from '@/service/word/GetPartOfSpeech'
 import { QuizSettingsType } from '@/types/quiz'
 
+import PageBottomNav from '../common/PageBottomNav'
+import PageTitle from '../common/PageTitle'
 import { MyCheckbox } from '../myUi/MyCheckBox'
 import { MyCollapsible } from '../myUi/MyCollapsible'
 import { MyNumberInput } from '../myUi/MyNumberInput'
@@ -48,7 +50,7 @@ const QuizSettings: React.FC<Props> = ({ settings, onSaveSettings }) => {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[var(--h1_fg)]">テスト設定</h1>
+        <PageTitle title="テスト設定" />
         <Badge>クイズ</Badge>
       </div>
 
@@ -191,6 +193,9 @@ const QuizSettings: React.FC<Props> = ({ settings, onSaveSettings }) => {
         <Button className="w-full" onClick={handleSave}>
           上記の設定でテスト開始
         </Button>
+      </Card>
+      <Card className="mt1 p-2">
+        <PageBottomNav className="mt-1" showHome inline compact />
       </Card>
     </div>
   )

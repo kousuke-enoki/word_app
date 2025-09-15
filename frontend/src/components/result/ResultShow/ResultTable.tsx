@@ -1,16 +1,21 @@
 import clsx from 'clsx'
 import { Link } from 'react-router-dom'
 
+import Pagination, { PaginationProps } from '@/components/common/Pagination'
 import { RegisterToggle } from '@/components/common/RegisterToggle'
 import { Card } from '@/components/ui/card'
 import { ResultQuestion } from '@/types/quiz'
 
+type PagerInTable = PaginationProps & { align?: 'left' | 'center' | 'right' }
+
 type Props = {
   rows: ResultQuestion[]
   onToggleRegister: (row: ResultQuestion) => void
+  /** テーブル下フッターに出すページネーション（省略可） */
+  pager?: PagerInTable
 }
 
-const ResultTable = ({ rows, onToggleRegister }: Props) => (
+const ResultTable = ({ rows, onToggleRegister, pager }: Props) => (
   <Card className="p-0">
     {/* ▼ 横スクロール・モバイル */}
     <div className="overflow-x-auto touch-pan-x overscroll-x-contain">
@@ -114,6 +119,21 @@ const ResultTable = ({ rows, onToggleRegister }: Props) => (
         </tbody>
       </table>
     </div>
+
+    {/* ページネーション */}
+    {pager && (
+      <div className="border-t border-[var(--border)]">
+        {/* ← text-xxx ではなく flex + justify-xxx で位置決め */}
+        <div
+          className={clsx(
+            'border-t border-[var(--border)] px-2 py-0', // ← 余白をゼロに
+            'leading-none', // ← 行高を 1 に固定
+          )}
+        >
+          <Pagination {...pager} compact className="!mt-0 !mb-0" />
+        </div>
+      </div>
+    )}
   </Card>
 )
 

@@ -5,6 +5,9 @@ import { Badge, Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/ui'
 import type { AnswerRouteRes, ChoiceJpm, QuizQuestion } from '@/types/quiz'
 
+import PageBottomNav from '../common/PageBottomNav'
+import PageTitle from '../common/PageTitle'
+
 type Props = {
   question: QuizQuestion
   onAnswered: (res: AnswerRouteRes) => void
@@ -73,6 +76,7 @@ const QuizQuestionView: React.FC<Props> = ({ question, onAnswered }) => {
 
   return (
     <div className="mx-auto max-w-2xl">
+      <PageTitle title="クイズ" />
       <Card className="p-6">
         <div className="mb-4 flex items-center justify-between">
           <Badge>Q{question.questionNumber}</Badge>
@@ -129,6 +133,9 @@ const QuizQuestionView: React.FC<Props> = ({ question, onAnswered }) => {
             ショートカット： 1 / 2 / 3 / 4 で選択、Enter で送信
           </p>
         </div>
+      </Card>{' '}
+      <Card className="mt1 p-2">
+        <PageBottomNav className="mt-1" showHome inline compact />
       </Card>
     </div>
   )

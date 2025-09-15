@@ -11,6 +11,9 @@ import {
   PartOfSpeechOption,
 } from '@/service/word/GetPartOfSpeech'
 
+import PageBottomNav from '../common/PageBottomNav'
+import PageTitle from '../common/PageTitle'
+
 export type WordForNew = { name: string; wordInfos: WordInfoForNew[] }
 export type WordInfoForNew = {
   partOfSpeechId: number
@@ -138,7 +141,7 @@ const WordNew: React.FC = () => {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[var(--h1_fg)]">単語登録</h1>
+        <PageTitle title="単語登録" />
         <Badge>✍️ New</Badge>
       </div>
 
@@ -168,7 +171,6 @@ const WordNew: React.FC = () => {
               </p>
             )}
           </div>
-
           {word.wordInfos.map((wi, wiIndex) => {
             const infoErr = validationErrors.wordInfos?.[wiIndex]
             return (
@@ -266,24 +268,21 @@ const WordNew: React.FC = () => {
               </Card>
             )
           })}
-
           {word.wordInfos.length < MAX_PART_OF_SPEECH && (
             <Button type="button" variant="ghost" onClick={addPartOfSpeech}>
               品詞を追加
             </Button>
           )}
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit">単語を登録</Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate('/my_page')}
-            >
-              マイページに戻る
-            </Button>
-          </div>
         </form>
+      </Card>
+      <Card className="mt1 p-2">
+        <PageBottomNav
+          className="mt-1"
+          actions={[{ label: '単語一覧', to: '/words' }]}
+          showHome
+          inline
+          compact
+        />
       </Card>
     </div>
   )

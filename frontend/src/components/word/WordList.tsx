@@ -11,6 +11,9 @@ import { getPartOfSpeech } from '@/service/word/GetPartOfSpeech'
 import { registerWord } from '@/service/word/RegisterWord'
 import type { JapaneseMean, Word, WordInfo } from '@/types/wordTypes'
 
+import PageBottomNav from '../common/PageBottomNav'
+import PageTitle from '../common/PageTitle'
+
 const WordList: React.FC = () => {
   const [words, setWords] = useState<Word[]>([])
   const [search, setSearch] = useState('')
@@ -145,7 +148,7 @@ const WordList: React.FC = () => {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[var(--h1_fg)]">単語一覧</h1>
+        <PageTitle title="単語一覧" />
         <Link to="/words/new">
           <Button>新規登録</Button>
         </Link>
@@ -225,6 +228,9 @@ const WordList: React.FC = () => {
           onPageSizeChange={(n) => setLimit(n)}
           pageSizeOptions={[10, 20, 30, 50]}
         />
+      </Card>
+      <Card className="mt1 p-2">
+        <PageBottomNav className="mt-1" showHome inline compact />
       </Card>
     </div>
   )

@@ -12,6 +12,9 @@ import {
   PartOfSpeechOption,
 } from '@/service/word/GetPartOfSpeech'
 
+import PageBottomNav from '../common/PageBottomNav'
+import PageTitle from '../common/PageTitle'
+
 export type WordForUpdate = {
   id: number
   name: string
@@ -144,7 +147,7 @@ const WordEdit: React.FC = () => {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[var(--h1_fg)]">単語更新</h1>
+        <PageTitle title="単語更新" />
         <Badge>🛠️ Edit</Badge>
       </div>
 
@@ -240,6 +243,16 @@ const WordEdit: React.FC = () => {
             </Button>
           </div>
         </form>
+      </Card>
+      <Card className="mt1 p-2">
+        <PageBottomNav
+          className="mt-1"
+          actions={[{ label: '単語作成', to: '/words/new' }]}
+          back={{ label: '単語一覧', to: '/words', variant: 'outline' }}
+          showHome
+          inline
+          compact
+        />
       </Card>
     </div>
   )

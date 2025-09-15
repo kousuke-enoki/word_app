@@ -3,8 +3,11 @@ import { useNavigate } from 'react-router-dom'
 
 import axiosInstance from '@/axiosConfig'
 import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/ui'
 import type { ResultSummary } from '@/types/result'
+
+import PageBottomNav from '../common/PageBottomNav'
+import PageTitle from '../common/PageTitle'
+import Pagination from '../common/Pagination'
 
 /* 品詞 ID → 名称 */
 const POS_MAP: Record<number, string> = {
@@ -21,7 +24,7 @@ const ResultIndex: React.FC = () => {
   const nav = useNavigate()
 
   const [list, setList] = useState<ResultSummary[]>([])
-  const [pageSize, setPageSize] = useState<(typeof PAGE_SIZES)[number]>(10)
+  const [pageSize, setPageSize] = useState<number>(10)
   const [page, setPage] = useState(0) // 0-based
   const [loading, setLoading] = useState(true)
   const [errMsg, setErrMsg] = useState('')
@@ -58,54 +61,11 @@ const ResultIndex: React.FC = () => {
   return (
     <div className="mx-auto max-w-5xl">
       <div className="mb-4 flex items-end justify-between gap-3">
-        <h1 className="text-2xl font-bold">成績一覧</h1>
+        <PageTitle title="成績一覧" />
         <span className="text-sm opacity-70">全 {list.length} 件</span>
       </div>
 
       <Card className="p-4 sm:p-6">
-        {/* コントロール行 */}
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          {/* ページサイズ切替（セグメント） */}
-          <div className="inline-flex rounded-xl p-0.5 gap-0.5 bg-[var(--btn-subtle-bd)]">
-            {PAGE_SIZES.map((s) => (
-              <Button
-                key={s}
-                variant={s === pageSize ? 'primary' : 'ghost'}
-                onClick={() => {
-                  setPageSize(s)
-                  setPage(0)
-                }}
-                className="rounded-lg px-3 py-1.5"
-              >
-                {s} 件
-              </Button>
-            ))}
-          </div>
-
-          {/* ページャ */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm opacity-70">
-              {list.length === 0 ? '0' : `${start + 1}`}–{end} / {list.length}
-            </span>
-            <Button
-              variant={page + 1 >= totalPages ? 'outline' : 'primary'}
-              disabled={page === 0}
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              className="px-3"
-            >
-              Prev
-            </Button>
-            <Button
-              variant={page + 1 >= totalPages ? 'outline' : 'primary'}
-              disabled={page + 1 >= totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-              className="px-3"
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-
         {/* テーブル */}
         <div className="overflow-x-auto">
           <table className="min-w-[720px] w-full border-collapse text-sm">
@@ -188,28 +148,30 @@ const ResultIndex: React.FC = () => {
           </table>
         </div>
 
-        {/* 下部ページャ（モバイル用補助） */}
-        <div className="mt-4 flex items-center justify-center gap-2 sm:justify-end">
-          <Button
-            variant={page + 1 >= totalPages ? 'outline' : 'primary'}
-            disabled={page === 0}
-            onClick={() => setPage((p) => Math.max(0, p - 1))}
-            className="px-3"
-          >
-            Prev
-          </Button>
-          <span className="text-sm opacity-70">
-            {page + 1} / {totalPages}
-          </span>
-          <Button
-            variant={page + 1 >= totalPages ? 'outline' : 'primary'}
-            disabled={page + 1 >= totalPages}
-            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-            className="px-3"
-          >
-            Next
-          </Button>
+        {/* ページネーション */}
+        <div className="mt-2 border-t border-[var(--border)] pt-2">
+          <Pagination
+            compact
+            page={page + 1} // UIは1-based
+            totalPages={totalPages}
+            onPageChange={(p) => setPage(p - 1)} // 内部は0-basedに戻す
+            pageSize={pageSize}
+            onPageSizeChange={(n) => {
+              setPageSize(n)
+              setPage(0)
+            }}
+            pageSizeOptions={[...PAGE_SIZES]}
+          />
         </div>
+      </Card>
+      <Card className="mt1 p-2">
+        <PageBottomNav
+          className="mt-1"
+          actions={[{ label: 'クイズメニュー', to: '/quizs' }]}
+          showHome
+          inline
+          compact
+        />
       </Card>
     </div>
   )

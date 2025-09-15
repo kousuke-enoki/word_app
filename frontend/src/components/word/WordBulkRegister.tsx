@@ -4,6 +4,9 @@ import axiosInstance from '@/axiosConfig'
 import { Badge, Card, Input } from '@/components/ui/card'
 import { Button } from '@/components/ui/ui'
 
+import PageBottomNav from '../common/PageBottomNav'
+import PageTitle from '../common/PageTitle'
+
 type Token = { word: string; checked: boolean }
 
 // 最大文字数
@@ -113,10 +116,9 @@ const WordBulkRegister: React.FC = () => {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[var(--h1_fg)]">単語一括登録</h1>
+        <PageTitle title="単語一括登録" />
         <Badge>β</Badge>
       </div>
-
       {/* 入力カード */}
       <Card className="mb-6 p-6">
         <div className="mb-3 flex items-center justify-between text-sm opacity-80">
@@ -154,7 +156,6 @@ const WordBulkRegister: React.FC = () => {
           )}
         </div>
       </Card>
-
       {/* 候補カード */}
       {tokens.length > 0 && (
         <Card className="mb-6 p-6">
@@ -220,7 +221,6 @@ const WordBulkRegister: React.FC = () => {
           )}
         </Card>
       )}
-
       {/* 補助情報 */}
       {registeredWords.length > 0 && (
         <Card className="mb-4 p-5">
@@ -234,7 +234,6 @@ const WordBulkRegister: React.FC = () => {
           </div>
         </Card>
       )}
-
       {notExistWords.length > 0 && (
         <Card className="mb-4 p-5">
           <div className="mb-2 text-sm font-semibold">
@@ -248,7 +247,16 @@ const WordBulkRegister: React.FC = () => {
             </div>
           </div>
         </Card>
-      )}
+      )}{' '}
+      <Card className="mt1 p-2">
+        <PageBottomNav
+          className="mt-1"
+          actions={[{ label: '単語一覧', to: '/words' }]}
+          showHome
+          inline
+          compact
+        />
+      </Card>
     </div>
   )
 }

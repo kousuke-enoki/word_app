@@ -13,6 +13,8 @@ import { registerWord } from '@/service/word/RegisterWord'
 import { saveMemo } from '@/service/word/SaveMemo'
 import type { JapaneseMean, Word, WordInfo } from '@/types/wordTypes'
 
+import PageBottomNav from '../common/PageBottomNav'
+
 const WordShow: React.FC = () => {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -110,7 +112,6 @@ const WordShow: React.FC = () => {
           {successMessage}
         </div>
       )}
-
       <div
         className="
             mb-4 grid items-center gap-2
@@ -136,7 +137,6 @@ const WordShow: React.FC = () => {
           />
         </div>
       </div>
-
       <Card className="mb-4 p-5">
         {word.wordInfos.map((info: WordInfo) => (
           <div key={info.id} className="mb-3">
@@ -154,9 +154,30 @@ const WordShow: React.FC = () => {
           <Badge>注意レベル: {word.attentionLevel}</Badge>
           <Badge>テスト回数: {word.quizCount}</Badge>
           <Badge>チェック回数: {word.correctCount}</Badge>
-        </div>
+        </div>{' '}
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={() =>
+              navigate('/words', {
+                state: {
+                  search: location.state?.search || '',
+                  sortBy: location.state?.sortBy || 'name',
+                  order: location.state?.order || 'asc',
+                  page: location.state?.page || 1,
+                  limit: location.state?.limit || 10,
+                },
+              })
+            }
+          >
+            一覧に戻る
+          </Button>
+          <Button onClick={handleEdit}>編集する</Button>
+          <Button variant="outline" onClick={handleDelete}>
+            削除する
+          </Button>
+        </div>{' '}
       </Card>
-
       <Card className="mb-6 p-5">
         <div className="mb-2 text-sm font-medium">メモ（200文字まで）</div>
         <textarea
@@ -170,29 +191,9 @@ const WordShow: React.FC = () => {
           <Button onClick={handleSaveMemo}>保存する</Button>
         </div>
       </Card>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <Button
-          variant="outline"
-          onClick={() =>
-            navigate('/words', {
-              state: {
-                search: location.state?.search || '',
-                sortBy: location.state?.sortBy || 'name',
-                order: location.state?.order || 'asc',
-                page: location.state?.page || 1,
-                limit: location.state?.limit || 10,
-              },
-            })
-          }
-        >
-          一覧に戻る
-        </Button>
-        <Button onClick={handleEdit}>編集する</Button>
-        <Button variant="outline" onClick={handleDelete}>
-          削除する
-        </Button>
-      </div>
+      <Card className="mt1 p-2">
+        <PageBottomNav className="mt-1" showHome inline compact />
+      </Card>
     </div>
   )
 }

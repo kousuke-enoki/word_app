@@ -5,11 +5,15 @@ import React, { useEffect, useState } from 'react'
 import axiosInstance from '@/axiosConfig'
 import { useTheme } from '@/contexts/themeContext'
 
+import PageBottomNav from '../common/PageBottomNav'
+import PageTitle from '../common/PageTitle'
+import { Card } from '../ui/card'
+
 const UserSetting: React.FC = () => {
   const [initial, setInitial] = useState<{
     isDarkMode: boolean
   }>({
-    isDarkMode: false
+    isDarkMode: false,
   })
 
   const [isDarkMode, SetIsDarkMode] = useState(false)
@@ -35,8 +39,7 @@ const UserSetting: React.FC = () => {
     fetchUserSettingData()
   }, [])
 
-  const isDirty =
-  isDarkMode !== initial.isDarkMode
+  const isDirty = isDarkMode !== initial.isDarkMode
 
   const handleSave = async () => {
     setLoading(true)
@@ -46,7 +49,7 @@ const UserSetting: React.FC = () => {
         is_dark_mode: isDarkMode,
       })
       if (response.status === 200) {
-        setTheme(isDarkMode ? 'dark' : 'light') 
+        setTheme(isDarkMode ? 'dark' : 'light')
         setMessage('設定を保存しました。')
         setInitial({
           isDarkMode: isDarkMode,
@@ -65,24 +68,30 @@ const UserSetting: React.FC = () => {
   return (
     // <div style={{ padding: '2rem', maxWidth: '500px', margin: '0 auto' }}>
     <div className="settings-wrapper">
-      <h2 className="title">ユーザー設定画面</h2>
+      <PageTitle title="ユーザー設定画面" />
+      <Card className="mt1 p-8">
+        {/* <div style={{ marginBottom: '1rem' }}> */}
+        <div className="row">
+          <label>ダークモード：</label>
+          <input
+            type="checkbox"
+            checked={isDarkMode}
+            onChange={(e) => SetIsDarkMode(e.target.checked)}
+          />
+          <span style={{ marginLeft: '0.5rem' }}>
+            {isDarkMode ? 'ON' : 'OFF'}
+          </span>
+        </div>
 
-      {/* <div style={{ marginBottom: '1rem' }}> */}
-      <div className="row">
-        <label>ダークモード：</label>
-        <input
-          type="checkbox"
-          checked={isDarkMode}
-          onChange={(e) => SetIsDarkMode(e.target.checked)}
-        />
-        <span style={{ marginLeft: '0.5rem' }}>{isDarkMode ? 'ON' : 'OFF'}</span>
-      </div>
+        <button onClick={handleSave} disabled={loading || !isDirty}>
+          {loading ? '保存中...' : '保存'}
+        </button>
 
-      <button onClick={handleSave} disabled={loading || !isDirty}>
-        {loading ? '保存中...' : '保存'}
-      </button>
-
-      {message && <p style={{ marginTop: '1rem' }}>{message}</p>}
+        {message && <p style={{ marginTop: '1rem' }}>{message}</p>}
+      </Card>
+      <Card className="mt1 p-2">
+        <PageBottomNav className="mt-1" showHome inline compact />
+      </Card>
     </div>
   )
 }

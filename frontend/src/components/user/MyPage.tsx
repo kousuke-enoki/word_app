@@ -6,6 +6,7 @@ import { Badge, Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/ui'
 
 import { User } from '../../types/userTypes'
+import PageTitle from '../common/PageTitle'
 
 const MyPage: React.FC = () => {
   const [message] = useState(() => localStorage.getItem('logoutMessage') || '')
@@ -46,7 +47,7 @@ const MyPage: React.FC = () => {
 
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--h1_fg)]">マイページ</h1>
+          <PageTitle title="マイページ" />
           <p className="mt-1 text-sm opacity-80">今日の日付: {today}</p>
         </div>
         <div>

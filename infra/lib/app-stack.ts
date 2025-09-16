@@ -1,22 +1,22 @@
-import { Stack, StackProps, Duration } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-import * as lambda  from 'aws-cdk-lib/aws-lambda';
-import * as logs    from 'aws-cdk-lib/aws-logs';
-import * as apigw   from 'aws-cdk-lib/aws-apigateway';
-import * as ec2     from 'aws-cdk-lib/aws-ec2';
-import * as ecr     from 'aws-cdk-lib/aws-ecr';
-import * as secrets from 'aws-cdk-lib/aws-secretsmanager';
-import * as rds     from 'aws-cdk-lib/aws-rds';
+import { Stack, StackProps, Duration } from "aws-cdk-lib";
+import { Construct } from "constructs";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as logs from "aws-cdk-lib/aws-logs";
+import * as apigw from "aws-cdk-lib/aws-apigateway";
+import * as ec2 from "aws-cdk-lib/aws-ec2";
+import * as ecr from "aws-cdk-lib/aws-ecr";
+import * as secrets from "aws-cdk-lib/aws-secretsmanager";
+import * as rds from "aws-cdk-lib/aws-rds";
 
 export interface AppStackProps extends StackProps {
   vpc: ec2.IVpc;
   secret: secrets.ISecret;
-  // DB 用 Secret 
+  // DB 用 Secret
   db: rds.IDatabaseInstance;
   lambdaSg: ec2.ISecurityGroup;
   natEnabled: boolean;
   appSecretArn?: string;
-  // APP 用 Secret の ARN を受け取れるようにする 
+  // APP 用 Secret の ARN を受け取れるようにする
   createSmVpce?: boolean;
 }
 
@@ -25,55 +25,85 @@ export interface AppStackProps extends StackProps {
  * ECR イメージを Lambda で実行し、API Gateway で公開する
  */
 export class AppStack extends Stack {
-  constructor(scope: Construct, id: string, { vpc, secret: dbSecret, db, lambdaSg, natEnabled, appSecretArn, createSmVpce,...rest }: AppStackProps) {
-     super(scope, id, rest);
+  constructor(
+    scope: Construct,
+    id: string,
+    {
+      vpc,
+      secret: dbSecret,
+      db,
+      lambdaSg,
+      natEnabled,
+      appSecretArn,
+      createSmVpce,
+      ...rest
+    }: AppStackProps
+  ) {
+    super(scope, id, rest);
 
-     const appSecret = secrets.Secret.fromSecretCompleteArn(
-      this, 'AppSecretImported', appSecretArn ?? 'arn:aws:secretsmanager:ap-northeast-1:381492105871:secret:wordapp/app-k4I6ng',
+    const appSecret = secrets.Secret.fromSecretCompleteArn(
+      this,
+      "AppSecretImported",
+      appSecretArn ??
+        "arn:aws:secretsmanager:ap-northeast-1:381492105871:secret:wordapp/app-k4I6ng"
     );
 
-// VPC 内のサブネット（NAT Gateway 有無で変える）
-    const subnets = natEnabled
-      ? { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS }
-      : { subnetType: ec2.SubnetType.PRIVATE_ISOLATED };
+    // VPC 内のサブネット（NAT Gateway 有無で変える）
+    // const subnets = natEnabled
+    //   ? { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS }
+    //   : { subnetType: ec2.SubnetType.PRIVATE_ISOLATED };
+    const subnets = { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS };
 
     const imageTagOrDigest =
-      this.node.tryGetContext('imageDigest') ??
-      this.node.tryGetContext('imageTag') ?? 'lambda';
+      this.node.tryGetContext("imageDigest") ??
+      this.node.tryGetContext("imageTag") ??
+      "lambda";
 
     // ECR イメージ → Lambda
-    const repo = ecr.Repository.fromRepositoryName(this,'Repo','wordapp-backend');
-    const fn = new lambda.DockerImageFunction(this,'ApiFn',{
-      code: lambda.DockerImageCode.fromEcr(repo,{ tagOrDigest: imageTagOrDigest }),
+    const repo = ecr.Repository.fromRepositoryName(
+      this,
+      "Repo",
+      "wordapp-backend"
+    );
+    const fn = new lambda.DockerImageFunction(this, "ApiFn", {
+      code: lambda.DockerImageCode.fromEcr(repo, {
+        tagOrDigest: imageTagOrDigest,
+      }),
       vpc,
-      vpcSubnets: subnets,
+      vpcSubnets: { subnetGroupName: "AppPrivate" },
       securityGroups: [lambdaSg],
       memorySize: 256,
       timeout: Duration.seconds(30), // ← 少し余裕を持たせる
       logRetention: logs.RetentionDays.THREE_DAYS,
-      environment:{
-        APP_ENV: 'production',
-        GIN_MODE: 'release',
-        APP_PORT: '8080', // 使わなくても設定しとくと main 側で詰まらない
+      environment: {
+        APP_ENV: "production",
+        GIN_MODE: "release",
+        APP_PORT: "8080", // 使わなくても設定しとくと main 側で詰まらない
         // DB 接続（ホスト名とポートは RDS から）
         DB_HOST: db.instanceEndpoint.hostname,
         DB_PORT: db.instanceEndpoint.port.toString(),
-        DB_NAME: 'postgres',
-        DB_USER: dbSecret.secretValueFromJson('username').unsafeUnwrap(),
-        DB_PASSWORD: dbSecret.secretValueFromJson('password').unsafeUnwrap(),
-        LINE_CLIENT_ID: appSecret.secretValueFromJson('LINE_CLIENT_ID').unsafeUnwrap(),
-        LINE_CLIENT_SECRET: appSecret.secretValueFromJson('LINE_CLIENT_SECRET').unsafeUnwrap(),
-        LINE_REDIRECT_URI: appSecret.secretValueFromJson('LINE_REDIRECT_URI').unsafeUnwrap(),
-        JWT_SECRET: appSecret.secretValueFromJson('JWT_SECRET').unsafeUnwrap(),
-        // Secrets の ARN を Lambda に渡す（コード側が ARN を読んで SecretsManager から値を取得） 
+        DB_NAME: "postgres",
+        DB_USER: dbSecret.secretValueFromJson("username").unsafeUnwrap(),
+        DB_PASSWORD: dbSecret.secretValueFromJson("password").unsafeUnwrap(),
+        LINE_CLIENT_ID: appSecret
+          .secretValueFromJson("LINE_CLIENT_ID")
+          .unsafeUnwrap(),
+        LINE_CLIENT_SECRET: appSecret
+          .secretValueFromJson("LINE_CLIENT_SECRET")
+          .unsafeUnwrap(),
+        LINE_REDIRECT_URI: appSecret
+          .secretValueFromJson("LINE_REDIRECT_URI")
+          .unsafeUnwrap(),
+        JWT_SECRET: appSecret.secretValueFromJson("JWT_SECRET").unsafeUnwrap(),
+        // Secrets の ARN を Lambda に渡す（コード側が ARN を読んで SecretsManager から値を取得）
         DB_SECRET_ARN: dbSecret.secretArn,
         APP_SECRET_ARN: appSecret.secretArn,
-        CORS_ORIGIN: 'https://word-app-opal.vercel.app',
+        CORS_ORIGIN: "https://word-app-opal.vercel.app",
         // 起動時の重さ回避
-        RUN_MIGRATION: 'true',
-        RUN_SEEDER: 'true',
-        RUN_SEEDER_FOR_WORDS: 'false',
-        APP_BOOTSTRAP_MODE: 'FULL',
+        RUN_MIGRATION: "true",
+        RUN_SEEDER: "true",
+        RUN_SEEDER_FOR_WORDS: "false",
+        APP_BOOTSTRAP_MODE: "FULL",
       },
     });
 
@@ -87,9 +117,16 @@ export class AppStack extends Stack {
     const shouldCreateSmVpce = !natEnabled && (createSmVpce ?? true);
 
     if (shouldCreateSmVpce) {
-      const smVpceSg = new ec2.SecurityGroup(this, 'SmVpceSg', { vpc, description: 'SG for Secrets Manager VPCE' });
-      smVpceSg.addIngressRule(lambdaSg, ec2.Port.tcp(443), 'Lambda to SecretsManager VPCE');
-      new ec2.InterfaceVpcEndpoint(this, 'SmEndpoint', {
+      const smVpceSg = new ec2.SecurityGroup(this, "SmVpceSg", {
+        vpc,
+        description: "SG for Secrets Manager VPCE",
+      });
+      smVpceSg.addIngressRule(
+        lambdaSg,
+        ec2.Port.tcp(443),
+        "Lambda to SecretsManager VPCE"
+      );
+      new ec2.InterfaceVpcEndpoint(this, "SmEndpoint", {
         vpc,
         service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
         subnets,
@@ -98,7 +135,7 @@ export class AppStack extends Stack {
         privateDnsEnabled: true, // 既定trueだが明示 });
       });
     }
-  // API Gateway（デフォルトは proxy=true で ANY /{proxy+} が生える）
-  new apigw.LambdaRestApi(this,'Api',{ handler: fn });
+    // API Gateway（デフォルトは proxy=true で ANY /{proxy+} が生える）
+    new apigw.LambdaRestApi(this, "Api", { handler: fn });
   }
 }

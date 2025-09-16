@@ -6,10 +6,12 @@ import {
   Routes,
 } from 'react-router-dom'
 
-import Header from '../components/Header'
+import { PageContainer } from '@/components/ui/card'
+import { PageShell } from '@/components/ui/PageShell'
+
 import QuizMenu from '../components/quiz/QuizMenu'
-import ResultIndex  from '../components/result/ResultIndex';
-import ResultShow   from '../components/result/ResultShow/ResultShow';
+import ResultIndex from '../components/result/ResultIndex'
+import ResultShow from '../components/result/ResultShow'
 import RootSetting from '../components/setting/RootSetting'
 import UserSetting from '../components/setting/UserSetting'
 import Home from '../components/user/Home'
@@ -24,145 +26,146 @@ import WordNew from '../components/word/WordNew'
 import WordShow from '../components/word/WordShow'
 import PrivateRoute from './PrivateRoute'
 import PublicRoute from './PublicRoute'
-// import Dashboard from '../components/Dashboard';
-// import Footer from '../components/Footer';
 
 const routerFutureFlags = {
-  v7_startTransition : true,
+  v7_startTransition: true,
   v7_relativeSplatPath: true,
 }
 
 const AppRouter: React.FC = () => {
   return (
     <Router future={routerFutureFlags}>
-      <Header />
-      <Routes>
-        {/* 未ログインのみアクセス可 */}
+      <PageShell>
+        <PageContainer>
+          <Routes>
+            {/* 未ログインのみアクセス可 */}
 
-        <Route
-          path="/"
-          element={
-            <PublicRoute>
-              <Home />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path="/sign_in"
-          element={
-            <PublicRoute>
-              <SignIn />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path="/sign_up"
-          element={
-            <PublicRoute>
-              <SignUp />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path="/line/callback"
-          element={
-            <PublicRoute>
-              <LineCallback />
-            </PublicRoute>
-          }
-        />
+            <Route
+              path="/"
+              element={
+                <PublicRoute>
+                  <Home />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/sign_in"
+              element={
+                <PublicRoute>
+                  <SignIn />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/sign_up"
+              element={
+                <PublicRoute>
+                  <SignUp />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/line/callback"
+              element={
+                <PublicRoute>
+                  <LineCallback />
+                </PublicRoute>
+              }
+            />
 
-        {/* ログイン済みのみアクセス可 */}
-        <Route
-          path="/mypage"
-          element={
-            <PrivateRoute>
-              <MyPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/user/userSetting"
-          element={
-            <PrivateRoute requiredRole={'general'}>
-              <UserSetting />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/user/rootSetting"
-          element={
-            <PrivateRoute requiredRole={'root'}>
-              <RootSetting />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/words/new"
-          element={
-            <PrivateRoute requiredRole={'admin'}>
-              <WordNew />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/words/edit/:id"
-          element={
-            <PrivateRoute requiredRole={'admin'}>
-              <WordEdit />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/words"
-          element={
-            <PrivateRoute>
-              <WordList />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/words/:id"
-          element={
-            <PrivateRoute>
-              <WordShow />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/Words/BulkRegister"
-          element={
-            <PrivateRoute>
-              <WordBulkRegister />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/quizs"
-          element={
-            <PrivateRoute>
-              <QuizMenu />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/results"
-          element={
-            <PrivateRoute>
-              <ResultIndex />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/results/:quizNo"
-          element={
-            <PrivateRoute>
-              <ResultShow />
-            </PrivateRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+            {/* ログイン済みのみアクセス可 */}
+            <Route
+              path="/mypage"
+              element={
+                <PrivateRoute>
+                  <MyPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/user/userSetting"
+              element={
+                <PrivateRoute requiredRole={'general'}>
+                  <UserSetting />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/user/rootSetting"
+              element={
+                <PrivateRoute requiredRole={'root'}>
+                  <RootSetting />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/words/new"
+              element={
+                <PrivateRoute requiredRole={'admin'}>
+                  <WordNew />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/words/edit/:id"
+              element={
+                <PrivateRoute requiredRole={'admin'}>
+                  <WordEdit />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/words"
+              element={
+                <PrivateRoute>
+                  <WordList />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/words/:id"
+              element={
+                <PrivateRoute>
+                  <WordShow />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/Words/BulkRegister"
+              element={
+                <PrivateRoute>
+                  <WordBulkRegister />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/quizs"
+              element={
+                <PrivateRoute>
+                  <QuizMenu />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/results"
+              element={
+                <PrivateRoute>
+                  <ResultIndex />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/results/:quizNo"
+              element={
+                <PrivateRoute>
+                  <ResultShow />
+                </PrivateRoute>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </PageContainer>
+      </PageShell>
     </Router>
   )
 }

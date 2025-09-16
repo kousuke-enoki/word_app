@@ -1,13 +1,13 @@
-import clsx from 'clsx';
-import { useId, useState } from 'react';
+import clsx from 'clsx'
+import { useId, useState } from 'react'
 
 type Props = {
-  title: string;
-  disabled?: boolean;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-  removeCollapsedGap?: boolean; // true なら閉じた時に下の帯を完全に消す
-};
+  title: string
+  disabled?: boolean
+  children: React.ReactNode
+  defaultOpen?: boolean
+  removeCollapsedGap?: boolean
+}
 
 export const MyCollapsible: React.FC<Props> = ({
   title,
@@ -16,44 +16,50 @@ export const MyCollapsible: React.FC<Props> = ({
   defaultOpen = false,
   removeCollapsedGap = false,
 }) => {
-  const [open, setOpen] = useState(defaultOpen);
-  const id = useId();
+  const [open, setOpen] = useState(defaultOpen)
+  const id = useId()
 
   return (
     <section
       className={clsx(
-        'collapsible',
-        removeCollapsedGap && !open && 'border-b-0' /* 任意 */,
+        'space-y-3',
+        disabled && 'opacity-60 pointer-events-none',
       )}
-      data-open={open}
-      aria-disabled={disabled}
     >
       <button
         type="button"
-        className="collapsible__header"
         aria-expanded={open}
         aria-controls={id}
-        disabled={disabled}
-        onClick={() => !disabled && setOpen(o => !o)}
+        onClick={() => !disabled && setOpen((o) => !o)}
+        className={clsx(
+          'flex w-full items-center justify-between rounded-xl border px-3 py-2 text-left',
+          'transition focus:outline-none focus:ring-2 ring-[var(--button_bg)]',
+          'bg-[var(--btn-subtle-bg)] border-[var(--btn-subtle-bd)] text-[var(--fg)]',
+        )}
       >
-        <span>{title}</span>
-        <svg className="collapsible__icon" viewBox="0 0 10 10" fill="currentColor">
-          <path d="M6 8l4 4 4-4" />
+        <span className="font-medium">{title}</span>
+        <svg
+          viewBox="0 0 20 20"
+          className={clsx(
+            'h-4 w-4 transform transition-transform',
+            open && 'rotate-180',
+          )}
+          fill="currentColor"
+        >
+          <path d="M5.5 8l4.5 4 4.5-4" />
         </svg>
       </button>
 
-      {/* 非表示にして空白を完全になくす場合 */}
-      {removeCollapsedGap ? (
-        open && (
-          <div id={id}>
-            <div className="collapsible__inner">{children}</div>
-          </div>
-        )
-      ) : (
-        <div id={id} className="collapsible__content">
-          <div className="collapsible__inner">{children}</div>
+      {open ? (
+        <div
+          id={id}
+          className="rounded-xl border border-[var(--border)] bg-[var(--container_bg)] p-4"
+        >
+          {children}
         </div>
+      ) : (
+        !removeCollapsedGap && <div className="h-2" />
       )}
     </section>
-  );
-};
+  )
+}

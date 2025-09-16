@@ -17,7 +17,7 @@ export class NetworkStack extends Stack {
       natGateways: props.natEnabled ? 1 : 0,
       subnetConfiguration: [
         { name: "Public", subnetType: ec2.SubnetType.PUBLIC, cidrMask: 24 },
-        // ここがポイント：一時的に reserved にして“席”だけ確保しておく
+        //一時的に reserved にして“席”だけ確保しておく
         {
           name: "AppIsolated",
           subnetType: ec2.SubnetType.PRIVATE_ISOLATED,

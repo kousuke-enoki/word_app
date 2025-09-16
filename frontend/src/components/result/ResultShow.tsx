@@ -11,9 +11,6 @@ import { useQuizResult } from '@/hooks/result/useQuizResult'
 import { registerWord } from '@/service/word/RegisterWord'
 import { ResultQuestion } from '@/types/quiz'
 
-// const pageSizes = [10, 30, 50, 100] as const
-// type PageSize = (typeof pageSizes)[number]
-
 export default function ResultShow() {
   const { quizNo } = useParams<{ quizNo?: string }>()
   // const nav = useNavigate()

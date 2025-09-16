@@ -3,9 +3,13 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
+import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import WordBulkRegister from '../WordBulkRegister'
+
+const renderWithRouter = (ui: React.ReactElement) =>
+  render(<MemoryRouter>{ui}</MemoryRouter>)
 
 /* --------- UI を薄くモックして安定化 --------- */
 vi.mock('@/components/ui/card', () => ({
@@ -57,7 +61,7 @@ beforeEach(() => {
 
 describe('WordBulkRegister', () => {
   it('初期表示：見出し、文字カウンタ、ボタン状態', () => {
-    render(<WordBulkRegister />)
+    renderWithRouter(<WordBulkRegister />)
 
     expect(
       screen.getByRole('heading', { name: '単語一括登録' }),
@@ -87,7 +91,7 @@ describe('WordBulkRegister', () => {
       },
     })
 
-    render(<WordBulkRegister />)
+    renderWithRouter(<WordBulkRegister />)
 
     await typeInTextarea('Some english paragraph.')
     expect(screen.getByRole('button', { name: '抽出' })).toBeEnabled()
@@ -150,7 +154,7 @@ describe('WordBulkRegister', () => {
       data: { candidates: [], registered: [], not_exists: [] },
     })
 
-    render(<WordBulkRegister />)
+    renderWithRouter(<WordBulkRegister />)
     await typeInTextarea('text')
     await clickExtract()
 
@@ -163,7 +167,7 @@ describe('WordBulkRegister', () => {
   it('抽出失敗：エラーメッセージ', async () => {
     ;(axiosInstance.post as any).mockRejectedValueOnce(new Error('500'))
 
-    render(<WordBulkRegister />)
+    renderWithRouter(<WordBulkRegister />)
     await typeInTextarea('text')
     await clickExtract()
 
@@ -180,7 +184,7 @@ describe('WordBulkRegister', () => {
       data: { success: ['dog', 'cat'] },
     })
 
-    render(<WordBulkRegister />)
+    renderWithRouter(<WordBulkRegister />)
     await typeInTextarea('animals')
     await clickExtract()
     await screen.findByText('抽出に成功しました（2 語）')
@@ -213,7 +217,7 @@ describe('WordBulkRegister', () => {
       data: { failed: ['one'] },
     })
 
-    render(<WordBulkRegister />)
+    renderWithRouter(<WordBulkRegister />)
     await typeInTextarea('numbers')
     await clickExtract()
     await screen.findByText('抽出に成功しました（1 語）')
@@ -234,7 +238,7 @@ describe('WordBulkRegister', () => {
       data: { success: ['a'], failed: ['b', 'c'] },
     })
 
-    render(<WordBulkRegister />)
+    renderWithRouter(<WordBulkRegister />)
     await typeInTextarea('abc')
     await clickExtract()
     await screen.findByText('抽出に成功しました（3 語）')
@@ -255,7 +259,7 @@ describe('WordBulkRegister', () => {
     // 登録失敗
     ;(axiosInstance.post as any).mockRejectedValueOnce(new Error('500'))
 
-    render(<WordBulkRegister />)
+    renderWithRouter(<WordBulkRegister />)
     await typeInTextarea('x')
     await clickExtract()
     await screen.findByText('抽出に成功しました（1 語）')
@@ -271,7 +275,7 @@ describe('WordBulkRegister', () => {
       data: { candidates: ['x', 'y'], registered: [], not_exists: [] },
     })
 
-    render(<WordBulkRegister />)
+    renderWithRouter(<WordBulkRegister />)
     await typeInTextarea('xy')
     await clickExtract()
     await screen.findByText('抽出に成功しました（2 語）')
@@ -286,7 +290,7 @@ describe('WordBulkRegister', () => {
       data: { candidates: words, registered: [], not_exists: [] },
     })
 
-    render(<WordBulkRegister />)
+    renderWithRouter(<WordBulkRegister />)
     await typeInTextarea('many')
     await clickExtract()
     await screen.findByText(`抽出に成功しました（${words.length} 語）`)
@@ -314,7 +318,7 @@ describe('WordBulkRegister', () => {
       },
     })
 
-    render(<WordBulkRegister />)
+    renderWithRouter(<WordBulkRegister />)
     await typeInTextarea('text')
     await clickExtract()
     await screen.findByText('抽出に成功しました（1 語）')
@@ -347,7 +351,7 @@ describe('WordBulkRegister', () => {
         }),
     )
 
-    render(<WordBulkRegister />)
+    renderWithRouter(<WordBulkRegister />)
     await typeInTextarea('delayed')
     await userEvent.click(screen.getByRole('button', { name: '抽出' }))
 

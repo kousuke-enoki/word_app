@@ -13,12 +13,14 @@ type Handler interface {
 	SignUpHandler() gin.HandlerFunc
 	SignInHandler() gin.HandlerFunc
 	MyPageHandler() gin.HandlerFunc
+	ListHandler() gin.HandlerFunc
 }
 
 type Client interface {
 	Create(ctx context.Context, email, name, password string) (*ent.User, error)
 	FindByEmail(ctx context.Context, email string) (*ent.User, error)
 	FindByID(ctx context.Context, id int) (*ent.User, error)
+	GetUsers(ctx context.Context, UserListRequest *models.UserListRequest) (*models.UserListResponse, error)
 }
 
 type Validator interface {

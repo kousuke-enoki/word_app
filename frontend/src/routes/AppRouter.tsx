@@ -11,7 +11,7 @@ import { PageShell } from '@/components/ui/PageShell'
 
 import QuizMenu from '../components/quiz/QuizMenu'
 import ResultIndex from '../components/result/ResultIndex'
-import ResultShow from '../components/result/ResultShow/ResultShow'
+import ResultShow from '../components/result/ResultShow'
 import RootSetting from '../components/setting/RootSetting'
 import UserSetting from '../components/setting/UserSetting'
 import Home from '../components/user/Home'

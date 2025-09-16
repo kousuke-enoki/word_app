@@ -273,6 +273,9 @@ const WordNew: React.FC = () => {
               品詞を追加
             </Button>
           )}
+          <div className="flex justify-end gap-2">
+            <Button type="submit">単語を登録する</Button>
+          </div>
         </form>
       </Card>
       <Card className="mt1 p-2">

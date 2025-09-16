@@ -111,40 +111,6 @@ const WordList: React.FC = () => {
     </div>
   )
 
-  // const Pagination = (
-  //   <div className="mt-4 flex flex-wrap items-center gap-2">
-  //     <select
-  //       className="rounded-xl border border-[var(--input_bd)] bg-[var(--select)] px-3 py-2 text-[var(--select_c)]"
-  //       value={limit}
-  //       onChange={(e) => setLimit(Number(e.target.value))}
-  //     >
-  //       {[10, 20, 30, 50].map((n) => (
-  //         <option key={n} value={n}>
-  //           {n}
-  //         </option>
-  //       ))}
-  //     </select>
-  //     <Button onClick={() => setPage(1)} disabled={page === 1}>
-  //       最初へ
-  //     </Button>
-  //     <Button onClick={() => setPage(page - 1)} disabled={page === 1}>
-  //       前へ
-  //     </Button>
-  //     <span className="px-2 text-sm opacity-80">
-  //       ページ {page} / {totalPages}
-  //     </span>
-  //     <Button onClick={() => setPage(page + 1)} disabled={page === totalPages}>
-  //       次へ
-  //     </Button>
-  //     <Button
-  //       onClick={() => setPage(totalPages)}
-  //       disabled={page === totalPages}
-  //     >
-  //       最後へ
-  //     </Button>
-  //   </div>
-  // )
-
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">

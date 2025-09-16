@@ -121,7 +121,9 @@ describe('WordNew Component', () => {
     await userEvent.selectOptions(screen.getByRole('combobox'), '1') // 名詞
     await userEvent.type(screen.getByPlaceholderText('意味'), 'りんご')
 
-    await userEvent.click(screen.getByRole('button', { name: '単語を登録' }))
+    await userEvent.click(
+      screen.getByRole('button', { name: '単語を登録する' }),
+    )
 
     // POST されたこと
     await waitFor(() =>
@@ -152,7 +154,9 @@ describe('WordNew Component', () => {
     await userEvent.type(screen.getByPlaceholderText('example'), 'apple')
     await userEvent.selectOptions(screen.getByRole('combobox'), '1')
     await userEvent.type(screen.getByPlaceholderText('意味'), 'りんご')
-    await userEvent.click(screen.getByRole('button', { name: '単語を登録' }))
+    await userEvent.click(
+      screen.getByRole('button', { name: '単語を登録する' }),
+    )
 
     expect(
       await screen.findByText('単語の登録中にエラーが発生しました。'),

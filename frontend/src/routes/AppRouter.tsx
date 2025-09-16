@@ -19,6 +19,7 @@ import LineCallback from '../components/user/LineCallback'
 import MyPage from '../components/user/MyPage'
 import SignIn from '../components/user/SignIn'
 import SignUp from '../components/user/SignUp'
+import UserList from '../components/user/UserList'
 import WordBulkRegister from '../components/word/WordBulkRegister'
 import WordEdit from '../components/word/WordEdit'
 import WordList from '../components/word/WordList'
@@ -79,6 +80,14 @@ const AppRouter: React.FC = () => {
               element={
                 <PrivateRoute>
                   <MyPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/user/list"
+              element={
+                <PrivateRoute requiredRole={'root'}>
+                  <UserList />
                 </PrivateRoute>
               }
             />

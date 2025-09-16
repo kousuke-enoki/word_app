@@ -33,7 +33,8 @@ func (User) Fields() []ent.Field {
 			}),
 		field.String("password").
 			Sensitive().
-			NotEmpty(),
+			Nillable().
+			Optional(),
 		field.String("name").
 			Default("JohnDoe").
 			Comment("Name of the user.\n If not specified, defaults to \"John Doe\".").
@@ -52,6 +53,8 @@ func (User) Fields() []ent.Field {
 		field.Bool("isAdmin").
 			Default(false),
 		field.Bool("isRoot").
+			Default(false),
+		field.Bool("isTest").
 			Default(false),
 	}
 }

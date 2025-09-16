@@ -75,6 +75,7 @@ func (r *Implementation) MountRoutes(router *gin.Engine) {
 		protectedRoutes.GET("/auth/check", r.JwtMiddleware.JwtCheckMiddleware())
 
 		protectedRoutes.GET("/users/my_page", r.UserHandler.MyPageHandler())
+		protectedRoutes.GET("/users", r.UserHandler.ListHandler())
 		protectedRoutes.GET("/setting/user_config", r.SettingHandler.GetUserConfigHandler())
 		protectedRoutes.POST("/setting/user_config", r.SettingHandler.SaveUserConfigHandler())
 		protectedRoutes.GET("/setting/root_config", r.SettingHandler.GetRootConfigHandler())

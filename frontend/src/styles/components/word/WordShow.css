@@ -56,7 +56,7 @@ button:hover {
 }
 
 .save-button:hover {
-  background-color:var(--save_button_hover);
+  background-color: var(--save_button_hover);
 }
 
 .success-popup {
@@ -85,4 +85,21 @@ p {
 
 div {
   margin-bottom: 20px;
+}
+:root {
+  --button: #ffffff;
+  --button_border: #3567ff;
+  --button_bg: #3b82f6;
+  --pagination_bg: #3b82f6;
+  --pagination: #ffffff;
+  --pagination_bd: #cfd4dc;
+  --select_bd: var(--input_bd);
+}
+.dark {
+  --button: #ffffff;
+  --button_border: #5b8cff;
+  --button_bg: #3b82f6;
+  --pagination_bg: #3b82f6;
+  --pagination: #ffffff;
+  --pagination_bd: #343a46;
 }

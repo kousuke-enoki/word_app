@@ -1,44 +1,42 @@
-import '@/styles/components/result/_common.css';
-import '@/styles/components/result/ResultIndex.css';
+import React, { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import axiosInstance from '@/axiosConfig'
+import { Card } from '@/components/ui/card'
+import type { ResultSummary } from '@/types/result'
 
-import axiosInstance           from '@/axiosConfig';
-import { ResultSummary }       from '@/types/result';
+import PageBottomNav from '../common/PageBottomNav'
+import PageTitle from '../common/PageTitle'
+import Pagination from '../common/Pagination'
 
-/* 品詞 ID → 名称の簡易マップ（必要に応じて拡張） */
+/* 品詞 ID → 名称 */
 const POS_MAP: Record<number, string> = {
   1: '名詞',
   2: '代名',
   3: '動詞',
   4: '形容',
   5: '副詞',
-  // …
 }
 
-/* ページサイズ選択肢 */
 const PAGE_SIZES = [10, 20, 30] as const
 
 const ResultIndex: React.FC = () => {
   const nav = useNavigate()
 
-  /* ---------- state ---------- */
   const [list, setList] = useState<ResultSummary[]>([])
-  const [pageSize, setPageSize] =
-    useState<(typeof PAGE_SIZES)[number]>(10)
+  const [pageSize, setPageSize] = useState<number>(10)
   const [page, setPage] = useState(0) // 0-based
   const [loading, setLoading] = useState(true)
   const [errMsg, setErrMsg] = useState('')
 
-  /* ---------- 初回ロード ---------- */
   useEffect(() => {
     const fetchAll = async () => {
       try {
         const res = await axiosInstance.get<ResultSummary[]>('/results')
         setList(
           res.data.sort(
-            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
           ),
         )
       } catch (e) {
@@ -51,70 +49,132 @@ const ResultIndex: React.FC = () => {
     fetchAll()
   }, [])
 
-  /* ---------- ページ計算 ---------- */
-  const rows = useMemo(() => {
-    const start = page * pageSize
-    return list.slice(start, start + pageSize)
-  }, [list, page, pageSize])
- /* ---------- UI ---------- */
- if (loading) return <p className="p-4">読み込み中…</p>;
- if (errMsg)  return <p className="p-4 text-red-600">{errMsg}</p>;
+  const totalPages = Math.max(1, Math.ceil(list.length / pageSize))
+  const start = page * pageSize
+  const end = Math.min(start + pageSize, list.length)
 
- return (
-   <div className="rs-wrapper">
-     <h1 className="ri-title">成績一覧</h1>
+  const rows = useMemo(() => list.slice(start, end), [list, start, end])
 
-     {/* --- 一覧テーブル --- */}
-     <table className="rs-table ri-table">
-       <thead>
-         <tr>
-           <th></th><th>日付</th><th>登録単語</th><th>慣用句</th>
-           <th>特殊</th><th>品詞</th><th>問題</th><th>正解</th><th>正解率</th>
-         </tr>
-       </thead>
-       <tbody>
-         {rows.map(r=>(
-           <tr key={r.quizNumber} onClick={()=>nav(`/results/${r.quizNumber}`)}
-               className="cursor-pointer">
-             {/* 以下セルは以前と同じ */}
-             <td>{r.quizNumber}</td>
-             <td className="whitespace-nowrap">{new Date(r.createdAt).toLocaleString()}</td>
-             <td>{['全','登録','未登録'][r.isRegisteredWords]}</td>
-             <td>{['全','のみ','除外'][r.isIdioms]}</td>
-             <td>{['全','のみ','除外'][r.isSpecialCharacters]}</td>
-             <td>{r.choicesPosIds.map(id=>POS_MAP[id]??id).join(', ')}</td>
-             <td>{r.totalQuestionsCount}</td>
-             <td>{r.correctCount}</td>
-             <td>{r.resultCorrectRate.toFixed(1)}%</td>
-           </tr>
-         ))}
-       </tbody>
-     </table>
+  if (loading) return <p className="p-4">読み込み中…</p>
+  if (errMsg) return <p className="p-4 text-red-600">{errMsg}</p>
 
-     {/* --- ページネーション --- */}
-     <div className="flex items-center justify-between">
-       {/* サイズボタン */}
-       <div className="space-x-2">
-         {PAGE_SIZES.map(s=>(
-           <button key={s}
-             className={`rs-page-btn ${s===pageSize?'active':''}`}
-             onClick={()=>{setPageSize(s);setPage(0);}}>
-             {s}
-           </button>
-         ))}
-       </div>
+  return (
+    <div className="mx-auto max-w-5xl">
+      <div className="mb-4 flex items-end justify-between gap-3">
+        <PageTitle title="成績一覧" />
+        <span className="text-sm opacity-70">全 {list.length} 件</span>
+      </div>
 
-       {/* Prev / Next */}
-       <div className="space-x-2">
-         <button onClick={()=>setPage(p=>p-1)} disabled={page===0}
-                 className="rs-page-btn">Prev</button>
-         <button onClick={()=>setPage(p=>p+1)}
-                 disabled={(page+1)*pageSize>=list.length}
-                 className="rs-page-btn">Next</button>
-       </div>
-     </div>
-   </div>
- );
-};
+      <Card className="p-4 sm:p-6">
+        {/* テーブル */}
+        <div className="overflow-x-auto">
+          <table className="min-w-[720px] w-full border-collapse text-sm">
+            <thead>
+              <tr className="bg-[var(--table_th)] text-[var(--table_th_c)]">
+                <th className="px-3 py-2 text-left font-semibold rounded-l-lg">
+                  #
+                </th>
+                <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">
+                  日付
+                </th>
+                <th className="px-3 py-2 text-left font-semibold">登録単語</th>
+                <th className="px-3 py-2 text-left font-semibold">慣用句</th>
+                <th className="px-3 py-2 text-left font-semibold">特殊</th>
+                <th className="px-3 py-2 text-left font-semibold">品詞</th>
+                <th className="px-3 py-2 text-right font-semibold">問題</th>
+                <th className="px-3 py-2 text-right font-semibold">正解</th>
+                <th className="px-3 py-2 text-right font-semibold rounded-r-lg">
+                  正解率
+                </th>
+              </tr>
+            </thead>
 
-export default ResultIndex;
+            <tbody className="divide-y divide-[var(--border)]">
+              {rows.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="px-3 py-10 text-center opacity-70">
+                    成績がありません
+                  </td>
+                </tr>
+              ) : (
+                rows.map((r) => (
+                  <tr
+                    key={r.quizNumber}
+                    onClick={() => nav(`/results/${r.quizNumber}`)}
+                    tabIndex={0}
+                    className="
+                      group cursor-pointer transition-colors duration-150
+                      even:[&>td]:bg-[var(--table_tr_e)]              /* 偶数行の縞も td に適用 */
+                      hover:[&>td]:bg-[var(--table_row_hover)]        /* ← ホバー時は td を塗る */
+                      active:[&>td]:bg-[var(--table_row_active)]
+                      focus-visible:[&>td]:bg-[var(--table_row_hover)]
+                    "
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') nav(`/results/${r.quizNumber}`)
+                    }}
+                  >
+                    <td className="px-3 py-2 group-hover:bg-[var(--table_row_hover)] active:bg-[var(--table_row_active)] even:bg-[var(--table_tr_e)]">
+                      {r.quizNumber}
+                    </td>
+
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      {new Date(r.createdAt).toLocaleString()}
+                    </td>
+                    <td className="px-3 py-2">
+                      {['全', '登録のみ', '未登録のみ'][r.isRegisteredWords]}
+                    </td>
+                    <td className="px-3 py-2">
+                      {['全て', '含む', '含まない'][r.isIdioms]}
+                    </td>
+                    <td className="px-3 py-2">
+                      {['全て', '含む', '含まない'][r.isSpecialCharacters]}
+                    </td>
+                    <td className="px-3 py-2">
+                      {r.choicesPosIds
+                        .map((id) => POS_MAP[id] ?? id)
+                        .join(', ')}
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      {r.totalQuestionsCount}
+                    </td>
+                    <td className="px-3 py-2 text-right">{r.correctCount}</td>
+                    <td className="px-3 py-2 text-right">
+                      {r.resultCorrectRate.toFixed(1)}%
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ページネーション */}
+        <div className="mt-2 border-t border-[var(--border)] pt-2">
+          <Pagination
+            compact
+            page={page + 1} // UIは1-based
+            totalPages={totalPages}
+            onPageChange={(p) => setPage(p - 1)} // 内部は0-basedに戻す
+            pageSize={pageSize}
+            onPageSizeChange={(n) => {
+              setPageSize(n)
+              setPage(0)
+            }}
+            pageSizeOptions={[...PAGE_SIZES]}
+          />
+        </div>
+      </Card>
+      <Card className="mt1 p-2">
+        <PageBottomNav
+          className="mt-1"
+          actions={[{ label: 'クイズメニュー', to: '/quizs' }]}
+          showHome
+          inline
+          compact
+        />
+      </Card>
+    </div>
+  )
+}
+
+export default ResultIndex

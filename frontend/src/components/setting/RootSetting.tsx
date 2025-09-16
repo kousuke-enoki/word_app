@@ -5,6 +5,10 @@ import React, { useEffect, useState } from 'react'
 import axiosInstance from '@/axiosConfig'
 import { EditingPermission } from '@/types/settingTypes'
 
+import PageBottomNav from '../common/PageBottomNav'
+import PageTitle from '../common/PageTitle'
+import { Card } from '../ui/card'
+
 const RootSetting: React.FC = () => {
   /** 取得した初期値を保持しておく */
   const [initial, setInitial] = useState<{
@@ -47,7 +51,7 @@ const RootSetting: React.FC = () => {
           mail: config.is_email_authentication_check,
           line: config.is_line_authentication,
         })
-      } catch (e){
+      } catch (e) {
         alert('ルート設定の取得中にエラーが発生しました。')
         console.error(e)
       }
@@ -94,54 +98,59 @@ const RootSetting: React.FC = () => {
 
   return (
     <div className="settings-wrapper">
-      <h2 className="title">管理設定画面</h2>
+      <PageTitle title="管理設定画面" />
+      <Card className="mt1 p-6">
+        {/* 行 */}
+        <div className="row">
+          <label>編集権限ロール：</label>
+          <select
+            value={editingPermission}
+            onChange={(e) =>
+              setEditingPermission(e.target.value as EditingPermission)
+            }
+          >
+            <option value="user">一般ユーザー</option>
+            <option value="admin">adminユーザー</option>
+            <option value="root">ルートユーザー</option>
+          </select>
+        </div>
 
-      {/* 行 */}
-      <div className="row">
-        <label>編集権限ロール：</label>
-        <select
-          value={editingPermission}
-          onChange={(e) => setEditingPermission(e.target.value as EditingPermission)}
-        >
-          <option value="user">一般ユーザー</option>
-          <option value="admin">adminユーザー</option>
-          <option value="root">ルートユーザー</option>
-        </select>
-      </div>
+        <div className="row">
+          <label>テストユーザーモード：</label>
+          <input
+            type="checkbox"
+            checked={isTestUserMode}
+            onChange={(e) => setIsTestUserMode(e.target.checked)}
+          />
+        </div>
 
-      <div className="row">
-        <label>テストユーザーモード：</label>
-        <input
-          type="checkbox"
-          checked={isTestUserMode}
-          onChange={(e) => setIsTestUserMode(e.target.checked)}
-        />
-      </div>
+        <div className="row">
+          <label>メール認証：</label>
+          <input
+            type="checkbox"
+            checked={isEmailAuthCheck}
+            onChange={(e) => setIsEmailAuthCheck(e.target.checked)}
+          />
+        </div>
 
-      <div className="row">
-        <label>メール認証：</label>
-        <input
-          type="checkbox"
-          checked={isEmailAuthCheck}
-          onChange={(e) => setIsEmailAuthCheck(e.target.checked)}
-        />
-      </div>
+        <div className="row">
+          <label>LINE認証：</label>
+          <input
+            type="checkbox"
+            checked={isLineAuth}
+            onChange={(e) => setIsLineAuth(e.target.checked)}
+          />
+        </div>
 
-      <div className="row">
-        <label>LINE認証：</label>
-        <input
-          type="checkbox"
-          checked={isLineAuth}
-          onChange={(e) => setIsLineAuth(e.target.checked)}
-        />
-      </div>
+        <button onClick={handleSave} disabled={loading || !isDirty}>
+          {loading ? '保存中...' : '保存'}
+        </button>
 
-      <button onClick={handleSave} disabled={loading || !isDirty}>
-        {loading ? '保存中...' : '保存'}
-      </button>
-
-      {message && <p className="msg">{message}</p>}
-
+        {message && <p className="msg">{message}</p>}
+      </Card>
+      <Card className="mt1 p-2">
+        <PageBottomNav className="mt-1" showHome inline compact />
+      </Card>
     </div>
   )
 }

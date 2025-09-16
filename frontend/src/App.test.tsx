@@ -1,10 +1,11 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import React from 'react'
 
 import App from './App'
 
-test('renders the main heading', () => {
+test('renders brand in header', () => {
   render(<App />)
-  const linkElement = screen.getByText(/word app/i)
-  expect(linkElement)
+  const header = screen.getByRole('banner') // <header> のランドマーク
+  const brandLink = within(header).getByRole('link', { name: /DictQuiz/i })
+  expect(brandLink).toBeInTheDocument()
 })

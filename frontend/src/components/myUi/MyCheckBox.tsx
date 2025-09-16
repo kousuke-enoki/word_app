@@ -1,27 +1,28 @@
-import { Checkbox } from '@headlessui/react';
-import clsx from 'clsx';
+import { Checkbox } from '@headlessui/react'
+import clsx from 'clsx'
+import { Check } from 'lucide-react'
 
-type Props = {
-  checked: boolean;
-  label: string;
-  onChange: (v: boolean) => void;
-};
+type Props = { checked: boolean; label: string; onChange: (v: boolean) => void }
 
 export const MyCheckbox: React.FC<Props> = ({ checked, onChange, label }) => (
-  <label className="flex items-center gap-2 cursor-pointer select-none">
+  <label className="flex cursor-pointer select-none items-center gap-2">
     <Checkbox
       checked={checked}
       onChange={onChange}
       className={clsx(
-        'h-5 w-5 shrink-0 rounded border',
+        'grid h-5 w-5 place-content-center rounded-md border transition focus:outline-none focus:ring-2 ring-[var(--button_bg)]',
         checked
-          ? 'border-blue-600 bg-blue-600 text-white'
-          : 'border-gray-300 bg-white',
-        'focus:outline-none focus:ring-2 focus:ring-blue-500'
+          ? 'border-[var(--button_border)] bg-[var(--button_bg)] text-[var(--button)]'
+          : 'border-[var(--border)] bg-[var(--container_bg)] text-[var(--fg)]',
       )}
     >
-      {checked && <span className="block text-center text-xs font-bold">✓</span>}
+      <Check
+        className={clsx(
+          'h-4 w-4 transition',
+          checked ? 'opacity-100' : 'opacity-0',
+        )}
+      />
     </Checkbox>
-    <span>{label}</span>
+    <span className="text-[var(--fg)]">{label}</span>
   </label>
-);
+)

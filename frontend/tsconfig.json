@@ -1,12 +1,8 @@
 {
   "compilerOptions": {
-    "types": ["vitest/globals", "vite/client", "node"],
+    "types": ["vitest/globals", "@testing-library/jest-dom", "node"],
     "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["ES2022", "DOM"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,

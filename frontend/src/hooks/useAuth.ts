@@ -48,8 +48,6 @@ export const useAuth = () => {
     }
 
     checkAuth()
-    // ↓無限ループしてしまうので入れない
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return { isLoggedIn, userRole, isLoading }

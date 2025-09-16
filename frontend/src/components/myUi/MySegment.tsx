@@ -1,15 +1,22 @@
-import clsx from 'clsx';
+// MySegment.tsx
+import clsx from 'clsx'
 
 type Props = {
-  value: number;
-  onChange: (v: number) => void;
-  targets: { value: number; label: string }[];
-};
+  value: number
+  onChange: (v: number) => void
+  targets: { value: number; label: string }[]
+}
 
-export const MySegment = ({ value, onChange, targets }: Props) => (
-  <div role="radiogroup">
-    {targets.map((o, i) => {
-      const active = value === o.value;
+export const MySegment: React.FC<Props> = ({ value, onChange, targets }) => (
+  <div
+    role="radiogroup"
+    className="
+      inline-flex rounded-xl p-0.5 gap-0.5
+      bg-[var(--btn-subtle-bd)]              /* 仕切り色を親に持たせる */
+    "
+  >
+    {targets.map((o) => {
+      const active = value === o.value
       return (
         <button
           key={o.value}
@@ -18,18 +25,16 @@ export const MySegment = ({ value, onChange, targets }: Props) => (
           aria-checked={active}
           onClick={() => onChange(o.value)}
           className={clsx(
-            "px-4 py-1 text-sm font-semibold transition-colors duration-150 focus:outline-none",
-            // 丸みは先頭/末尾だけ強めに
-            i === 0 && "rounded-l-md",
-            i === targets.length - 1 && "rounded-r-md",
+            'px-4 py-1.5 text-sm font-medium transition focus:outline-none focus:ring-2 ring-[var(--button_bg)]',
+            'rounded-lg', // 子の角丸
             active
-              ? "bg-blue-600 text-white shadow-inner"
-              : "bg-blue-200 text-black hover:bg-blue-300 dark:bg-blue-800 dark:text-blue-100 dark:hover:bg-blue-700"
+              ? '!bg-[var(--button_bg)] !text-[var(--button)]'
+              : 'bg-[var(--btn-subtle-bg)] text-[var(--fg)] hover:opacity-95',
           )}
         >
           {o.label}
         </button>
-      );
+      )
     })}
   </div>
-);
+)

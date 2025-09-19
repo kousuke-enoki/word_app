@@ -84,7 +84,7 @@ const AppRouter: React.FC = () => {
               }
             />
             <Route
-              path="/user/list"
+              path="/users"
               element={
                 <PrivateRoute requiredRole={'root'}>
                   <UserList />

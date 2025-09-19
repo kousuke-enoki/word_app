@@ -1,8 +1,6 @@
 // src/pages/user/UserList.tsx
-// import '@/styles/components/user/UserList.css' // 必要ならCSSを用意（WordListと共通でもOK）
-
-import React, { useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 
 import axiosInstance from '@/axiosConfig'
 import PageBottomNav from '@/components/common/PageBottomNav'
@@ -10,9 +8,11 @@ import PageTitle from '@/components/common/PageTitle'
 import Pagination from '@/components/common/Pagination'
 import { Badge, Card, Input } from '@/components/ui/card'
 import { Button } from '@/components/ui/ui'
+import DeleteUserDialog from '@/components/user/modal/DeleteUserDialog'
+import EditUserModal from '@/components/user/modal/EditUserModal'
 
-// --- types（必要なら src/types/userTypes.ts に分離してください） ---
-type User = {
+// ※必要であれば src/types/userTypes.ts に分離可
+export type User = {
   id: number
   name: string
   email?: string
@@ -22,13 +22,8 @@ type User = {
   isSettedPassword?: boolean
   isLine?: boolean
 }
+type UserListResponse = { users: User[]; totalPages: number }
 
-type UserListResponse = {
-  users: User[]
-  totalPages: number
-}
-
-// --- component ---
 const UserList: React.FC = () => {
   const [users, setUsers] = useState<User[]>([])
   const [search, setSearch] = useState('')
@@ -39,6 +34,17 @@ const UserList: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1)
   const [limit, setLimit] = useState(10)
   const [isInitialized, setIsInitialized] = useState(false)
+
+  // フラッシュメッセージ
+  const [flash, setFlash] = useState<{
+    type: 'success' | 'error'
+    text: string
+  } | null>(null)
+
+  // モーダル制御
+  const [editOpen, setEditOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [target, setTarget] = useState<User | null>(null)
 
   useEffect(() => {
     if (location.state) {
@@ -51,86 +57,93 @@ const UserList: React.FC = () => {
     setIsInitialized(true)
   }, [location.state])
 
+  const fetchUsers = useCallback(async () => {
+    const { data } = await axiosInstance.get<UserListResponse>('/users', {
+      params: { search, sortBy, order, page, limit },
+    })
+    setUsers(data.users)
+    setTotalPages(data.totalPages)
+  }, [search, sortBy, order, page, limit])
+
   useEffect(() => {
     if (!isInitialized) return
-    const fetchUsers = async () => {
-      try {
-        const { data } = await axiosInstance.get<UserListResponse>('/users', {
-          params: { search, sortBy, order, page, limit },
-        })
-        setUsers(data.users)
-        setTotalPages(data.totalPages)
-      } catch (e) {
-        console.error('Failed to fetch users:', e)
-      }
-    }
-    fetchUsers()
-  }, [search, sortBy, order, page, limit, isInitialized])
+    fetchUsers().catch(() =>
+      setFlash({ type: 'error', text: 'ユーザー取得に失敗しました。' }),
+    )
+  }, [isInitialized, fetchUsers])
 
-  const roleLabel = (u: User) => {
-    if (u.isRoot) return 'Root'
-    if (u.isAdmin) return 'Admin'
-    if (u.isTest) return 'Test'
-    return 'User'
-  }
+  const roleLabel = (u: User) =>
+    u.isRoot ? 'Root' : u.isAdmin ? 'Admin' : u.isTest ? 'Test' : 'User'
+  const roleBadgeTone = (u: User) =>
+    u.isRoot
+      ? 'bg-[var(--badge_root_bg)] text-[var(--badge_root_fg)]'
+      : u.isAdmin
+        ? 'bg-[var(--badge_admin_bg)] text-[var(--badge_admin_fg)]'
+        : u.isTest
+          ? 'bg-[var(--badge_test_bg)] text-[var(--badge_test_fg)]'
+          : 'bg-[var(--badge_user_bg)] text-[var(--badge_user_fg)]'
 
-  const roleBadgeTone = (u: User) => {
-    if (u.isRoot) return 'bg-[var(--badge_root_bg)] text-[var(--badge_root_fg)]'
-    if (u.isAdmin)
-      return 'bg-[var(--badge_admin_bg)] text-[var(--badge_admin_fg)]'
-    if (u.isTest) return 'bg-[var(--badge_test_bg)] text-[var(--badge_test_fg)]'
-    return 'bg-[var(--badge_user_bg)] text-[var(--badge_user_fg)]'
-  }
+  const Toolbar = useMemo(
+    () => (
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <div className="flex-1 min-w-[220px]">
+          <Input
+            value={search}
+            onChange={(e) => {
+              setPage(1)
+              setSearch(e.target.value)
+            }}
+            placeholder="ユーザー名・メール検索"
+          />
+        </div>
 
-  const Toolbar = (
-    <div className="mb-4 flex flex-wrap items-center gap-3">
-      <div className="flex-1 min-w-[220px]">
-        <Input
-          value={search}
+        <select
+          className="rounded-xl border border-[var(--input_bd)] bg-[var(--select)] px-3 py-2 text-[var(--select_c)]"
+          value={sortBy}
           onChange={(e) => {
-            setPage(1) // 新しい検索時は1ページ目へ
-            setSearch(e.target.value)
+            const v = e.target.value as 'name' | 'email' | 'role'
+            if (v !== sortBy) setPage(1)
+            setSortBy(v)
           }}
-          placeholder="ユーザー名・メール検索"
-        />
+        >
+          <option value="name">名前</option>
+          <option value="email">メール</option>
+          <option value="role">役割</option>
+        </select>
+
+        <Button
+          variant="outline"
+          onClick={() => {
+            setPage(1)
+            setOrder(order === 'asc' ? 'desc' : 'asc')
+          }}
+        >
+          {order === 'asc' ? '昇順' : '降順'}
+        </Button>
+
+        <Badge>総ページ: {totalPages}</Badge>
       </div>
-
-      <select
-        className="rounded-xl border border-[var(--input_bd)] bg-[var(--select)] px-3 py-2 text-[var(--select_c)]"
-        value={sortBy}
-        onChange={(e) => {
-          const v = e.target.value as 'name' | 'email' | 'role'
-          // ソートキー変更時は先頭ページに戻す
-          if (v !== sortBy) setPage(1)
-          setSortBy(v)
-        }}
-      >
-        <option value="name">名前</option>
-        <option value="email">メール</option>
-        <option value="role">役割</option>
-      </select>
-
-      <Button
-        variant="outline"
-        onClick={() => {
-          setPage(1)
-          setOrder(order === 'asc' ? 'desc' : 'asc')
-        }}
-      >
-        {order === 'asc' ? '昇順' : '降順'}
-      </Button>
-
-      <Badge>総ページ: {totalPages}</Badge>
-    </div>
+    ),
+    [search, sortBy, order, totalPages],
   )
 
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
         <PageTitle title="ユーザー一覧" />
-        {/* もしユーザー新規作成ページがあるなら */}
-        {/* <Link to="/users/new"><Button>新規作成</Button></Link> */}
       </div>
+
+      {flash && (
+        <div
+          className={`mb-4 rounded-xl border-l-4 px-4 py-3 text-sm ${
+            flash.type === 'success'
+              ? 'border-green-500 bg-green-50 text-green-800'
+              : 'border-red-500 bg-red-50 text-red-800'
+          }`}
+        >
+          {flash.text}
+        </div>
+      )}
 
       <Card className="p-4">
         {Toolbar}
@@ -139,16 +152,22 @@ const UserList: React.FC = () => {
           <table className="min-w-full text-sm">
             <thead>
               <tr className="bg-[var(--thbc)] text-left">
-                {['名前', 'メール', '役割', 'LINE連携', 'PW設定', '詳細'].map(
-                  (th) => (
-                    <th
-                      key={th}
-                      className="border-b border-[var(--thbd)] px-3 py-2 text-[var(--fg)]"
-                    >
-                      {th}
-                    </th>
-                  ),
-                )}
+                {[
+                  '名前',
+                  'メール',
+                  '役割',
+                  'LINE連携',
+                  'PW設定',
+                  '編集',
+                  '削除',
+                ].map((th) => (
+                  <th
+                    key={th}
+                    className="border-b border-[var(--thbd)] px-3 py-2 text-[var(--fg)]"
+                  >
+                    {th}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -156,7 +175,6 @@ const UserList: React.FC = () => {
                 <tr key={u.id} className="even:bg-[var(--table_tr_e)]">
                   <td className="px-3 py-2">{u.name}</td>
                   <td className="px-3 py-2">{u.email ?? '-'}</td>
-
                   <td className="px-3 py-2">
                     <span
                       className={`rounded px-2 py-1 text-xs ${roleBadgeTone(u)}`}
@@ -164,7 +182,6 @@ const UserList: React.FC = () => {
                       {roleLabel(u)}
                     </span>
                   </td>
-
                   <td className="px-3 py-2">
                     {u.isLine ? (
                       <span className="rounded bg-[var(--ok_bg)] px-2 py-1 text-xs text-[var(--ok_fg)]">
@@ -176,7 +193,6 @@ const UserList: React.FC = () => {
                       </span>
                     )}
                   </td>
-
                   <td className="px-3 py-2">
                     {u.isSettedPassword ? (
                       <span className="rounded bg-[var(--ok_bg)] px-2 py-1 text-xs text-[var(--ok_fg)]">
@@ -188,15 +204,26 @@ const UserList: React.FC = () => {
                       </span>
                     )}
                   </td>
-
                   <td className="px-3 py-2">
-                    <Link
-                      to={`/users/${u.id}`}
-                      state={{ search, sortBy, order, page, limit }}
-                      className="underline"
+                    <Button
+                      onClick={() => {
+                        setTarget(u)
+                        setEditOpen(true)
+                      }}
                     >
-                      詳細
-                    </Link>
+                      編集
+                    </Button>
+                  </td>
+                  <td className="px-3 py-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setTarget(u)
+                        setDeleteOpen(true)
+                      }}
+                    >
+                      削除
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -204,7 +231,7 @@ const UserList: React.FC = () => {
                 <tr>
                   <td
                     className="px-3 py-6 text-center text-[var(--muted_fg)]"
-                    colSpan={6}
+                    colSpan={7}
                   >
                     該当するユーザーが見つかりませんでした
                   </td>
@@ -231,6 +258,32 @@ const UserList: React.FC = () => {
       <Card className="mt1 p-2">
         <PageBottomNav className="mt-1" showHome inline compact />
       </Card>
+
+      {/* 編集モーダル（別コンポーネント） */}
+      <EditUserModal
+        open={editOpen}
+        user={target}
+        onClose={() => setEditOpen(false)}
+        onSuccess={async (msg) => {
+          setEditOpen(false)
+          setFlash({ type: 'success', text: msg })
+          await fetchUsers()
+        }}
+        onError={(msg) => setFlash({ type: 'error', text: msg })}
+      />
+
+      {/* 削除モーダル（別コンポーネント） */}
+      <DeleteUserDialog
+        open={deleteOpen}
+        user={target}
+        onClose={() => setDeleteOpen(false)}
+        onSuccess={async (msg) => {
+          setDeleteOpen(false)
+          setFlash({ type: 'success', text: msg })
+          await fetchUsers()
+        }}
+        onError={(msg) => setFlash({ type: 'error', text: msg })}
+      />
     </div>
   )
 }

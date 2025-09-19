@@ -6233,6 +6233,7 @@ type UserMutation struct {
 	updated_at              *time.Time
 	isAdmin                 *bool
 	isRoot                  *bool
+	isTest                  *bool
 	clearedFields           map[string]struct{}
 	registered_words        map[int]struct{}
 	removedregistered_words map[int]struct{}
@@ -6401,7 +6402,7 @@ func (m *UserMutation) Password() (r string, exists bool) {
 // OldPassword returns the old "password" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldPassword(ctx context.Context) (v string, err error) {
+func (m *UserMutation) OldPassword(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldPassword is only allowed on UpdateOne operations")
 	}
@@ -6415,9 +6416,22 @@ func (m *UserMutation) OldPassword(ctx context.Context) (v string, err error) {
 	return oldValue.Password, nil
 }
 
+// ClearPassword clears the value of the "password" field.
+func (m *UserMutation) ClearPassword() {
+	m.password = nil
+	m.clearedFields[user.FieldPassword] = struct{}{}
+}
+
+// PasswordCleared returns if the "password" field was cleared in this mutation.
+func (m *UserMutation) PasswordCleared() bool {
+	_, ok := m.clearedFields[user.FieldPassword]
+	return ok
+}
+
 // ResetPassword resets all changes to the "password" field.
 func (m *UserMutation) ResetPassword() {
 	m.password = nil
+	delete(m.clearedFields, user.FieldPassword)
 }
 
 // SetName sets the "name" field.
@@ -6598,6 +6612,42 @@ func (m *UserMutation) OldIsRoot(ctx context.Context) (v bool, err error) {
 // ResetIsRoot resets all changes to the "isRoot" field.
 func (m *UserMutation) ResetIsRoot() {
 	m.isRoot = nil
+}
+
+// SetIsTest sets the "isTest" field.
+func (m *UserMutation) SetIsTest(b bool) {
+	m.isTest = &b
+}
+
+// IsTest returns the value of the "isTest" field in the mutation.
+func (m *UserMutation) IsTest() (r bool, exists bool) {
+	v := m.isTest
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsTest returns the old "isTest" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldIsTest(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsTest is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsTest requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsTest: %w", err)
+	}
+	return oldValue.IsTest, nil
+}
+
+// ResetIsTest resets all changes to the "isTest" field.
+func (m *UserMutation) ResetIsTest() {
+	m.isTest = nil
 }
 
 // AddRegisteredWordIDs adds the "registered_words" edge to the RegisteredWord entity by ids.
@@ -6835,7 +6885,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
 	}
@@ -6856,6 +6906,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.isRoot != nil {
 		fields = append(fields, user.FieldIsRoot)
+	}
+	if m.isTest != nil {
+		fields = append(fields, user.FieldIsTest)
 	}
 	return fields
 }
@@ -6879,6 +6932,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.IsAdmin()
 	case user.FieldIsRoot:
 		return m.IsRoot()
+	case user.FieldIsTest:
+		return m.IsTest()
 	}
 	return nil, false
 }
@@ -6902,6 +6957,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldIsAdmin(ctx)
 	case user.FieldIsRoot:
 		return m.OldIsRoot(ctx)
+	case user.FieldIsTest:
+		return m.OldIsTest(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -6960,6 +7017,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIsRoot(v)
 		return nil
+	case user.FieldIsTest:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsTest(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
@@ -6989,7 +7053,11 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(user.FieldPassword) {
+		fields = append(fields, user.FieldPassword)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -7002,6 +7070,11 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
+	switch name {
+	case user.FieldPassword:
+		m.ClearPassword()
+		return nil
+	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 
@@ -7029,6 +7102,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldIsRoot:
 		m.ResetIsRoot()
+		return nil
+	case user.FieldIsTest:
+		m.ResetIsTest()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

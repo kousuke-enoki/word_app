@@ -35,9 +35,11 @@ func TestSignInHandler(t *testing.T) {
 		}
 		reqBody, _ := json.Marshal(reqData)
 
+		// パスワードは *string （Nillable）に変更
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("Secure123!"), bcrypt.DefaultCost)
+		hp := string(hashedPassword)
 		mockClient.On("FindByEmail", mock.Anything, reqData.Email).
-			Return(&ent.User{ID: 1, Email: reqData.Email, Password: string(hashedPassword)}, nil)
+			Return(&ent.User{ID: 1, Email: reqData.Email, Password: &hp}, nil)
 		mockJWTGen.On("GenerateJWT", "1").Return("mocked_jwt_token", nil)
 
 		req, _ := http.NewRequest(http.MethodPost, "/signin", bytes.NewBuffer(reqBody))
@@ -71,11 +73,12 @@ func TestSignInHandler(t *testing.T) {
 		// 無効なリクエストデータ
 		password := "InvalidSecure123!"
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("Secure123!"), bcrypt.DefaultCost)
+		hp := string(hashedPassword)
 		signInUser := &ent.User{
 			ID:       1,
 			Email:    "test@example.com",
 			Name:     "Test User",
-			Password: string(hashedPassword),
+			Password: &hp, // ← ポインタに
 		}
 
 		// モックの設定
@@ -119,11 +122,12 @@ func TestSignInHandler(t *testing.T) {
 		// 正常なユーザーデータとトークン生成エラーのモック設定
 		password := "Secure123!"
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		hp := string(hashedPassword)
 		signInUser := &ent.User{
 			ID:       1,
 			Email:    "test@example.com",
 			Name:     "Test User",
-			Password: string(hashedPassword),
+			Password: &hp, // ← ポインタに
 		}
 
 		mockClient.On("FindByEmail", mock.Anything, "test@example.com").Return(signInUser, nil)
@@ -155,5 +159,50 @@ func TestSignInHandler(t *testing.T) {
 
 		mockClient.AssertExpectations(t)
 		mockJWTGen.AssertExpectations(t)
+	})
+
+	// 追加: パスワード未設定（外部認証のみ）ユーザーは 400 になる
+	t.Run("TestSignInHandler_PasswordNotSet", func(t *testing.T) {
+		gin.SetMode(gin.TestMode)
+
+		mockClient := new(mocks.UserClient)
+		mockJWTGen := &mocks.MockJwtGenerator{}
+		handler := user.NewHandler(mockClient, mockJWTGen)
+
+		// password が nil のユーザーを返す
+		signInUser := &ent.User{
+			ID:       1,
+			Email:    "line_only@example.com",
+			Name:     "Line Only",
+			Password: nil, // ← 未設定
+		}
+		mockClient.On("FindByEmail", mock.Anything, "line_only@example.com").Return(signInUser, nil)
+
+		// リクエスト作成
+		reqData := models.SignInRequest{
+			Email:    "line_only@example.com",
+      Password: "Secure123!",
+		}
+		reqBody, _ := json.Marshal(reqData)
+		req, _ := http.NewRequest(http.MethodPost, "/signin", bytes.NewBuffer(reqBody))
+		req.Header.Set("Content-Type", "application/json")
+
+		// レスポンス作成
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = req
+
+		// 実行
+		handler.SignInHandler()(c)
+
+		// 検証
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		responseData := map[string]string{}
+		err := json.Unmarshal(w.Body.Bytes(), &responseData)
+		assert.NoError(t, err)
+		assert.Equal(t, "Invalid request", responseData["error"])
+
+		mockClient.AssertExpectations(t)
+		// JWT は呼ばれない想定
 	})
 }

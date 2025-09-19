@@ -18,6 +18,7 @@ type User struct {
 	IsRoot  bool   `json:"isRoot"`
 	IsTest  bool   `json:"isTest"`
 	Email   string `json:"email,omitempty"`
+	Password string `json:"password,omitempty"`
 	IsSettedPassword bool `json:"isSettedPassword,omitempty"`
 	IsLine bool `json:"isLine,omitempty"`
 }

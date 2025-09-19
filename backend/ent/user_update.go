@@ -60,6 +60,12 @@ func (uu *UserUpdate) SetNillablePassword(s *string) *UserUpdate {
 	return uu
 }
 
+// ClearPassword clears the value of the "password" field.
+func (uu *UserUpdate) ClearPassword() *UserUpdate {
+	uu.mutation.ClearPassword()
+	return uu
+}
+
 // SetName sets the "name" field.
 func (uu *UserUpdate) SetName(s string) *UserUpdate {
 	uu.mutation.SetName(s)
@@ -118,6 +124,20 @@ func (uu *UserUpdate) SetIsRoot(b bool) *UserUpdate {
 func (uu *UserUpdate) SetNillableIsRoot(b *bool) *UserUpdate {
 	if b != nil {
 		uu.SetIsRoot(*b)
+	}
+	return uu
+}
+
+// SetIsTest sets the "isTest" field.
+func (uu *UserUpdate) SetIsTest(b bool) *UserUpdate {
+	uu.mutation.SetIsTest(b)
+	return uu
+}
+
+// SetNillableIsTest sets the "isTest" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableIsTest(b *bool) *UserUpdate {
+	if b != nil {
+		uu.SetIsTest(*b)
 	}
 	return uu
 }
@@ -303,11 +323,6 @@ func (uu *UserUpdate) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
-	if v, ok := uu.mutation.Password(); ok {
-		if err := user.PasswordValidator(v); err != nil {
-			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
-		}
-	}
 	if v, ok := uu.mutation.Name(); ok {
 		if err := user.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "User.name": %w`, err)}
@@ -334,6 +349,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
 	}
+	if uu.mutation.PasswordCleared() {
+		_spec.ClearField(user.FieldPassword, field.TypeString)
+	}
 	if value, ok := uu.mutation.Name(); ok {
 		_spec.SetField(user.FieldName, field.TypeString, value)
 	}
@@ -348,6 +366,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.IsRoot(); ok {
 		_spec.SetField(user.FieldIsRoot, field.TypeBool, value)
+	}
+	if value, ok := uu.mutation.IsTest(); ok {
+		_spec.SetField(user.FieldIsTest, field.TypeBool, value)
 	}
 	if uu.mutation.RegisteredWordsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -561,6 +582,12 @@ func (uuo *UserUpdateOne) SetNillablePassword(s *string) *UserUpdateOne {
 	return uuo
 }
 
+// ClearPassword clears the value of the "password" field.
+func (uuo *UserUpdateOne) ClearPassword() *UserUpdateOne {
+	uuo.mutation.ClearPassword()
+	return uuo
+}
+
 // SetName sets the "name" field.
 func (uuo *UserUpdateOne) SetName(s string) *UserUpdateOne {
 	uuo.mutation.SetName(s)
@@ -619,6 +646,20 @@ func (uuo *UserUpdateOne) SetIsRoot(b bool) *UserUpdateOne {
 func (uuo *UserUpdateOne) SetNillableIsRoot(b *bool) *UserUpdateOne {
 	if b != nil {
 		uuo.SetIsRoot(*b)
+	}
+	return uuo
+}
+
+// SetIsTest sets the "isTest" field.
+func (uuo *UserUpdateOne) SetIsTest(b bool) *UserUpdateOne {
+	uuo.mutation.SetIsTest(b)
+	return uuo
+}
+
+// SetNillableIsTest sets the "isTest" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableIsTest(b *bool) *UserUpdateOne {
+	if b != nil {
+		uuo.SetIsTest(*b)
 	}
 	return uuo
 }
@@ -817,11 +858,6 @@ func (uuo *UserUpdateOne) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
-	if v, ok := uuo.mutation.Password(); ok {
-		if err := user.PasswordValidator(v); err != nil {
-			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
-		}
-	}
 	if v, ok := uuo.mutation.Name(); ok {
 		if err := user.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "User.name": %w`, err)}
@@ -865,6 +901,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
 	}
+	if uuo.mutation.PasswordCleared() {
+		_spec.ClearField(user.FieldPassword, field.TypeString)
+	}
 	if value, ok := uuo.mutation.Name(); ok {
 		_spec.SetField(user.FieldName, field.TypeString, value)
 	}
@@ -879,6 +918,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.IsRoot(); ok {
 		_spec.SetField(user.FieldIsRoot, field.TypeBool, value)
+	}
+	if value, ok := uuo.mutation.IsTest(); ok {
+		_spec.SetField(user.FieldIsTest, field.TypeBool, value)
 	}
 	if uuo.mutation.RegisteredWordsCleared() {
 		edge := &sqlgraph.EdgeSpec{

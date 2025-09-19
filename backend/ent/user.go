@@ -21,7 +21,7 @@ type User struct {
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
 	// Password holds the value of the "password" field.
-	Password string `json:"-"`
+	Password *string `json:"-"`
 	// Name of the user.
 	//  If not specified, defaults to "John Doe".
 	Name string `json:"name,omitempty"`
@@ -33,6 +33,8 @@ type User struct {
 	IsAdmin bool `json:"isAdmin,omitempty"`
 	// IsRoot holds the value of the "isRoot" field.
 	IsRoot bool `json:"isRoot,omitempty"`
+	// IsTest holds the value of the "isTest" field.
+	IsTest bool `json:"isTest,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -97,7 +99,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldIsAdmin, user.FieldIsRoot:
+		case user.FieldIsAdmin, user.FieldIsRoot, user.FieldIsTest:
 			values[i] = new(sql.NullBool)
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
@@ -136,7 +138,8 @@ func (u *User) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field password", values[i])
 			} else if value.Valid {
-				u.Password = value.String
+				u.Password = new(string)
+				*u.Password = value.String
 			}
 		case user.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -167,6 +170,12 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field isRoot", values[i])
 			} else if value.Valid {
 				u.IsRoot = value.Bool
+			}
+		case user.FieldIsTest:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field isTest", values[i])
+			} else if value.Valid {
+				u.IsTest = value.Bool
 			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
@@ -243,6 +252,9 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("isRoot=")
 	builder.WriteString(fmt.Sprintf("%v", u.IsRoot))
+	builder.WriteString(", ")
+	builder.WriteString("isTest=")
+	builder.WriteString(fmt.Sprintf("%v", u.IsTest))
 	builder.WriteByte(')')
 	return builder.String()
 }

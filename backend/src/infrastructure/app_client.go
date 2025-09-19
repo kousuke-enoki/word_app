@@ -22,6 +22,11 @@ type appClient struct {
 	entClient *ent.Client
 }
 
+// GetUsers implements interfaces.ClientInterface.
+func (c *appClient) GetUsers(ctx context.Context, UserListRequest *models.UserListRequest) (*models.UserListResponse, error) {
+	panic("unimplemented")
+}
+
 // NewAppClient 初期化関数
 func NewAppClient(entClient *ent.Client) interfaces.ClientInterface {
 	return &appClient{

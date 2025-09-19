@@ -230,10 +230,6 @@ func init() {
 			return nil
 		}
 	}()
-	// userDescPassword is the schema descriptor for password field.
-	userDescPassword := userFields[1].Descriptor()
-	// user.PasswordValidator is a validator for the "password" field. It is called by the builders before save.
-	user.PasswordValidator = userDescPassword.Validators[0].(func(string) error)
 	// userDescName is the schema descriptor for name field.
 	userDescName := userFields[2].Descriptor()
 	// user.DefaultName holds the default value on creation for the name field.
@@ -272,6 +268,10 @@ func init() {
 	userDescIsRoot := userFields[6].Descriptor()
 	// user.DefaultIsRoot holds the default value on creation for the isRoot field.
 	user.DefaultIsRoot = userDescIsRoot.Default.(bool)
+	// userDescIsTest is the schema descriptor for isTest field.
+	userDescIsTest := userFields[7].Descriptor()
+	// user.DefaultIsTest holds the default value on creation for the isTest field.
+	user.DefaultIsTest = userDescIsTest.Default.(bool)
 	userconfigFields := schema.UserConfig{}.Fields()
 	_ = userconfigFields
 	// userconfigDescUserID is the schema descriptor for user_id field.

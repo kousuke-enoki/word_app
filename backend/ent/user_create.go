@@ -38,6 +38,14 @@ func (uc *UserCreate) SetPassword(s string) *UserCreate {
 	return uc
 }
 
+// SetNillablePassword sets the "password" field if the given value is not nil.
+func (uc *UserCreate) SetNillablePassword(s *string) *UserCreate {
+	if s != nil {
+		uc.SetPassword(*s)
+	}
+	return uc
+}
+
 // SetName sets the "name" field.
 func (uc *UserCreate) SetName(s string) *UserCreate {
 	uc.mutation.SetName(s)
@@ -104,6 +112,20 @@ func (uc *UserCreate) SetIsRoot(b bool) *UserCreate {
 func (uc *UserCreate) SetNillableIsRoot(b *bool) *UserCreate {
 	if b != nil {
 		uc.SetIsRoot(*b)
+	}
+	return uc
+}
+
+// SetIsTest sets the "isTest" field.
+func (uc *UserCreate) SetIsTest(b bool) *UserCreate {
+	uc.mutation.SetIsTest(b)
+	return uc
+}
+
+// SetNillableIsTest sets the "isTest" field if the given value is not nil.
+func (uc *UserCreate) SetNillableIsTest(b *bool) *UserCreate {
+	if b != nil {
+		uc.SetIsTest(*b)
 	}
 	return uc
 }
@@ -227,6 +249,10 @@ func (uc *UserCreate) defaults() {
 		v := user.DefaultIsRoot
 		uc.mutation.SetIsRoot(v)
 	}
+	if _, ok := uc.mutation.IsTest(); !ok {
+		v := user.DefaultIsTest
+		uc.mutation.SetIsTest(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -237,14 +263,6 @@ func (uc *UserCreate) check() error {
 	if v, ok := uc.mutation.Email(); ok {
 		if err := user.EmailValidator(v); err != nil {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
-		}
-	}
-	if _, ok := uc.mutation.Password(); !ok {
-		return &ValidationError{Name: "password", err: errors.New(`ent: missing required field "User.password"`)}
-	}
-	if v, ok := uc.mutation.Password(); ok {
-		if err := user.PasswordValidator(v); err != nil {
-			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
 		}
 	}
 	if _, ok := uc.mutation.Name(); !ok {
@@ -266,6 +284,9 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.IsRoot(); !ok {
 		return &ValidationError{Name: "isRoot", err: errors.New(`ent: missing required field "User.isRoot"`)}
+	}
+	if _, ok := uc.mutation.IsTest(); !ok {
+		return &ValidationError{Name: "isTest", err: errors.New(`ent: missing required field "User.isTest"`)}
 	}
 	return nil
 }
@@ -300,7 +321,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := uc.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
-		_node.Password = value
+		_node.Password = &value
 	}
 	if value, ok := uc.mutation.Name(); ok {
 		_spec.SetField(user.FieldName, field.TypeString, value)
@@ -321,6 +342,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.IsRoot(); ok {
 		_spec.SetField(user.FieldIsRoot, field.TypeBool, value)
 		_node.IsRoot = value
+	}
+	if value, ok := uc.mutation.IsTest(); ok {
+		_spec.SetField(user.FieldIsTest, field.TypeBool, value)
+		_node.IsTest = value
 	}
 	if nodes := uc.mutation.RegisteredWordsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -462,6 +487,12 @@ func (u *UserUpsert) UpdatePassword() *UserUpsert {
 	return u
 }
 
+// ClearPassword clears the value of the "password" field.
+func (u *UserUpsert) ClearPassword() *UserUpsert {
+	u.SetNull(user.FieldPassword)
+	return u
+}
+
 // SetName sets the "name" field.
 func (u *UserUpsert) SetName(v string) *UserUpsert {
 	u.Set(user.FieldName, v)
@@ -519,6 +550,18 @@ func (u *UserUpsert) SetIsRoot(v bool) *UserUpsert {
 // UpdateIsRoot sets the "isRoot" field to the value that was provided on create.
 func (u *UserUpsert) UpdateIsRoot() *UserUpsert {
 	u.SetExcluded(user.FieldIsRoot)
+	return u
+}
+
+// SetIsTest sets the "isTest" field.
+func (u *UserUpsert) SetIsTest(v bool) *UserUpsert {
+	u.Set(user.FieldIsTest, v)
+	return u
+}
+
+// UpdateIsTest sets the "isTest" field to the value that was provided on create.
+func (u *UserUpsert) UpdateIsTest() *UserUpsert {
+	u.SetExcluded(user.FieldIsTest)
 	return u
 }
 
@@ -590,6 +633,13 @@ func (u *UserUpsertOne) UpdatePassword() *UserUpsertOne {
 	})
 }
 
+// ClearPassword clears the value of the "password" field.
+func (u *UserUpsertOne) ClearPassword() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearPassword()
+	})
+}
+
 // SetName sets the "name" field.
 func (u *UserUpsertOne) SetName(v string) *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
@@ -657,6 +707,20 @@ func (u *UserUpsertOne) SetIsRoot(v bool) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateIsRoot() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateIsRoot()
+	})
+}
+
+// SetIsTest sets the "isTest" field.
+func (u *UserUpsertOne) SetIsTest(v bool) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetIsTest(v)
+	})
+}
+
+// UpdateIsTest sets the "isTest" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateIsTest() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateIsTest()
 	})
 }
 
@@ -892,6 +956,13 @@ func (u *UserUpsertBulk) UpdatePassword() *UserUpsertBulk {
 	})
 }
 
+// ClearPassword clears the value of the "password" field.
+func (u *UserUpsertBulk) ClearPassword() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearPassword()
+	})
+}
+
 // SetName sets the "name" field.
 func (u *UserUpsertBulk) SetName(v string) *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
@@ -959,6 +1030,20 @@ func (u *UserUpsertBulk) SetIsRoot(v bool) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateIsRoot() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateIsRoot()
+	})
+}
+
+// SetIsTest sets the "isTest" field.
+func (u *UserUpsertBulk) SetIsTest(v bool) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetIsTest(v)
+	})
+}
+
+// UpdateIsTest sets the "isTest" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateIsTest() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateIsTest()
 	})
 }
 

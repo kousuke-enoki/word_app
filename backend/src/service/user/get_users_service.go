@@ -4,16 +4,17 @@ import (
 	"context"
 	"errors"
 
-	"user_app/backend/ent"
-	"user_app/backend/ent/registereduser"
-	"user_app/backend/ent/user"
-	"user_app/backend/src/models"
+	"word_app/backend/ent"
+	"word_app/backend/ent/externalauth"
+	"word_app/backend/ent/user"
+	"word_app/backend/src/models"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/sirupsen/logrus"
 )
 
 // user_list
-func (s *ServiceImpl) GetUsers(ctx context.Context, UserListRequest *models.UserListRequest) (*models.UserListResponse, error) {
+func (s *EntUserClient) GetUsers(ctx context.Context, UserListRequest *models.UserListRequest) (*models.UserListResponse, error) {
 	query := s.client.User().Query()
 	userID := UserListRequest.UserID
 	search := UserListRequest.Search

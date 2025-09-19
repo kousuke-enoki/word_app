@@ -90,6 +90,11 @@ func IsRoot(v bool) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldIsRoot, v))
 }
 
+// IsTest applies equality check predicate on the "isTest" field. It's identical to IsTestEQ.
+func IsTest(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldIsTest, v))
+}
+
 // EmailEQ applies the EQ predicate on the "email" field.
 func EmailEQ(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldEmail, v))
@@ -208,6 +213,16 @@ func PasswordHasPrefix(v string) predicate.User {
 // PasswordHasSuffix applies the HasSuffix predicate on the "password" field.
 func PasswordHasSuffix(v string) predicate.User {
 	return predicate.User(sql.FieldHasSuffix(FieldPassword, v))
+}
+
+// PasswordIsNil applies the IsNil predicate on the "password" field.
+func PasswordIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldPassword))
+}
+
+// PasswordNotNil applies the NotNil predicate on the "password" field.
+func PasswordNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldPassword))
 }
 
 // PasswordEqualFold applies the EqualFold predicate on the "password" field.
@@ -383,6 +398,16 @@ func IsRootEQ(v bool) predicate.User {
 // IsRootNEQ applies the NEQ predicate on the "isRoot" field.
 func IsRootNEQ(v bool) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldIsRoot, v))
+}
+
+// IsTestEQ applies the EQ predicate on the "isTest" field.
+func IsTestEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldIsTest, v))
+}
+
+// IsTestNEQ applies the NEQ predicate on the "isTest" field.
+func IsTestNEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldIsTest, v))
 }
 
 // HasRegisteredWords applies the HasEdge predicate on the "registered_words" edge.

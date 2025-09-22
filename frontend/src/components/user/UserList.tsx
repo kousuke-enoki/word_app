@@ -21,6 +21,8 @@ export type User = {
   isTest: boolean
   isSettedPassword?: boolean
   isLine?: boolean
+  createdAt?: string
+  updatedAt?: string
 }
 type UserListResponse = { users: User[]; totalPages: number }
 
@@ -45,6 +47,8 @@ const UserList: React.FC = () => {
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [target, setTarget] = useState<User | null>(null)
+
+  const fmt = (s?: string) => (s ? new Date(s).toLocaleString() : '-')
 
   useEffect(() => {
     if (location.state) {
@@ -160,6 +164,8 @@ const UserList: React.FC = () => {
                   'PW設定',
                   '編集',
                   '削除',
+                  '作成日時',
+                  '更新日時',
                 ].map((th) => (
                   <th
                     key={th}
@@ -225,6 +231,8 @@ const UserList: React.FC = () => {
                       削除
                     </Button>
                   </td>
+                  <td className="px-3 py-2">{fmt(u.createdAt)}</td>
+                  <td className="px-3 py-2">{fmt(u.updatedAt)}</td>
                 </tr>
               ))}
               {users.length === 0 && (
@@ -263,6 +271,8 @@ const UserList: React.FC = () => {
       <EditUserModal
         open={editOpen}
         user={target}
+        isSelf={false} // 一覧は root が他者を編集する想定
+        canEditRole={!!target && !target.isRoot && !target.isTest}
         onClose={() => setEditOpen(false)}
         onSuccess={async (msg) => {
           setEditOpen(false)
@@ -283,6 +293,8 @@ const UserList: React.FC = () => {
           await fetchUsers()
         }}
         onError={(msg) => setFlash({ type: 'error', text: msg })}
+        // この一覧では自分を削除しない想定だが、将来共通化のために明示
+        isSelf={false}
       />
     </div>
   )

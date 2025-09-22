@@ -22,8 +22,18 @@ type appClient struct {
 	entClient *ent.Client
 }
 
+// Update implements interfaces.ClientInterface.
+func (c *appClient) Update(ctx context.Context, UpdateUserRequest *models.UpdateUserInput) (*ent.User, error) {
+	panic("unimplemented")
+}
+
 // GetUsers implements interfaces.ClientInterface.
 func (c *appClient) GetUsers(ctx context.Context, UserListRequest *models.UserListRequest) (*models.UserListResponse, error) {
+	panic("unimplemented")
+}
+
+// Delete implements interfaces.ClientInterface.
+func (c *appClient) Delete(ctx context.Context, editorID, targetID int) error {
 	panic("unimplemented")
 }
 

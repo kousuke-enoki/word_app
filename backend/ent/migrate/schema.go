@@ -217,6 +217,7 @@ var (
 		{Name: "name", Type: field.TypeString, Default: "JohnDoe"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "is_admin", Type: field.TypeBool, Default: false},
 		{Name: "is_root", Type: field.TypeBool, Default: false},
 		{Name: "is_test", Type: field.TypeBool, Default: false},

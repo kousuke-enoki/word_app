@@ -138,6 +138,57 @@ func (_m *UserClient) GetUsers(ctx context.Context, req *models.UserListRequest)
 	return r0, r1
 }
 
+// GetUsers provides a mock function with given fields: ctx, UserListRequest
+func (_m *UserClient) Update(ctx context.Context, req *models.UpdateUserInput) (*ent.User, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUsers")
+	}
+
+	var r0 *ent.User
+	var r1 error
+
+	// 関数型で設定された場合の取り出し（柔軟性のため）
+	if rf, ok := ret.Get(0).(func(context.Context, *models.UpdateUserInput) (*ent.User, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *models.UpdateUserInput) *ent.User); ok {
+		r0 = rf(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ent.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *models.UpdateUserInput) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Delete provides a mock function with given fields: ctx, editorID, targetID
+func (_m *UserClient) Delete(ctx context.Context, editorID int, targetID int) error {
+	ret := _m.Called(ctx, editorID, targetID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Delete")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, int, int) error); ok {
+		r0 = rf(ctx, editorID, targetID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+
 // NewUserClient creates a new instance of UserClient. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewUserClient(t interface {

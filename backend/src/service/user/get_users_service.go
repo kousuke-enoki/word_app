@@ -15,7 +15,8 @@ import (
 
 // user_list
 func (s *EntUserClient) GetUsers(ctx context.Context, UserListRequest *models.UserListRequest) (*models.UserListResponse, error) {
-	query := s.client.User().Query()
+	base := s.client.User().Query().
+		Where(user.DeletedAtIsNil())
 	userID := UserListRequest.UserID
 	search := UserListRequest.Search
 	sortBy := UserListRequest.SortBy
@@ -34,60 +35,58 @@ func (s *EntUserClient) GetUsers(ctx context.Context, UserListRequest *models.Us
 	}
 
 	// 検索条件の追加
-	query = addSearchFilter(query, search)
+	base = addSearchFilter(base, search)
 
-	// 総レコード数を取得
-	totalCount, err := query.Count(ctx)
+	// 総レコード数
+	// 総件数は「未削除 + 検索条件」込みで数える
+	totalCount, err := base.Clone().Count(ctx) // Clone() を使うと安全
 	if err != nil {
 		return nil, errors.New("failed to count users")
 	}
 
-	// ページネーション機能
-	offset := (page - 1) * limit
-	query = query.Offset(offset).Limit(limit)
-
 	// Userに紐づくデータを取得 (ExternalAuthを含める)
 	// query = query.WithExternalAuths()
-
-	query = query.WithExternalAuths(func(q *ent.ExternalAuthQuery) {
-		// 大文字小文字ゆらぎ対策に EqualFold を使用
-		q.Where(externalauth.ProviderEqualFold("line"))
-	})
+	// ページネーション機能も考慮
+	// 大文字小文字ゆらぎ対策に EqualFold を使用
+	query := base.Clone().
+		Offset((page - 1) * limit).Limit(limit).
+		WithExternalAuths(func(q *ent.ExternalAuthQuery) {
+			q.Where(externalauth.ProviderEqualFold("line"))
+		})
 
 	// ソート機能
 	switch sortBy {
 	case "name":
-			if order == "asc" {
-					query = query.Order(ent.Asc(user.FieldName))
-			} else {
-					query = query.Order(ent.Desc(user.FieldName))
-			}
+		if order == "asc" {
+			query = query.Order(ent.Asc(user.FieldName))
+		} else {
+			query = query.Order(ent.Desc(user.FieldName))
+		}
 	case "email":
-			if order == "asc" {
-					query = query.Order(ent.Asc(user.FieldEmail))
-			} else {
-					query = query.Order(ent.Desc(user.FieldEmail))
-			}
+		if order == "asc" {
+			query = query.Order(ent.Asc(user.FieldEmail))
+		} else {
+			query = query.Order(ent.Desc(user.FieldEmail))
+		}
 	case "role":
-			if order == "asc" {
-					query = query.Order(func(s *sql.Selector) {
-							s.OrderBy(
-									sql.Desc(s.C(user.FieldIsRoot)),   // root を先頭へ
-									sql.Desc(s.C(user.FieldIsAdmin)),  // admin を次へ
-									sql.Asc(s.C(user.FieldIsTest)),    // test を最後へ
-							)
-					})
-			} else {
-					query = query.Order(func(s *sql.Selector) {
-							s.OrderBy(
-									sql.Asc(s.C(user.FieldIsRoot)),    // root を最後へ
-									sql.Asc(s.C(user.FieldIsAdmin)),   // admin を後ろへ
-									sql.Desc(s.C(user.FieldIsTest)),   // test を先頭へ
-							)
-					})
-			}
+		if order == "asc" {
+			query = query.Order(func(s *sql.Selector) {
+				s.OrderBy(
+					sql.Desc(s.C(user.FieldIsRoot)),  // root を先頭へ
+					sql.Desc(s.C(user.FieldIsAdmin)), // admin を次へ
+					sql.Asc(s.C(user.FieldIsTest)),   // test を最後へ
+				)
+			})
+		} else {
+			query = query.Order(func(s *sql.Selector) {
+				s.OrderBy(
+					sql.Asc(s.C(user.FieldIsRoot)),  // root を最後へ
+					sql.Asc(s.C(user.FieldIsAdmin)), // admin を後ろへ
+					sql.Desc(s.C(user.FieldIsTest)), // test を先頭へ
+				)
+			})
+		}
 	}
-
 
 	// クエリ実行
 	entUsers, err := query.All(ctx)
@@ -110,41 +109,45 @@ func (s *EntUserClient) GetUsers(ctx context.Context, UserListRequest *models.Us
 
 // 検索条件の追加
 func addSearchFilter(query *ent.UserQuery, search string) *ent.UserQuery {
-    if search != "" {
-        query = query.Where(
-            user.Or(
-                user.NameContains(search),
-                user.EmailContains(search),
-            ),
-        )
-    }
-    return query
+	if search != "" {
+		query = query.Where(
+			user.Or(
+				user.NameContains(search),
+				user.EmailContains(search),
+			),
+		)
+	}
+	return query
 }
 
 // エンティティからレスポンス形式に変換
 func convertEntUsersToResponse(entUsers []*ent.User) []models.User {
-    users := make([]models.User, 0, len(entUsers))
-    for _, u := range entUsers {
+	users := make([]models.User, 0, len(entUsers))
+	for _, u := range entUsers {
 
-        // password の設定有無
-        isSet := false
-        if u.Password != nil && *u.Password != "" { // ← Nillable の場合
-            isSet = true
-        }
+		// password の設定有無
+		isSet := false
+		if u.Password != nil && *u.Password != "" { // ← Nillable の場合
+			isSet = true
+		}
 
-        // LINE 連携有無：WithExternalAuths を "line" に絞っているので存在チェックのみでOK
-        isLine := len(u.Edges.ExternalAuths) > 0
+		// LINE 連携有無：WithExternalAuths を "line" に絞っているので存在チェックのみでOK
+		isLine := len(u.Edges.ExternalAuths) > 0
+		createdAt := u.CreatedAt.Format("2006-01-02 15:04:05")
+		updatedAt := u.UpdatedAt.Format("2006-01-02 15:04:05")
 
-        users = append(users, models.User{
-            ID:               u.ID,
-            Name:             u.Name,
-            IsAdmin:          u.IsAdmin,
-            IsRoot:           u.IsRoot,
-            IsTest:           u.IsTest,
-            Email:            u.Email,
-            IsSettedPassword: isSet, // models 側のスペルに合わせる
-            IsLine:           isLine,
-        })
-    }
-    return users
+		users = append(users, models.User{
+			ID:               u.ID,
+			Name:             u.Name,
+			IsAdmin:          u.IsAdmin,
+			IsRoot:           u.IsRoot,
+			IsTest:           u.IsTest,
+			Email:            u.Email,
+			IsSettedPassword: isSet,
+			IsLine:           isLine,
+			CreatedAt:        createdAt,
+			UpdatedAt:        updatedAt,
+		})
+	}
+	return users
 }

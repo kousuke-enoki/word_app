@@ -26,6 +26,7 @@ func (m *Middleware) JwtCheckMiddleware() gin.HandlerFunc {
 				ID:      roles.UserID,
 				IsAdmin: roles.IsAdmin,
 				IsRoot:  roles.IsRoot,
+				IsTest:  roles.IsTest,
 			},
 			IsLogin: true,
 		})

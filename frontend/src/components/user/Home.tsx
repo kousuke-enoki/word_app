@@ -50,9 +50,9 @@ const Home: React.FC = () => {
             to: '/words',
           },
           {
-            title: '登録',
-            desc: '英単語と意味、品詞などを登録',
-            to: '/words/new',
+            title: '一括登録',
+            desc: '長文をコピペするだけで単語登録',
+            to: '/Words/BulkRegister',
           },
           { title: 'クイズ', desc: '10問からすぐに開始', to: '/quizs' },
         ].map((i) => (

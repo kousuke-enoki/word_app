@@ -66,5 +66,6 @@ func (v *TokenValidator) Validate(ctx context.Context, tokenStr string) (context
 		UserID:  id,
 		IsAdmin: u.IsAdmin,
 		IsRoot:  u.IsRoot,
+		IsTest:  u.IsTest,
 	}, nil
 }

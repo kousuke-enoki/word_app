@@ -35,7 +35,6 @@ func NewRouter(
 	quizHandler quiz.Handler,
 	resultHandler result.Handler,
 ) *Implementation {
-
 	return &Implementation{
 		JwtMiddleware:  jwtMiddleware,
 		AuthHandler:    authHandler,
@@ -76,6 +75,8 @@ func (r *Implementation) MountRoutes(router *gin.Engine) {
 
 		protectedRoutes.GET("/users/my_page", r.UserHandler.MyPageHandler())
 		protectedRoutes.GET("/users", r.UserHandler.ListHandler())
+		protectedRoutes.PUT("/users/:id", r.UserHandler.EditHandler())
+		protectedRoutes.DELETE("/users/:id", r.UserHandler.DeleteHandler())
 		protectedRoutes.GET("/setting/user_config", r.SettingHandler.GetUserConfigHandler())
 		protectedRoutes.POST("/setting/user_config", r.SettingHandler.SaveUserConfigHandler())
 		protectedRoutes.GET("/setting/root_config", r.SettingHandler.GetRootConfigHandler())

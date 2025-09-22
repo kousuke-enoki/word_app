@@ -18,7 +18,7 @@ const SignIn: React.FC = () => {
   const [loadingSetting, setLoadingSetting] = useState(true)
   const navigate = useNavigate()
 
-  // ▼ LINE 認証の有効/無効を取得
+  // LINE 認証の有効/無効を取得
   useEffect(() => {
     let mounted = true
     ;(async () => {
@@ -58,7 +58,7 @@ const SignIn: React.FC = () => {
     }
   }
 
-  // ▼ LINE ログイン
+  // LINE ログイン
   const handleLineLogin = () => {
     const base = import.meta.env.VITE_API_URL
     window.location.href = `${base}/users/auth/line/login`

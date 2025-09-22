@@ -93,6 +93,47 @@ func (_m *UserHandler) ListHandler() gin.HandlerFunc {
 	return r0
 }
 
+// EditHandler provides a mock function with given fields:
+func (_m *UserHandler) EditHandler() gin.HandlerFunc {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for EditHandler")
+	}
+
+	var r0 gin.HandlerFunc
+	if rf, ok := ret.Get(0).(func() gin.HandlerFunc); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(gin.HandlerFunc)
+		}
+	}
+
+	return r0
+}
+
+// DeleteHandler provides a mock function with given fields:
+func (_m *UserHandler) DeleteHandler() gin.HandlerFunc {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteHandler")
+	}
+
+	var r0 gin.HandlerFunc
+	if rf, ok := ret.Get(0).(func() gin.HandlerFunc); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(gin.HandlerFunc)
+		}
+	}
+
+	return r0
+}
+
+
 // NewUserHandler creates a new instance of UserHandler. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewUserHandler(t interface {

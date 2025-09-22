@@ -12,20 +12,22 @@ type SignUpRequest struct {
 }
 
 type User struct {
-	ID      int    `json:"id" binding:"required"`
-	Name    string `json:"name"`
-	IsAdmin bool   `json:"isAdmin"`
-	IsRoot  bool   `json:"isRoot"`
-	IsTest  bool   `json:"isTest"`
-	Email   string `json:"email,omitempty"`
-	Password string `json:"password,omitempty"`
-	IsSettedPassword bool `json:"isSettedPassword,omitempty"`
-	IsLine bool `json:"isLine,omitempty"`
+	ID               int    `json:"id" binding:"required"`
+	Name             string `json:"name"`
+	IsAdmin          bool   `json:"isAdmin"`
+	IsRoot           bool   `json:"isRoot"`
+	IsTest           bool   `json:"isTest"`
+	Email            string `json:"email,omitempty"`
+	Password         string `json:"password,omitempty"`
+	IsSettedPassword bool   `json:"isSettedPassword,omitempty"`
+	IsLine           bool   `json:"isLine,omitempty"`
+	CreatedAt        string `json:"createdAt,omitempty"`
+	UpdatedAt        string `json:"updatedAt,omitempty"`
 }
 
 type ExternalAuth struct {
-    Provider       string `json:"provider"`
-    ProviderUserId string `json:"providerUserId"`
+	Provider       string `json:"provider"`
+	ProviderUserId string `json:"providerUserId"`
 }
 
 type MyPageResponse struct {
@@ -45,4 +47,14 @@ type UserListRequest struct {
 type UserListResponse struct {
 	Users      []User `json:"users"`
 	TotalPages int    `json:"totalPages"`
+}
+
+type UpdateUserInput struct {
+	UserID          int
+	TargetID        int
+	Name            *string
+	Email           *string
+	PasswordNew     *string
+	PasswordCurrent *string
+	Role            *string // "admin" | "user"
 }

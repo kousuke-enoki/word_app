@@ -261,15 +261,15 @@ func init() {
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// userDescIsAdmin is the schema descriptor for isAdmin field.
-	userDescIsAdmin := userFields[5].Descriptor()
+	userDescIsAdmin := userFields[6].Descriptor()
 	// user.DefaultIsAdmin holds the default value on creation for the isAdmin field.
 	user.DefaultIsAdmin = userDescIsAdmin.Default.(bool)
 	// userDescIsRoot is the schema descriptor for isRoot field.
-	userDescIsRoot := userFields[6].Descriptor()
+	userDescIsRoot := userFields[7].Descriptor()
 	// user.DefaultIsRoot holds the default value on creation for the isRoot field.
 	user.DefaultIsRoot = userDescIsRoot.Default.(bool)
 	// userDescIsTest is the schema descriptor for isTest field.
-	userDescIsTest := userFields[7].Descriptor()
+	userDescIsTest := userFields[8].Descriptor()
 	// user.DefaultIsTest holds the default value on creation for the isTest field.
 	user.DefaultIsTest = userDescIsTest.Default.(bool)
 	userconfigFields := schema.UserConfig{}.Fields()

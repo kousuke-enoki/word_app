@@ -14,6 +14,8 @@ type Handler interface {
 	SignInHandler() gin.HandlerFunc
 	MyPageHandler() gin.HandlerFunc
 	ListHandler() gin.HandlerFunc
+	EditHandler() gin.HandlerFunc
+	DeleteHandler() gin.HandlerFunc
 }
 
 type Client interface {
@@ -21,6 +23,8 @@ type Client interface {
 	FindByEmail(ctx context.Context, email string) (*ent.User, error)
 	FindByID(ctx context.Context, id int) (*ent.User, error)
 	GetUsers(ctx context.Context, UserListRequest *models.UserListRequest) (*models.UserListResponse, error)
+	Update(ctx context.Context, UserEditRequest *models.UpdateUserInput) (*ent.User, error)
+	Delete(ctx context.Context, editorID, targetID int) error
 }
 
 type Validator interface {

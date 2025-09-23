@@ -25,6 +25,19 @@ type User struct {
 	UpdatedAt        string `json:"updatedAt,omitempty"`
 }
 
+type UserDetail struct {
+	ID               int     `json:"id"`
+	Name             string  `json:"name"`
+	Email            *string `json:"email,omitempty"`
+	IsAdmin          bool    `json:"isAdmin"`
+	IsRoot           bool    `json:"isRoot"`
+	IsTest           bool    `json:"isTest"`
+	IsLine           bool    `json:"isLine"`
+	IsSettedPassword bool    `json:"isSettedPassword"`
+	CreatedAt        string  `json:"createdAt"`
+	UpdatedAt        string  `json:"updatedAt"`
+}
+
 type ExternalAuth struct {
 	Provider       string `json:"provider"`
 	ProviderUserId string `json:"providerUserId"`

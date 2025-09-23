@@ -8,8 +8,6 @@ import (
 	user_repo "word_app/backend/src/infrastructure/repository/user"
 	"word_app/backend/src/interfaces/http/auth"
 	"word_app/backend/src/utils/tempjwt"
-
-	"github.com/coreos/go-oidc/v3/oidc"
 )
 
 type Usecase struct {
@@ -39,7 +37,7 @@ func NewUsecase(
 type Provider interface {
 	AuthURL(state, nonce string) string
 	Exchange(ctx context.Context, code string) (*tempjwt.Identity, error)
-	ValidateNonce(idTok *oidc.IDToken, expected string) error
+	ValidateNonce(idTok, expected string) error
 }
 
 type TempTokenGenerator interface {

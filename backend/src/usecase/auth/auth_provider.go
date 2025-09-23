@@ -13,19 +13,21 @@ func (u *Usecase) StartLogin(_ context.Context, state, nonce string) string {
 	return u.provider.AuthURL(state, nonce)
 }
 
-func (u *Usecase) HandleCallback(ctx context.Context, code string) (*auth.CallbackResult, error) {
+func (u *Usecase) HandleCallback(ctx context.Context, code, expectedNonce string) (*auth.CallbackResult, error) {
 	id, err := u.provider.Exchange(ctx, code)
 	if err != nil {
 		return nil, err
 	}
+	if expectedNonce != "" && id.Nonce != "" && expectedNonce != id.Nonce {
+		return nil, fmt.Errorf("nonce_mismatch")
+	}
 
-	// ユーザ検索
+	// 以降は今まで通り
 	user, _ := u.userRepo.FindByProvider(ctx, id.Provider, id.Subject)
 	if user != nil {
 		token, _ := u.jwtGenerator.GenerateJWT(fmt.Sprintf("%d", user.ID))
 		return &auth.CallbackResult{Token: token}, nil
 	}
-	// 初回登録フロー
 	temp, _ := u.tempJwtGen.GenerateTemp(id, 5*time.Minute)
 	return &auth.CallbackResult{
 		NeedPassword:  true,

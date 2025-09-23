@@ -21,15 +21,25 @@ func (h *Handler) LineLogin() gin.HandlerFunc {
 func (h *Handler) LineCallback() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		code := c.Query("code")
-		// state := c.Query("state")
-		// nonce := oauthutil.LoadNonce(c)
-
-		res, err := h.AuthUsecase.HandleCallback(c, code)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		state := c.Query("state")
+		if code == "" || state == "" {
+			c.JSON(400, gin.H{"error": "missing code/state"})
 			return
 		}
-		c.JSON(http.StatusOK, res)
+
+		if !oauthutil.VerifyState(c, state) { // ← 自作関数
+			c.JSON(403, gin.H{"error": "state mismatch"})
+			return
+		}
+		expectedNonce := oauthutil.LoadNonce(c)
+
+		// Usecase 側で Exchange（HS256検証済）→ Nonceも入ってくる
+		res, err := h.AuthUsecase.HandleCallback(c, code, expectedNonce)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(200, res)
 	}
 }
 

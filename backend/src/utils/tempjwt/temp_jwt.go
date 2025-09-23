@@ -17,6 +17,7 @@ type Identity struct {
 	Subject  string `json:"sub"`
 	Email    string `json:"email"`
 	Name     string `json:"name"`
+	Nonce    string `json:"nonce,omitempty"`
 	jwt.RegisteredClaims
 }
 

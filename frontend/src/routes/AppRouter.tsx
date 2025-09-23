@@ -16,6 +16,7 @@ import RootSetting from '../components/setting/RootSetting'
 import UserSetting from '../components/setting/UserSetting'
 import Home from '../components/user/Home'
 import LineCallback from '../components/user/LineCallback'
+import LineComplete from '../components/user/LineComplete'
 import MyPage from '../components/user/MyPage'
 import SignIn from '../components/user/SignIn'
 import SignUp from '../components/user/SignUp'
@@ -72,7 +73,14 @@ const AppRouter: React.FC = () => {
                 </PublicRoute>
               }
             />
-
+            <Route
+              path="/line/complete"
+              element={
+                <PublicRoute>
+                  <LineComplete />
+                </PublicRoute>
+              }
+            />
             {/* ログイン済みのみアクセス可 */}
             <Route
               path="/mypage"

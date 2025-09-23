@@ -6,7 +6,6 @@ package auth
 
 import (
 	"context"
-
 	"word_app/backend/src/interfaces/http/auth"
 
 	"github.com/gin-gonic/gin"
@@ -365,8 +364,8 @@ func (_c *MockUsecase_CompleteSignUp_Call) RunAndReturn(run func(ctx context.Con
 }
 
 // HandleCallback provides a mock function for the type MockUsecase
-func (_mock *MockUsecase) HandleCallback(ctx context.Context, code string) (*auth.CallbackResult, error) {
-	ret := _mock.Called(ctx, code)
+func (_mock *MockUsecase) HandleCallback(ctx context.Context, code string, expectedNonce string) (*auth.CallbackResult, error) {
+	ret := _mock.Called(ctx, code, expectedNonce)
 
 	if len(ret) == 0 {
 		panic("no return value specified for HandleCallback")
@@ -374,18 +373,18 @@ func (_mock *MockUsecase) HandleCallback(ctx context.Context, code string) (*aut
 
 	var r0 *auth.CallbackResult
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*auth.CallbackResult, error)); ok {
-		return returnFunc(ctx, code)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*auth.CallbackResult, error)); ok {
+		return returnFunc(ctx, code, expectedNonce)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *auth.CallbackResult); ok {
-		r0 = returnFunc(ctx, code)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *auth.CallbackResult); ok {
+		r0 = returnFunc(ctx, code, expectedNonce)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*auth.CallbackResult)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, code)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, code, expectedNonce)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -400,11 +399,12 @@ type MockUsecase_HandleCallback_Call struct {
 // HandleCallback is a helper method to define mock.On call
 //   - ctx context.Context
 //   - code string
-func (_e *MockUsecase_Expecter) HandleCallback(ctx interface{}, code interface{}) *MockUsecase_HandleCallback_Call {
-	return &MockUsecase_HandleCallback_Call{Call: _e.mock.On("HandleCallback", ctx, code)}
+//   - expectedNonce string
+func (_e *MockUsecase_Expecter) HandleCallback(ctx interface{}, code interface{}, expectedNonce interface{}) *MockUsecase_HandleCallback_Call {
+	return &MockUsecase_HandleCallback_Call{Call: _e.mock.On("HandleCallback", ctx, code, expectedNonce)}
 }
 
-func (_c *MockUsecase_HandleCallback_Call) Run(run func(ctx context.Context, code string)) *MockUsecase_HandleCallback_Call {
+func (_c *MockUsecase_HandleCallback_Call) Run(run func(ctx context.Context, code string, expectedNonce string)) *MockUsecase_HandleCallback_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -414,9 +414,14 @@ func (_c *MockUsecase_HandleCallback_Call) Run(run func(ctx context.Context, cod
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -427,7 +432,7 @@ func (_c *MockUsecase_HandleCallback_Call) Return(callbackResult *auth.CallbackR
 	return _c
 }
 
-func (_c *MockUsecase_HandleCallback_Call) RunAndReturn(run func(ctx context.Context, code string) (*auth.CallbackResult, error)) *MockUsecase_HandleCallback_Call {
+func (_c *MockUsecase_HandleCallback_Call) RunAndReturn(run func(ctx context.Context, code string, expectedNonce string) (*auth.CallbackResult, error)) *MockUsecase_HandleCallback_Call {
 	_c.Call.Return(run)
 	return _c
 }

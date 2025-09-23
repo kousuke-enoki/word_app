@@ -3,12 +3,13 @@ package line
 import (
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
-	"github.com/coreos/go-oidc/v3/oidc"
+	jwt "github.com/golang-jwt/jwt/v4"
 	"golang.org/x/oauth2"
 
 	"word_app/backend/config"
-	auth_port "word_app/backend/src/usecase/auth"
 	"word_app/backend/src/utils/tempjwt"
 )
 
@@ -18,16 +19,12 @@ var endpoint = oauth2.Endpoint{
 }
 
 type Provider struct {
-	cfg      *oauth2.Config
-	verifier *oidc.IDTokenVerifier
+	cfg *oauth2.Config
+	// verifier *oidc.IDTokenVerifier
+	secret string
 }
 
-func NewProvider(c config.LineOAuthCfg) (auth_port.Provider, error) {
-	oidcProvider, err := oidc.NewProvider(context.Background(), "https://access.line.me")
-	if err != nil {
-		return nil, err
-	}
-
+func NewProvider(c config.LineOAuthCfg) (*Provider, error) {
 	return &Provider{
 		cfg: &oauth2.Config{
 			ClientID:     c.ClientID,
@@ -36,17 +33,11 @@ func NewProvider(c config.LineOAuthCfg) (auth_port.Provider, error) {
 			Scopes:       []string{"openid", "profile", "email"},
 			Endpoint:     endpoint,
 		},
-		verifier: oidcProvider.Verifier(&oidc.Config{
-			ClientID: c.ClientID,
-		}),
 	}, nil
 }
 
-func NewTestProvider(cfg *oauth2.Config, verifier *oidc.IDTokenVerifier) *Provider {
-	return &Provider{
-		cfg:      cfg,
-		verifier: verifier,
-	}
+func NewTestProvider(cfg *oauth2.Config, _ string) *Provider { // テスト用
+	return &Provider{cfg: cfg}
 }
 
 // ------------------- AuthProvider 実装 -------------------
@@ -58,29 +49,51 @@ func (p *Provider) AuthURL(state, nonce string) string {
 	)
 }
 
+type idClaims struct {
+	Iss   string `json:"iss"`
+	Sub   string `json:"sub"`
+	Aud   string `json:"aud"`
+	Exp   int64  `json:"exp"`
+	Iat   int64  `json:"iat"`
+	Nonce string `json:"nonce"`
+	Email string `json:"email"`
+	Name  string `json:"name"`
+	jwt.RegisteredClaims
+}
+
 func (p *Provider) Exchange(ctx context.Context, code string) (*tempjwt.Identity, error) {
 	tok, err := p.cfg.Exchange(ctx, code)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("token_exchange_failed: %w", err)
 	}
 
-	rawID, ok := tok.Extra("id_token").(string)
-	if !ok {
+	raw, ok := tok.Extra("id_token").(string)
+	if !ok || raw == "" {
 		return nil, errors.New("id_token missing")
 	}
 
-	idTok, err := p.verifier.Verify(ctx, rawID)
-	if err != nil {
-		return nil, errors.New("verify missing")
+	var cl idClaims
+	parsed, err := jwt.ParseWithClaims(raw, &cl, func(t *jwt.Token) (interface{}, error) {
+		// LINEはHS256（HMAC）で署名 → ClientSecret を使って検証
+		if t.Method != jwt.SigningMethodHS256 {
+			return nil, fmt.Errorf("unexpected alg: %v", t.Header["alg"])
+		}
+		return []byte(p.cfg.ClientSecret), nil
+	})
+	if err != nil || !parsed.Valid {
+		return nil, fmt.Errorf("id_token_verify_failed: %w", err)
 	}
 
-	var cl struct {
-		Sub   string `json:"sub"`
-		Email string `json:"email"`
-		Name  string `json:"name"`
+	// 主要クレームの妥当性
+	if cl.Iss != "https://access.line.me" {
+		return nil, fmt.Errorf("invalid iss: %s", cl.Iss)
 	}
-	if err := idTok.Claims(&cl); err != nil {
-		return nil, err
+	if cl.Aud != p.cfg.ClientID {
+		return nil, fmt.Errorf("invalid aud: %s", cl.Aud)
+	}
+	now := time.Now().Unix()
+	if cl.Exp < now {
+		return nil, errors.New("id_token expired")
 	}
 
 	return &tempjwt.Identity{
@@ -88,17 +101,15 @@ func (p *Provider) Exchange(ctx context.Context, code string) (*tempjwt.Identity
 		Subject:  cl.Sub,
 		Email:    cl.Email,
 		Name:     cl.Name,
+		Nonce:    cl.Nonce,
 	}, nil
 }
 
-func (p *Provider) ValidateNonce(idTok *oidc.IDToken, expected string) error {
-	var cl struct {
-		Nonce string `json:"nonce"`
-	}
-	if err := idTok.Claims(&cl); err != nil {
-		return err
-	}
-	if cl.Nonce != expected {
+func (p *Provider) ValidateNonce(actual, expected string) error {
+	if expected == "" {
+		return nil
+	} // 仕様次第
+	if actual != expected {
 		return errors.New("oidc: nonce mismatch")
 	}
 	return nil

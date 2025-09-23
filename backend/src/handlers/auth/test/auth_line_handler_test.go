@@ -28,7 +28,7 @@ func TestAuthLineHandler(t *testing.T) {
 			wantHeader  string
 		}{
 			{"redirect_success", "https://line.me/oauth", "https://line.me/oauth"},
-			{"redirect_empty", "", "/line/"}, // 修正
+			{"redirect_empty", "", "/line/"},
 		}
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
@@ -42,7 +42,6 @@ func TestAuthLineHandler(t *testing.T) {
 
 				w := httptest.NewRecorder()
 				c, _ := gin.CreateTestContext(w)
-				// ★ ここを追加 ★
 				req := httptest.NewRequest(http.MethodGet, "/line/login", nil)
 				c.Request = req
 
@@ -56,15 +55,17 @@ func TestAuthLineHandler(t *testing.T) {
 	})
 
 	t.Run("TestLineCallback", func(t *testing.T) {
-		// func TestLineCallback(t *testing.T) {
 		gin.SetMode(gin.TestMode)
 
 		successRes := &auth.CallbackResult{Token: "jwt123"}
 		usecaseErr := errors.New("db error")
 
 		tests := []struct {
-			name           string
-			query          string
+			name  string
+			query string
+			// 追加: cookie に積む値
+			stateCookie    string
+			nonceCookie    string
 			mockReturn     *auth.CallbackResult
 			mockErr        error
 			wantStatusCode int
@@ -73,6 +74,8 @@ func TestAuthLineHandler(t *testing.T) {
 			{
 				name:           "success",
 				query:          "?code=abc&state=xyz",
+				stateCookie:    "xyz",       // ← state と一致させる
+				nonceCookie:    "nonce-123", // ← 任意値（Usecase へ渡す expectedNonce）
 				mockReturn:     successRes,
 				mockErr:        nil,
 				wantStatusCode: http.StatusOK,
@@ -81,6 +84,8 @@ func TestAuthLineHandler(t *testing.T) {
 			{
 				name:           "handle_callback_error",
 				query:          "?code=abc&state=xyz",
+				stateCookie:    "xyz",
+				nonceCookie:    "nonce-123",
 				mockReturn:     nil,
 				mockErr:        usecaseErr,
 				wantStatusCode: http.StatusInternalServerError,
@@ -91,22 +96,24 @@ func TestAuthLineHandler(t *testing.T) {
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				mockUC := new(auth_mock.MockUsecase)
+				// ハンドラは HandleCallback(ctx, code, expectedNonce) を呼ぶ想定
+				// 第3引数（expectedNonce）は cookie の値。ここではあいまいにしてもOK
 				mockUC.
 					On("HandleCallback", mock.Anything, "abc", mock.Anything).
 					Return(tt.mockReturn, tt.mockErr)
+
 				mockJWTGenerator := new(auth_mock.MockJWTGenerator)
-
-				userHandler := auth_handler.NewHandler(mockUC, mockJWTGenerator)
-				// h := &auth.Handler{Usecase: mockUC, jwtGenerator: mockJWTGenerator}
-
-				//  := &auth.Handler{Usecase: mockUC}
+				h := auth_handler.NewHandler(mockUC, mockJWTGenerator)
 
 				w := httptest.NewRecorder()
 				c, _ := gin.CreateTestContext(w)
 				req := httptest.NewRequest(http.MethodGet, "/callback"+tt.query, nil)
+
+				req.AddCookie(&http.Cookie{Name: "line_oauth_state", Value: tt.stateCookie})
+				req.AddCookie(&http.Cookie{Name: "line_oauth_nonce", Value: tt.nonceCookie})
 				c.Request = req
 
-				userHandler.LineCallback()(c)
+				h.LineCallback()(c)
 
 				assert.Equal(t, tt.wantStatusCode, w.Code)
 				assert.Contains(t, w.Body.String(), tt.wantContains)

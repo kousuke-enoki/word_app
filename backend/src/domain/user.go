@@ -1,7 +1,11 @@
 // domain/user.go
 package domain
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"time"
+
+	"golang.org/x/crypto/bcrypt"
+)
 
 type User struct {
 	ID       int
@@ -10,6 +14,14 @@ type User struct {
 	Password string
 	IsRoot   bool
 	IsAdmin  bool
+	IsTest   bool
+
+	// これらは Domain の関心。UI ではない
+	HasPassword bool
+	HasLine     bool
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func NewUser(email, name, rawPass string) (*User, error) {

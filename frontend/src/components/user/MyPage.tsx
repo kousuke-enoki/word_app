@@ -81,7 +81,7 @@ const MyPage: React.FC = () => {
         {user?.isRoot && (
           <Link to="/users" className="group">
             <Card className="h-full p-5 transition hover:shadow-md">
-              <div className="mb-1 text-sm opacity-70">☺</div>
+              <div className="mb-1 text-sm opacity-70">👦</div>
               <div className="text-base font-semibold">ユーザーリスト</div>
               <p className="mt-1 text-sm opacity-70">
                 検索・ソート・ページネーションに対応

@@ -75,6 +75,7 @@ func (r *Implementation) MountRoutes(router *gin.Engine) {
 
 		protectedRoutes.GET("/users/my_page", r.UserHandler.MyPageHandler())
 		protectedRoutes.GET("/users", r.UserHandler.ListHandler())
+		protectedRoutes.GET("/users/me", r.UserHandler.ShowHandler())
 		protectedRoutes.PUT("/users/:id", r.UserHandler.EditHandler())
 		protectedRoutes.DELETE("/users/:id", r.UserHandler.DeleteHandler())
 		protectedRoutes.GET("/setting/user_config", r.SettingHandler.GetUserConfigHandler())

@@ -20,19 +20,15 @@ func NewDetailHandler(uc *usecase.UserDetailUsecase) *DetailHandler {
 
 func (h *DetailHandler) MeHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		viewerID, ok := c.Get("userID")
+		v, ok := c.Get("userID")
 		if !ok {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 			return
 		}
-		id, _ := viewerID.(int)
+		viewerID := v.(int)
 
-		dto, err := h.UC.GetMyDetail(c.Request.Context(), id)
+		dto, status, err := h.UC.GetMyDetail(c.Request.Context(), viewerID)
 		if err != nil {
-			status := http.StatusInternalServerError
-			if err == usecase.ErrUnauthorized {
-				status = http.StatusForbidden
-			}
 			c.JSON(status, gin.H{"error": err.Error()})
 			return
 		}

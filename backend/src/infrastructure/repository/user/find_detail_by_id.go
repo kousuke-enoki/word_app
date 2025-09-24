@@ -25,6 +25,11 @@ func (e *EntUserRepo) FindDetailByID(ctx context.Context, id int) (*domain.User,
 
 // --- mapper（Ent → Domain） ---
 func mapEntToDomain(u *ent.User, auths []*ent.ExternalAuth) *domain.User {
+	var emailPtr *string
+	if u.Email != nil { // Ent も Nillable にした前提
+		email := *u.Email // string 取り出し
+		emailPtr = &email // ポインタ化（そのまま u.Email でも良い）
+	}
 	hasPwd := u.Password != nil && *u.Password != ""
 	hasLine := false
 	if auths != nil && len(auths) > 0 {
@@ -32,7 +37,7 @@ func mapEntToDomain(u *ent.User, auths []*ent.ExternalAuth) *domain.User {
 	}
 	return &domain.User{
 		ID:          u.ID,
-		Email:       u.Email,
+		Email:       emailPtr,
 		Name:        u.Name,
 		IsAdmin:     u.IsAdmin,
 		IsRoot:      u.IsRoot,

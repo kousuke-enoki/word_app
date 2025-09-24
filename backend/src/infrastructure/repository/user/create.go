@@ -30,11 +30,17 @@ func (r *EntUserRepo) Create(ctx context.Context, u *domain.User, ext *domain.Ex
 		}
 	}()
 
+	var emailPtr *string
+	if u.Email != nil { // Ent も Nillable にした前提
+		Email := *u.Email // string 取り出し
+		emailPtr = &Email // ポインタ化（そのまま u.Email でも良い）
+	}
+
 	eu, err := tx.User.
 		Create().
-		SetEmail(u.Email).
+		SetNillableEmail(emailPtr).
 		SetName(u.Name).
-		SetPassword(u.Password).
+		SetNillablePassword(u.Password).
 		Save(ctx)
 	if err != nil {
 		return err

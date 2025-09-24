@@ -23,7 +23,8 @@ func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("email").
 			Unique().
-			NotEmpty().
+			Nillable().
+			Optional().
 			Validate(func(email string) error {
 				emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 				if !emailRegex.MatchString(email) {
@@ -31,6 +32,11 @@ func (User) Fields() []ent.Field {
 				}
 				return nil
 			}),
+		// Go の string は値型なので 必ず何かの値（空文字含む）を持ち、「未設定」を表現できません。
+		// *string（ポインタ）にすると、nil という不在状態を表現できます。
+		// Ent の field.String(...).Nillable().Optional() は、DB列を NULL 許可にし、**mutator に値がセットされない限り「未設定」**として扱います。
+		// このとき NotEmpty() や Validate(func(string) error) は **「値がセットされた時だけ」**評価されます（nil ならスキップ）。
+		// よって、LINE だけの初期登録では email = nil のまま保存でき、**「あとからメール追加」**の時にだけ正規表現と NotEmpty が効きます。
 		field.String("password").
 			Sensitive().
 			Nillable().

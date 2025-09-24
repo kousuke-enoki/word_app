@@ -124,7 +124,11 @@ func addSearchFilter(query *ent.UserQuery, search string) *ent.UserQuery {
 func convertEntUsersToResponse(entUsers []*ent.User) []models.User {
 	users := make([]models.User, 0, len(entUsers))
 	for _, u := range entUsers {
-
+		var emailPtr *string
+		if u.Email != nil { // Ent も Nillable にした前提
+			Email := *u.Email // string 取り出し
+			emailPtr = &Email // ポインタ化（そのまま u.Email でも良い）
+		}
 		// password の設定有無
 		isSet := false
 		if u.Password != nil && *u.Password != "" { // ← Nillable の場合
@@ -142,7 +146,7 @@ func convertEntUsersToResponse(entUsers []*ent.User) []models.User {
 			IsAdmin:          u.IsAdmin,
 			IsRoot:           u.IsRoot,
 			IsTest:           u.IsTest,
-			Email:            u.Email,
+			Email:            emailPtr,
 			IsSettedPassword: isSet,
 			IsLine:           isLine,
 			CreatedAt:        createdAt,

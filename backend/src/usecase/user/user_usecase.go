@@ -3,6 +3,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"word_app/backend/src/domain"
@@ -19,15 +20,7 @@ func NewUserDetailUsecase(repo user_repo.EntUserRepo) *UserDetailUsecase {
 }
 
 // GetMyDetail: /users/me
-func (u *UserDetailUsecase) GetMyDetail(ctx context.Context, viewerID int) (*domain.User, error) {
-	entUser, err := u.Repo.FindDetailByID(ctx, viewerID)
-	if err != nil {
-		return nil, err
-	}
-	return toUserDetail(entUser), nil
-}
-
-func (uc *UserDetailUsecase) GetMyDetail(ctx context.Context, viewerID int) (*models.User, int, error) {
+func (uc *UserDetailUsecase) GetMyDetail(ctx context.Context, viewerID int) (*models.UserDetail, int, error) {
 	me, err := uc.Repo.FindDetailByID(ctx, viewerID)
 	if err != nil {
 		return nil, http.StatusNotFound, err
@@ -35,7 +28,7 @@ func (uc *UserDetailUsecase) GetMyDetail(ctx context.Context, viewerID int) (*mo
 	return toDTO(me), http.StatusOK, nil
 }
 
-func (uc *UserDetailUsecase) GetDetailByID(ctx context.Context, viewerID, targetID int) (*models.User, int, error) {
+func (uc *UserDetailUsecase) GetDetailByID(ctx context.Context, viewerID, targetID int) (*models.UserDetail, int, error) {
 	viewer, err := uc.Repo.FindByID(ctx, viewerID)
 	if err != nil {
 		return nil, http.StatusUnauthorized, err
@@ -53,8 +46,8 @@ func (uc *UserDetailUsecase) GetDetailByID(ctx context.Context, viewerID, target
 }
 
 // Domain → DTO（表現層向け整形はここ or Presenter）
-func toDTO(u *domain.User) *models.User {
-	return &models.User{
+func toDTO(u *domain.User) *models.UserDetail {
+	return &models.UserDetail{
 		ID:               u.ID,
 		Name:             u.Name,
 		Email:            u.Email,
@@ -67,3 +60,5 @@ func toDTO(u *domain.User) *models.User {
 		UpdatedAt:        u.UpdatedAt.Format("2006-01-02 15:04:05"),
 	}
 }
+
+var ErrForbidden = errors.New("forbidden")

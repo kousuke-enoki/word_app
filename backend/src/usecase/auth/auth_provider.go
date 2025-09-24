@@ -34,13 +34,13 @@ func (u *Usecase) HandleCallback(ctx context.Context, code string) (*auth.Callba
 	}, nil
 }
 
-func (u *Usecase) CompleteSignUp(ctx context.Context, tempToken, pass string) (string, error) {
+func (u *Usecase) CompleteSignUp(ctx context.Context, tempToken string, pass *string) (string, error) {
 	id, err := u.tempJwtGen.ParseTemp(tempToken)
 	if err != nil {
 		return "", err
 	}
 
-	user, err := domain.NewUser(id.Email, id.Name, pass)
+	user, err := domain.NewUser(id.Name, id.Email, pass)
 	if err != nil {
 		return "", err
 	}

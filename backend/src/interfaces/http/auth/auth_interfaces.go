@@ -7,10 +7,10 @@ import (
 )
 
 type CallbackResult struct {
-	Token         string `json:"token,omitempty"`
-	NeedPassword  bool   `json:"need_password,omitempty"`
-	TempToken     string `json:"temp_token,omitempty"`
-	SuggestedMail string `json:"suggested_mail,omitempty"`
+	Token         string  `json:"token,omitempty"`
+	NeedPassword  bool    `json:"need_password,omitempty"`
+	TempToken     string  `json:"temp_token,omitempty"`
+	SuggestedMail *string `json:"suggested_mail,omitempty"`
 }
 
 type Handler interface {

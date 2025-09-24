@@ -13,10 +13,10 @@ type TempJWT struct {
 func New(secret string) *TempJWT { return &TempJWT{secret: []byte(secret)} }
 
 type Identity struct {
-	Provider string `json:"provider"`
-	Subject  string `json:"sub"`
-	Email    string `json:"email"`
-	Name     string `json:"name"`
+	Provider string  `json:"provider"`
+	Subject  string  `json:"sub"`
+	Email    *string `json:"email"`
+	Name     string  `json:"name"`
 	jwt.RegisteredClaims
 }
 

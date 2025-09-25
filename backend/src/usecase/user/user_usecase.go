@@ -4,45 +4,43 @@ package usecase
 import (
 	"context"
 	"errors"
-	"net/http"
 
 	"word_app/backend/src/domain"
 	user_repo "word_app/backend/src/infrastructure/repository/user"
 	"word_app/backend/src/models"
+	"word_app/backend/src/usecase/apperror"
 )
 
 type UserDetailUsecase struct {
-	Repo user_repo.EntUserRepo
+	Repo user_repo.Repository
 }
 
-func NewUserDetailUsecase(repo user_repo.EntUserRepo) *UserDetailUsecase {
+func NewUserDetailUsecase(repo user_repo.Repository) *UserDetailUsecase {
 	return &UserDetailUsecase{Repo: repo}
 }
 
 // GetMyDetail: /users/me
-func (uc *UserDetailUsecase) GetMyDetail(ctx context.Context, viewerID int) (*models.UserDetail, int, error) {
+func (uc *UserDetailUsecase) GetMyDetail(ctx context.Context, viewerID int) (*models.UserDetail, error) {
 	me, err := uc.Repo.FindDetailByID(ctx, viewerID)
 	if err != nil {
-		return nil, http.StatusNotFound, err
+		return nil, apperror.New(apperror.NotFound, "notFound", nil)
 	}
-	return toDTO(me), http.StatusOK, nil
+	return toDTO(me), nil
 }
 
-func (uc *UserDetailUsecase) GetDetailByID(ctx context.Context, viewerID, targetID int) (*models.UserDetail, int, error) {
+func (uc *UserDetailUsecase) GetDetailByID(ctx context.Context, viewerID, targetID int) (*models.UserDetail, error) {
 	viewer, err := uc.Repo.FindByID(ctx, viewerID)
 	if err != nil {
-		return nil, http.StatusUnauthorized, err
+		return nil, apperror.New(apperror.Unauthorized, "unauthorized", err)
 	}
-
-	if !viewer.IsAdmin { // Admin 以上のみ
-		return nil, http.StatusForbidden, ErrForbidden
+	if !viewer.IsAdmin {
+		return nil, apperror.New(apperror.Forbidden, "forbidden", nil)
 	}
 	target, err := uc.Repo.FindDetailByID(ctx, targetID)
 	if err != nil {
-		return nil, http.StatusNotFound, err
+		return nil, apperror.New(apperror.NotFound, "user not found", err)
 	}
-
-	return toDTO(target), http.StatusOK, nil
+	return toDTO(target), nil
 }
 
 // Domain → DTO（表現層向け整形はここ or Presenter）

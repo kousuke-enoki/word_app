@@ -6,7 +6,6 @@ package auth
 
 import (
 	"context"
-
 	"word_app/backend/src/interfaces/http/auth"
 
 	"github.com/gin-gonic/gin"
@@ -293,7 +292,7 @@ func (_m *MockUsecase) EXPECT() *MockUsecase_Expecter {
 }
 
 // CompleteSignUp provides a mock function for the type MockUsecase
-func (_mock *MockUsecase) CompleteSignUp(ctx context.Context, tempToken string, pass string) (string, error) {
+func (_mock *MockUsecase) CompleteSignUp(ctx context.Context, tempToken string, pass *string) (string, error) {
 	ret := _mock.Called(ctx, tempToken, pass)
 
 	if len(ret) == 0 {
@@ -302,15 +301,15 @@ func (_mock *MockUsecase) CompleteSignUp(ctx context.Context, tempToken string, 
 
 	var r0 string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (string, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *string) (string, error)); ok {
 		return returnFunc(ctx, tempToken, pass)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) string); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *string) string); ok {
 		r0 = returnFunc(ctx, tempToken, pass)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, *string) error); ok {
 		r1 = returnFunc(ctx, tempToken, pass)
 	} else {
 		r1 = ret.Error(1)
@@ -326,12 +325,12 @@ type MockUsecase_CompleteSignUp_Call struct {
 // CompleteSignUp is a helper method to define mock.On call
 //   - ctx context.Context
 //   - tempToken string
-//   - pass string
+//   - pass *string
 func (_e *MockUsecase_Expecter) CompleteSignUp(ctx interface{}, tempToken interface{}, pass interface{}) *MockUsecase_CompleteSignUp_Call {
 	return &MockUsecase_CompleteSignUp_Call{Call: _e.mock.On("CompleteSignUp", ctx, tempToken, pass)}
 }
 
-func (_c *MockUsecase_CompleteSignUp_Call) Run(run func(ctx context.Context, tempToken string, pass string)) *MockUsecase_CompleteSignUp_Call {
+func (_c *MockUsecase_CompleteSignUp_Call) Run(run func(ctx context.Context, tempToken string, pass *string)) *MockUsecase_CompleteSignUp_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -341,9 +340,9 @@ func (_c *MockUsecase_CompleteSignUp_Call) Run(run func(ctx context.Context, tem
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		var arg2 string
+		var arg2 *string
 		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg2 = args[2].(*string)
 		}
 		run(
 			arg0,
@@ -359,7 +358,7 @@ func (_c *MockUsecase_CompleteSignUp_Call) Return(s string, err error) *MockUsec
 	return _c
 }
 
-func (_c *MockUsecase_CompleteSignUp_Call) RunAndReturn(run func(ctx context.Context, tempToken string, pass string) (string, error)) *MockUsecase_CompleteSignUp_Call {
+func (_c *MockUsecase_CompleteSignUp_Call) RunAndReturn(run func(ctx context.Context, tempToken string, pass *string) (string, error)) *MockUsecase_CompleteSignUp_Call {
 	_c.Call.Return(run)
 	return _c
 }

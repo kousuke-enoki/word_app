@@ -21,7 +21,7 @@ func sptr(s string) *string { return &s }
 func seedUser(t *testing.T, cli *ent.Client, u ent.User) *ent.User {
 	t.Helper()
 	mut := cli.User.Create().
-		SetEmail(u.Email).
+		SetNillableEmail(u.Email).
 		SetName(u.Name).
 		SetIsAdmin(u.IsAdmin).
 		SetIsRoot(u.IsRoot).
@@ -40,7 +40,7 @@ func seedExternalAuth(t *testing.T, cli *ent.Client, user *ent.User, provider st
 	t.Helper()
 	_, err := cli.ExternalAuth.Create().
 		SetProvider(provider).
-		SetProviderUserID("sub-" + user.Email).
+		SetProviderUserID(fmt.Sprintf("%d", user.ID)).
 		SetUser(user).
 		Save(context.Background())
 	if err != nil {
@@ -59,17 +59,18 @@ func TestEntUserClient_GetUsers(t *testing.T) {
 	svc := user_service.NewEntUserClient(wrapper)
 
 	ctx := context.Background()
-
+	email := "admin@example.com"
 	// 呼び出しユーザー（管理者）
 	admin := seedUser(t, client, ent.User{
-		Email:   "admin@example.com",
+		Email:   &email,
 		Name:    "Admin",
 		IsAdmin: true,
 	})
 
 	t.Run("AdminGate_Unauthorized_and_DBFailure", func(t *testing.T) {
+		email := "u@example.com"
 		normal := seedUser(t, client, ent.User{
-			Email: "u@example.com", Name: "User", IsAdmin: false,
+			Email: &email, Name: "User", IsAdmin: false,
 		})
 
 		_, err := svc.GetUsers(ctx, &models.UserListRequest{
@@ -96,9 +97,12 @@ func TestEntUserClient_GetUsers(t *testing.T) {
 	})
 
 	t.Run("Search_Filter_by_Name_and_Email", func(t *testing.T) {
-		seedUser(t, client, ent.User{Email: "bob@example.com", Name: "Bobby"})
-		seedUser(t, client, ent.User{Email: "alice@wonder.land", Name: "Alice W"})
-		seedUser(t, client, ent.User{Email: "carol@sample.com", Name: "Carol"})
+		BobbysEmail := "bob@example.com"
+		AlicesEmail := "alice@wonder.land"
+		CarolsEmail := "carol@sample.com"
+		seedUser(t, client, ent.User{Email: &BobbysEmail, Name: "Bobby"})
+		seedUser(t, client, ent.User{Email: &AlicesEmail, Name: "Alice W"})
+		seedUser(t, client, ent.User{Email: &CarolsEmail, Name: "Carol"})
 
 		resp, err := svc.GetUsers(ctx, &models.UserListRequest{
 			UserID: admin.ID, Search: "Ali", SortBy: "name", Order: "asc", Page: 1, Limit: 10,
@@ -120,8 +124,9 @@ func TestEntUserClient_GetUsers(t *testing.T) {
 	t.Run("Pagination_TotalPages", func(t *testing.T) {
 		// 追加データ（25件）: 3〜20文字の名前 & ユニーク email
 		for i := 0; i < 25; i++ {
+			email := fmt.Sprintf("pg-user%02d@test.local", i)
 			seedUser(t, client, ent.User{
-				Email: fmt.Sprintf("pg-user%02d@test.local", i),
+				Email: &email,
 				Name:  fmt.Sprintf("User%02d", i), // 5〜7文字でバリデーションOK
 			})
 		}
@@ -136,9 +141,12 @@ func TestEntUserClient_GetUsers(t *testing.T) {
 	t.Run("Sort_by_Email_AscDesc", func(t *testing.T) {
 		// このケース専用トークンを付与（Search で絞る）
 		tok := "em-sort-1"
-		seedUser(t, client, ent.User{Email: "a+" + tok + "@x.com", Name: "Ace"})
-		seedUser(t, client, ent.User{Email: "m+" + tok + "@x.com", Name: "Mid"})
-		seedUser(t, client, ent.User{Email: "z+" + tok + "@x.com", Name: "Zed"})
+		AcesEmail := "a+" + tok + "@x.com"
+		MidsEmail := "m+" + tok + "@x.com"
+		ZedsEmail := "z+" + tok + "@x.com"
+		seedUser(t, client, ent.User{Email: &AcesEmail, Name: "Ace"})
+		seedUser(t, client, ent.User{Email: &MidsEmail, Name: "Mid"})
+		seedUser(t, client, ent.User{Email: &ZedsEmail, Name: "Zed"})
 
 		asc, err := svc.GetUsers(ctx, &models.UserListRequest{
 			UserID: admin.ID, Search: tok, SortBy: "email", Order: "asc", Page: 1, Limit: 10,
@@ -146,7 +154,7 @@ func TestEntUserClient_GetUsers(t *testing.T) {
 		assert.NoError(t, err)
 		if assert.Len(t, asc.Users, 3) {
 			assert.Equal(t, []string{"a+" + tok + "@x.com", "m+" + tok + "@x.com", "z+" + tok + "@x.com"},
-				[]string{asc.Users[0].Email, asc.Users[1].Email, asc.Users[2].Email})
+				[]string{*asc.Users[0].Email, *asc.Users[1].Email, *asc.Users[2].Email})
 		}
 
 		desc, err := svc.GetUsers(ctx, &models.UserListRequest{
@@ -155,17 +163,21 @@ func TestEntUserClient_GetUsers(t *testing.T) {
 		assert.NoError(t, err)
 		if assert.Len(t, desc.Users, 3) {
 			assert.Equal(t, []string{"z+" + tok + "@x.com", "m+" + tok + "@x.com", "a+" + tok + "@x.com"},
-				[]string{desc.Users[0].Email, desc.Users[1].Email, desc.Users[2].Email})
+				[]string{*desc.Users[0].Email, *desc.Users[1].Email, *desc.Users[2].Email})
 		}
 	})
 
 	t.Run("Sort_by_Role_AscDesc", func(t *testing.T) {
 		// このケース専用トークンを付与（Search で絞る）
 		tok := "role-sort-1"
-		seedUser(t, client, ent.User{Email: "r+" + tok + "@x.com", Name: "Root", IsRoot: true})
-		seedUser(t, client, ent.User{Email: "a+" + tok + "@x.com", Name: "Admin", IsAdmin: true})
-		seedUser(t, client, ent.User{Email: "u+" + tok + "@x.com", Name: "User"})
-		seedUser(t, client, ent.User{Email: "t+" + tok + "@x.com", Name: "TestUser", IsTest: true})
+		RootEmail := "r+" + tok + "@x.com"
+		AdminEmail := "a+" + tok + "@x.com"
+		UserEmail := "u+" + tok + "@x.com"
+		TestEmail := "t+" + tok + "@x.com"
+		seedUser(t, client, ent.User{Email: &RootEmail, Name: "Root", IsRoot: true})
+		seedUser(t, client, ent.User{Email: &AdminEmail, Name: "Admin", IsAdmin: true})
+		seedUser(t, client, ent.User{Email: &UserEmail, Name: "User"})
+		seedUser(t, client, ent.User{Email: &TestEmail, Name: "TestUser", IsTest: true})
 
 		asc, err := svc.GetUsers(ctx, &models.UserListRequest{
 			UserID: admin.ID, Search: tok, SortBy: "role", Order: "asc", Page: 1, Limit: 10,
@@ -194,14 +206,21 @@ func TestEntUserClient_GetUsers(t *testing.T) {
 
 	t.Run("IsSettedPassword_and_IsLine", func(t *testing.T) {
 		tok := "pw-line-1"
-		n := seedUser(t, client, ent.User{Email: "n+" + tok + "@x.com", Name: "NilPass", Password: nil})
-		e := seedUser(t, client, ent.User{Email: "e+" + tok + "@x.com", Name: "EmptyPass", Password: sptr("")})
-		h := seedUser(t, client, ent.User{Email: "h+" + tok + "@x.com", Name: "HashedPass", Password: sptr("hash")})
+		NilPassEmail := "n+" + tok + "@x.com"
+		EmptyPassEmail := "e+" + tok + "@x.com"
+		HashedPassEmail := "h+" + tok + "@x.com"
+		Line1Email := "l1+" + tok + "@x.com"
+		Line2Email := "l2+" + tok + "@x.com"
+		GitHubOnlyEmail := "g+" + tok + "@x.com"
+		NoAuthEmail := "no+" + tok + "@x.com"
+		n := seedUser(t, client, ent.User{Email: &NilPassEmail, Name: "NilPass", Password: nil})
+		e := seedUser(t, client, ent.User{Email: &EmptyPassEmail, Name: "EmptyPass", Password: sptr("")})
+		h := seedUser(t, client, ent.User{Email: &HashedPassEmail, Name: "HashedPass", Password: sptr("hash")})
 
-		l1 := seedUser(t, client, ent.User{Email: "l1+" + tok + "@x.com", Name: "Line1"})
-		l2 := seedUser(t, client, ent.User{Email: "l2+" + tok + "@x.com", Name: "Line2"})
-		gh := seedUser(t, client, ent.User{Email: "g+" + tok + "@x.com", Name: "GitHubOnly"})
-		na := seedUser(t, client, ent.User{Email: "no+" + tok + "@x.com", Name: "NoAuth"})
+		l1 := seedUser(t, client, ent.User{Email: &Line1Email, Name: "Line1"})
+		l2 := seedUser(t, client, ent.User{Email: &Line2Email, Name: "Line2"})
+		gh := seedUser(t, client, ent.User{Email: &GitHubOnlyEmail, Name: "GitHubOnly"})
+		na := seedUser(t, client, ent.User{Email: &NoAuthEmail, Name: "NoAuth"})
 		_ = gh
 		seedExternalAuth(t, client, l1, "line")
 		seedExternalAuth(t, client, l2, "LiNe")

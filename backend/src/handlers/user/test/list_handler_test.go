@@ -74,9 +74,10 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 				req.Limit == expected.Limit
 		})
 
+		Email := "alice@example.com"
 		mockResp := &models.UserListResponse{
 			Users: []models.User{
-				{ID: 10, Name: "Alice", Email: "alice@example.com", IsAdmin: true, IsSettedPassword: true, IsLine: true},
+				{ID: 10, Name: "Alice", Email: &Email, IsAdmin: true, IsSettedPassword: true, IsLine: true},
 			},
 			TotalPages: 3,
 		}
@@ -125,9 +126,10 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 				req.Limit == expected.Limit
 		})
 
+		Email := "bob@example.com"
 		mockResp := &models.UserListResponse{
 			Users: []models.User{
-				{ID: 20, Name: "Bob", Email: "bob@example.com", IsAdmin: false, IsRoot: true, IsSettedPassword: true, IsLine: false},
+				{ID: 20, Name: "Bob", Email: &Email, IsAdmin: false, IsRoot: true, IsSettedPassword: true, IsLine: false},
 			},
 			TotalPages: 7,
 		}

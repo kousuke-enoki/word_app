@@ -39,7 +39,7 @@ func TestSignInHandler(t *testing.T) {
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("Secure123!"), bcrypt.DefaultCost)
 		hp := string(hashedPassword)
 		mockClient.On("FindByEmail", mock.Anything, reqData.Email).
-			Return(&ent.User{ID: 1, Email: reqData.Email, Password: &hp}, nil)
+			Return(&ent.User{ID: 1, Email: &reqData.Email, Password: &hp}, nil)
 		mockJWTGen.On("GenerateJWT", "1").Return("mocked_jwt_token", nil)
 
 		req, _ := http.NewRequest(http.MethodPost, "/signin", bytes.NewBuffer(reqBody))
@@ -74,9 +74,10 @@ func TestSignInHandler(t *testing.T) {
 		password := "InvalidSecure123!"
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("Secure123!"), bcrypt.DefaultCost)
 		hp := string(hashedPassword)
+		Email := "test@example.com"
 		signInUser := &ent.User{
 			ID:       1,
-			Email:    "test@example.com",
+			Email:    &Email,
 			Name:     "Test User",
 			Password: &hp, // ← ポインタに
 		}
@@ -86,7 +87,7 @@ func TestSignInHandler(t *testing.T) {
 
 		// リクエスト作成
 		reqData := models.SignInRequest{
-			Email:    "test@example.com",
+			Email:    Email,
 			Password: password,
 		}
 		reqBody, _ := json.Marshal(reqData)
@@ -123,9 +124,10 @@ func TestSignInHandler(t *testing.T) {
 		password := "Secure123!"
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 		hp := string(hashedPassword)
+		Email := "test@example.com"
 		signInUser := &ent.User{
 			ID:       1,
-			Email:    "test@example.com",
+			Email:    &Email,
 			Name:     "Test User",
 			Password: &hp, // ← ポインタに
 		}
@@ -169,10 +171,11 @@ func TestSignInHandler(t *testing.T) {
 		mockJWTGen := &mocks.MockJwtGenerator{}
 		handler := user.NewHandler(mockClient, mockJWTGen)
 
+		Email := "line_only@example.com"
 		// password が nil のユーザーを返す
 		signInUser := &ent.User{
 			ID:       1,
-			Email:    "line_only@example.com",
+			Email:    &Email,
 			Name:     "Line Only",
 			Password: nil, // ← 未設定
 		}
@@ -181,7 +184,7 @@ func TestSignInHandler(t *testing.T) {
 		// リクエスト作成
 		reqData := models.SignInRequest{
 			Email:    "line_only@example.com",
-      Password: "Secure123!",
+			Password: "Secure123!",
 		}
 		reqBody, _ := json.Marshal(reqData)
 		req, _ := http.NewRequest(http.MethodPost, "/signin", bytes.NewBuffer(reqBody))

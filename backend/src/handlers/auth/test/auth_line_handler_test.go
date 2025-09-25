@@ -42,7 +42,6 @@ func TestAuthLineHandler(t *testing.T) {
 
 				w := httptest.NewRecorder()
 				c, _ := gin.CreateTestContext(w)
-				// ★ ここを追加 ★
 				req := httptest.NewRequest(http.MethodGet, "/line/login", nil)
 				c.Request = req
 
@@ -165,8 +164,9 @@ func TestAuthLineHandler(t *testing.T) {
 				mockUC := new(auth_mock.MockUsecase)
 				// Bind エラーケースでは CompleteSignUp は呼ばれない想定
 				if tt.name != "json_bind_error" {
+					pass := "pass1"
 					mockUC.
-						On("CompleteSignUp", mock.Anything, "tmp123", "pass1").
+						On("CompleteSignUp", mock.Anything, "tmp123", &pass).
 						Return(tt.mockJWT, tt.mockErr)
 				}
 				mockJWTGenerator := new(auth_mock.MockJWTGenerator)

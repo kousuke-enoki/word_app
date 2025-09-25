@@ -75,9 +75,9 @@ func (p *Provider) Exchange(ctx context.Context, code string) (*tempjwt.Identity
 	}
 
 	var cl struct {
-		Sub   string `json:"sub"`
-		Email string `json:"email"`
-		Name  string `json:"name"`
+		Sub   string  `json:"sub"`
+		Email *string `json:"email"`
+		Name  string  `json:"name"`
 	}
 	if err := idTok.Claims(&cl); err != nil {
 		return nil, err

@@ -20,6 +20,7 @@ type Implementation struct {
 	JwtMiddleware  middleware_interface.Middleware
 	AuthHandler    auth.Handler
 	UserHandler    user.Handler
+	DetailHandler  user.DetailHandler
 	SettingHandler setting.Handler
 	WordHandler    word.Handler
 	QuizHandler    quiz.Handler
@@ -30,6 +31,7 @@ func NewRouter(
 	jwtMiddleware middleware_interface.Middleware,
 	authHandler auth.Handler,
 	userHandler user.Handler,
+	detailHandler user.DetailHandler,
 	settingHandler setting.Handler,
 	wordHandler word.Handler,
 	quizHandler quiz.Handler,
@@ -39,6 +41,7 @@ func NewRouter(
 		JwtMiddleware:  jwtMiddleware,
 		AuthHandler:    authHandler,
 		UserHandler:    userHandler,
+		DetailHandler:  detailHandler,
 		SettingHandler: settingHandler,
 		WordHandler:    wordHandler,
 		QuizHandler:    quizHandler,
@@ -75,7 +78,8 @@ func (r *Implementation) MountRoutes(router *gin.Engine) {
 
 		protectedRoutes.GET("/users/my_page", r.UserHandler.MyPageHandler())
 		protectedRoutes.GET("/users", r.UserHandler.ListHandler())
-		protectedRoutes.GET("/users/me", r.UserHandler.ShowHandler())
+		protectedRoutes.GET("/users/me", r.DetailHandler.MeHandler())
+		protectedRoutes.GET("/users/:id", r.DetailHandler.ShowHandler())
 		protectedRoutes.PUT("/users/:id", r.UserHandler.EditHandler())
 		protectedRoutes.DELETE("/users/:id", r.UserHandler.DeleteHandler())
 		protectedRoutes.GET("/setting/user_config", r.SettingHandler.GetUserConfigHandler())

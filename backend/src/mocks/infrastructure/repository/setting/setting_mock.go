@@ -6,7 +6,6 @@ package setting
 
 import (
 	"context"
-
 	"word_app/backend/src/domain"
 
 	mock "github.com/stretchr/testify/mock"

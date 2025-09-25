@@ -18,6 +18,11 @@ type Handler interface {
 	DeleteHandler() gin.HandlerFunc
 }
 
+type DetailHandler interface {
+	MeHandler() gin.HandlerFunc
+	ShowHandler() gin.HandlerFunc
+}
+
 type Client interface {
 	Create(ctx context.Context, email, name, password string) (*ent.User, error)
 	FindByEmail(ctx context.Context, email string) (*ent.User, error)
@@ -25,6 +30,11 @@ type Client interface {
 	GetUsers(ctx context.Context, UserListRequest *models.UserListRequest) (*models.UserListResponse, error)
 	Update(ctx context.Context, UserEditRequest *models.UpdateUserInput) (*ent.User, error)
 	Delete(ctx context.Context, editorID, targetID int) error
+}
+
+type Usecase interface {
+	GetMyDetail(ctx context.Context, viewerID int) (*models.UserDetail, error)
+	GetDetailByID(ctx context.Context, viewerID, targetID int) (*models.UserDetail, error)
 }
 
 type Validator interface {

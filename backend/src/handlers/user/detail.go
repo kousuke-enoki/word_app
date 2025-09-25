@@ -5,31 +5,37 @@ import (
 	"net/http"
 	"strconv"
 
-	"word_app/backend/src/usecase"
+	"word_app/backend/src/handlers"
+	"word_app/backend/src/interfaces/http/user"
+	"word_app/backend/src/usecase/apperror"
 
 	"github.com/gin-gonic/gin"
 )
 
 type DetailHandler struct {
-	UC *usecase.UserDetailUsecase
+	UserUC user.Usecase
 }
 
-func NewDetailHandler(uc *usecase.UserDetailUsecase) *DetailHandler {
-	return &DetailHandler{UC: uc}
+func NewDetailHandler(
+	uc user.Usecase,
+) *DetailHandler {
+	return &DetailHandler{
+		UserUC: uc,
+	}
 }
 
 func (h *DetailHandler) MeHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		v, ok := c.Get("userID")
 		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			handlers.WriteError(c, apperror.New(apperror.Unauthorized, "unauthorized", nil))
 			return
 		}
 		viewerID := v.(int)
 
-		dto, status, err := h.UC.GetMyDetail(c.Request.Context(), viewerID)
+		dto, err := h.UserUC.GetMyDetail(c.Request.Context(), viewerID)
 		if err != nil {
-			c.JSON(status, gin.H{"error": err.Error()})
+			handlers.WriteError(c, err)
 			return
 		}
 		c.JSON(http.StatusOK, dto)
@@ -38,30 +44,22 @@ func (h *DetailHandler) MeHandler() gin.HandlerFunc {
 
 func (h *DetailHandler) ShowHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		viewerIDRaw, ok := c.Get("userID")
+		v, ok := c.Get("userID")
 		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			handlers.WriteError(c, apperror.New(apperror.Unauthorized, "unauthorized", nil))
 			return
 		}
-		viewerID, _ := viewerIDRaw.(int)
+		viewerID := v.(int)
 
-		idStr := c.Param("id")
-		targetID, err := strconv.Atoi(idStr)
-		if err != nil || targetID <= 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		targetID, parseErr := strconv.Atoi(c.Param("id"))
+		if parseErr != nil || targetID <= 0 {
+			handlers.WriteError(c, apperror.New(apperror.Validation, "invalid id", parseErr))
 			return
 		}
 
-		dto, err := h.UC.GetDetailByID(c.Request.Context(), viewerID, targetID)
+		dto, err := h.UserUC.GetDetailByID(c.Request.Context(), viewerID, targetID)
 		if err != nil {
-			switch err {
-			case usecase.ErrUnauthorized:
-				c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-			case ErrUserNotFound:
-				c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
-			default:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			}
+			handlers.WriteError(c, err)
 			return
 		}
 		c.JSON(http.StatusOK, dto)

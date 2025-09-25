@@ -40,7 +40,7 @@ func TestEntUserClient_FindByEmail(t *testing.T) {
 		foundUser, err := usrClient.FindByEmail(ctx, email)
 		assert.NoError(t, err)
 		assert.NotNil(t, foundUser)
-		assert.Equal(t, email, foundUser.Email)
+		assert.Equal(t, email, *foundUser.Email)
 		assert.Equal(t, name, foundUser.Name)
 	})
 

@@ -40,7 +40,7 @@ func (r *EntUserRepo) Create(ctx context.Context, u *domain.User, ext *domain.Ex
 		Create().
 		SetNillableEmail(emailPtr).
 		SetName(u.Name).
-		SetNillablePassword(u.Password).
+		SetPassword(u.Password).
 		Save(ctx)
 	if err != nil {
 		return err

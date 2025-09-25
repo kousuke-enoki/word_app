@@ -36,7 +36,7 @@ func TestEntUserClient_Create(t *testing.T) {
 		createdUser, err := usrClient.Create(ctx, email, name, password)
 		assert.NoError(t, err)
 		assert.NotNil(t, createdUser)
-		assert.Equal(t, email, createdUser.Email)
+		assert.Equal(t, email, *createdUser.Email)
 		assert.Equal(t, name, createdUser.Name)
 	})
 

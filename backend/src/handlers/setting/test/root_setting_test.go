@@ -118,10 +118,13 @@ func TestGetRootSettingHandler(t *testing.T) {
 			switch {
 			case tt.injectUser:
 				test.InjectUser(c, 99, tt.isRoot)
+				c.Set("isAdmin", false)
+				c.Set("isTest", false)
 			case tt.needUserID:
 				c.Set("userID", 99)
 				c.Set("isRoot", false)
 				c.Set("isAdmin", false)
+				c.Set("isTest", false)
 			}
 
 			h.GetRootConfigHandler()(c)
@@ -247,6 +250,7 @@ func TestSaveRootSettingHandler(t *testing.T) {
 				c.Set("userID", 99)
 				c.Set("isRoot", false)
 				c.Set("isAdmin", false)
+				c.Set("isTest", false)
 			}
 
 			h.SaveRootConfigHandler()(c)

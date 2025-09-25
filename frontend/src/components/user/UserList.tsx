@@ -223,6 +223,7 @@ const UserList: React.FC = () => {
                   <td className="px-3 py-2">
                     <Button
                       variant="outline"
+                      disabled={u.isRoot}
                       onClick={() => {
                         setTarget(u)
                         setDeleteOpen(true)
@@ -295,8 +296,6 @@ const UserList: React.FC = () => {
           await fetchUsers()
         }}
         onError={(msg) => setFlash({ type: 'error', text: msg })}
-        // この一覧では自分を削除しない想定だが、将来共通化のために明示
-        isSelf={false}
       />
     </div>
   )

@@ -12,8 +12,6 @@ type Props = {
   onClose: () => void
   onSuccess: (message: string) => void
   onError: (message: string) => void
-  /** 追加：対象ユーザーが自分自身かどうか（親から渡す） */
-  isSelf?: boolean
 }
 
 const DeleteUserDialog: React.FC<Props> = ({
@@ -22,9 +20,8 @@ const DeleteUserDialog: React.FC<Props> = ({
   onClose,
   onSuccess,
   onError,
-  isSelf = false,
 }) => {
-  const cannotDelete = !!user && (isSelf || user.isRoot)
+  const cannotDelete = !!user && user.isRoot
 
   const submit = async () => {
     if (!user) return

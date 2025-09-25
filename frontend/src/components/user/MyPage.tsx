@@ -78,10 +78,20 @@ const MyPage: React.FC = () => {
       </Card>
 
       <div className="grid gap-4 sm:grid-cols-2">
+        <Link to="/me" className="group">
+          <Card className="h-full p-5 transition hover:shadow-md">
+            <div className="mb-1 text-sm opacity-70">🙋</div>
+            <div className="text-base font-semibold">ユーザー情報詳細</div>
+            <p className="mt-1 text-sm opacity-70">
+              登録情報の確認・編集・削除
+            </p>
+          </Card>
+        </Link>
+
         {user?.isRoot && (
           <Link to="/users" className="group">
             <Card className="h-full p-5 transition hover:shadow-md">
-              <div className="mb-1 text-sm opacity-70">👦</div>
+              <div className="mb-1 text-sm opacity-70">🤖</div>
               <div className="text-base font-semibold">ユーザーリスト</div>
               <p className="mt-1 text-sm opacity-70">
                 検索・ソート・ページネーションに対応

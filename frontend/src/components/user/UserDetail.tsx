@@ -3,25 +3,13 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import axios from '@/axiosConfig'
+import PageBottomNav from '@/components/common/PageBottomNav'
 import PageTitle from '@/components/common/PageTitle'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/ui'
 import DeleteUserDialog from '@/components/user/modal/DeleteUserDialog'
 import EditUserModal from '@/components/user/modal/EditUserModal'
 import type { UserDetail } from '@/components/user/UserList'
-
-// type UserDetail = {
-//   id: number
-//   name: string
-//   email: string | null
-//   isAdmin: boolean
-//   isRoot: boolean
-//   isTest: boolean
-//   isLine: boolean
-//   isSettedPassword: boolean
-//   createdAt: string
-//   updatedAt: string
-// }
 
 const UserDetailPage: React.FC = () => {
   const params = useParams<{ id?: string }>()
@@ -169,25 +157,23 @@ const UserDetailPage: React.FC = () => {
               <div>{fmt(user.updatedAt)}</div>
             </div>
 
-            <div className="col-span-full flex gap-2 pt-2">
+            <div className="mt-4 flex justify-center gap-2">
               <Button onClick={() => setEditOpen(true)}>編集</Button>
               <Button
                 variant="outline"
-                disabled={isSelf || user.isRoot}
+                disabled={user.isRoot}
                 onClick={() => setDeleteOpen(true)}
-                title={
-                  isSelf
-                    ? '自分は削除できません'
-                    : user.isRoot
-                      ? 'rootは削除できません'
-                      : '削除'
-                }
+                title={user.isRoot ? 'rootは削除できません' : '削除'}
               >
                 削除
               </Button>
             </div>
           </div>
         )}
+      </Card>
+
+      <Card className="mt1 p-2">
+        <PageBottomNav className="mt-1" showHome inline compact />
       </Card>
 
       {/* 既存モーダル流用 */}
@@ -210,7 +196,6 @@ const UserDetailPage: React.FC = () => {
       <DeleteUserDialog
         open={deleteOpen}
         user={user || null}
-        isSelf={isSelf}
         onClose={() => setDeleteOpen(false)}
         onSuccess={async (msg) => {
           setDeleteOpen(false)

@@ -12,22 +12,22 @@ import DeleteUserDialog from '@/components/user/modal/DeleteUserDialog'
 import EditUserModal from '@/components/user/modal/EditUserModal'
 
 // ※必要であれば src/types/userTypes.ts に分離可
-export type User = {
+export type UserDetail = {
   id: number
   name: string
-  email?: string
+  email: string | null
   isAdmin: boolean
   isRoot: boolean
   isTest: boolean
-  isSettedPassword?: boolean
-  isLine?: boolean
-  createdAt?: string
-  updatedAt?: string
+  isLine: boolean
+  isSettedPassword: boolean
+  createdAt: string
+  updatedAt: string
 }
-type UserListResponse = { users: User[]; totalPages: number }
+type UserListResponse = { users: UserDetail[]; totalPages: number }
 
 const UserList: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<UserDetail[]>([])
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState<'name' | 'email' | 'role'>('name')
   const [order, setOrder] = useState<'asc' | 'desc'>('asc')
@@ -46,7 +46,7 @@ const UserList: React.FC = () => {
   // モーダル制御
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [target, setTarget] = useState<User | null>(null)
+  const [target, setTarget] = useState<UserDetail | null>(null)
 
   const fmt = (s?: string) => (s ? new Date(s).toLocaleString() : '-')
 
@@ -76,9 +76,9 @@ const UserList: React.FC = () => {
     )
   }, [isInitialized, fetchUsers])
 
-  const roleLabel = (u: User) =>
+  const roleLabel = (u: UserDetail) =>
     u.isRoot ? 'Root' : u.isAdmin ? 'Admin' : u.isTest ? 'Test' : 'User'
-  const roleBadgeTone = (u: User) =>
+  const roleBadgeTone = (u: UserDetail) =>
     u.isRoot
       ? 'bg-[var(--badge_root_bg)] text-[var(--badge_root_fg)]'
       : u.isAdmin
@@ -273,6 +273,7 @@ const UserList: React.FC = () => {
         user={target}
         isSelf={false} // 一覧は root が他者を編集する想定
         canEditRole={!!target && !target.isRoot && !target.isTest}
+        needCurrentPasswordToUpdate={false} // 自分編集ではないので不要
         onClose={() => setEditOpen(false)}
         onSuccess={async (msg) => {
           setEditOpen(false)
@@ -280,6 +281,7 @@ const UserList: React.FC = () => {
           await fetchUsers()
         }}
         onError={(msg) => setFlash({ type: 'error', text: msg })}
+        operatorIsRoot={true} // root ユーザーが操作する想定
       />
 
       {/* 削除モーダル（別コンポーネント） */}

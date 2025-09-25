@@ -86,7 +86,7 @@ describe('Home', () => {
     renderHome()
     const links = [
       { name: /単語リスト/, href: '/words' },
-      { name: /登録/, href: '/words/new' },
+      { name: /一括登録/, href: '/Words/BulkRegister' },
       { name: /クイズ/, href: '/quizs' },
     ]
     for (const { name, href } of links) {

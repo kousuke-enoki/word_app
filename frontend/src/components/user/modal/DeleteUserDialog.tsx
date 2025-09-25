@@ -4,11 +4,11 @@ import React from 'react'
 import axiosInstance from '@/axiosConfig'
 import Modal from '@/components/common/Modal'
 import { Button } from '@/components/ui/ui'
-import type { User } from '@/components/user/UserList'
+import type { UserDetail } from '@/components/user/UserList'
 
 type Props = {
   open: boolean
-  user: User | null
+  user: UserDetail | null
   onClose: () => void
   onSuccess: (message: string) => void
   onError: (message: string) => void

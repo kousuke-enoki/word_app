@@ -5,7 +5,7 @@ import axiosInstance from '@/axiosConfig'
 import Modal from '@/components/common/Modal'
 import { Input } from '@/components/ui/card'
 import { Button } from '@/components/ui/ui'
-import type { User } from '@/components/user/UserList'
+import type { UserDetail } from '@/components/user/UserList'
 
 type RoleKey = 'admin' | 'user' | 'root' | 'test'
 const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -19,12 +19,14 @@ const validatePasswordNew = (s: string) =>
 
 type Props = {
   open: boolean
-  user: User | null
+  user: UserDetail | null
   isSelf: boolean // 自分編集か？（current PW 必須判定に使用）
   canEditRole: boolean // 呼び出し元で制御（root かつ 対象が root/test 以外の時のみ true）
+  needCurrentPasswordToUpdate: boolean // 自分編集時に current PW が必須か（呼び出し元で制御）
   onClose: () => void
   onSuccess: (message: string) => void
   onError: (message: string) => void
+  operatorIsRoot: boolean
 }
 
 const EditUserModal: React.FC<Props> = ({
@@ -35,6 +37,7 @@ const EditUserModal: React.FC<Props> = ({
   onClose,
   onSuccess,
   onError,
+  operatorIsRoot,
 }) => {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -92,7 +95,7 @@ const EditUserModal: React.FC<Props> = ({
     }
     // role は admin / user のみ。変更があり、かつ編集可の時だけ送る
     const targetRole: RoleKey = user.isAdmin ? 'admin' : 'user'
-    if (canEditRole && role !== targetRole) {
+    if (operatorIsRoot && canEditRole && role !== targetRole) {
       payload.role = role
     }
     return payload
@@ -207,26 +210,28 @@ const EditUserModal: React.FC<Props> = ({
             </div>
           )}
 
-          <div>
-            <label className="mb-1 block text-xs text-[var(--muted_fg)]">
-              役割
-            </label>
-            <select
-              className="w-full rounded-xl border px-3 py-2"
-              value={role}
-              disabled={isTestTarget || !canEditRole}
-              onChange={(e) => setRole(e.target.value as RoleKey)}
-            >
-              {/* admin / user 以外は出さない（API仕様に準拠） */}
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
-            {!canEditRole && (
-              <p className="mt-1 text-xs text-[var(--muted_fg)]">
-                役割は変更できません（Root/Testは不可、または権限なし）。
-              </p>
-            )}
-          </div>
+          {operatorIsRoot && (
+            <div>
+              <label className="mb-1 block text-xs text-[var(--muted_fg)]">
+                役割
+              </label>
+              <select
+                className="w-full rounded-xl border px-3 py-2"
+                value={role}
+                disabled={isTestTarget || !canEditRole}
+                onChange={(e) => setRole(e.target.value as RoleKey)}
+              >
+                {/* admin / user 以外は出さない（API仕様に準拠） */}
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+              {!canEditRole && (
+                <p className="mt-1 text-xs text-[var(--muted_fg)]">
+                  役割は変更できません（Root/Testは不可、または権限なし）。
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="mt-4 flex justify-center gap-2">
             <Button variant="outline" onClick={onClose}>

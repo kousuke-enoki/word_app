@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 	"word_app/backend/ent/externalauth"
 	"word_app/backend/ent/user"
 
@@ -31,6 +32,20 @@ func (eac *ExternalAuthCreate) SetProvider(s string) *ExternalAuthCreate {
 // SetProviderUserID sets the "provider_user_id" field.
 func (eac *ExternalAuthCreate) SetProviderUserID(s string) *ExternalAuthCreate {
 	eac.mutation.SetProviderUserID(s)
+	return eac
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (eac *ExternalAuthCreate) SetDeletedAt(t time.Time) *ExternalAuthCreate {
+	eac.mutation.SetDeletedAt(t)
+	return eac
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (eac *ExternalAuthCreate) SetNillableDeletedAt(t *time.Time) *ExternalAuthCreate {
+	if t != nil {
+		eac.SetDeletedAt(*t)
+	}
 	return eac
 }
 
@@ -133,6 +148,10 @@ func (eac *ExternalAuthCreate) createSpec() (*ExternalAuth, *sqlgraph.CreateSpec
 		_spec.SetField(externalauth.FieldProviderUserID, field.TypeString, value)
 		_node.ProviderUserID = value
 	}
+	if value, ok := eac.mutation.DeletedAt(); ok {
+		_spec.SetField(externalauth.FieldDeletedAt, field.TypeTime, value)
+		_node.DeletedAt = &value
+	}
 	if nodes := eac.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -226,6 +245,24 @@ func (u *ExternalAuthUpsert) UpdateProviderUserID() *ExternalAuthUpsert {
 	return u
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (u *ExternalAuthUpsert) SetDeletedAt(v time.Time) *ExternalAuthUpsert {
+	u.Set(externalauth.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *ExternalAuthUpsert) UpdateDeletedAt() *ExternalAuthUpsert {
+	u.SetExcluded(externalauth.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *ExternalAuthUpsert) ClearDeletedAt() *ExternalAuthUpsert {
+	u.SetNull(externalauth.FieldDeletedAt)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
@@ -291,6 +328,27 @@ func (u *ExternalAuthUpsertOne) SetProviderUserID(v string) *ExternalAuthUpsertO
 func (u *ExternalAuthUpsertOne) UpdateProviderUserID() *ExternalAuthUpsertOne {
 	return u.Update(func(s *ExternalAuthUpsert) {
 		s.UpdateProviderUserID()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *ExternalAuthUpsertOne) SetDeletedAt(v time.Time) *ExternalAuthUpsertOne {
+	return u.Update(func(s *ExternalAuthUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *ExternalAuthUpsertOne) UpdateDeletedAt() *ExternalAuthUpsertOne {
+	return u.Update(func(s *ExternalAuthUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *ExternalAuthUpsertOne) ClearDeletedAt() *ExternalAuthUpsertOne {
+	return u.Update(func(s *ExternalAuthUpsert) {
+		s.ClearDeletedAt()
 	})
 }
 
@@ -522,6 +580,27 @@ func (u *ExternalAuthUpsertBulk) SetProviderUserID(v string) *ExternalAuthUpsert
 func (u *ExternalAuthUpsertBulk) UpdateProviderUserID() *ExternalAuthUpsertBulk {
 	return u.Update(func(s *ExternalAuthUpsert) {
 		s.UpdateProviderUserID()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *ExternalAuthUpsertBulk) SetDeletedAt(v time.Time) *ExternalAuthUpsertBulk {
+	return u.Update(func(s *ExternalAuthUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *ExternalAuthUpsertBulk) UpdateDeletedAt() *ExternalAuthUpsertBulk {
+	return u.Update(func(s *ExternalAuthUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *ExternalAuthUpsertBulk) ClearDeletedAt() *ExternalAuthUpsertBulk {
+	return u.Update(func(s *ExternalAuthUpsert) {
+		s.ClearDeletedAt()
 	})
 }
 

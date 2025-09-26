@@ -31,7 +31,7 @@ func (uc *UpdateUserConfigInteractor) Execute(ctx context.Context, in InputUpdat
 	err := uc.Tx.WithTx(ctx, func(txCtx context.Context) error {
 		cfg := &domain.UserConfig{UserID: in.UserID, IsDarkMode: in.IsDarkMode}
 		var err error
-		out, err = uc.userRepo.Upsert(txCtx, cfg)
+		out, err = uc.userRepo.Upsert(txCtx, cfg) // ← txCtx を渡す
 		return err
 	})
 	return out, err

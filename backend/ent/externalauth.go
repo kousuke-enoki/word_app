@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 	"word_app/backend/ent/externalauth"
 	"word_app/backend/ent/user"
 
@@ -21,6 +22,8 @@ type ExternalAuth struct {
 	Provider string `json:"provider,omitempty"`
 	// ProviderUserID holds the value of the "provider_user_id" field.
 	ProviderUserID string `json:"provider_user_id,omitempty"`
+	// DeletedAt holds the value of the "deleted_at" field.
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ExternalAuthQuery when eager-loading is set.
 	Edges               ExternalAuthEdges `json:"edges"`
@@ -57,6 +60,8 @@ func (*ExternalAuth) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case externalauth.FieldProvider, externalauth.FieldProviderUserID:
 			values[i] = new(sql.NullString)
+		case externalauth.FieldDeletedAt:
+			values[i] = new(sql.NullTime)
 		case externalauth.ForeignKeys[0]: // user_external_auths
 			values[i] = new(sql.NullInt64)
 		default:
@@ -91,6 +96,13 @@ func (ea *ExternalAuth) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field provider_user_id", values[i])
 			} else if value.Valid {
 				ea.ProviderUserID = value.String
+			}
+		case externalauth.FieldDeletedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
+			} else if value.Valid {
+				ea.DeletedAt = new(time.Time)
+				*ea.DeletedAt = value.Time
 			}
 		case externalauth.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -145,6 +157,11 @@ func (ea *ExternalAuth) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("provider_user_id=")
 	builder.WriteString(ea.ProviderUserID)
+	builder.WriteString(", ")
+	if v := ea.DeletedAt; v != nil {
+		builder.WriteString("deleted_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

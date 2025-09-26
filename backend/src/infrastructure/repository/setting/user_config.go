@@ -2,6 +2,7 @@ package setting
 
 import (
 	"context"
+	"time"
 
 	"word_app/backend/ent"
 	"word_app/backend/ent/userconfig"
@@ -16,6 +17,8 @@ type EntUserConfigRepo struct {
 type UserConfigRepository interface {
 	GetByUserID(ctx context.Context, userID int) (*domain.UserConfig, error)
 	Upsert(ctx context.Context, cfg *domain.UserConfig) (*domain.UserConfig, error)
+	CreateDefault(ctx context.Context, userID int) error
+	SoftDeleteByUserID(ctx context.Context, userID int, t time.Time) error
 }
 
 func NewEntUserConfigRepo(client serviceinterfaces.EntClientInterface) *EntUserConfigRepo {

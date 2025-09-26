@@ -57,9 +57,8 @@ func (e *EntUserClient) Delete(ctx context.Context, editorID, targetID int) erro
 		if target.IsRoot {
 			return ErrUnauthorized // root を root は削除不可（仕様）
 		}
-		// （任意拡張）最後の root 保護を入れるならここで root 残数を確認
 	} else {
-		// 非 root: 自分のみ
+		// 非 root: 自分のみ削除可能
 		if target.ID != editor.ID {
 			return ErrUnauthorized
 		}

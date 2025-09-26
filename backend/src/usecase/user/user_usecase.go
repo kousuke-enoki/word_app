@@ -1,62 +1,30 @@
 // usecase/user_detail.go
-package usecase
+package user
 
 import (
-	"context"
-	"errors"
-
-	"word_app/backend/src/domain"
-	user_repo "word_app/backend/src/infrastructure/repository/user"
-	"word_app/backend/src/models"
-	"word_app/backend/src/usecase/apperror"
+	"word_app/backend/src/infrastructure/repository/auth"
+	"word_app/backend/src/infrastructure/repository/setting"
+	"word_app/backend/src/infrastructure/repository/tx"
+	"word_app/backend/src/infrastructure/repository/user"
 )
 
-type UserDetailUsecase struct {
-	Repo user_repo.Repository
+type UserUsecase struct {
+	txm         tx.Manager // Begin(ctx) (txCtx, done, err) も提供
+	userRepo    user.Repository
+	settingRepo setting.UserConfigRepository
+	authRepo    auth.ExternalAuthRepository // SoftDeleteByUserID （例: LINE/OIDCなど）
 }
 
-func NewUserDetailUsecase(repo user_repo.Repository) *UserDetailUsecase {
-	return &UserDetailUsecase{Repo: repo}
-}
-
-// GetMyDetail: /users/me
-func (uc *UserDetailUsecase) GetMyDetail(ctx context.Context, viewerID int) (*models.UserDetail, error) {
-	me, err := uc.Repo.FindDetailByID(ctx, viewerID)
-	if err != nil {
-		return nil, apperror.New(apperror.NotFound, "notFound", nil)
-	}
-	return toDTO(me), nil
-}
-
-func (uc *UserDetailUsecase) GetDetailByID(ctx context.Context, viewerID, targetID int) (*models.UserDetail, error) {
-	viewer, err := uc.Repo.FindByID(ctx, viewerID)
-	if err != nil {
-		return nil, apperror.New(apperror.Unauthorized, "unauthorized", err)
-	}
-	if !viewer.IsAdmin {
-		return nil, apperror.New(apperror.Forbidden, "forbidden", nil)
-	}
-	target, err := uc.Repo.FindDetailByID(ctx, targetID)
-	if err != nil {
-		return nil, apperror.New(apperror.NotFound, "user not found", err)
-	}
-	return toDTO(target), nil
-}
-
-// Domain → DTO（表現層向け整形はここ or Presenter）
-func toDTO(u *domain.User) *models.UserDetail {
-	return &models.UserDetail{
-		ID:               u.ID,
-		Name:             u.Name,
-		Email:            u.Email,
-		IsAdmin:          u.IsAdmin,
-		IsRoot:           u.IsRoot,
-		IsTest:           u.IsTest,
-		IsLine:           u.HasLine,
-		IsSettedPassword: u.HasPassword,
-		CreatedAt:        u.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt:        u.UpdatedAt.Format("2006-01-02 15:04:05"),
+func NewUserUsecase(
+	txm tx.Manager,
+	userRepo user.Repository,
+	settingRepo setting.UserConfigRepository,
+	authRepo auth.ExternalAuthRepository,
+) *UserUsecase {
+	return &UserUsecase{
+		txm:         txm,
+		userRepo:    userRepo,
+		settingRepo: settingRepo,
+		authRepo:    authRepo,
 	}
 }
-
-var ErrForbidden = errors.New("forbidden")

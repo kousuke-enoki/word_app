@@ -18,6 +18,9 @@ func (UserConfig) Fields() []ent.Field {
 			Positive(),
 		field.Bool("is_dark_mode").
 			Default(false),
+		field.Time("deleted_at").
+			Nillable().
+			Optional(),
 	}
 }
 

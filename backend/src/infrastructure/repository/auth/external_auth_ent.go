@@ -3,6 +3,7 @@ package auth
 
 import (
 	"context"
+	"time"
 
 	"word_app/backend/src/domain"
 	serviceinterfaces "word_app/backend/src/interfaces/service_interfaces"
@@ -13,6 +14,7 @@ type EntExtAuthRepo struct {
 }
 type ExternalAuthRepository interface {
 	Create(ctx context.Context, ext *domain.ExternalAuth) error
+	SoftDeleteByUserID(ctx context.Context, userID int, t time.Time) error
 }
 
 func NewEntExtAuthRepo(c serviceinterfaces.EntClientInterface) *EntExtAuthRepo {
@@ -26,5 +28,8 @@ func (r *EntExtAuthRepo) Create(ctx context.Context, ext *domain.ExternalAuth) e
 		SetProvider(ext.Provider).
 		SetProviderUserID(ext.ProviderUserID).
 		Save(ctx)
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }

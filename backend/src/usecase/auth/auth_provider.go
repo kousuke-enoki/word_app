@@ -44,10 +44,32 @@ func (u *Usecase) CompleteSignUp(ctx context.Context, tempToken string, pass *st
 	if err != nil {
 		return "", err
 	}
+	// Tx開始
+	txCtx, done, err := u.txm.Begin(ctx)
+	if err != nil {
+		return "", err
+	}
+	commit := false
+	defer func() { _ = done(commit) }()
 
 	ext := domain.NewExternalAuth(0, id.Provider, id.Subject)
 
-	if err := u.userRepo.Create(ctx, user, ext); err != nil {
+	createdUser, err := u.userRepo.Create(ctx, user)
+	if err != nil {
+		return "", err
+	}
+	ext.UserID = createdUser.ID
+	err = u.extAuthRepo.Create(ctx, ext)
+	if err != nil {
+		return "", err
+	}
+
+	if err := u.settingRepo.CreateDefault(txCtx, createdUser.ID); err != nil {
+		return "", err
+	}
+
+	commit = true
+	if err := done(commit); err != nil {
 		return "", err
 	}
 	return u.jwtGenerator.GenerateJWT(fmt.Sprintf("%d", user.ID))

@@ -8,12 +8,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (r *EntUserRepo) Create(ctx context.Context, u *domain.User, ext *domain.ExternalAuth) error {
+func (r *EntUserRepo) Create(ctx context.Context, u *domain.User) (user *domain.User, err error) {
 	// トランザクション開始
 	tx, err := r.client.Tx(ctx)
 	if err != nil {
 		logrus.Error(err)
-		return err
+		return nil, err
 	}
 
 	defer func() {
@@ -36,22 +36,18 @@ func (r *EntUserRepo) Create(ctx context.Context, u *domain.User, ext *domain.Ex
 		emailPtr = &Email // ポインタ化（そのまま u.Email でも良い）
 	}
 
-	eu, err := tx.User.
+	entUser, err := tx.User.
 		Create().
 		SetNillableEmail(emailPtr).
 		SetName(u.Name).
 		SetPassword(u.Password).
 		Save(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if _, err = tx.ExternalAuth.
-		Create().
-		SetUserID(eu.ID).
-		SetProvider(ext.Provider).
-		SetProviderUserID(ext.ProviderUserID).
-		Save(ctx); err != nil {
-		return err
-	}
-	return nil
+	u.ID = entUser.ID
+	u.CreatedAt = entUser.CreatedAt
+	u.UpdatedAt = entUser.UpdatedAt
+
+	return u, nil
 }

@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 	"word_app/backend/ent/predicate"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
@@ -53,6 +54,26 @@ func (ucu *UserConfigUpdate) SetNillableIsDarkMode(b *bool) *UserConfigUpdate {
 	if b != nil {
 		ucu.SetIsDarkMode(*b)
 	}
+	return ucu
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (ucu *UserConfigUpdate) SetDeletedAt(t time.Time) *UserConfigUpdate {
+	ucu.mutation.SetDeletedAt(t)
+	return ucu
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (ucu *UserConfigUpdate) SetNillableDeletedAt(t *time.Time) *UserConfigUpdate {
+	if t != nil {
+		ucu.SetDeletedAt(*t)
+	}
+	return ucu
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (ucu *UserConfigUpdate) ClearDeletedAt() *UserConfigUpdate {
+	ucu.mutation.ClearDeletedAt()
 	return ucu
 }
 
@@ -126,6 +147,12 @@ func (ucu *UserConfigUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := ucu.mutation.IsDarkMode(); ok {
 		_spec.SetField(userconfig.FieldIsDarkMode, field.TypeBool, value)
+	}
+	if value, ok := ucu.mutation.DeletedAt(); ok {
+		_spec.SetField(userconfig.FieldDeletedAt, field.TypeTime, value)
+	}
+	if ucu.mutation.DeletedAtCleared() {
+		_spec.ClearField(userconfig.FieldDeletedAt, field.TypeTime)
 	}
 	if ucu.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -201,6 +228,26 @@ func (ucuo *UserConfigUpdateOne) SetNillableIsDarkMode(b *bool) *UserConfigUpdat
 	if b != nil {
 		ucuo.SetIsDarkMode(*b)
 	}
+	return ucuo
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (ucuo *UserConfigUpdateOne) SetDeletedAt(t time.Time) *UserConfigUpdateOne {
+	ucuo.mutation.SetDeletedAt(t)
+	return ucuo
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (ucuo *UserConfigUpdateOne) SetNillableDeletedAt(t *time.Time) *UserConfigUpdateOne {
+	if t != nil {
+		ucuo.SetDeletedAt(*t)
+	}
+	return ucuo
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (ucuo *UserConfigUpdateOne) ClearDeletedAt() *UserConfigUpdateOne {
+	ucuo.mutation.ClearDeletedAt()
 	return ucuo
 }
 
@@ -304,6 +351,12 @@ func (ucuo *UserConfigUpdateOne) sqlSave(ctx context.Context) (_node *UserConfig
 	}
 	if value, ok := ucuo.mutation.IsDarkMode(); ok {
 		_spec.SetField(userconfig.FieldIsDarkMode, field.TypeBool, value)
+	}
+	if value, ok := ucuo.mutation.DeletedAt(); ok {
+		_spec.SetField(userconfig.FieldDeletedAt, field.TypeTime, value)
+	}
+	if ucuo.mutation.DeletedAtCleared() {
+		_spec.ClearField(userconfig.FieldDeletedAt, field.TypeTime)
 	}
 	if ucuo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

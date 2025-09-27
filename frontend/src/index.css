@@ -62,6 +62,10 @@ code {
   --table_row_active: #e0e7ff;
   --btn-subtle-bg: #f3f4f6;
   --btn-subtle-bd: #d1d5db;
+
+  --modal-bg: #ffffff;
+  --modal-border: rgba(0, 0, 0, 0.1);
+  --modal-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
 }
 .dark {
   --bg: #1a1a1a;
@@ -114,6 +118,10 @@ code {
   --table_row_active: #353f52;
   --btn-subtle-bg: #262b36;
   --btn-subtle-bd: #3a4252;
+
+  --modal-bg: #111318;
+  --modal-border: rgba(255, 255, 255, 0.1);
+  --modal-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
 }
 
 /* 任意のコンポーネント */
@@ -164,6 +172,13 @@ button:disabled {
   border: var(--button_border_disabled);
   background-color: var(--button_bg_disabled);
 } */
+
+/* data-theme 方式 */
+[data-theme='dark'] {
+  --modal-bg: #111318;
+  --modal-border: rgba(255, 255, 255, 0.1);
+  --modal-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+}
 
 @tailwind base;
 @tailwind components;

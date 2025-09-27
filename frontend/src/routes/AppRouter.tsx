@@ -19,6 +19,8 @@ import LineCallback from '../components/user/LineCallback'
 import MyPage from '../components/user/MyPage'
 import SignIn from '../components/user/SignIn'
 import SignUp from '../components/user/SignUp'
+import UserDetail from '../components/user/UserDetail'
+import UserList from '../components/user/UserList'
 import WordBulkRegister from '../components/word/WordBulkRegister'
 import WordEdit from '../components/word/WordEdit'
 import WordList from '../components/word/WordList'
@@ -79,6 +81,32 @@ const AppRouter: React.FC = () => {
               element={
                 <PrivateRoute>
                   <MyPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <PrivateRoute requiredRole={'root'}>
+                  <UserList />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/me"
+              element={
+                <PrivateRoute /* ログインしていれば誰でもOK */>
+                  <UserDetail />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/users/:id"
+              element={
+                <PrivateRoute requiredRole="admin">
+                  {/* admin or root を許可 */}
+                  <UserDetail />
                 </PrivateRoute>
               }
             />

@@ -49,7 +49,7 @@ func TestMyPageHandler(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		// レスポンスボディの内容を確認（小文字の"admin"と"name"に変更）
-		expectedResponse := `{"user":{"id":0, "isAdmin":true, "isRoot":false, "name":"Test User"}, "isLogin":true}`
+		expectedResponse := `{"user":{"id":0, "isAdmin":true, "isRoot":false,"isTest":false, "name":"Test User"}, "isLogin":true}`
 		assert.JSONEq(t, expectedResponse, w.Body.String())
 
 		mockClient.AssertExpectations(t)
@@ -103,7 +103,6 @@ func TestMyPageHandler(t *testing.T) {
 
 	// データベースエラーが発生した場合
 	t.Run("Database_error", func(t *testing.T) {
-
 		// Mock設定: FindByIDがエラーを返すようにする
 		mockClient.On("FindByID", mock.Anything, 123).
 			Return(nil, errors.New("some database error"))

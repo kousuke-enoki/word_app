@@ -215,25 +215,7 @@ func init() {
 	// userDescEmail is the schema descriptor for email field.
 	userDescEmail := userFields[0].Descriptor()
 	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
-	user.EmailValidator = func() func(string) error {
-		validators := userDescEmail.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(email string) error {
-			for _, fn := range fns {
-				if err := fn(email); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// userDescPassword is the schema descriptor for password field.
-	userDescPassword := userFields[1].Descriptor()
-	// user.PasswordValidator is a validator for the "password" field. It is called by the builders before save.
-	user.PasswordValidator = userDescPassword.Validators[0].(func(string) error)
+	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
 	// userDescName is the schema descriptor for name field.
 	userDescName := userFields[2].Descriptor()
 	// user.DefaultName holds the default value on creation for the name field.
@@ -265,13 +247,17 @@ func init() {
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// userDescIsAdmin is the schema descriptor for isAdmin field.
-	userDescIsAdmin := userFields[5].Descriptor()
+	userDescIsAdmin := userFields[6].Descriptor()
 	// user.DefaultIsAdmin holds the default value on creation for the isAdmin field.
 	user.DefaultIsAdmin = userDescIsAdmin.Default.(bool)
 	// userDescIsRoot is the schema descriptor for isRoot field.
-	userDescIsRoot := userFields[6].Descriptor()
+	userDescIsRoot := userFields[7].Descriptor()
 	// user.DefaultIsRoot holds the default value on creation for the isRoot field.
 	user.DefaultIsRoot = userDescIsRoot.Default.(bool)
+	// userDescIsTest is the schema descriptor for isTest field.
+	userDescIsTest := userFields[8].Descriptor()
+	// user.DefaultIsTest holds the default value on creation for the isTest field.
+	user.DefaultIsTest = userDescIsTest.Default.(bool)
 	userconfigFields := schema.UserConfig{}.Fields()
 	_ = userconfigFields
 	// userconfigDescUserID is the schema descriptor for user_id field.

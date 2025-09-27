@@ -21,4 +21,5 @@ var (
 	ErrDatabaseFailure = errors.New("database failure")
 	ErrUserNotFound    = errors.New("user not found")
 	ErrCreateConfig    = errors.New("create user config failure")
+	ErrUnauthorized    = errors.New("unauthorized")
 )

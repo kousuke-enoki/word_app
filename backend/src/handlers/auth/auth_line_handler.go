@@ -36,8 +36,8 @@ func (h *Handler) LineCallback() gin.HandlerFunc {
 func (h *Handler) LineComplete() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
-			TempToken string `json:"temp_token"`
-			Password  string `json:"password"`
+			TempToken string  `json:"temp_token"`
+			Password  *string `json:"password"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

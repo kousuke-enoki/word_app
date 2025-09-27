@@ -160,7 +160,8 @@ func TestSignUpHandler(t *testing.T) {
 		mockClient := new(mocks.UserClient)
 		mockJWTGen := &mocks.MockJwtGenerator{}
 		userHandler := user.NewHandler(mockClient, mockJWTGen)
-		mockUser := &ent.User{ID: 1, Name: "test", Email: "test@example.com"}
+		Email := "test@example.com"
+		mockUser := &ent.User{ID: 1, Name: "test", Email: &Email}
 
 		mockClient.On("Create", mock.Anything, "test@example.com", "test", mock.Anything).
 			Return(mockUser, nil)
@@ -198,7 +199,7 @@ func TestSignUpHandler(t *testing.T) {
 		reqBody, _ := json.Marshal(reqData)
 
 		mockClient.On("Create", mock.Anything, reqData.Email, reqData.Name, mock.Anything).
-			Return(&ent.User{ID: 1, Name: reqData.Name, Email: reqData.Email}, nil)
+			Return(&ent.User{ID: 1, Name: reqData.Name, Email: &reqData.Email}, nil)
 		mockJWTGen.On("GenerateJWT", "1").Return("mocked_jwt_token", nil)
 
 		req, _ := http.NewRequest(http.MethodPost, "/sign_up", bytes.NewBuffer(reqBody))

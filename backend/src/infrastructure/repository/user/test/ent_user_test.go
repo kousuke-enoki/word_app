@@ -73,7 +73,8 @@ func TestEntUserRepo_Create(t *testing.T) {
 	r := repo.NewEntUserRepo(test.RealEntClient{Client: ec})
 	ctx := context.Background()
 
-	u := &domain.User{Email: "beta@mail.com", Name: "Beta", Password: "pw"}
+	Email := "beta@mail.com"
+	u := &domain.User{Email: &Email, Name: "Beta", Password: "pw"}
 	ext := &domain.ExternalAuth{Provider: "google", ProviderUserID: "g-999"}
 
 	t.Run("success", func(t *testing.T) {
@@ -88,7 +89,8 @@ func TestEntUserRepo_Create(t *testing.T) {
 	})
 
 	t.Run("duplicate external auth should rollback", func(t *testing.T) {
-		u2 := &domain.User{Email: "gamma@mail.com", Name: "Gamma", Password: "pw"}
+		Email := "gamma@mail.com"
+		u2 := &domain.User{Email: &Email, Name: "Gamma", Password: "pw"}
 		err := r.Create(ctx, u2, ext) // ext は provider+id が重複
 		require.True(t, ent.IsConstraintError(err))
 

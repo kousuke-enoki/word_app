@@ -33,7 +33,7 @@ func (h *Handler) ListHandler() gin.HandlerFunc {
 		var (
 			resp *models.UserListResponse
 		)
-			resp, err = h.userClient.GetUsers(ctx, req)
+		resp, err = h.userClient.GetUsers(ctx, req)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -46,7 +46,7 @@ func (h *Handler) ListHandler() gin.HandlerFunc {
 func (h *Handler) parseUserListRequest(c *gin.Context) (*models.UserListRequest, error) {
 	// クエリパラメータの取得
 	search := c.Query("search")
-  sortBy := c.DefaultQuery("sortBy", "name")
+	sortBy := c.DefaultQuery("sortBy", "name")
 	order := c.DefaultQuery("order", "asc")
 
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))

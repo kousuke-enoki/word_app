@@ -104,6 +104,9 @@ export class AppStack extends Stack {
         RUN_SEEDER: "true",
         RUN_SEEDER_FOR_WORDS: "false",
         APP_BOOTSTRAP_MODE: "FULL",
+        // ↓再デプロイの「差分」が毎回出るので、
+        // secret managerの変更後確実に再構成される
+        DEPLOY_REV: Date.now().toString(),
       },
     });
 

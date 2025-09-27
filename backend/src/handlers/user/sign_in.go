@@ -46,7 +46,6 @@ func (h *Handler) SignInHandler() gin.HandlerFunc {
 			return
 		}
 
-
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Authentication successful", "token": token})
 	}

@@ -24,10 +24,14 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
+	FieldDeletedAt = "deleted_at"
 	// FieldIsAdmin holds the string denoting the isadmin field in the database.
 	FieldIsAdmin = "is_admin"
 	// FieldIsRoot holds the string denoting the isroot field in the database.
 	FieldIsRoot = "is_root"
+	// FieldIsTest holds the string denoting the istest field in the database.
+	FieldIsTest = "is_test"
 	// EdgeRegisteredWords holds the string denoting the registered_words edge name in mutations.
 	EdgeRegisteredWords = "registered_words"
 	// EdgeQuizs holds the string denoting the quizs edge name in mutations.
@@ -76,8 +80,10 @@ var Columns = []string{
 	FieldName,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+	FieldDeletedAt,
 	FieldIsAdmin,
 	FieldIsRoot,
+	FieldIsTest,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -93,8 +99,6 @@ func ValidColumn(column string) bool {
 var (
 	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	EmailValidator func(string) error
-	// PasswordValidator is a validator for the "password" field. It is called by the builders before save.
-	PasswordValidator func(string) error
 	// DefaultName holds the default value on creation for the "name" field.
 	DefaultName string
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
@@ -109,6 +113,8 @@ var (
 	DefaultIsAdmin bool
 	// DefaultIsRoot holds the default value on creation for the "isRoot" field.
 	DefaultIsRoot bool
+	// DefaultIsTest holds the default value on creation for the "isTest" field.
+	DefaultIsTest bool
 )
 
 // OrderOption defines the ordering options for the User queries.
@@ -144,6 +150,11 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
+// ByDeletedAt orders the results by the deleted_at field.
+func ByDeletedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeletedAt, opts...).ToFunc()
+}
+
 // ByIsAdmin orders the results by the isAdmin field.
 func ByIsAdmin(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsAdmin, opts...).ToFunc()
@@ -152,6 +163,11 @@ func ByIsAdmin(opts ...sql.OrderTermOption) OrderOption {
 // ByIsRoot orders the results by the isRoot field.
 func ByIsRoot(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsRoot, opts...).ToFunc()
+}
+
+// ByIsTest orders the results by the isTest field.
+func ByIsTest(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsTest, opts...).ToFunc()
 }
 
 // ByRegisteredWordsCount orders the results by registered_words count.

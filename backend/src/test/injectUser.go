@@ -7,4 +7,5 @@ func InjectUser(c *gin.Context, id int, isRoot bool) {
 	c.Set("userID", id)
 	c.Set("isAdmin", false)
 	c.Set("isRoot", isRoot)
+	c.Set("isTest", false)
 }

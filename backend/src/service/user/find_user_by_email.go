@@ -11,8 +11,8 @@ func (e *EntUserClient) FindByEmail(ctx context.Context, email string) (*ent.Use
 	user, err := e.client.User().
 		Query().
 		Where(user.EmailEQ(email)).
+		Where(user.DeletedAtIsNil()).
 		First(ctx)
-
 	if err != nil {
 		return nil, ErrUserNotFound
 	}

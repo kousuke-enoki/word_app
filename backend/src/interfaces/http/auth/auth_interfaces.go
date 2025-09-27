@@ -7,10 +7,10 @@ import (
 )
 
 type CallbackResult struct {
-	Token         string `json:"token,omitempty"`
-	NeedPassword  bool   `json:"need_password,omitempty"`
-	TempToken     string `json:"temp_token,omitempty"`
-	SuggestedMail string `json:"suggested_mail,omitempty"`
+	Token         string  `json:"token,omitempty"`
+	NeedPassword  bool    `json:"need_password,omitempty"`
+	TempToken     string  `json:"temp_token,omitempty"`
+	SuggestedMail *string `json:"suggested_mail,omitempty"`
 }
 
 type Handler interface {
@@ -26,5 +26,5 @@ type JWTGenerator interface {
 type Usecase interface {
 	StartLogin(ctx context.Context, state, nonce string) string
 	HandleCallback(ctx context.Context, code string) (*CallbackResult, error)
-	CompleteSignUp(ctx context.Context, tempToken, pass string) (string, error)
+	CompleteSignUp(ctx context.Context, tempToken string, pass *string) (string, error)
 }

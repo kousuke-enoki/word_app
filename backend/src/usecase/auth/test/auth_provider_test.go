@@ -52,6 +52,7 @@ func (m *tempMock) GenerateTemp(id *tempjwt.Identity, ttl time.Duration) (string
 	args := m.Called(id, ttl)
 	return args.String(0), args.Error(1)
 }
+
 func (m *tempMock) ParseTemp(tok string) (*tempjwt.Identity, error) {
 	args := m.Called(tok)
 	id, _ := args.Get(0).(*tempjwt.Identity)
@@ -69,7 +70,6 @@ func newUC(
 	t *tempMock,
 	tHelper testing.TB, // *testing.T を渡すため追加
 ) *authUc.Usecase {
-
 	ext := mockExt.NewMockExternalAuthRepository(tHelper)
 
 	return authUc.NewUsecase(
@@ -102,10 +102,11 @@ func TestStartLogin(t *testing.T) {
 
 func TestHandleCallback(t *testing.T) {
 	ctx := context.Background()
+	email := "a@b.com"
 	idTok := &tempjwt.Identity{
 		Provider: "line",
 		Subject:  "sub",
-		Email:    "a@b.com",
+		Email:    &email,
 		Name:     "Taro",
 	}
 	cases := []struct {
@@ -175,10 +176,11 @@ func TestHandleCallback(t *testing.T) {
 
 func TestCompleteSignUp(t *testing.T) {
 	ctx := context.Background()
+	email := "m@x.com"
 	idTok := &tempjwt.Identity{
 		Provider: "line",
 		Subject:  "sub",
-		Email:    "m@x.com",
+		Email:    &email,
 		Name:     "Mika",
 	}
 	cases := []struct {
@@ -223,7 +225,8 @@ func TestCompleteSignUp(t *testing.T) {
 			tc.setup(tmp, r, j)
 
 			uc := newUC(p, r, j, tmp, t)
-			jwt, err := uc.CompleteSignUp(ctx, tc.tokenArg, "Passw0rd!")
+			pass := "Passw0rd!"
+			jwt, err := uc.CompleteSignUp(ctx, tc.tokenArg, &pass)
 
 			if tc.wantErr {
 				assert.Error(t, err)

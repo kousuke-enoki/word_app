@@ -133,7 +133,6 @@ func (_m *UserHandler) DeleteHandler() gin.HandlerFunc {
 	return r0
 }
 
-
 // NewUserHandler creates a new instance of UserHandler. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewUserHandler(t interface {

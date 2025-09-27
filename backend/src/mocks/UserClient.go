@@ -8,6 +8,7 @@ import (
 	ent "word_app/backend/ent"
 
 	mock "github.com/stretchr/testify/mock"
+
 	models "word_app/backend/src/models"
 )
 
@@ -187,7 +188,6 @@ func (_m *UserClient) Delete(ctx context.Context, editorID int, targetID int) er
 
 	return r0
 }
-
 
 // NewUserClient creates a new instance of UserClient. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.

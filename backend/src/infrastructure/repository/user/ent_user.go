@@ -22,6 +22,7 @@ type Repository interface {
 	FindDetailByID(ctx context.Context, id int) (*domain.User, error) // 詳細用：preload 付き
 	SoftDeleteByID(ctx context.Context, id int, t time.Time) error
 	FindActiveByEmail(ctx context.Context, email string) (*domain.User, error)
+	ListUsers(ctx context.Context, f domain.UserListFilter) (*domain.UserListResult, error)
 }
 
 func NewEntUserRepo(c serviceinterfaces.EntClientInterface) *EntUserRepo {

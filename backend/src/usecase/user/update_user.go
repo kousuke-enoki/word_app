@@ -8,37 +8,20 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"word_app/backend/src/app/apperr"
 	"word_app/backend/src/domain"
+	"word_app/backend/src/domain/repository"
+	"word_app/backend/src/interfaces/http/user"
+	"word_app/backend/src/models"
 )
-
-type UpdateUserInput struct {
-	EditorID        int
-	TargetID        int
-	Name            *string
-	Email           *string
-	PasswordNew     *string
-	PasswordCurrent *string
-	Role            *string // "admin" | "user" | nil=変更なし
-}
-
-type UpdateUserOutput struct {
-	OK bool
-}
-
-// type UpdateUserUsecase struct {
-// 	Txm      repository.TxManager
-// 	UserRepo repository.UserRepository // FindByID, FindForUpdate, UpdatePartial
-// }
 
 // ざっくりメール検証（正規化はlower+trim）
 var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
 
-func (uc *UserUsecase) UpdateUser(ctx context.Context, in UpdateUserInput) (*UpdateUserOutput, error) {
+func (uc *UserUsecase) UpdateUser(ctx context.Context, in user.UpdateUserInput) (*models.UserDetail, error) {
 	// Tx開始（join対応の実装前提）
 	txCtx, done, err := uc.txm.Begin(ctx)
 	if err != nil {
-		return nil, apperr.ErrDBFailure
+		return nil, err
 	}
 	commit := false
 	defer func() { _ = done(commit) }()
@@ -47,9 +30,9 @@ func (uc *UserUsecase) UpdateUser(ctx context.Context, in UpdateUserInput) (*Upd
 	editor, err := uc.userRepo.FindForUpdate(txCtx, in.EditorID)
 	if err != nil {
 		// NotFound でも基本 unauthorized
-		return nil, apperr.ErrUnauthorized
+		return nil, err
 	}
-	target, err := uc.UserRepo.FindForUpdate(txCtx, in.TargetID)
+	target, err := uc.userRepo.FindForUpdate(txCtx, in.TargetID)
 	if err != nil {
 		return nil, err // ErrUserNotFound or ErrDBFailure
 	}
@@ -57,14 +40,14 @@ func (uc *UserUsecase) UpdateUser(ctx context.Context, in UpdateUserInput) (*Upd
 	// 2) 認可
 	// root以外は自分のみ。testは自分でも不可
 	if !editor.IsRoot && editor.ID != target.ID {
-		return nil, apperr.ErrUnauthorized
+		return nil, err
 	}
 	if editor.ID == target.ID && editor.IsTest {
-		return nil, apperr.ErrUnauthorized
+		return nil, err
 	}
 
 	// 3) 入力正規化・検証
-	update := &domain.UserUpdateFields{}
+	update := &repository.UserUpdateFields{}
 
 	if in.Name != nil {
 		n := strings.TrimSpace(*in.Name)
@@ -74,7 +57,7 @@ func (uc *UserUsecase) UpdateUser(ctx context.Context, in UpdateUserInput) (*Upd
 	if in.Email != nil {
 		e := strings.ToLower(strings.TrimSpace(*in.Email))
 		if !emailRegex.MatchString(e) {
-			return nil, apperr.ErrInvalidParam // 400へマップする種別を用意
+			return nil, err // 400へマップする種別を用意
 		}
 		update.Email = &e
 	}
@@ -83,15 +66,15 @@ func (uc *UserUsecase) UpdateUser(ctx context.Context, in UpdateUserInput) (*Upd
 	if in.PasswordNew != nil {
 		if needCurrentPassword(editor, target) {
 			if in.PasswordCurrent == nil {
-				return nil, apperr.ErrInvalidParam // current必須
+				return nil, err // current必須
 			}
 			if err := verifyCurrentPassword(target.Password, *in.PasswordCurrent); err != nil {
-				return nil, apperr.ErrInvalidCredential
+				return nil, err
 			}
 		}
 		hash, err := bcrypt.GenerateFromPassword([]byte(*in.PasswordNew), bcrypt.DefaultCost)
 		if err != nil {
-			return nil, apperr.ErrInternal
+			return nil, err
 		}
 		h := string(hash)
 		update.PasswordHash = &h
@@ -100,11 +83,11 @@ func (uc *UserUsecase) UpdateUser(ctx context.Context, in UpdateUserInput) (*Upd
 	// 役割変更
 	if in.Role != nil {
 		if !editor.IsRoot {
-			return nil, apperr.ErrUnauthorized
+			return nil, err
 		}
 		// 対象が root/test は不可
 		if target.IsRoot || target.IsTest {
-			return nil, apperr.ErrUnauthorized
+			return nil, err
 		}
 		switch strings.ToLower(*in.Role) {
 		case "admin":
@@ -114,20 +97,29 @@ func (uc *UserUsecase) UpdateUser(ctx context.Context, in UpdateUserInput) (*Upd
 			b := false
 			update.SetAdmin = &b
 		default:
-			return nil, apperr.ErrInvalidParam
+			return nil, err
 		}
 	}
 
 	// 4) 更新実行
-	if err := uc.UserRepo.UpdatePartial(txCtx, target.ID, update); err != nil {
+	updatedUser, err := uc.userRepo.UpdatePartial(txCtx, target.ID, update)
+	if err != nil {
 		return nil, err // ErrDuplicateEmail/ErrDBFailure 等
 	}
 
 	commit = true
 	if err := done(commit); err != nil {
-		return nil, apperr.ErrDBFailure
+		return nil, err
 	}
-	return &UpdateUserOutput{OK: true}, nil
+	return &models.UserDetail{
+		ID:      updatedUser.ID,
+		Name:    updatedUser.Name,
+		Email:   updatedUser.Email,
+		IsAdmin: updatedUser.IsAdmin,
+		IsRoot:  updatedUser.IsRoot,
+		IsTest:  updatedUser.IsTest,
+		// Add other fields as needed from updatedUser
+	}, nil
 }
 
 func needCurrentPassword(editor, target *domain.User) bool {

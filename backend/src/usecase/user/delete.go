@@ -4,14 +4,11 @@ package user
 import (
 	"context"
 	"time"
+
+	"word_app/backend/src/interfaces/http/user"
 )
 
-type DeleteUserInput struct {
-	EditorID int // 操作者
-	TargetID int // 削除対象
-}
-
-func (uc *UserUsecase) Delete(ctx context.Context, in DeleteUserInput) error {
+func (uc *UserUsecase) Delete(ctx context.Context, in user.DeleteUserInput) error {
 	// Tx開始（既存Txがあればjoinされる実装が理想）
 	txCtx, done, err := uc.txm.Begin(ctx)
 	if err != nil {

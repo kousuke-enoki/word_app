@@ -27,35 +27,34 @@ func (h *Handler) SignInHandler() gin.HandlerFunc {
 		}
 
 		// ユーザー検索
-		signInUser, err := h.userUsecase.FindByEmail(context.Background(), req.Email)
+		signInUser, err := h.userClient.FindByEmail(context.Background(), req.Email)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 			return
 		}
 
 		// パスワード未設定（外部認証のみ）のユーザーはパスワードサインイン不可
-		if err := comparePasswordPtr(signInUser.HashedPassword, req.Password); err != nil {
+		if err := comparePasswordPtr(signInUser.Password, req.Password); err != nil {
 			// エラーメッセージは統一して情報リークを防ぐ
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 			return
 		}
 
-		token, err := h.jwtGenerator.GenerateJWT(fmt.Sprintf("%d", signInUser.UserID))
+		token, err := h.jwtGenerator.GenerateJWT(fmt.Sprintf("%d", signInUser.ID))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"message": "Authentication successful", "token": token,
-		})
+			"message": "Authentication successful", "token": token})
 	}
 }
 
 // hashed が nil/空ならエラー。平文とbcryptで比較。
-func comparePasswordPtr(hashed string, plain string) error {
-	if hashed == "" {
+func comparePasswordPtr(hashed *string, plain string) error {
+	if hashed == nil || *hashed == "" {
 		return errors.New("password not set")
 	}
-	return bcrypt.CompareHashAndPassword([]byte(hashed), []byte(plain))
+	return bcrypt.CompareHashAndPassword([]byte(*hashed), []byte(plain))
 }

@@ -6,24 +6,25 @@ import (
 	"strconv"
 
 	"word_app/backend/src/handlers"
+	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/usecase/apperror"
 
 	"github.com/gin-gonic/gin"
 )
 
-// type DetailHandler struct {
-// 	UserUC user.Usecase
-// }
+type DetailHandler struct {
+	UserUC user.Usecase
+}
 
-// func NewDetailHandler(
-// 	uc user.Usecase,
-// ) *DetailHandler {
-// 	return &DetailHandler{
-// 		UserUC: uc,
-// 	}
-// }
+func NewDetailHandler(
+	uc user.Usecase,
+) *DetailHandler {
+	return &DetailHandler{
+		UserUC: uc,
+	}
+}
 
-func (h *Handler) MeHandler() gin.HandlerFunc {
+func (h *DetailHandler) MeHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		v, ok := c.Get("userID")
 		if !ok {
@@ -32,7 +33,7 @@ func (h *Handler) MeHandler() gin.HandlerFunc {
 		}
 		viewerID := v.(int)
 
-		dto, err := h.userUsecase.GetMyDetail(c.Request.Context(), viewerID)
+		dto, err := h.UserUC.GetMyDetail(c.Request.Context(), viewerID)
 		if err != nil {
 			handlers.WriteError(c, err)
 			return
@@ -41,7 +42,7 @@ func (h *Handler) MeHandler() gin.HandlerFunc {
 	}
 }
 
-func (h *Handler) ShowHandler() gin.HandlerFunc {
+func (h *DetailHandler) ShowHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		v, ok := c.Get("userID")
 		if !ok {
@@ -56,7 +57,7 @@ func (h *Handler) ShowHandler() gin.HandlerFunc {
 			return
 		}
 
-		dto, err := h.userUsecase.GetDetailByID(c.Request.Context(), viewerID, targetID)
+		dto, err := h.UserUC.GetDetailByID(c.Request.Context(), viewerID, targetID)
 		if err != nil {
 			handlers.WriteError(c, err)
 			return

@@ -6,7 +6,7 @@ package auth
 
 import (
 	"context"
-
+	"time"
 	"word_app/backend/src/domain"
 
 	mock "github.com/stretchr/testify/mock"
@@ -92,6 +92,69 @@ func (_c *MockExternalAuthRepository_Create_Call) Return(err error) *MockExterna
 }
 
 func (_c *MockExternalAuthRepository_Create_Call) RunAndReturn(run func(ctx context.Context, ext *domain.ExternalAuth) error) *MockExternalAuthRepository_Create_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SoftDeleteByUserID provides a mock function for the type MockExternalAuthRepository
+func (_mock *MockExternalAuthRepository) SoftDeleteByUserID(ctx context.Context, userID int, t time.Time) error {
+	ret := _mock.Called(ctx, userID, t)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SoftDeleteByUserID")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int, time.Time) error); ok {
+		r0 = returnFunc(ctx, userID, t)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockExternalAuthRepository_SoftDeleteByUserID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SoftDeleteByUserID'
+type MockExternalAuthRepository_SoftDeleteByUserID_Call struct {
+	*mock.Call
+}
+
+// SoftDeleteByUserID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID int
+//   - t time.Time
+func (_e *MockExternalAuthRepository_Expecter) SoftDeleteByUserID(ctx interface{}, userID interface{}, t interface{}) *MockExternalAuthRepository_SoftDeleteByUserID_Call {
+	return &MockExternalAuthRepository_SoftDeleteByUserID_Call{Call: _e.mock.On("SoftDeleteByUserID", ctx, userID, t)}
+}
+
+func (_c *MockExternalAuthRepository_SoftDeleteByUserID_Call) Run(run func(ctx context.Context, userID int, t time.Time)) *MockExternalAuthRepository_SoftDeleteByUserID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 int
+		if args[1] != nil {
+			arg1 = args[1].(int)
+		}
+		var arg2 time.Time
+		if args[2] != nil {
+			arg2 = args[2].(time.Time)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockExternalAuthRepository_SoftDeleteByUserID_Call) Return(err error) *MockExternalAuthRepository_SoftDeleteByUserID_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockExternalAuthRepository_SoftDeleteByUserID_Call) RunAndReturn(run func(ctx context.Context, userID int, t time.Time) error) *MockExternalAuthRepository_SoftDeleteByUserID_Call {
 	_c.Call.Return(run)
 	return _c
 }

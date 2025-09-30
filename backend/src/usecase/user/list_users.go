@@ -5,24 +5,17 @@ import (
 	"context"
 
 	"word_app/backend/src/domain"
+	"word_app/backend/src/domain/repository"
+	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/models"
 )
-
-type ListUsersInput struct {
-	ViewerID int
-	Search   string
-	SortBy   string // "name" | "email" | "role"
-	Order    string // "asc" | "desc"
-	Page     int
-	Limit    int
-}
 
 // type ListUsersUsecase struct {
 // 	UserRepo      repository.UserUsecase         // FindByID 用（既存）
 // 	UserQueryRepo repository.UserQueryRepository // 上で定義した一覧Repo
 // }
 
-func (uc *UserUsecase) ListUsers(ctx context.Context, in ListUsersInput) (*models.UserListResponse, error) {
+func (uc *UserUsecase) ListUsers(ctx context.Context, in user.ListUsersInput) (*user.UserListResponse, error) {
 	// 1) 権限チェック（adminのみ）
 	viewer, err := uc.userRepo.FindByID(ctx, in.ViewerID)
 	if err != nil || viewer == nil {
@@ -42,7 +35,7 @@ func (uc *UserUsecase) ListUsers(ctx context.Context, in ListUsersInput) (*model
 	offset := (in.Page - 1) * in.Limit
 
 	// 3) Repoに委譲
-	res, err := uc.userRepo.ListUsers(ctx, domain.UserListFilter{
+	res, err := uc.userRepo.ListUsers(ctx, repository.UserListFilter{
 		Search: in.Search,
 		SortBy: in.SortBy,
 		Order:  in.Order,
@@ -60,7 +53,7 @@ func (uc *UserUsecase) ListUsers(ctx context.Context, in ListUsersInput) (*model
 	}
 	totalPages := (res.TotalCount + in.Limit - 1) / in.Limit
 
-	return &models.UserListResponse{
+	return &user.UserListResponse{
 		Users:      users,
 		TotalPages: totalPages,
 	}, nil

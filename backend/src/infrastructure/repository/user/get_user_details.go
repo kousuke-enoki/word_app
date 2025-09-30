@@ -9,6 +9,7 @@ import (
 	"word_app/backend/ent/externalauth"
 	"word_app/backend/ent/user"
 	"word_app/backend/src/domain"
+	"word_app/backend/src/domain/repository"
 	usermapper "word_app/backend/src/infrastructure/mapper/user"
 
 	"entgo.io/ent/dialect/sql"
@@ -18,7 +19,7 @@ type UserQueryRepository struct {
 	Client *ent.Client
 }
 
-func (r *EntUserRepo) ListUsers(ctx context.Context, f domain.UserListFilter) (*domain.UserListResult, error) {
+func (r *EntUserRepo) ListUsers(ctx context.Context, f repository.UserListFilter) (*repository.UserListResult, error) {
 	base := r.client.User().
 		Query().
 		Where(user.DeletedAtIsNil())
@@ -94,7 +95,7 @@ func (r *EntUserRepo) ListUsers(ctx context.Context, f domain.UserListFilter) (*
 		out = append(out, usermapper.MapEntUser(u, usermapper.WithAuths(u.Edges.ExternalAuths)))
 	}
 
-	return &domain.UserListResult{
+	return &repository.UserListResult{
 		Users:      out,
 		TotalCount: totalCount,
 	}, nil

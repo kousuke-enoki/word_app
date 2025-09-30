@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"word_app/backend/src/domain"
+	"word_app/backend/src/domain/repository"
 	serviceinterfaces "word_app/backend/src/interfaces/service_interfaces"
 )
 
@@ -22,7 +23,9 @@ type Repository interface {
 	FindDetailByID(ctx context.Context, id int) (*domain.User, error) // 詳細用：preload 付き
 	SoftDeleteByID(ctx context.Context, id int, t time.Time) error
 	FindActiveByEmail(ctx context.Context, email string) (*domain.User, error)
-	ListUsers(ctx context.Context, f domain.UserListFilter) (*domain.UserListResult, error)
+	ListUsers(ctx context.Context, f repository.UserListFilter) (*repository.UserListResult, error)
+	FindForUpdate(ctx context.Context, id int) (*domain.User, error)
+	UpdatePartial(ctx context.Context, targetID int, f *repository.UserUpdateFields) (*domain.User, error)
 }
 
 func NewEntUserRepo(c serviceinterfaces.EntClientInterface) *EntUserRepo {

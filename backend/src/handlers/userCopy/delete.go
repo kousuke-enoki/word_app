@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"word_app/backend/src/interfaces/http/user"
 	user_service "word_app/backend/src/service/user"
 
 	"github.com/gin-gonic/gin"
@@ -31,12 +30,9 @@ func (h *Handler) DeleteHandler() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 			return
 		}
-		in := user.DeleteUserInput{
-			EditorID: editorID,
-			TargetID: targetID,
-		}
+
 		// サービス呼び出し
-		err = h.userUsecase.Delete(ctx, in)
+		err = h.userClient.Delete(ctx, editorID, targetID)
 		if err != nil {
 			switch err {
 			case user_service.ErrUnauthorized:

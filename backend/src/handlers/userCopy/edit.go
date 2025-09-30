@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"word_app/backend/src/interfaces/http/user"
+	"word_app/backend/src/models"
 	user_service "word_app/backend/src/service/user"
 	"word_app/backend/src/utils/contextutil"
 	user_validator "word_app/backend/src/validators/user"
@@ -56,7 +56,7 @@ func (h *Handler) EditHandler() gin.HandlerFunc {
 		}
 
 		// サービス呼び出し
-		user, svcErr := h.userUsecase.UpdateUser(ctx, *in)
+		user, svcErr := h.userClient.Update(ctx, in)
 		if svcErr != nil {
 			// エラー種別に応じて HTTP へマッピング
 			switch {
@@ -96,7 +96,7 @@ func (h *Handler) EditHandler() gin.HandlerFunc {
 }
 
 // リクエスト構造体を解析
-func (h *Handler) parseUpdateUserRequest(c *gin.Context) (*user.UpdateUserInput, error) {
+func (h *Handler) parseUpdateUserRequest(c *gin.Context) (*models.UpdateUserInput, error) {
 	var req UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		return nil, err
@@ -139,8 +139,8 @@ func (h *Handler) parseUpdateUserRequest(c *gin.Context) (*user.UpdateUserInput,
 	}
 
 	// service 入力 DTO に詰め替え
-	in := &user.UpdateUserInput{
-		EditorID:        userIDInt,
+	in := &models.UpdateUserInput{
+		UserID:          userIDInt,
 		TargetID:        targetID,
 		Name:            req.Name,
 		Email:           req.Email,

@@ -1,14 +1,15 @@
 package user
 
 import (
+	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/models"
 )
 
-func ValidateUserListRequest(req *models.UserListRequest) []*models.FieldError {
+func ValidateUserListRequest(req *user.ListUsersInput) []*models.FieldError {
 	var fieldErrors []*models.FieldError
 
 	// Validate each field
-	fieldErrors = append(fieldErrors, validateUserID(req.UserID)...)
+	fieldErrors = append(fieldErrors, validateUserID(req.ViewerID)...)
 	fieldErrors = append(fieldErrors, validateSearch(req.Search)...)
 	fieldErrors = append(fieldErrors, validateSortBy(req.SortBy)...)
 	fieldErrors = append(fieldErrors, validateOrder(req.Order)...)

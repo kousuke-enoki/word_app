@@ -7,13 +7,28 @@ import (
 )
 
 type Handler struct {
-	userClient   user.Client
+	userUsecase  user.Usecase
 	jwtGenerator auth.JWTGenerator
 }
 
-func NewHandler(client user.Client, jwtGen auth.JWTGenerator) *Handler {
+func NewHandler(
+	usecase user.Usecase,
+	jwtGen auth.JWTGenerator,
+) *Handler {
 	return &Handler{
-		userClient:   client,
+		userUsecase:  usecase,
 		jwtGenerator: jwtGen,
 	}
 }
+
+// type Handler struct {
+// 	userClient   user.Client
+// 	jwtGenerator auth.JWTGenerator
+// }
+
+// func NewHandler(client user.Client, jwtGen auth.JWTGenerator) *Handler {
+// 	return &Handler{
+// 		userClient:   client,
+// 		jwtGenerator: jwtGen,
+// 	}
+// }

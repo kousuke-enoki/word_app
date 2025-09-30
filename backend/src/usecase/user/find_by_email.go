@@ -3,27 +3,16 @@ package user
 
 import (
 	"context"
+
+	"word_app/backend/src/interfaces/http/user"
 )
 
-type FindByEmailInput struct {
-	Email string
-}
-
-type FindByEmailOutput struct {
-	UserID         int
-	HashedPassword string
-	IsAdmin        bool
-	IsRoot         bool
-	IsTest         bool
-	// 必要ならEmailやNameも返せる
-}
-
-func (uc *UserUsecase) FindByEmail(ctx context.Context, in FindByEmailInput) (*FindByEmailOutput, error) {
-	u, err := uc.userRepo.FindActiveByEmail(ctx, in.Email)
+func (uc *UserUsecase) FindByEmail(ctx context.Context, email string) (*user.FindByEmailOutput, error) {
+	u, err := uc.userRepo.FindActiveByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
-	return &FindByEmailOutput{
+	return &user.FindByEmailOutput{
 		UserID:         u.ID,
 		HashedPassword: u.Password,
 		IsAdmin:        u.IsAdmin,

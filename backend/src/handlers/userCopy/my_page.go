@@ -27,7 +27,7 @@ func (h *Handler) MyPageHandler() gin.HandlerFunc {
 		}
 
 		// ユーザー情報の取得
-		signInUser, err := h.userUsecase.GetMyDetail(context.Background(), id)
+		signInUser, err := h.userClient.FindByID(context.Background(), id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
 			return

@@ -1,12 +1,13 @@
 package user
 
 import (
+	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/models"
 	userfields "word_app/backend/src/validators/user/userFields"
 )
 
 // validateSignUp checks name, email, and password fields and returns a slice of FieldError.
-func ValidateSignUp(req *models.SignUpRequest) []*models.FieldError {
+func ValidateSignUp(req *user.SignUpInput) []*models.FieldError {
 	var fieldErrors []*models.FieldError
 
 	// 各フィールドの検証を個別の関数に分割

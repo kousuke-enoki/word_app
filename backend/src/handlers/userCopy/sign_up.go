@@ -8,7 +8,7 @@ import (
 	"io"
 	"net/http"
 
-	user_interface "word_app/backend/src/interfaces/http/user"
+	"word_app/backend/src/models"
 	user_service "word_app/backend/src/service/user"
 	"word_app/backend/src/validators/user"
 
@@ -36,14 +36,14 @@ func (h *Handler) SignUpHandler() gin.HandlerFunc {
 			return
 		}
 
-		req.Password, err = h.hashPassword(req.Password)
+		hashedPassword, err := h.hashPassword(req.Password)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 			return
 		}
 
 		// ユーザー作成
-		user, err := h.userUsecase.SignUp(context.Background(), *req)
+		user, err := h.userClient.Create(context.Background(), req.Email, req.Name, hashedPassword)
 		if err != nil {
 
 			// エラーの種類ごとにレスポンスを変更
@@ -58,7 +58,7 @@ func (h *Handler) SignUpHandler() gin.HandlerFunc {
 			return
 		}
 
-		token, err := h.jwtGenerator.GenerateJWT(fmt.Sprintf("%d", user.UserID))
+		token, err := h.jwtGenerator.GenerateJWT(fmt.Sprintf("%d", user.ID))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 			return
@@ -68,7 +68,7 @@ func (h *Handler) SignUpHandler() gin.HandlerFunc {
 	}
 }
 
-func (h *Handler) parseRequest(c *gin.Context) (*user_interface.SignUpInput, error) {
+func (h *Handler) parseRequest(c *gin.Context) (*models.SignUpRequest, error) {
 	if c.Request.Body == nil {
 		return nil, errors.New("request body is nil")
 	}
@@ -78,7 +78,7 @@ func (h *Handler) parseRequest(c *gin.Context) (*user_interface.SignUpInput, err
 	}
 	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 
-	var req user_interface.SignUpInput
+	var req models.SignUpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		return nil, errors.New("invalid request: " + err.Error())
 	}

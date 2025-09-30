@@ -7,6 +7,8 @@ import (
 	"word_app/backend/ent"
 	"word_app/backend/ent/user"
 	"word_app/backend/src/domain"
+	"word_app/backend/src/domain/repository"
+	usermapper "word_app/backend/src/infrastructure/mapper/user"
 )
 
 type UserRepository struct {
@@ -67,7 +69,7 @@ func (r *EntUserRepo) FindForUpdate(ctx context.Context, id int) (*domain.User, 
 	}, nil
 }
 
-func (r *EntUserRepo) UpdatePartial(ctx context.Context, targetID int, f *domain.UserUpdateFields) error {
+func (r *EntUserRepo) UpdatePartial(ctx context.Context, targetID int, f *repository.UserUpdateFields) (*domain.User, error) {
 	u := r.client.User().UpdateOneID(targetID)
 
 	if f.Name != nil {
@@ -83,12 +85,12 @@ func (r *EntUserRepo) UpdatePartial(ctx context.Context, targetID int, f *domain
 		u.SetIsAdmin(*f.SetAdmin)
 	}
 
-	_, err := u.Save(ctx)
+	user, err := u.Save(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) {
-			return err
+			return nil, err
 		}
-		return err
+		return nil, err
 	}
-	return nil
+	return usermapper.MapEntUser(user, nil), nil
 }

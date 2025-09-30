@@ -2,13 +2,14 @@
 package user
 
 import (
+	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/models"
 	userfields "word_app/backend/src/validators/user/userFields"
 )
 
 // Update の入口バリデーション。
 // - in.Name / in.Email / in.PasswordNew / in.Role のうち、指定されたもののみ検証します。
-func ValidateUpdate(in *models.UpdateUserInput) []*models.FieldError {
+func ValidateUpdate(in *user.UpdateUserInput) []*models.FieldError {
 	var errs []*models.FieldError
 
 	// name

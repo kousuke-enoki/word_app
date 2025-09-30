@@ -23,19 +23,17 @@ import (
 
 	quizSvc "word_app/backend/src/service/quiz"
 	resultSvc "word_app/backend/src/service/result"
-	userSvc "word_app/backend/src/service/user"
 	wordSvc "word_app/backend/src/service/word"
 )
 
 type Handlers struct {
-	JWTMiD     middleware_interface.Middleware // JWT ミドルウェアは Handler ではなく、インターフェースとして定義
-	Auth       auth.Handler
-	Setting    setting.Handler
-	User       user.Handler
-	UserDetail user.DetailHandler
-	Word       word.Handler
-	Quiz       quiz.Handler
-	Result     result.Handler
+	JWTMiD  middleware_interface.Middleware // JWT ミドルウェアは Handler ではなく、インターフェースとして定義
+	Auth    auth.Handler
+	Setting setting.Handler
+	User    user.Handler
+	Word    word.Handler
+	Quiz    quiz.Handler
+	Result  result.Handler
 }
 
 func NewHandlers(config *config.Config, uc *UseCases, client interfaces.ClientInterface) *Handlers {
@@ -43,13 +41,12 @@ func NewHandlers(config *config.Config, uc *UseCases, client interfaces.ClientIn
 	authClient := jwt.NewJWTValidator(config.JWT.Secret, client)
 	// 既存のservice 層は “薄い Facade” として存続させる想定
 	return &Handlers{
-		JWTMiD:     jwt_middleware.NewMiddleware(authClient),
-		Auth:       AuthH.NewHandler(uc.Auth, jwtGen),
-		Setting:    settingH.NewHandler(uc.Setting),
-		User:       userH.NewHandler(userSvc.NewEntUserClient(client), jwtGen),
-		UserDetail: userH.NewDetailHandler(uc.User),
-		Word:       wordH.NewHandler(wordSvc.NewWordService(client)),
-		Quiz:       quizH.NewHandler(quizSvc.NewService(client)),
-		Result:     resultH.NewHandler(resultSvc.NewService(client)),
+		JWTMiD:  jwt_middleware.NewMiddleware(authClient),
+		Auth:    AuthH.NewHandler(uc.Auth, jwtGen),
+		Setting: settingH.NewHandler(uc.Setting),
+		User:    userH.NewHandler(uc.User, jwtGen),
+		Word:    wordH.NewHandler(wordSvc.NewWordService(client)),
+		Quiz:    quizH.NewHandler(quizSvc.NewService(client)),
+		Result:  resultH.NewHandler(resultSvc.NewService(client)),
 	}
 }

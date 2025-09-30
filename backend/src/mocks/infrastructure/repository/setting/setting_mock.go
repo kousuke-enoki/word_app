@@ -6,7 +6,7 @@ package setting
 
 import (
 	"context"
-
+	"time"
 	"word_app/backend/src/domain"
 
 	mock "github.com/stretchr/testify/mock"
@@ -196,6 +196,63 @@ func (_m *MockUserConfigRepository) EXPECT() *MockUserConfigRepository_Expecter 
 	return &MockUserConfigRepository_Expecter{mock: &_m.Mock}
 }
 
+// CreateDefault provides a mock function for the type MockUserConfigRepository
+func (_mock *MockUserConfigRepository) CreateDefault(ctx context.Context, userID int) error {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateDefault")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) error); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockUserConfigRepository_CreateDefault_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateDefault'
+type MockUserConfigRepository_CreateDefault_Call struct {
+	*mock.Call
+}
+
+// CreateDefault is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID int
+func (_e *MockUserConfigRepository_Expecter) CreateDefault(ctx interface{}, userID interface{}) *MockUserConfigRepository_CreateDefault_Call {
+	return &MockUserConfigRepository_CreateDefault_Call{Call: _e.mock.On("CreateDefault", ctx, userID)}
+}
+
+func (_c *MockUserConfigRepository_CreateDefault_Call) Run(run func(ctx context.Context, userID int)) *MockUserConfigRepository_CreateDefault_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 int
+		if args[1] != nil {
+			arg1 = args[1].(int)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUserConfigRepository_CreateDefault_Call) Return(err error) *MockUserConfigRepository_CreateDefault_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockUserConfigRepository_CreateDefault_Call) RunAndReturn(run func(ctx context.Context, userID int) error) *MockUserConfigRepository_CreateDefault_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetByUserID provides a mock function for the type MockUserConfigRepository
 func (_mock *MockUserConfigRepository) GetByUserID(ctx context.Context, userID int) (*domain.UserConfig, error) {
 	ret := _mock.Called(ctx, userID)
@@ -260,6 +317,69 @@ func (_c *MockUserConfigRepository_GetByUserID_Call) Return(userConfig *domain.U
 }
 
 func (_c *MockUserConfigRepository_GetByUserID_Call) RunAndReturn(run func(ctx context.Context, userID int) (*domain.UserConfig, error)) *MockUserConfigRepository_GetByUserID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SoftDeleteByUserID provides a mock function for the type MockUserConfigRepository
+func (_mock *MockUserConfigRepository) SoftDeleteByUserID(ctx context.Context, userID int, t time.Time) error {
+	ret := _mock.Called(ctx, userID, t)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SoftDeleteByUserID")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int, time.Time) error); ok {
+		r0 = returnFunc(ctx, userID, t)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockUserConfigRepository_SoftDeleteByUserID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SoftDeleteByUserID'
+type MockUserConfigRepository_SoftDeleteByUserID_Call struct {
+	*mock.Call
+}
+
+// SoftDeleteByUserID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID int
+//   - t time.Time
+func (_e *MockUserConfigRepository_Expecter) SoftDeleteByUserID(ctx interface{}, userID interface{}, t interface{}) *MockUserConfigRepository_SoftDeleteByUserID_Call {
+	return &MockUserConfigRepository_SoftDeleteByUserID_Call{Call: _e.mock.On("SoftDeleteByUserID", ctx, userID, t)}
+}
+
+func (_c *MockUserConfigRepository_SoftDeleteByUserID_Call) Run(run func(ctx context.Context, userID int, t time.Time)) *MockUserConfigRepository_SoftDeleteByUserID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 int
+		if args[1] != nil {
+			arg1 = args[1].(int)
+		}
+		var arg2 time.Time
+		if args[2] != nil {
+			arg2 = args[2].(time.Time)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUserConfigRepository_SoftDeleteByUserID_Call) Return(err error) *MockUserConfigRepository_SoftDeleteByUserID_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockUserConfigRepository_SoftDeleteByUserID_Call) RunAndReturn(run func(ctx context.Context, userID int, t time.Time) error) *MockUserConfigRepository_SoftDeleteByUserID_Call {
 	_c.Call.Return(run)
 	return _c
 }

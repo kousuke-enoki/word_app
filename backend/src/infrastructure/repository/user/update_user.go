@@ -84,7 +84,6 @@ func (r *EntUserRepo) UpdatePartial(ctx context.Context, targetID int, f *reposi
 	if f.SetAdmin != nil {
 		u.SetIsAdmin(*f.SetAdmin)
 	}
-
 	user, err := u.Save(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) {

@@ -13,6 +13,8 @@ import (
 	"word_app/backend/src/handlers/user"
 	"word_app/backend/src/mocks"
 
+	user_mocks "word_app/backend/src/mocks/http/user"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -21,7 +23,7 @@ import (
 func TestMyPageHandler(t *testing.T) {
 	// テスト用のGinコンテキストとHTTPリクエストを準備
 	gin.SetMode(gin.TestMode)
-	mockClient := new(mocks.UserClient)
+	mockClient := new(user_mocks.MockUsecase)
 	mockJWTGen := &mocks.MockJwtGenerator{}
 
 	userHandler := user.NewHandler(mockClient, mockJWTGen)

@@ -12,6 +12,7 @@ type opts struct {
 }
 
 // Functional Options
+// Line連携などで絞る場合
 type Option func(*opts)
 
 func WithAuths(auths []*ent.ExternalAuth) Option {
@@ -34,8 +35,14 @@ func strPtrOrNil(s *string) *string {
 
 // 1件用
 func MapEntUser(u *ent.User, opt ...Option) *dm.User {
+	if u == nil {
+		return nil
+	}
 	o := &opts{}
 	for _, f := range opt {
+		if f == nil {
+			continue
+		}
 		f(o)
 	}
 

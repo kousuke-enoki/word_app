@@ -13,6 +13,8 @@ import (
 	"word_app/backend/src/mocks"
 	"word_app/backend/src/models"
 
+	user_mocks "word_app/backend/src/mocks/http/user"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -23,7 +25,7 @@ func TestSignInHandler(t *testing.T) {
 	t.Run("TestSignInHandler_ValidRequest", func(t *testing.T) {
 		gin.SetMode(gin.TestMode)
 
-		mockClient := new(mocks.UserClient)
+		mockClient := new(user_mocks.MockUsecase)
 		mockJWTGen := new(mocks.MockJwtGenerator)
 
 		handler := user.NewHandler(mockClient, mockJWTGen)
@@ -66,7 +68,7 @@ func TestSignInHandler(t *testing.T) {
 	t.Run("TestSignInHandler_InvalidCredentials", func(t *testing.T) {
 		gin.SetMode(gin.TestMode)
 
-		mockClient := new(mocks.UserClient)
+		mockClient := new(user_mocks.MockUsecase)
 		mockJWTGen := &mocks.MockJwtGenerator{}
 		handler := user.NewHandler(mockClient, mockJWTGen)
 
@@ -116,7 +118,7 @@ func TestSignInHandler(t *testing.T) {
 	t.Run("TestSignInHandler_TokenGenerationError", func(t *testing.T) {
 		gin.SetMode(gin.TestMode)
 
-		mockClient := new(mocks.UserClient)
+		mockClient := new(user_mocks.MockUsecase)
 		mockJWTGen := &mocks.MockJwtGenerator{}
 		handler := user.NewHandler(mockClient, mockJWTGen)
 
@@ -167,7 +169,7 @@ func TestSignInHandler(t *testing.T) {
 	t.Run("TestSignInHandler_PasswordNotSet", func(t *testing.T) {
 		gin.SetMode(gin.TestMode)
 
-		mockClient := new(mocks.UserClient)
+		mockClient := new(user_mocks.MockUsecase)
 		mockJWTGen := &mocks.MockJwtGenerator{}
 		handler := user.NewHandler(mockClient, mockJWTGen)
 

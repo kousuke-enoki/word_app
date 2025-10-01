@@ -13,7 +13,8 @@ import (
 	"word_app/backend/src/handlers/user"
 	"word_app/backend/src/mocks"
 	"word_app/backend/src/models"
-	user_service "word_app/backend/src/service/user"
+
+	user_mocks "word_app/backend/src/mocks/http/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -24,7 +25,7 @@ func TestSignUpHandler(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	// モックの初期化
-	mockClient := new(mocks.UserClient)
+	mockClient := new(user_mocks.MockUsecase)
 	mockJWTGen := &mocks.MockJwtGenerator{}
 	handler := user.NewHandler(mockClient, mockJWTGen)
 
@@ -84,12 +85,12 @@ func TestSignUpHandler(t *testing.T) {
 	})
 
 	t.Run("error: validate input fields", func(t *testing.T) {
-		mockClient := new(mocks.UserClient)
+		mockClient := new(user_mocks.MockUsecase)
 		userHandler := user.NewHandler(mockClient, mockJWTGen)
 
 		// モックの設定
 		mockClient.On("Create", mock.Anything, "test@example.com", "te", "pass").
-			Return(nil, user_service.ErrDuplicateEmail)
+			Return(nil, gin.H{"error": "ErrDuplicateEmail"})
 
 		// リクエストの設定
 		req, _ := http.NewRequest("POST", "/sign_up", strings.NewReader(`{"email":"test@example.com","name":"te","password":"pass"}`))
@@ -131,12 +132,12 @@ func TestSignUpHandler(t *testing.T) {
 	})
 
 	t.Run("error: database failure", func(t *testing.T) {
-		mockClient := new(mocks.UserClient)
+		mockClient := new(user_mocks.MockUsecase)
 		userHandler := user.NewHandler(mockClient, mockJWTGen)
 		// hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("Password123$"), bcrypt.DefaultCost)
 
 		mockClient.On("Create", mock.Anything, "test@example.com", "test", mock.Anything).
-			Return(nil, user_service.ErrDatabaseFailure)
+			Return(nil, gin.H{"error": "ErrDatabaseFailure"})
 
 		req, _ := http.NewRequest("POST", "/sign_up", strings.NewReader(`{"email":"test@example.com","name":"test","password":"Password123$"}`))
 		// reqBody := `{"email": "test@example.com", "name": "test", "password": "Password123$"}`
@@ -157,7 +158,7 @@ func TestSignUpHandler(t *testing.T) {
 	})
 
 	t.Run("error: JWT generation fails", func(t *testing.T) {
-		mockClient := new(mocks.UserClient)
+		mockClient := new(user_mocks.MockUsecase)
 		mockJWTGen := &mocks.MockJwtGenerator{}
 		userHandler := user.NewHandler(mockClient, mockJWTGen)
 		Email := "test@example.com"
@@ -187,7 +188,7 @@ func TestSignUpHandler(t *testing.T) {
 	})
 
 	t.Run("success: user created and token generated", func(t *testing.T) {
-		mockClient := new(mocks.UserClient)
+		mockClient := new(user_mocks.MockUsecase)
 		mockJWTGen := &mocks.MockJwtGenerator{}
 		userHandler := user.NewHandler(mockClient, mockJWTGen)
 		// 正常なリクエストデータ
@@ -224,7 +225,7 @@ func TestSignUpHandler(t *testing.T) {
 	t.Run("TestSignUpHandler_InvalidRequest", func(t *testing.T) {
 		gin.SetMode(gin.TestMode)
 
-		mockClient := new(mocks.UserClient)
+		mockClient := new(user_mocks.MockUsecase)
 		mockJWTGen := &mocks.MockJwtGenerator{}
 
 		handler := user.NewHandler(mockClient, mockJWTGen)

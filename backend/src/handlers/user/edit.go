@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
+	"word_app/backend/src/handlers"
 	"word_app/backend/src/interfaces/http/user"
-	user_service "word_app/backend/src/service/user"
 	"word_app/backend/src/utils/contextutil"
 	user_validator "word_app/backend/src/validators/user"
 
@@ -58,30 +58,34 @@ func (h *Handler) EditHandler() gin.HandlerFunc {
 		// サービス呼び出し
 		user, svcErr := h.userUsecase.UpdateUser(ctx, *in)
 		if svcErr != nil {
-			// エラー種別に応じて HTTP へマッピング
-			switch {
-			case errors.Is(svcErr, user_service.ErrUnauthorized):
-				c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-				return
-			case errors.Is(svcErr, user_service.ErrUserNotFound):
-				c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
-				return
-			case errors.Is(svcErr, user_service.ErrDuplicateEmail):
-				c.JSON(http.StatusConflict, gin.H{"error": "Email already exists"})
-				return
-			case errors.Is(svcErr, user_service.ErrValidation):
-				// サービスから詳細バリデーションを返す場合
-				if fe, ok := svcErr.(user_service.FieldErrors); ok {
-					c.JSON(http.StatusBadRequest, gin.H{"errors": fe})
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": "validation error"})
-				}
-				return
-			default:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
-				return
-			}
+			handlers.WriteError(c, err)
+			return
 		}
+		// if svcErr != nil {
+		// 	// エラー種別に応じて HTTP へマッピング
+		// 	switch {
+		// 	case errors.Is(svcErr, user_service.ErrUnauthorized):
+		// 		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		// 		return
+		// 	case errors.Is(svcErr, user_service.ErrUserNotFound):
+		// 		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		// 		return
+		// 	case errors.Is(svcErr, user_service.ErrDuplicateEmail):
+		// 		c.JSON(http.StatusConflict, gin.H{"error": "Email already exists"})
+		// 		return
+		// 	case errors.Is(svcErr, user_service.ErrValidation):
+		// 		// サービスから詳細バリデーションを返す場合
+		// 		if fe, ok := svcErr.(user_service.FieldErrors); ok {
+		// 			c.JSON(http.StatusBadRequest, gin.H{"errors": fe})
+		// 		} else {
+		// 			c.JSON(http.StatusBadRequest, gin.H{"error": "validation error"})
+		// 		}
+		// 		return
+		// 	default:
+		// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
+		// 		return
+		// 	}
+		// }
 
 		// 更新後のサマリーを最小限返す
 		c.JSON(http.StatusOK, gin.H{

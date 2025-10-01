@@ -75,26 +75,12 @@ func TestEntUserRepo_Create(t *testing.T) {
 
 	Email := "beta@mail.com"
 	u := &domain.User{Email: &Email, Name: "Beta", Password: "pw"}
-	ext := &domain.ExternalAuth{Provider: "google", ProviderUserID: "g-999"}
 
 	t.Run("success", func(t *testing.T) {
-		require.NoError(t, r.Create(ctx, u, ext))
+		_, err := r.Create(ctx, u)
+		require.NoError(t, err)
 
 		// 確認: 両テーブルとも 1 行ずつ存在
-		cnt, _ := ec.User.Query().Count(ctx)
-		require.Equal(t, 1, cnt)
-
-		cnt2, _ := ec.ExternalAuth.Query().Count(ctx)
-		require.Equal(t, 1, cnt2)
-	})
-
-	t.Run("duplicate external auth should rollback", func(t *testing.T) {
-		Email := "gamma@mail.com"
-		u2 := &domain.User{Email: &Email, Name: "Gamma", Password: "pw"}
-		err := r.Create(ctx, u2, ext) // ext は provider+id が重複
-		require.True(t, ent.IsConstraintError(err))
-
-		// ユーザは増えていない (= rollback 成功)
 		cnt, _ := ec.User.Query().Count(ctx)
 		require.Equal(t, 1, cnt)
 	})
@@ -105,7 +91,7 @@ func TestEntUserRepo_Create(t *testing.T) {
 				logrus.Error("close file:", cerr)
 			}
 		}()
-		err := r.Create(ctx, u, ext)
+		_, err := r.Create(ctx, u)
 		require.Error(t, err)
 	})
 }

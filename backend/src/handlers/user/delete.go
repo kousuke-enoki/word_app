@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"word_app/backend/src/handlers"
 	"word_app/backend/src/interfaces/http/user"
-	user_service "word_app/backend/src/service/user"
 
 	"github.com/gin-gonic/gin"
 )
@@ -38,20 +38,24 @@ func (h *Handler) DeleteHandler() gin.HandlerFunc {
 		// サービス呼び出し
 		err = h.userUsecase.Delete(ctx, in)
 		if err != nil {
-			switch err {
-			case user_service.ErrUnauthorized:
-				c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-				return
-			case user_service.ErrUserNotFound:
-				c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
-				return
-			case user_service.ErrDatabaseFailure:
-				fallthrough
-			default:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete user"})
-				return
-			}
+			handlers.WriteError(c, err)
+			return
 		}
+		// if err != nil {
+		// 	switch err {
+		// 	case user_service.ErrUnauthorized:
+		// 		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		// 		return
+		// 	case user_service.ErrUserNotFound:
+		// 		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		// 		return
+		// 	case user_service.ErrDatabaseFailure:
+		// 		fallthrough
+		// 	default:
+		// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete user"})
+		// 		return
+		// 	}
+		// }
 
 		c.JSON(http.StatusOK, gin.H{"message": "deleted"})
 	}

@@ -16,12 +16,12 @@ import (
 // }
 
 func (uc *UserUsecase) ListUsers(ctx context.Context, in user.ListUsersInput) (*user.UserListResponse, error) {
-	// 1) 権限チェック（adminのみ）
+	// 1) 権限チェック（rootのみ）
 	viewer, err := uc.userRepo.FindByID(ctx, in.ViewerID)
 	if err != nil || viewer == nil {
 		return nil, err
 	}
-	if !viewer.IsAdmin {
+	if !viewer.IsRoot {
 		return nil, err
 	}
 
@@ -52,7 +52,6 @@ func (uc *UserUsecase) ListUsers(ctx context.Context, in user.ListUsersInput) (*
 		users = append(users, toUserDTO(u))
 	}
 	totalPages := (res.TotalCount + in.Limit - 1) / in.Limit
-
 	return &user.UserListResponse{
 		Users:      users,
 		TotalPages: totalPages,

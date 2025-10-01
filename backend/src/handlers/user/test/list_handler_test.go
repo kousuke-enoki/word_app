@@ -9,7 +9,9 @@ import (
 	"testing"
 
 	"word_app/backend/src/handlers/user"
+	user_interface "word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/mocks"
+	user_mocks "word_app/backend/src/mocks/http/user"
 	"word_app/backend/src/models"
 
 	"github.com/gin-gonic/gin"
@@ -51,22 +53,23 @@ func performGet(r *gin.Engine, rawURL string) *httptest.ResponseRecorder {
 
 func TestUserListHandler_AllPaths(t *testing.T) {
 	t.Run("200 OK - defaults applied", func(t *testing.T) {
-		mockClient := new(mocks.UserClient)
-		h := user.NewHandler(mockClient, nil)
+		mockClient := new(user_mocks.MockUsecase)
+		mockJWTGen := &mocks.MockJwtGenerator{}
+		h := user.NewHandler(mockClient, mockJWTGen)
 
 		// 期待されるリクエスト値（デフォルト）
-		expected := &models.UserListRequest{
-			UserID: 1,
-			Search: "",
-			SortBy: "name",
-			Order:  "asc",
-			Page:   1,
-			Limit:  10,
+		expected := &user_interface.ListUsersInput{
+			ViewerID: 1,
+			Search:   "",
+			SortBy:   "name",
+			Order:    "asc",
+			Page:     1,
+			Limit:    10,
 		}
 
 		// 引数一致：UserListRequest の全フィールドを確認
-		argMatcher := mock.MatchedBy(func(req *models.UserListRequest) bool {
-			return req.UserID == expected.UserID &&
+		argMatcher := mock.MatchedBy(func(req *user_interface.ListUsersInput) bool {
+			return req.ViewerID == expected.ViewerID &&
 				req.Search == expected.Search &&
 				req.SortBy == expected.SortBy &&
 				req.Order == expected.Order &&
@@ -75,21 +78,21 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		})
 
 		Email := "alice@example.com"
-		mockResp := &models.UserListResponse{
+		mockResp := &user_interface.UserListResponse{
 			Users: []models.User{
 				{ID: 10, Name: "Alice", Email: &Email, IsAdmin: true, IsSettedPassword: true, IsLine: true},
 			},
 			TotalPages: 3,
 		}
 		mockClient.
-			On("GetUsers", mock.Anything, argMatcher).
+			On("ListUsers", mock.Anything, argMatcher).
 			Return(mockResp, nil)
 
 		r := newRouterWithUserID(h, 1)
 		w := performGet(r, "/users") // クエリ無し → デフォルト適用
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		var got models.UserListResponse
+		var got user_interface.UserListResponse
 		_ = json.Unmarshal(w.Body.Bytes(), &got)
 		assert.Equal(t, mockResp.TotalPages, got.TotalPages)
 		assert.Len(t, got.Users, 1)
@@ -98,7 +101,7 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 	})
 
 	t.Run("200 OK - forwards query params", func(t *testing.T) {
-		mockClient := new(mocks.UserClient)
+		mockClient := new(user_mocks.MockUsecase)
 		h := user.NewHandler(mockClient, nil)
 
 		q := url.Values{}
@@ -108,17 +111,17 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		q.Set("page", "2")
 		q.Set("limit", "30")
 
-		expected := &models.UserListRequest{
-			UserID: 1,
-			Search: "bob",
-			SortBy: "role",
-			Order:  "desc",
-			Page:   2,
-			Limit:  30,
+		expected := &user_interface.ListUsersInput{
+			ViewerID: 1,
+			Search:   "bob",
+			SortBy:   "role",
+			Order:    "desc",
+			Page:     2,
+			Limit:    30,
 		}
 
-		argMatcher := mock.MatchedBy(func(req *models.UserListRequest) bool {
-			return req.UserID == expected.UserID &&
+		argMatcher := mock.MatchedBy(func(req *user_interface.ListUsersInput) bool {
+			return req.ViewerID == expected.ViewerID &&
 				req.Search == expected.Search &&
 				req.SortBy == expected.SortBy &&
 				req.Order == expected.Order &&
@@ -127,21 +130,21 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		})
 
 		Email := "bob@example.com"
-		mockResp := &models.UserListResponse{
+		mockResp := &user_interface.UserListResponse{
 			Users: []models.User{
 				{ID: 20, Name: "Bob", Email: &Email, IsAdmin: false, IsRoot: true, IsSettedPassword: true, IsLine: false},
 			},
 			TotalPages: 7,
 		}
 		mockClient.
-			On("GetUsers", mock.Anything, argMatcher).
+			On("ListUsers", mock.Anything, argMatcher).
 			Return(mockResp, nil)
 
 		r := newRouterWithUserID(h, 1)
 		w := performGet(r, "/users?"+q.Encode())
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		var got models.UserListResponse
+		var got user_interface.UserListResponse
 		_ = json.Unmarshal(w.Body.Bytes(), &got)
 		assert.Equal(t, 7, got.TotalPages)
 		assert.Len(t, got.Users, 1)
@@ -149,14 +152,14 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		mockClient.AssertExpectations(t)
 	})
 
-	t.Run("500 - service error from GetUsers", func(t *testing.T) {
-		mockClient := new(mocks.UserClient)
+	t.Run("500 - service error from ListUsers", func(t *testing.T) {
+		mockClient := new(user_mocks.MockUsecase)
 		h := user.NewHandler(mockClient, nil)
 
 		anyReq := mock.AnythingOfType("*models.UserListRequest")
 		mockClient.
-			On("GetUsers", mock.Anything, anyReq).
-			Return((*models.UserListResponse)(nil), errors.New("db down"))
+			On("ListUsers", mock.Anything, anyReq).
+			Return((*user_interface.UserListResponse)(nil), errors.New("db down"))
 
 		r := newRouterWithUserID(h, 1)
 		w := performGet(r, "/users?search=x")
@@ -169,7 +172,7 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 	})
 
 	t.Run("400 - userID missing in context", func(t *testing.T) {
-		mockClient := new(mocks.UserClient)
+		mockClient := new(user_mocks.MockUsecase)
 		h := user.NewHandler(mockClient, nil)
 
 		// userID をコンテキストに入れない
@@ -181,12 +184,12 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		_ = json.Unmarshal(w.Body.Bytes(), &got)
 		assert.Equal(t, "userID not found in context", got["error"])
 
-		// GetUsers は呼ばれない
-		mockClient.AssertNotCalled(t, "GetUsers", mock.Anything, mock.Anything)
+		// ListUsers は呼ばれない
+		mockClient.AssertNotCalled(t, "ListUsers", mock.Anything, mock.Anything)
 	})
 
 	t.Run("400 - userID type invalid", func(t *testing.T) {
-		mockClient := new(mocks.UserClient)
+		mockClient := new(user_mocks.MockUsecase)
 		h := user.NewHandler(mockClient, nil)
 
 		// userID を string 型にして型不正を誘発
@@ -197,11 +200,11 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		var got map[string]string
 		_ = json.Unmarshal(w.Body.Bytes(), &got)
 		assert.Equal(t, "invalid userID type", got["error"])
-		mockClient.AssertNotCalled(t, "GetUsers", mock.Anything, mock.Anything)
+		mockClient.AssertNotCalled(t, "ListUsers", mock.Anything, mock.Anything)
 	})
 
 	t.Run("400 - page invalid (zero)", func(t *testing.T) {
-		mockClient := new(mocks.UserClient)
+		mockClient := new(user_mocks.MockUsecase)
 		h := user.NewHandler(mockClient, nil)
 
 		r := newRouterWithUserID(h, 1)
@@ -211,11 +214,11 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		var got map[string]string
 		_ = json.Unmarshal(w.Body.Bytes(), &got)
 		assert.Equal(t, "invalid 'page' query parameter: must be a positive integer", got["error"])
-		mockClient.AssertNotCalled(t, "GetUsers", mock.Anything, mock.Anything)
+		mockClient.AssertNotCalled(t, "ListUsers", mock.Anything, mock.Anything)
 	})
 
 	t.Run("400 - page invalid (nan)", func(t *testing.T) {
-		mockClient := new(mocks.UserClient)
+		mockClient := new(user_mocks.MockUsecase)
 		h := user.NewHandler(mockClient, nil)
 
 		r := newRouterWithUserID(h, 1)
@@ -225,11 +228,11 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		var got map[string]string
 		_ = json.Unmarshal(w.Body.Bytes(), &got)
 		assert.Equal(t, "invalid 'page' query parameter: must be a positive integer", got["error"])
-		mockClient.AssertNotCalled(t, "GetUsers", mock.Anything, mock.Anything)
+		mockClient.AssertNotCalled(t, "ListUsers", mock.Anything, mock.Anything)
 	})
 
 	t.Run("400 - limit invalid (zero)", func(t *testing.T) {
-		mockClient := new(mocks.UserClient)
+		mockClient := new(user_mocks.MockUsecase)
 		h := user.NewHandler(mockClient, nil)
 
 		r := newRouterWithUserID(h, 1)
@@ -239,11 +242,11 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		var got map[string]string
 		_ = json.Unmarshal(w.Body.Bytes(), &got)
 		assert.Equal(t, "invalid 'limit' query parameter: must be a positive integer", got["error"])
-		mockClient.AssertNotCalled(t, "GetUsers", mock.Anything, mock.Anything)
+		mockClient.AssertNotCalled(t, "ListUsers", mock.Anything, mock.Anything)
 	})
 
 	t.Run("400 - limit invalid (nan)", func(t *testing.T) {
-		mockClient := new(mocks.UserClient)
+		mockClient := new(user_mocks.MockUsecase)
 		h := user.NewHandler(mockClient, nil)
 
 		r := newRouterWithUserID(h, 1)
@@ -253,6 +256,6 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		var got map[string]string
 		_ = json.Unmarshal(w.Body.Bytes(), &got)
 		assert.Equal(t, "invalid 'limit' query parameter: must be a positive integer", got["error"])
-		mockClient.AssertNotCalled(t, "GetUsers", mock.Anything, mock.Anything)
+		mockClient.AssertNotCalled(t, "ListUsers", mock.Anything, mock.Anything)
 	})
 }

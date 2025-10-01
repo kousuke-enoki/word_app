@@ -12,13 +12,14 @@ import (
 	"word_app/backend/src/domain/repository"
 	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/models"
+	"word_app/backend/src/usecase/apperror"
 )
 
 // ざっくりメール検証（正規化はlower+trim）
 var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
 
 func (uc *UserUsecase) UpdateUser(ctx context.Context, in user.UpdateUserInput) (*models.UserDetail, error) {
-	// Tx開始（join対応の実装前提）
+	// 1) Tx
 	txCtx, done, err := uc.txm.Begin(ctx)
 	if err != nil {
 		return nil, err
@@ -26,112 +27,178 @@ func (uc *UserUsecase) UpdateUser(ctx context.Context, in user.UpdateUserInput) 
 	commit := false
 	defer func() { _ = done(commit) }()
 
-	// 1) Editor/Target取得（認可とパス検証用）
-	editor, err := uc.userRepo.FindForUpdate(txCtx, in.EditorID)
+	// 2) 取得
+	editor, target, err := uc.loadEditorAndTarget(txCtx, in.EditorID, in.TargetID)
 	if err != nil {
-		// NotFound でも基本 unauthorized
-		return nil, err
-	}
-	target, err := uc.userRepo.FindForUpdate(txCtx, in.TargetID)
-	if err != nil {
-		return nil, err // ErrUserNotFound or ErrDBFailure
-	}
-
-	// 2) 認可
-	// root以外は自分のみ。testは自分でも不可
-	if !editor.IsRoot && editor.ID != target.ID {
-		return nil, err
-	}
-	if editor.ID == target.ID && editor.IsTest {
 		return nil, err
 	}
 
-	// 3) 入力正規化・検証
-	update := &repository.UserUpdateFields{}
-
-	if in.Name != nil {
-		n := strings.TrimSpace(*in.Name)
-		update.Name = &n
+	// 3) 認可
+	if err := uc.authorizeUpdate(editor, target); err != nil {
+		return nil, err
 	}
 
-	if in.Email != nil {
-		e := strings.ToLower(strings.TrimSpace(*in.Email))
-		if !emailRegex.MatchString(e) {
-			return nil, err // 400へマップする種別を用意
-		}
-		update.Email = &e
-	}
-
-	// パスワード更新（自分の変更 かつ 既にハッシュ有り の場合 current 必須）
-	if in.PasswordNew != nil {
-		if needCurrentPassword(editor, target) {
-			if in.PasswordCurrent == nil {
-				return nil, err // current必須
-			}
-			if err := verifyCurrentPassword(target.Password, *in.PasswordCurrent); err != nil {
-				return nil, err
-			}
-		}
-		hash, err := bcrypt.GenerateFromPassword([]byte(*in.PasswordNew), bcrypt.DefaultCost)
-		if err != nil {
-			return nil, err
-		}
-		h := string(hash)
-		update.PasswordHash = &h
-	}
-
-	// 役割変更
-	if in.Role != nil {
-		if !editor.IsRoot {
-			return nil, err
-		}
-		// 対象が root/test は不可
-		if target.IsRoot || target.IsTest {
-			return nil, err
-		}
-		switch strings.ToLower(*in.Role) {
-		case "admin":
-			b := true
-			update.SetAdmin = &b
-		case "user":
-			b := false
-			update.SetAdmin = &b
-		default:
-			return nil, err
-		}
-	}
-
-	// 4) 更新実行
-	updatedUser, err := uc.userRepo.UpdatePartial(txCtx, target.ID, update)
+	// 4) 入力→更新フィールド
+	update, err := uc.buildUpdateFields(editor, target, in)
 	if err != nil {
-		return nil, err // ErrDuplicateEmail/ErrDBFailure 等
+		return nil, err
 	}
 
+	// 5) 更新
+	updated, err := uc.userRepo.UpdatePartial(txCtx, target.ID, update)
+	if err != nil {
+		return nil, err
+	}
+
+	// 6) Commit & DTO
 	commit = true
 	if err := done(commit); err != nil {
 		return nil, err
 	}
-	return &models.UserDetail{
-		ID:      updatedUser.ID,
-		Name:    updatedUser.Name,
-		Email:   updatedUser.Email,
-		IsAdmin: updatedUser.IsAdmin,
-		IsRoot:  updatedUser.IsRoot,
-		IsTest:  updatedUser.IsTest,
-		// Add other fields as needed from updatedUser
-	}, nil
+	return uc.toUserDetail(updated), nil
 }
 
-func needCurrentPassword(editor, target *domain.User) bool {
-	if editor.ID != target.ID {
-		return false
+// ---------- helpers (小さな関数へ分割) ----------
+
+func (uc *UserUsecase) loadEditorAndTarget(ctx context.Context, editorID, targetID int) (*domain.User, *domain.User, error) {
+	editor, err := uc.userRepo.FindForUpdate(ctx, editorID)
+	if err != nil {
+		return nil, nil, err
 	}
-	return target.Password != "" // 既にハッシュあり
+	target, err := uc.userRepo.FindForUpdate(ctx, targetID)
+	if err != nil {
+		return nil, nil, err
+	}
+	return editor, target, nil
 }
 
-func verifyCurrentPassword(hashed string, current string) error {
+func (uc *UserUsecase) authorizeUpdate(editor, target *domain.User) error {
+	// root以外は自分のみ
+	if !editor.IsRoot && editor.ID != target.ID {
+		return uc.errUnauthorized("Unauthorized", nil)
+	}
+	// testは自分でも不可
+	if editor.ID == target.ID && editor.IsTest {
+		return uc.errUnauthorized("Unauthorized", nil)
+	}
+	return nil
+}
+
+// 入力正規化・検証 → repository.UserUpdateFields を構築
+func (uc *UserUsecase) buildUpdateFields(editor, target *domain.User, in user.UpdateUserInput) (*repository.UserUpdateFields, error) {
+	out := &repository.UserUpdateFields{}
+
+	// name
+	if in.Name != nil {
+		n := strings.TrimSpace(*in.Name)
+		out.Name = &n
+	}
+
+	// email
+	if in.Email != nil {
+		e, err := uc.normalizeEmail(*in.Email)
+		if err != nil {
+			return nil, err
+		}
+		out.Email = &e
+	}
+
+	// password
+	if in.PasswordNew != nil {
+		hash, err := uc.hashNewPasswordIfAllowed(editor, target, in.PasswordCurrent, *in.PasswordNew)
+		if err != nil {
+			return nil, err
+		}
+		out.PasswordHash = &hash
+	}
+
+	// role
+	if in.Role != nil {
+		admin, err := uc.resolveRoleChange(editor, target, *in.Role)
+		if err != nil {
+			return nil, err
+		}
+		out.SetAdmin = &admin
+	}
+
+	return out, nil
+}
+
+func (uc *UserUsecase) normalizeEmail(raw string) (string, error) {
+	e := strings.ToLower(strings.TrimSpace(raw))
+	if !emailRegex.MatchString(e) {
+		return "", uc.errInvalidParam("VALIDATION", nil)
+	}
+	return e, nil
+}
+
+func (uc *UserUsecase) hashNewPasswordIfAllowed(editor, target *domain.User, currentOpt *string, newPlain string) (string, error) {
+	if uc.needCurrentPassword(editor, target) {
+		if currentOpt == nil {
+			return "", uc.errInvalidParam("VALIDATION", nil) // current必須
+		}
+		if err := uc.verifyCurrentPassword(target.Password, *currentOpt); err != nil {
+			return "", uc.errInvalidCredential("ERR_INVALID_CREDENTIAL", nil)
+		}
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(newPlain), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hash), nil
+}
+
+func (uc *UserUsecase) resolveRoleChange(editor, target *domain.User, role string) (bool, error) {
+	// role変更はrootのみ / 対象がroot/testは不可
+	if !editor.IsRoot || target.IsRoot || target.IsTest {
+		return false, uc.errUnauthorized("Unauthorized", nil)
+	}
+	switch strings.ToLower(role) {
+	case "admin":
+		return true, nil
+	case "user":
+		return false, nil
+	default:
+		return false, uc.errInvalidParam("VALIDATION", nil)
+	}
+}
+
+func (uc *UserUsecase) needCurrentPassword(editor, target *domain.User) bool {
+	return editor.ID == target.ID && target.Password != ""
+}
+
+func (uc *UserUsecase) verifyCurrentPassword(hashed, current string) error {
 	if hashed == "" {
 		return nil
 	}
 	return bcrypt.CompareHashAndPassword([]byte(hashed), []byte(current))
 }
+
+func (uc *UserUsecase) toUserDetail(u *domain.User) *models.UserDetail {
+	var emailPtr *string
+	if u.Email != nil {
+		e := *u.Email
+		emailPtr = &e
+	}
+	return &models.UserDetail{
+		ID:      u.ID,
+		Name:    u.Name,
+		Email:   emailPtr,
+		IsAdmin: u.IsAdmin,
+		IsRoot:  u.IsRoot,
+		IsTest:  u.IsTest,
+		// 必要に応じて追加
+	}
+}
+
+// ---- エラー種別を一箇所に（適宜あなたのapperrに差し替えOK） ----
+
+func (uc *UserUsecase) errUnauthorized(msg string, err *error) error {
+	return apperror.New("UNAUTHORIZED", msg, *err)
+} // 例: apperr.ErrUnauthorized
+func (uc *UserUsecase) errInvalidParam(msg string, err *error) error {
+	return apperror.New("VALIDATION", msg, *err)
+} // 例: apperr.ErrInvalidParam
+func (uc *UserUsecase) errInvalidCredential(msg string, err *error) error {
+	return apperror.New("ERR_INVALID_CREDENTIAL", msg, *err)
+} // 例: apperr.ErrInvalidCredential

@@ -8,8 +8,8 @@ import (
 	"io"
 	"net/http"
 
+	"word_app/backend/src/handlers"
 	user_interface "word_app/backend/src/interfaces/http/user"
-	user_service "word_app/backend/src/service/user"
 	"word_app/backend/src/validators/user"
 
 	"github.com/gin-gonic/gin"
@@ -45,18 +45,21 @@ func (h *Handler) SignUpHandler() gin.HandlerFunc {
 		// ユーザー作成
 		user, err := h.userUsecase.SignUp(context.Background(), *req)
 		if err != nil {
-
-			// エラーの種類ごとにレスポンスを変更
-			switch err {
-			case user_service.ErrDuplicateEmail:
-				c.JSON(http.StatusConflict, gin.H{"error": "Email already exists"})
-			case user_service.ErrDatabaseFailure:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
-			default:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "An unknown error occurred"})
-			}
+			handlers.WriteError(c, err)
 			return
 		}
+		// if err != nil {
+		// 	// エラーの種類ごとにレスポンスを変更
+		// 	switch err {
+		// 	case user_service.ErrDuplicateEmail:
+		// 		c.JSON(http.StatusConflict, gin.H{"error": "Email already exists"})
+		// 	case user_service.ErrDatabaseFailure:
+		// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		// 	default:
+		// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "An unknown error occurred"})
+		// 	}
+		// 	return
+		// }
 
 		token, err := h.jwtGenerator.GenerateJWT(fmt.Sprintf("%d", user.UserID))
 		if err != nil {

@@ -8,6 +8,7 @@ import (
 	"word_app/backend/src/domain/repository"
 	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/models"
+	"word_app/backend/src/usecase/shared/ucerr"
 )
 
 // type ListUsersUsecase struct {
@@ -22,7 +23,7 @@ func (uc *UserUsecase) ListUsers(ctx context.Context, in user.ListUsersInput) (*
 		return nil, err
 	}
 	if !viewer.IsRoot {
-		return nil, err
+		return nil, ucerr.Forbidden("forbidden")
 	}
 
 	// 2) ページング計算

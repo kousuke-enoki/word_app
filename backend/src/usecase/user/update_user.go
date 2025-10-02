@@ -12,7 +12,7 @@ import (
 	"word_app/backend/src/domain/repository"
 	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/models"
-	"word_app/backend/src/usecase/apperror"
+	"word_app/backend/src/usecase/shared/ucerr"
 )
 
 // ざっくりメール検証（正規化はlower+trim）
@@ -75,11 +75,11 @@ func (uc *UserUsecase) loadEditorAndTarget(ctx context.Context, editorID, target
 func (uc *UserUsecase) authorizeUpdate(editor, target *domain.User) error {
 	// root以外は自分のみ
 	if !editor.IsRoot && editor.ID != target.ID {
-		return uc.errUnauthorized("Unauthorized", nil)
+		return ucerr.Unauthorized("Unauthorized")
 	}
 	// testは自分でも不可
 	if editor.ID == target.ID && editor.IsTest {
-		return uc.errUnauthorized("Unauthorized", nil)
+		return ucerr.Unauthorized("Unauthorized")
 	}
 	return nil
 }
@@ -127,7 +127,7 @@ func (uc *UserUsecase) buildUpdateFields(editor, target *domain.User, in user.Up
 func (uc *UserUsecase) normalizeEmail(raw string) (string, error) {
 	e := strings.ToLower(strings.TrimSpace(raw))
 	if !emailRegex.MatchString(e) {
-		return "", uc.errInvalidParam("VALIDATION", nil)
+		return "", ucerr.Validation("VALIDATION")
 	}
 	return e, nil
 }
@@ -135,10 +135,10 @@ func (uc *UserUsecase) normalizeEmail(raw string) (string, error) {
 func (uc *UserUsecase) hashNewPasswordIfAllowed(editor, target *domain.User, currentOpt *string, newPlain string) (string, error) {
 	if uc.needCurrentPassword(editor, target) {
 		if currentOpt == nil {
-			return "", uc.errInvalidParam("VALIDATION", nil) // current必須
+			return "", ucerr.Validation("VALIDATION") // current必須
 		}
 		if err := uc.verifyCurrentPassword(target.Password, *currentOpt); err != nil {
-			return "", uc.errInvalidCredential("ERR_INVALID_CREDENTIAL", nil)
+			return "", ucerr.InvalidCredential("ERR_INVALID_CREDENTIAL")
 		}
 	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(newPlain), bcrypt.DefaultCost)
@@ -151,7 +151,7 @@ func (uc *UserUsecase) hashNewPasswordIfAllowed(editor, target *domain.User, cur
 func (uc *UserUsecase) resolveRoleChange(editor, target *domain.User, role string) (bool, error) {
 	// role変更はrootのみ / 対象がroot/testは不可
 	if !editor.IsRoot || target.IsRoot || target.IsTest {
-		return false, uc.errUnauthorized("Unauthorized", nil)
+		return false, ucerr.Unauthorized("Unauthorized")
 	}
 	switch strings.ToLower(role) {
 	case "admin":
@@ -159,7 +159,7 @@ func (uc *UserUsecase) resolveRoleChange(editor, target *domain.User, role strin
 	case "user":
 		return false, nil
 	default:
-		return false, uc.errInvalidParam("VALIDATION", nil)
+		return false, ucerr.Validation("VALIDATION")
 	}
 }
 
@@ -190,15 +190,3 @@ func (uc *UserUsecase) toUserDetail(u *domain.User) *models.UserDetail {
 		// 必要に応じて追加
 	}
 }
-
-// ---- エラー種別を一箇所に（適宜あなたのapperrに差し替えOK） ----
-
-func (uc *UserUsecase) errUnauthorized(msg string, err *error) error {
-	return apperror.New("UNAUTHORIZED", msg, *err)
-} // 例: apperr.ErrUnauthorized
-func (uc *UserUsecase) errInvalidParam(msg string, err *error) error {
-	return apperror.New("VALIDATION", msg, *err)
-} // 例: apperr.ErrInvalidParam
-func (uc *UserUsecase) errInvalidCredential(msg string, err *error) error {
-	return apperror.New("ERR_INVALID_CREDENTIAL", msg, *err)
-} // 例: apperr.ErrInvalidCredential

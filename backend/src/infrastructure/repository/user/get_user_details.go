@@ -3,7 +3,6 @@ package user
 
 import (
 	"context"
-	"errors"
 
 	"word_app/backend/ent"
 	"word_app/backend/ent/externalauth"
@@ -11,6 +10,7 @@ import (
 	"word_app/backend/src/domain"
 	"word_app/backend/src/domain/repository"
 	usermapper "word_app/backend/src/infrastructure/mapper/user"
+	"word_app/backend/src/infrastructure/repoerr"
 
 	"entgo.io/ent/dialect/sql"
 )
@@ -37,7 +37,7 @@ func (r *EntUserRepo) ListUsers(ctx context.Context, f repository.UserListFilter
 	// 総数
 	totalCount, err := base.Clone().Count(ctx)
 	if err != nil {
-		return nil, err
+		return nil, repoerr.FromEnt(err, "internal", "internal server error")
 	}
 
 	// 一覧取得（LINE連携を判定したいので provider="line" で eager load）
@@ -86,7 +86,7 @@ func (r *EntUserRepo) ListUsers(ctx context.Context, f repository.UserListFilter
 
 	entUsers, err := q.All(ctx)
 	if err != nil {
-		return nil, errors.New("failed to fetch users")
+		return nil, repoerr.FromEnt(err, "failed to fetch users", "failed to fetch users")
 	}
 
 	// Ent -> Domain（HasLineは eager-loaded auths から算出）

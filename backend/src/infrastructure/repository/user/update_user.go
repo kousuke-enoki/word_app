@@ -9,21 +9,12 @@ import (
 	"word_app/backend/src/domain"
 	"word_app/backend/src/domain/repository"
 	usermapper "word_app/backend/src/infrastructure/mapper/user"
+	"word_app/backend/src/infrastructure/repoerr"
 )
 
 type UserRepository struct {
 	Client *ent.Client
 }
-
-// Tx/非Tx切替の共通ヘルパ（既出）
-// func getDB(ctx context.Context, client *ent.Client) interface {
-// 	User() *ent.UserClient
-// } {
-// 	if tx, ok := txFromContext(ctx); ok && tx != nil { // 既存のTxManager実装に合わせる
-// 		return tx
-// 	}
-// 	return client
-// }
 
 func (r *EntUserRepo) FindForUpdate(ctx context.Context, id int) (*domain.User, error) {
 	u, err := r.client.User().
@@ -43,9 +34,9 @@ func (r *EntUserRepo) FindForUpdate(ctx context.Context, id int) (*domain.User, 
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return nil, err
+			return nil, repoerr.FromEnt(err, "user not found", "duplicate id")
 		}
-		return nil, err
+		return nil, repoerr.FromEnt(err, "internal", "internal server error")
 	}
 	var emailPtr *string
 	if u.Email != nil {
@@ -87,9 +78,9 @@ func (r *EntUserRepo) UpdatePartial(ctx context.Context, targetID int, f *reposi
 	user, err := u.Save(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) {
-			return nil, err
+			return nil, repoerr.FromEnt(err, "conflict", "user param duplicate") // 一意制約違反
 		}
-		return nil, err
+		return nil, repoerr.FromEnt(err, "internal", "internal server error")
 	}
 	return usermapper.MapEntUser(user, nil), nil
 }

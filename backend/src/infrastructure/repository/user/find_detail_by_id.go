@@ -8,6 +8,7 @@ import (
 	"word_app/backend/ent/user"
 	"word_app/backend/src/domain"
 	usermapper "word_app/backend/src/infrastructure/mapper/user"
+	"word_app/backend/src/infrastructure/repoerr"
 )
 
 func (e *EntUserRepo) FindDetailByID(ctx context.Context, id int) (*domain.User, error) {
@@ -20,9 +21,9 @@ func (e *EntUserRepo) FindDetailByID(ctx context.Context, id int) (*domain.User,
 		First(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return nil, ErrUserNotFound
+			return nil, repoerr.FromEnt(err, "user not found", "duplicate id") // 外部認証未連携
 		}
-		return nil, err
+		return nil, repoerr.FromEnt(err, "internal", "internal server error")
 	}
 	return usermapper.MapEntUser(u, usermapper.WithAuths(u.Edges.ExternalAuths)), nil
 }

@@ -2,18 +2,17 @@ package user
 
 import (
 	"context"
-	"errors"
 
 	"word_app/backend/src/domain"
 	"word_app/backend/src/models"
-	"word_app/backend/src/usecase/apperror"
+	"word_app/backend/src/usecase/shared/ucerr"
 )
 
 // GetMyDetail: /users/me
 func (uc *UserUsecase) GetMyDetail(ctx context.Context, viewerID int) (*models.UserDetail, error) {
 	me, err := uc.userRepo.FindDetailByID(ctx, viewerID)
 	if err != nil {
-		return nil, apperror.New(apperror.NotFound, "notFound", nil)
+		return nil, err
 	}
 	return toDTO(me), nil
 }
@@ -21,14 +20,14 @@ func (uc *UserUsecase) GetMyDetail(ctx context.Context, viewerID int) (*models.U
 func (uc *UserUsecase) GetDetailByID(ctx context.Context, viewerID, targetID int) (*models.UserDetail, error) {
 	viewer, err := uc.userRepo.FindByID(ctx, viewerID)
 	if err != nil {
-		return nil, apperror.New(apperror.Unauthorized, "unauthorized", err)
+		return nil, err
 	}
 	if !viewer.IsAdmin {
-		return nil, apperror.New(apperror.Forbidden, "forbidden", nil)
+		return nil, ucerr.Forbidden("forbidden")
 	}
 	target, err := uc.userRepo.FindDetailByID(ctx, targetID)
 	if err != nil {
-		return nil, apperror.New(apperror.NotFound, "user not found", err)
+		return nil, err
 	}
 	return toDTO(target), nil
 }
@@ -48,5 +47,3 @@ func toDTO(u *domain.User) *models.UserDetail {
 		UpdatedAt:        u.UpdatedAt.Format("2006-01-02 15:04:05"),
 	}
 }
-
-var ErrForbidden = errors.New("forbidden")

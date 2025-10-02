@@ -3,6 +3,8 @@ package user
 import (
 	"context"
 	"time"
+
+	"word_app/backend/src/infrastructure/repoerr"
 )
 
 func (r *EntUserRepo) SoftDeleteByID(ctx context.Context, id int, t time.Time) error {
@@ -11,7 +13,7 @@ func (r *EntUserRepo) SoftDeleteByID(ctx context.Context, id int, t time.Time) e
 		SetDeletedAt(t).
 		Save(ctx)
 	if err != nil {
-		return err
+		return repoerr.FromEnt(err, "internal", "internal server error")
 	}
 	return nil
 }

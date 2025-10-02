@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"word_app/backend/src/interfaces/http/user"
+	"word_app/backend/src/usecase/shared/ucerr"
 )
 
 func (uc *UserUsecase) Delete(ctx context.Context, in user.DeleteUserInput) error {
@@ -28,20 +29,9 @@ func (uc *UserUsecase) Delete(ctx context.Context, in user.DeleteUserInput) erro
 		return err
 	}
 
-	// 2) ポリシー判定（仕様通り）
-	if editor.IsRoot {
-		// root: 自分以外 かつ 相手が root でないこと
-		if target.ID == editor.ID {
-			return err // rootの自分削除は不可
-		}
-		if target.IsRoot {
-			return err // rootをrootは削除不可
-		}
-	} else {
-		// 非root: 自分のみ削除可
-		if target.ID != editor.ID {
-			return err
-		}
+	// 2) ポリシー判定（機能要件）
+	if err := authorizeDelete(editor.ID, editor.IsRoot, target.ID, target.IsRoot); err != nil {
+		return err
 	}
 
 	// 3) 関連も含め論理削除（同一Tx内・任意の時刻を統一）
@@ -65,6 +55,28 @@ func (uc *UserUsecase) Delete(ctx context.Context, in user.DeleteUserInput) erro
 	commit = true
 	if err := done(commit); err != nil {
 		return err
+	}
+	return nil
+}
+
+// 認可・ポリシーを分離（ucerr で返す）
+func authorizeDelete(editorID int, isEditorRoot bool, targetID int, isTargetRoot bool) error {
+	if isEditorRoot {
+		// 仕様：rootは「自分以外」かつ「相手がrootではない」
+		if targetID == editorID {
+			// セキュリティ上のふるまい：対象の存在や属性を隠したいなら NotFound にする、
+			// 明示的に拒否したいなら Forbidden にする。どちらでもOK。ここでは Forbidden を採用。
+			return ucerr.Forbidden("forbidden")
+		}
+		if isTargetRoot {
+			return ucerr.Forbidden("forbidden")
+		}
+		return nil
+	}
+	// 一般ユーザーは自分のみ削除可
+	if targetID != editorID {
+		// 対象の存在有無を伏せたいなら NotFound を返す選択もある（ユーザー列挙対策）
+		return ucerr.Forbidden("forbidden")
 	}
 	return nil
 }

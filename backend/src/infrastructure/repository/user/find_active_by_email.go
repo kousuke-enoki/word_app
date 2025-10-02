@@ -7,6 +7,7 @@ import (
 	"word_app/backend/ent/user"
 	"word_app/backend/src/domain"
 	usermapper "word_app/backend/src/infrastructure/mapper/user"
+	"word_app/backend/src/infrastructure/repoerr"
 )
 
 func (r *EntUserRepo) FindActiveByEmail(ctx context.Context, email string) (*domain.User, error) {
@@ -17,9 +18,9 @@ func (r *EntUserRepo) FindActiveByEmail(ctx context.Context, email string) (*dom
 		First(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return nil, err
+			return nil, repoerr.FromEnt(err, "user not found", "duplicate email")
 		}
-		return nil, err
+		return nil, repoerr.FromEnt(err, "internal", "internal server error")
 	}
 	// auths未ロード → 事前計算フラグなしのまま
 	return usermapper.MapEntUser(u), nil

@@ -9,8 +9,8 @@ import (
 
 // Update の入口バリデーション。
 // - in.Name / in.Email / in.PasswordNew / in.Role のうち、指定されたもののみ検証します。
-func ValidateUpdate(in *user.UpdateUserInput) []*models.FieldError {
-	var errs []*models.FieldError
+func ValidateUpdate(in user.UpdateUserInput) []models.FieldError {
+	var errs []models.FieldError
 
 	// name
 	if in.Name != nil {
@@ -42,7 +42,7 @@ func ValidateUpdate(in *user.UpdateUserInput) []*models.FieldError {
 	// role（root/test の扱いは service 側で判定）
 	if in.Role != nil {
 		if *in.Role != "admin" && *in.Role != "user" {
-			errs = append(errs, &models.FieldError{
+			errs = append(errs, models.FieldError{
 				Field:   "role",
 				Message: "role must be 'admin' or 'user'",
 			})

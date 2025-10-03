@@ -2,11 +2,13 @@ package user
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strconv"
 
+	"word_app/backend/src/handlers/httperr"
 	user_interface "word_app/backend/src/interfaces/http/user"
+	"word_app/backend/src/usecase/apperror"
+	"word_app/backend/src/utils/contextutil"
 	"word_app/backend/src/validators/user"
 
 	"github.com/gin-gonic/gin"
@@ -18,14 +20,14 @@ func (h *Handler) ListHandler() gin.HandlerFunc {
 
 		req, err := h.parseUserListRequest(c)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			httperr.Write(c, err)
 			return
 		}
 
 		// バリデーション
 		validationErrors := user.ValidateUserListRequest(req)
 		if len(validationErrors) > 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"errors": validationErrors})
+			httperr.Write(c, apperror.WithFieldErrors(apperror.Validation, "invalid input", validationErrors))
 			return
 		}
 
@@ -35,7 +37,7 @@ func (h *Handler) ListHandler() gin.HandlerFunc {
 		)
 		resp, err = h.userUsecase.ListUsers(ctx, *req)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			httperr.Write(c, err)
 			return
 		}
 		c.JSON(http.StatusOK, resp)
@@ -50,29 +52,23 @@ func (h *Handler) parseUserListRequest(c *gin.Context) (*user_interface.ListUser
 
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil || page <= 0 {
-		return nil, errors.New("invalid 'page' query parameter: must be a positive integer")
+		return nil, apperror.Validationf("invalid 'page' query parameter: must be a positive integer", err)
 	}
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	if err != nil || limit <= 0 {
-		return nil, errors.New("invalid 'limit' query parameter: must be a positive integer")
+		return nil, apperror.Validationf("invalid 'limit' query parameter: must be a positive integer", err)
 	}
 
 	// ユーザーIDをコンテキストから取得
-	userID, exists := c.Get("userID")
-	if !exists {
-		return nil, errors.New("userID not found in context")
-	}
-
-	// userIDの型チェック
-	userIDInt, ok := userID.(int)
-	if !ok {
-		return nil, errors.New("invalid userID type")
+	viewerID, err := contextutil.MustUserID(c)
+	if err != nil {
+		return nil, err
 	}
 
 	// リクエストオブジェクトを構築
 	req := &user_interface.ListUsersInput{
-		ViewerID: userIDInt,
+		ViewerID: viewerID,
 		Search:   search,
 		SortBy:   sortBy,
 		Order:    order,

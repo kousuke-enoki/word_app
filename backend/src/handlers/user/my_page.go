@@ -5,7 +5,9 @@ import (
 	"context"
 	"net/http"
 
+	"word_app/backend/src/handlers/httperr"
 	"word_app/backend/src/models"
+	"word_app/backend/src/utils/contextutil"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,23 +15,16 @@ import (
 func (h *Handler) MyPageHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// userID の取得
-		userID, exists := c.Get("userID")
-		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-			return
-		}
-
-		// userIDの型チェック
-		id, ok := userID.(int)
-		if !ok {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid userID type"})
+		userID, err := contextutil.MustUserID(c)
+		if err != nil {
+			httperr.Write(c, err)
 			return
 		}
 
 		// ユーザー情報の取得
-		signInUser, err := h.userUsecase.GetMyDetail(context.Background(), id)
+		signInUser, err := h.userUsecase.GetMyDetail(context.Background(), userID)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
+			httperr.Write(c, err)
 			return
 		}
 

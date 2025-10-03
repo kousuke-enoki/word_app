@@ -1,7 +1,11 @@
 // usecase/apperror/apperror.go
 package apperror
 
-import "errors"
+import (
+	"errors"
+
+	"word_app/backend/src/models"
+)
 
 type Kind string
 
@@ -36,13 +40,7 @@ func New(kind Kind, msg string, err error) *Error {
 	return &Error{Kind: kind, Message: msg, Err: err}
 }
 
-// フィールドエラー（Validation用）
-type FieldError struct {
-	Field   string `json:"field"`
-	Message string `json:"message"`
-}
-
-func WithFieldErrors(kind Kind, msg string, fields []FieldError) *Error {
+func WithFieldErrors(kind Kind, msg string, fields []models.FieldError) *Error {
 	return &Error{Kind: kind, Message: msg, Meta: map[string]any{"fields": fields}}
 }
 

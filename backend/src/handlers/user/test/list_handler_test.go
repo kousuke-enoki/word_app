@@ -68,7 +68,7 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		}
 
 		// 引数一致：UserListRequest の全フィールドを確認
-		argMatcher := mock.MatchedBy(func(req *user_interface.ListUsersInput) bool {
+		argMatcher := mock.MatchedBy(func(req user_interface.ListUsersInput) bool {
 			return req.ViewerID == expected.ViewerID &&
 				req.Search == expected.Search &&
 				req.SortBy == expected.SortBy &&
@@ -120,7 +120,7 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 			Limit:    30,
 		}
 
-		argMatcher := mock.MatchedBy(func(req *user_interface.ListUsersInput) bool {
+		argMatcher := mock.MatchedBy(func(req user_interface.ListUsersInput) bool {
 			return req.ViewerID == expected.ViewerID &&
 				req.Search == expected.Search &&
 				req.SortBy == expected.SortBy &&
@@ -156,7 +156,7 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		mockClient := new(user_mocks.MockUsecase)
 		h := user.NewHandler(mockClient, nil)
 
-		anyReq := mock.AnythingOfType("*models.UserListRequest")
+		anyReq := mock.AnythingOfType("user.ListUsersInput")
 		mockClient.
 			On("ListUsers", mock.Anything, anyReq).
 			Return((*user_interface.UserListResponse)(nil), errors.New("db down"))
@@ -167,7 +167,7 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 		var got map[string]string
 		_ = json.Unmarshal(w.Body.Bytes(), &got)
-		assert.Equal(t, "db down", got["error"])
+		assert.Equal(t, "internal error", got["error"])
 		mockClient.AssertExpectations(t)
 	})
 
@@ -179,10 +179,10 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		r := newRouterWithUserID(h, nil)
 		w := performGet(r, "/users")
 
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
 		var got map[string]string
 		_ = json.Unmarshal(w.Body.Bytes(), &got)
-		assert.Equal(t, "userID not found in context", got["error"])
+		assert.Equal(t, "unauthorized: userID not found in context", got["error"])
 
 		// ListUsers は呼ばれない
 		mockClient.AssertNotCalled(t, "ListUsers", mock.Anything, mock.Anything)
@@ -196,10 +196,10 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		r := newRouterWithUserID(h, "1")
 		w := performGet(r, "/users")
 
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
 		var got map[string]string
 		_ = json.Unmarshal(w.Body.Bytes(), &got)
-		assert.Equal(t, "invalid userID type", got["error"])
+		assert.Equal(t, "unauthorized: userID not found in context", got["error"])
 		mockClient.AssertNotCalled(t, "ListUsers", mock.Anything, mock.Anything)
 	})
 

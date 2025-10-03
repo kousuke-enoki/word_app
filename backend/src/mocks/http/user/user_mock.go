@@ -6,7 +6,6 @@ package user
 
 import (
 	"context"
-
 	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/models"
 

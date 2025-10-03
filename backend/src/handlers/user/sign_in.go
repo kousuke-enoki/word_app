@@ -37,13 +37,13 @@ func (h *Handler) SignInHandler() gin.HandlerFunc {
 		// パスワード未設定（外部認証のみ）のユーザーはパスワードサインイン不可
 		if err := comparePasswordPtr(signInUser.HashedPassword, req.Password); err != nil {
 			// エラーメッセージは統一して情報リークを防ぐ
-			httperr.Write(c, apperror.Validationf("invalid request", err))
+			httperr.Write(c, apperror.Validationf("invalid request", nil))
 			return
 		}
-
+		// JWT発行
 		token, err := h.jwtGenerator.GenerateJWT(fmt.Sprintf("%d", signInUser.UserID))
 		if err != nil {
-			httperr.Write(c, apperror.Validationf("invalid request", err))
+			httperr.Write(c, apperror.Validationf("invalid request", nil))
 			return
 		}
 

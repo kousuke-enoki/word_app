@@ -6,12 +6,12 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"word_app/backend/ent"
 	"word_app/backend/src/handlers/user"
 	"word_app/backend/src/mocks"
+	"word_app/backend/src/models"
 
 	user_mocks "word_app/backend/src/mocks/http/user"
 
@@ -31,17 +31,22 @@ func TestMyPageHandler(t *testing.T) {
 	// 正常時
 	t.Run("Success", func(t *testing.T) {
 		// モックの設定
-		userID := 1
-		mockUser := &ent.User{
-			Name:    "Test User",
-			IsAdmin: true,
-		}
-		mockClient.On("FindByID", mock.Anything, userID).Return(mockUser, nil)
+
+		mockClient.
+			On("GetMyDetail", mock.Anything, 1).
+			Return(&models.UserDetail{
+				ID:      1,
+				Name:    "Test User",
+				IsAdmin: true,
+				IsRoot:  false,
+				IsTest:  false,
+			}, nil)
 
 		// HTTPリクエストとレスポンスのセットアップ
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
+		c.Request = httptest.NewRequest(http.MethodGet, "/mypage", nil)
 		// コンテキストにユーザーIDを設定
 		c.Set("userID", 1)
 		handler := userHandler.MyPageHandler()
@@ -51,8 +56,8 @@ func TestMyPageHandler(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		// レスポンスボディの内容を確認（小文字の"admin"と"name"に変更）
-		expectedResponse := `{"user":{"id":0, "isAdmin":true, "isRoot":false,"isTest":false, "name":"Test User"}, "isLogin":true}`
-		assert.JSONEq(t, expectedResponse, w.Body.String())
+		expected := `{"user":{"id":1,"name":"Test User","isAdmin":true,"isRoot":false,"isTest":false},"isLogin":true}`
+		assert.JSONEq(t, expected, w.Body.String())
 
 		mockClient.AssertExpectations(t)
 	})
@@ -62,8 +67,11 @@ func TestMyPageHandler(t *testing.T) {
 		// モックの設定
 		userID := 1
 		mockUser := &ent.User{
+			ID:      1,
 			Name:    "Test User",
 			IsAdmin: true,
+			IsRoot:  false,
+			IsTest:  false,
 		}
 		mockClient.On("FindByID", mock.MatchedBy(func(c context.Context) bool {
 			// コンテキストの確認
@@ -74,19 +82,15 @@ func TestMyPageHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
+		c.Request = httptest.NewRequest(http.MethodGet, "/mypage", nil)
 		// コンテキストにユーザーIDを設定
 		c.Set("userID", "1")
 		handler := userHandler.MyPageHandler()
 		handler(c)
 
 		// アサーション
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-
-		// レスポンスボディの内容を確認（小文字の"admin"と"name"に変更）
-		expectedResponse := `{"error":"Invalid userID type"}`
-		assert.JSONEq(t, expectedResponse, w.Body.String())
-
-		mockClient.AssertExpectations(t)
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.JSONEq(t, `{"error":"unauthorized: userID not found in context"}`, w.Body.String())
 	})
 
 	// ユーザーIDが設定されていない場合
@@ -94,24 +98,26 @@ func TestMyPageHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
+		c.Request = httptest.NewRequest(http.MethodGet, "/mypage", nil)
 		handler := userHandler.MyPageHandler()
 		handler(c)
 
 		// アサーション
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
-		assert.Contains(t, w.Body.String(), "Unauthorized")
-		mockClient.AssertExpectations(t)
+		assert.JSONEq(t, `{"error":"unauthorized: userID not found in context"}`, w.Body.String())
 	})
 
 	// データベースエラーが発生した場合
 	t.Run("Database_error", func(t *testing.T) {
 		// Mock設定: FindByIDがエラーを返すようにする
-		mockClient.On("FindByID", mock.Anything, 123).
+		mockClient.
+			On("GetMyDetail", mock.Anything, 123).
 			Return(nil, errors.New("some database error"))
 		// Ginのテストコンテキスト作成
 		recorder := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(recorder)
 
+		c.Request = httptest.NewRequest(http.MethodGet, "/mypage", nil)
 		// リクエスト設定
 		req := httptest.NewRequest("GET", "/mypage", nil)
 		c.Request = req
@@ -124,14 +130,7 @@ func TestMyPageHandler(t *testing.T) {
 		handler(c)
 
 		// レスポンスを検証
-		if status := recorder.Code; status != http.StatusInternalServerError {
-			t.Errorf("expected status code 500, got %d", status)
-		}
-		if !strings.Contains(recorder.Body.String(), "Failed to retrieve user") {
-			t.Errorf("expected error message 'Failed to retrieve user', got %s", recorder.Body.String())
-		}
-
-		// Mockが正しく呼び出されたかを確認
-		mockClient.AssertExpectations(t)
+		assert.Equal(t, http.StatusInternalServerError, recorder.Code)
+		assert.JSONEq(t, `{"error":"internal error"}`, recorder.Body.String())
 	})
 }

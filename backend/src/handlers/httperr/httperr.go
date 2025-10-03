@@ -12,10 +12,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type responder interface {
-	Status(int) int
-}
-
 // Kind→HTTP の一元マッピング＋薄いラッパー
 func Write(c *gin.Context, err error) {
 	ctx := c.Request.Context()

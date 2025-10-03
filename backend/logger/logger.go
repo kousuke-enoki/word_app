@@ -112,7 +112,7 @@ func readOptionsFromEnv() Options {
 		Stdout:       envBool("LOG_STDOUT", true),      // ローカルでも見えるように
 		FilePath:     envOr("LOG_FILE", "log/app.log"), // 空でファイル出力OFF
 		ReportCaller: envBool("LOG_REPORT_CALLER", false),
-		MaxSizeMB:    envInt("LOG_ROTATE_SIZE_MB", 10),
+		MaxSizeMB:    envInt("LOG_ROTATE_SIZE_MB", 1),
 		MaxBackups:   envInt("LOG_ROTATE_BACKUPS", 5),
 		MaxAgeDays:   envInt("LOG_ROTATE_MAX_DAYS", 30),
 		Compress:     envBool("LOG_ROTATE_COMPRESS", true),

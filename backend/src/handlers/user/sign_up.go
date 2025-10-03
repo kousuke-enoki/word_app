@@ -8,62 +8,52 @@ import (
 	"io"
 	"net/http"
 
-	"word_app/backend/src/handlers"
-	user_interface "word_app/backend/src/interfaces/http/user"
-	"word_app/backend/src/validators/user"
+	"word_app/backend/src/handlers/httperr"
+	"word_app/backend/src/interfaces/http/user"
+	"word_app/backend/src/usecase/apperror"
+	user_validator "word_app/backend/src/validators/user"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// FieldError defines an error structure for specific fields
-type FieldError struct {
-	Field   string `json:"field"`
-	Message string `json:"message"`
+type SignUpUserRequest struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (h *Handler) SignUpHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		req, err := h.parseRequest(c)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			httperr.Write(c, err)
 			return
 		}
 
-		validationErrors := user.ValidateSignUp(req)
+		validationErrors := user_validator.ValidateSignUp(*req)
 		if len(validationErrors) > 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"errors": validationErrors})
+			httperr.Write(c, apperror.WithFieldErrors(apperror.Validation, "invalid input", validationErrors))
 			return
 		}
 
 		req.Password, err = h.hashPassword(req.Password)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+			httperr.Write(c, apperror.Validationf("invalid request", err))
 			return
 		}
 
 		// ユーザー作成
 		user, err := h.userUsecase.SignUp(context.Background(), *req)
 		if err != nil {
-			handlers.WriteError(c, err)
+			httperr.Write(c, err)
 			return
 		}
-		// if err != nil {
-		// 	// エラーの種類ごとにレスポンスを変更
-		// 	switch err {
-		// 	case user_service.ErrDuplicateEmail:
-		// 		c.JSON(http.StatusConflict, gin.H{"error": "Email already exists"})
-		// 	case user_service.ErrDatabaseFailure:
-		// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
-		// 	default:
-		// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "An unknown error occurred"})
-		// 	}
-		// 	return
-		// }
 
+		// 作成したユーザーでサインイン（トークン発行）
 		token, err := h.jwtGenerator.GenerateJWT(fmt.Sprintf("%d", user.UserID))
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+			httperr.Write(c, apperror.Validationf("Failed to generate token", err))
 			return
 		}
 
@@ -71,7 +61,7 @@ func (h *Handler) SignUpHandler() gin.HandlerFunc {
 	}
 }
 
-func (h *Handler) parseRequest(c *gin.Context) (*user_interface.SignUpInput, error) {
+func (h *Handler) parseRequest(c *gin.Context) (*user.SignUpInput, error) {
 	if c.Request.Body == nil {
 		return nil, errors.New("request body is nil")
 	}
@@ -81,11 +71,19 @@ func (h *Handler) parseRequest(c *gin.Context) (*user_interface.SignUpInput, err
 	}
 	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 
-	var req user_interface.SignUpInput
+	var req SignUpUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		return nil, errors.New("invalid request: " + err.Error())
 	}
-	return &req, nil
+
+	// service 入力 DTO に詰め替え
+	in := &user.SignUpInput{
+		Name:     req.Name,
+		Email:    req.Email,
+		Password: req.Password,
+	}
+
+	return in, nil
 }
 
 func (h *Handler) hashPassword(password string) (string, error) {

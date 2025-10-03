@@ -20,15 +20,3 @@ func NewHandler(
 		jwtGenerator: jwtGen,
 	}
 }
-
-// type Handler struct {
-// 	userClient   user.Client
-// 	jwtGenerator auth.JWTGenerator
-// }
-
-// func NewHandler(client user.Client, jwtGen auth.JWTGenerator) *Handler {
-// 	return &Handler{
-// 		userClient:   client,
-// 		jwtGenerator: jwtGen,
-// 	}
-// }

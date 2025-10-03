@@ -3,18 +3,17 @@ package user
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"word_app/backend/src/handlers"
+	"word_app/backend/src/handlers/httperr"
 	"word_app/backend/src/interfaces/http/user"
+	"word_app/backend/src/usecase/apperror"
 	"word_app/backend/src/utils/contextutil"
 	user_validator "word_app/backend/src/validators/user"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 type UpdatePasswordPayload struct {
@@ -32,60 +31,33 @@ type UpdateUserRequest struct {
 func (h *Handler) EditHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
+		// 0) ルートレベルの軽い認可（最終判断はUsecase側）ついでにuserID取得
 		userRoles, err := contextutil.GetUserRoles(c)
 		if err != nil || userRoles == nil || userRoles.IsTest {
-			if err == nil {
-				err = errors.New("unauthorized: admin access required")
-			}
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			httperr.Write(c, apperror.Unauthorizedf("unauthorized", err))
 			return
 		}
 
-		// リクエストを解析
-		in, err := h.parseUpdateUserRequest(c)
+		// 1) リクエストparse
+		in, err := h.parseUpdateUserRequest(c, userRoles.UserID)
 		if err != nil {
-			logrus.Errorf("Failed to parse request: %v", err)
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			// parse/bind は Validation として返す
+			httperr.Write(c, apperror.Validationf("invalid request", err))
 			return
 		}
 
-		// バリデーション
-		if vErrs := user_validator.ValidateUpdate(in); len(vErrs) > 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"errors": vErrs})
+		// 2) 追加バリデーション（フォーム系）
+		if vErrs := user_validator.ValidateUpdate(*in); len(vErrs) > 0 {
+			httperr.Write(c, apperror.WithFieldErrors(apperror.Validation, "invalid input", vErrs))
 			return
 		}
 
-		// サービス呼び出し
+		// 3) ユースケース呼び出し（認可・検証・更新はここで）
 		user, svcErr := h.userUsecase.UpdateUser(ctx, *in)
 		if svcErr != nil {
-			handlers.WriteError(c, err)
+			httperr.Write(c, svcErr) // ← Usecase/Repoのapperrorをそのまま
 			return
 		}
-		// if svcErr != nil {
-		// 	// エラー種別に応じて HTTP へマッピング
-		// 	switch {
-		// 	case errors.Is(svcErr, user_service.ErrUnauthorized):
-		// 		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-		// 		return
-		// 	case errors.Is(svcErr, user_service.ErrUserNotFound):
-		// 		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
-		// 		return
-		// 	case errors.Is(svcErr, user_service.ErrDuplicateEmail):
-		// 		c.JSON(http.StatusConflict, gin.H{"error": "Email already exists"})
-		// 		return
-		// 	case errors.Is(svcErr, user_service.ErrValidation):
-		// 		// サービスから詳細バリデーションを返す場合
-		// 		if fe, ok := svcErr.(user_service.FieldErrors); ok {
-		// 			c.JSON(http.StatusBadRequest, gin.H{"errors": fe})
-		// 		} else {
-		// 			c.JSON(http.StatusBadRequest, gin.H{"error": "validation error"})
-		// 		}
-		// 		return
-		// 	default:
-		// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
-		// 		return
-		// 	}
-		// }
 
 		// 更新後のサマリーを最小限返す
 		c.JSON(http.StatusOK, gin.H{
@@ -100,28 +72,15 @@ func (h *Handler) EditHandler() gin.HandlerFunc {
 }
 
 // リクエスト構造体を解析
-func (h *Handler) parseUpdateUserRequest(c *gin.Context) (*user.UpdateUserInput, error) {
+func (h *Handler) parseUpdateUserRequest(c *gin.Context, userID int) (*user.UpdateUserInput, error) {
 	var req UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		return nil, err
 	}
-
-	// ユーザーIDをコンテキストから取得
-	userID, exists := c.Get("userID")
-	if !exists {
-		return nil, errors.New("unauthorized: userID not found in context")
-	}
-
-	// userIDの型チェック
-	userIDInt, ok := userID.(int)
-	if !ok {
-		return nil, errors.New("invalid userID type")
-	}
-
+	// URLパスから targetID を取得
 	targetID, err := strconv.Atoi(c.Param("id"))
 	if err != nil || targetID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
-		return nil, errors.New("invalid id")
+		return nil, apperror.Validationf("invalid id", err)
 	}
 
 	// 追加の軽い正規化（email は service 側でも最終正規化）
@@ -144,7 +103,7 @@ func (h *Handler) parseUpdateUserRequest(c *gin.Context) (*user.UpdateUserInput,
 
 	// service 入力 DTO に詰め替え
 	in := &user.UpdateUserInput{
-		EditorID:        userIDInt,
+		EditorID:        userID,
 		TargetID:        targetID,
 		Name:            req.Name,
 		Email:           req.Email,

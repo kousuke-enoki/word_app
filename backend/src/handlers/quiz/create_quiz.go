@@ -20,11 +20,9 @@ func (h *Handler) CreateHandler() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		logrus.Debug(req)
 
 		userID, err := contextutil.MustUserID(c)
 		if err != nil {
-			logrus.Error(err)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}

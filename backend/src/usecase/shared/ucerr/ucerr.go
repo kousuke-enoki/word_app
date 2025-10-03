@@ -1,7 +1,10 @@
 // app/usecase/shared/ucerr/ucerr.go
 package ucerr
 
-import "word_app/backend/src/usecase/apperror"
+import (
+	"word_app/backend/src/models"
+	"word_app/backend/src/usecase/apperror"
+)
 
 func Unauthorized(msg string) error      { return apperror.Unauthorizedf(msg, nil) }
 func Forbidden(msg string) error         { return apperror.Forbiddenf(msg, nil) }
@@ -14,7 +17,7 @@ func Internal(msg string, cause error) error {
 }
 
 // FieldErrors（フォーム向け）
-type FieldError = apperror.FieldError
+type FieldError = models.FieldError
 
 func ValidationFields(msg string, fields []FieldError) error {
 	return apperror.WithFieldErrors(apperror.Validation, msg, fields)

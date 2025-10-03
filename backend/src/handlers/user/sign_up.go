@@ -14,7 +14,6 @@ import (
 	user_validator "word_app/backend/src/validators/user"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type SignUpUserRequest struct {
@@ -37,13 +36,7 @@ func (h *Handler) SignUpHandler() gin.HandlerFunc {
 			return
 		}
 
-		req.Password, err = h.hashPassword(req.Password)
-		if err != nil {
-			httperr.Write(c, apperror.Validationf("invalid request", err))
-			return
-		}
-
-		// ユーザー作成
+		// ユーザー作成 （認可・重複チェック等はUsecase側）
 		user, err := h.userUsecase.SignUp(context.Background(), *req)
 		if err != nil {
 			httperr.Write(c, err)
@@ -84,12 +77,4 @@ func (h *Handler) parseRequest(c *gin.Context) (*user.SignUpInput, error) {
 	}
 
 	return in, nil
-}
-
-func (h *Handler) hashPassword(password string) (string, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hashedPassword), nil
 }

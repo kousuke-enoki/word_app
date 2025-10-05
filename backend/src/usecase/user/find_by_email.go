@@ -3,16 +3,14 @@ package user
 
 import (
 	"context"
-
-	"word_app/backend/src/interfaces/http/user"
 )
 
-func (uc *UserUsecase) FindByEmail(ctx context.Context, email string) (*user.FindByEmailOutput, error) {
+func (uc *UserUsecase) FindByEmail(ctx context.Context, email string) (*FindByEmailOutput, error) {
 	u, err := uc.userRepo.FindActiveByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
-	return &user.FindByEmailOutput{
+	return &FindByEmailOutput{
 		UserID:         u.ID,
 		HashedPassword: u.Password,
 		IsAdmin:        u.IsAdmin,

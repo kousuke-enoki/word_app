@@ -1,4 +1,4 @@
-// app/usecase/user/update_user.go
+// app/usecase/user/update_go
 package user
 
 import (
@@ -10,7 +10,6 @@ import (
 
 	"word_app/backend/src/domain"
 	"word_app/backend/src/domain/repository"
-	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/models"
 	"word_app/backend/src/usecase/shared/ucerr"
 )
@@ -18,7 +17,7 @@ import (
 // ざっくりメール検証（正規化はlower+trim）
 var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
 
-func (uc *UserUsecase) UpdateUser(ctx context.Context, in user.UpdateUserInput) (*models.UserDetail, error) {
+func (uc *UserUsecase) UpdateUser(ctx context.Context, in UpdateUserInput) (*models.UserDetail, error) {
 	// 1) Tx
 	txCtx, done, err := uc.txm.Begin(ctx)
 	if err != nil {
@@ -85,7 +84,7 @@ func (uc *UserUsecase) authorizeUpdate(editor, target *domain.User) error {
 }
 
 // 入力正規化・検証 → repository.UserUpdateFields を構築
-func (uc *UserUsecase) buildUpdateFields(editor, target *domain.User, in user.UpdateUserInput) (*repository.UserUpdateFields, error) {
+func (uc *UserUsecase) buildUpdateFields(editor, target *domain.User, in UpdateUserInput) (*repository.UserUpdateFields, error) {
 	out := &repository.UserUpdateFields{}
 
 	// name

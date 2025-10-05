@@ -2,10 +2,13 @@
 package user
 
 import (
+	"context"
+
 	"word_app/backend/src/infrastructure/repository/auth"
 	"word_app/backend/src/infrastructure/repository/setting"
 	"word_app/backend/src/infrastructure/repository/tx"
 	"word_app/backend/src/infrastructure/repository/user"
+	"word_app/backend/src/models"
 )
 
 type UserUsecase struct {
@@ -27,4 +30,14 @@ func NewUserUsecase(
 		settingRepo: settingRepo,
 		authRepo:    authRepo,
 	}
+}
+
+type Usecase interface {
+	Delete(ctx context.Context, in DeleteUserInput) error
+	FindByEmail(ctx context.Context, email string) (*FindByEmailOutput, error)
+	UpdateUser(ctx context.Context, in UpdateUserInput) (*models.UserDetail, error)
+	SignUp(ctx context.Context, in SignUpInput) (*SignUpOutput, error)
+	ListUsers(ctx context.Context, in ListUsersInput) (*UserListResponse, error)
+	GetMyDetail(ctx context.Context, viewerID int) (*models.UserDetail, error)
+	GetDetailByID(ctx context.Context, viewerID, targetID int) (*models.UserDetail, error)
 }

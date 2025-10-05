@@ -6,15 +6,15 @@ import (
 	"strconv"
 
 	"word_app/backend/src/handlers/httperr"
-	user_interface "word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/usecase/apperror"
+	user_usecase "word_app/backend/src/usecase/user"
 	"word_app/backend/src/utils/contextutil"
 	"word_app/backend/src/validators/user"
 
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) ListHandler() gin.HandlerFunc {
+func (h *UserHandler) ListHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 
@@ -33,7 +33,7 @@ func (h *Handler) ListHandler() gin.HandlerFunc {
 
 		// サービスの呼び出し
 		var (
-			resp *user_interface.UserListResponse
+			resp *user_usecase.UserListResponse
 		)
 		resp, err = h.userUsecase.ListUsers(ctx, *req)
 		if err != nil {
@@ -44,7 +44,7 @@ func (h *Handler) ListHandler() gin.HandlerFunc {
 	}
 }
 
-func (h *Handler) parseUserListRequest(c *gin.Context) (*user_interface.ListUsersInput, error) {
+func (h *UserHandler) parseUserListRequest(c *gin.Context) (*user_usecase.ListUsersInput, error) {
 	// クエリパラメータの取得
 	search := c.Query("search")
 	sortBy := c.DefaultQuery("sortBy", "name")
@@ -67,7 +67,7 @@ func (h *Handler) parseUserListRequest(c *gin.Context) (*user_interface.ListUser
 	}
 
 	// リクエストオブジェクトを構築
-	req := &user_interface.ListUsersInput{
+	req := &user_usecase.ListUsersInput{
 		ViewerID: viewerID,
 		Search:   search,
 		SortBy:   sortBy,

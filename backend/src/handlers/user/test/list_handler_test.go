@@ -9,10 +9,10 @@ import (
 	"testing"
 
 	"word_app/backend/src/handlers/user"
-	user_interface "word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/mocks"
 	user_mocks "word_app/backend/src/mocks/http/user"
 	"word_app/backend/src/models"
+	user_usecase "word_app/backend/src/usecase/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -30,7 +30,7 @@ import (
   7) 400: limit 不正（0 / 非数）
 */
 
-func newRouterWithUserID(h *user.Handler, userID any) *gin.Engine {
+func newRouterWithUserID(h *user.UserHandler, userID any) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 	// userID をコンテキストに詰めるミドルウェア
@@ -58,7 +58,7 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		h := user.NewHandler(mockClient, mockJWTGen)
 
 		// 期待されるリクエスト値（デフォルト）
-		expected := &user_interface.ListUsersInput{
+		expected := &user_usecase.ListUsersInput{
 			ViewerID: 1,
 			Search:   "",
 			SortBy:   "name",
@@ -68,7 +68,7 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		}
 
 		// 引数一致：UserListRequest の全フィールドを確認
-		argMatcher := mock.MatchedBy(func(req user_interface.ListUsersInput) bool {
+		argMatcher := mock.MatchedBy(func(req user_usecase.ListUsersInput) bool {
 			return req.ViewerID == expected.ViewerID &&
 				req.Search == expected.Search &&
 				req.SortBy == expected.SortBy &&
@@ -78,7 +78,7 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		})
 
 		Email := "alice@example.com"
-		mockResp := &user_interface.UserListResponse{
+		mockResp := &user_usecase.UserListResponse{
 			Users: []models.User{
 				{ID: 10, Name: "Alice", Email: &Email, IsAdmin: true, IsSettedPassword: true, IsLine: true},
 			},
@@ -92,7 +92,7 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		w := performGet(r, "/users") // クエリ無し → デフォルト適用
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		var got user_interface.UserListResponse
+		var got user_usecase.UserListResponse
 		_ = json.Unmarshal(w.Body.Bytes(), &got)
 		assert.Equal(t, mockResp.TotalPages, got.TotalPages)
 		assert.Len(t, got.Users, 1)
@@ -111,7 +111,7 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		q.Set("page", "2")
 		q.Set("limit", "30")
 
-		expected := &user_interface.ListUsersInput{
+		expected := &user_usecase.ListUsersInput{
 			ViewerID: 1,
 			Search:   "bob",
 			SortBy:   "role",
@@ -120,7 +120,7 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 			Limit:    30,
 		}
 
-		argMatcher := mock.MatchedBy(func(req user_interface.ListUsersInput) bool {
+		argMatcher := mock.MatchedBy(func(req user_usecase.ListUsersInput) bool {
 			return req.ViewerID == expected.ViewerID &&
 				req.Search == expected.Search &&
 				req.SortBy == expected.SortBy &&
@@ -130,7 +130,7 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		})
 
 		Email := "bob@example.com"
-		mockResp := &user_interface.UserListResponse{
+		mockResp := &user_usecase.UserListResponse{
 			Users: []models.User{
 				{ID: 20, Name: "Bob", Email: &Email, IsAdmin: false, IsRoot: true, IsSettedPassword: true, IsLine: false},
 			},
@@ -144,7 +144,7 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		w := performGet(r, "/users?"+q.Encode())
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		var got user_interface.UserListResponse
+		var got user_usecase.UserListResponse
 		_ = json.Unmarshal(w.Body.Bytes(), &got)
 		assert.Equal(t, 7, got.TotalPages)
 		assert.Len(t, got.Users, 1)
@@ -159,7 +159,7 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		anyReq := mock.AnythingOfType("user.ListUsersInput")
 		mockClient.
 			On("ListUsers", mock.Anything, anyReq).
-			Return((*user_interface.UserListResponse)(nil), errors.New("db down"))
+			Return((*user_usecase.UserListResponse)(nil), errors.New("db down"))
 
 		r := newRouterWithUserID(h, 1)
 		w := performGet(r, "/users?search=x")

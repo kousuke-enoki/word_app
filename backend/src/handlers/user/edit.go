@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"word_app/backend/src/handlers/httperr"
-	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/usecase/apperror"
+	user_usecase "word_app/backend/src/usecase/user"
 	"word_app/backend/src/utils/contextutil"
 	user_validator "word_app/backend/src/validators/user"
 
@@ -28,7 +28,7 @@ type UpdateUserRequest struct {
 	Role     *string                `json:"role"` // "admin" | "user"
 }
 
-func (h *Handler) EditHandler() gin.HandlerFunc {
+func (h *UserHandler) EditHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 		// 0) ルートレベルの軽い認可（最終判断はUsecase側）ついでにuserID取得
@@ -72,7 +72,7 @@ func (h *Handler) EditHandler() gin.HandlerFunc {
 }
 
 // リクエスト構造体を解析
-func (h *Handler) parseUpdateUserRequest(c *gin.Context, userID int) (*user.UpdateUserInput, error) {
+func (h *UserHandler) parseUpdateUserRequest(c *gin.Context, userID int) (*user_usecase.UpdateUserInput, error) {
 	var req UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func (h *Handler) parseUpdateUserRequest(c *gin.Context, userID int) (*user.Upda
 	}
 
 	// service 入力 DTO に詰め替え
-	in := &user.UpdateUserInput{
+	in := &user_usecase.UpdateUserInput{
 		EditorID:        userID,
 		TargetID:        targetID,
 		Name:            req.Name,

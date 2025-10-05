@@ -9,10 +9,10 @@ import (
 	"testing"
 
 	h "word_app/backend/src/handlers/user"
-	useriface "word_app/backend/src/interfaces/http/user"
 	user_mocks "word_app/backend/src/mocks/http/user"
 	"word_app/backend/src/models"
 	"word_app/backend/src/usecase/apperror"
+	user_usecase "word_app/backend/src/usecase/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -89,7 +89,7 @@ func TestEditHandler_AllPaths(t *testing.T) {
 			Role:  &role,
 		}
 
-		argMatcher := mock.MatchedBy(func(in useriface.UpdateUserInput) bool {
+		argMatcher := mock.MatchedBy(func(in user_usecase.UpdateUserInput) bool {
 			return in.EditorID == 10 &&
 				in.TargetID == 123 &&
 				in.Name != nil && *in.Name == "Alice" &&
@@ -206,7 +206,7 @@ func TestEditHandler_AllPaths(t *testing.T) {
 		name := "ValidName"
 		body := reqBody{Name: &name}
 
-		argMatcher := mock.MatchedBy(func(in useriface.UpdateUserInput) bool {
+		argMatcher := mock.MatchedBy(func(in user_usecase.UpdateUserInput) bool {
 			return in.EditorID == 9 && in.TargetID == 88 && in.Name != nil && *in.Name == "ValidName"
 		})
 		uc.On("UpdateUser", mock.Anything, argMatcher).
@@ -226,7 +226,7 @@ func TestEditHandler_AllPaths(t *testing.T) {
 		name := "ValidName"
 		body := reqBody{Name: &name}
 
-		argMatcher := mock.MatchedBy(func(in useriface.UpdateUserInput) bool {
+		argMatcher := mock.MatchedBy(func(in user_usecase.UpdateUserInput) bool {
 			return in.EditorID == 9 && in.TargetID == 77 && in.Name != nil && *in.Name == "ValidName"
 		})
 		uc.On("UpdateUser", mock.Anything, argMatcher).
@@ -246,7 +246,7 @@ func TestEditHandler_AllPaths(t *testing.T) {
 		email := "dup@example.com"
 		body := reqBody{Email: &email}
 
-		argMatcher := mock.MatchedBy(func(in useriface.UpdateUserInput) bool {
+		argMatcher := mock.MatchedBy(func(in user_usecase.UpdateUserInput) bool {
 			return in.EditorID == 4 && in.TargetID == 22 && in.Email != nil && *in.Email == "dup@example.com"
 		})
 		uc.On("UpdateUser", mock.Anything, argMatcher).
@@ -267,7 +267,7 @@ func TestEditHandler_AllPaths(t *testing.T) {
 		curPw := "Wrong"
 		body := reqBody{Password: &reqPwd{New: &newPw, Current: &curPw}}
 
-		argMatcher := mock.MatchedBy(func(in useriface.UpdateUserInput) bool {
+		argMatcher := mock.MatchedBy(func(in user_usecase.UpdateUserInput) bool {
 			return in.EditorID == 5 && in.TargetID == 5 &&
 				in.PasswordNew != nil && *in.PasswordNew == newPw &&
 				in.PasswordCurrent != nil && *in.PasswordCurrent == curPw
@@ -289,7 +289,7 @@ func TestEditHandler_AllPaths(t *testing.T) {
 		name := "ValidName"
 		body := reqBody{Name: &name}
 
-		argMatcher := mock.MatchedBy(func(in useriface.UpdateUserInput) bool {
+		argMatcher := mock.MatchedBy(func(in user_usecase.UpdateUserInput) bool {
 			return in.EditorID == 6 && in.TargetID == 66 && in.Name != nil && *in.Name == "ValidName"
 		})
 		uc.On("UpdateUser", mock.Anything, argMatcher).

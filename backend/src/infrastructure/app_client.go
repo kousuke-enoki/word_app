@@ -7,9 +7,9 @@ import (
 	"word_app/backend/ent"
 	"word_app/backend/src/domain"
 	"word_app/backend/src/interfaces"
-	user_interface "word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/models"
 	settingUc "word_app/backend/src/usecase/setting"
+	user_usecase "word_app/backend/src/usecase/user"
 	"word_app/backend/src/utils/contextutil"
 )
 
@@ -33,27 +33,27 @@ func (c *appClient) GetMyDetail(ctx context.Context, viewerID int) (*models.User
 }
 
 // SignUp implements interfaces.ClientInterface.
-func (c *appClient) SignUp(ctx context.Context, in user_interface.SignUpInput) (*user_interface.SignUpOutput, error) {
+func (c *appClient) SignUp(ctx context.Context, in user_usecase.SignUpInput) (*user_usecase.SignUpOutput, error) {
 	panic("unimplemented")
 }
 
 // Update implements interfaces.ClientInterface.
-func (c *appClient) FindByEmail(ctx context.Context, email string) (*user_interface.FindByEmailOutput, error) {
+func (c *appClient) FindByEmail(ctx context.Context, email string) (*user_usecase.FindByEmailOutput, error) {
 	panic("unimplemented")
 }
 
 // Update implements interfaces.ClientInterface.
-func (c *appClient) UpdateUser(ctx context.Context, in user_interface.UpdateUserInput) (*models.UserDetail, error) {
+func (c *appClient) UpdateUser(ctx context.Context, in user_usecase.UpdateUserInput) (*models.UserDetail, error) {
 	panic("unimplemented")
 }
 
 // GetUsers implements interfaces.ClientInterface.
-func (c *appClient) ListUsers(ctx context.Context, in user_interface.ListUsersInput) (*user_interface.UserListResponse, error) {
+func (c *appClient) ListUsers(ctx context.Context, in user_usecase.ListUsersInput) (*user_usecase.UserListResponse, error) {
 	panic("unimplemented")
 }
 
 // Delete implements interfaces.ClientInterface.
-func (c *appClient) Delete(ctx context.Context, in user_interface.DeleteUserInput) error {
+func (c *appClient) Delete(ctx context.Context, in user_usecase.DeleteUserInput) error {
 	panic("unimplemented")
 }
 

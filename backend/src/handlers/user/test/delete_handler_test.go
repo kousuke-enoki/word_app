@@ -8,10 +8,10 @@ import (
 	"testing"
 
 	h "word_app/backend/src/handlers/user"
-	useriface "word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/mocks"
 	user_mocks "word_app/backend/src/mocks/http/user"
 	"word_app/backend/src/usecase/apperror"
+	user_usecase "word_app/backend/src/usecase/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -46,7 +46,7 @@ func TestDeleteHandler_AllPaths(t *testing.T) {
 		// editorID=9 をミドルウェアで注入
 		r := newDeleteRouterWithUserID(uc, 9)
 
-		in := useriface.DeleteUserInput{EditorID: 9, TargetID: 123}
+		in := user_usecase.DeleteUserInput{EditorID: 9, TargetID: 123}
 		uc.On("Delete", mock.Anything, in).Return(nil)
 
 		w := performDELETE(r, "/users/123")
@@ -97,7 +97,7 @@ func TestDeleteHandler_AllPaths(t *testing.T) {
 		uc := new(user_mocks.MockUsecase)
 		r := newDeleteRouterWithUserID(uc, 2)
 
-		in := useriface.DeleteUserInput{EditorID: 2, TargetID: 555}
+		in := user_usecase.DeleteUserInput{EditorID: 2, TargetID: 555}
 		uc.On("Delete", mock.Anything, in).Return(apperror.NotFoundf("user not found", nil))
 
 		w := performDELETE(r, "/users/555")
@@ -111,7 +111,7 @@ func TestDeleteHandler_AllPaths(t *testing.T) {
 		uc := new(user_mocks.MockUsecase)
 		r := newDeleteRouterWithUserID(uc, 3)
 
-		in := useriface.DeleteUserInput{EditorID: 3, TargetID: 4}
+		in := user_usecase.DeleteUserInput{EditorID: 3, TargetID: 4}
 		uc.On("Delete", mock.Anything, in).Return(apperror.Forbiddenf("forbidden", nil))
 
 		w := performDELETE(r, "/users/4")
@@ -125,7 +125,7 @@ func TestDeleteHandler_AllPaths(t *testing.T) {
 		uc := new(user_mocks.MockUsecase)
 		r := newDeleteRouterWithUserID(uc, 10)
 
-		in := useriface.DeleteUserInput{EditorID: 10, TargetID: 11}
+		in := user_usecase.DeleteUserInput{EditorID: 10, TargetID: 11}
 		uc.On("Delete", mock.Anything, in).Return(apperror.Internalf("internal error", nil))
 
 		w := performDELETE(r, "/users/11")

@@ -9,8 +9,8 @@ import (
 	"net/http"
 
 	"word_app/backend/src/handlers/httperr"
-	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/usecase/apperror"
+	user_usecase "word_app/backend/src/usecase/user"
 	user_validator "word_app/backend/src/validators/user"
 
 	"github.com/gin-gonic/gin"
@@ -22,7 +22,7 @@ type SignUpUserRequest struct {
 	Password string `json:"password"`
 }
 
-func (h *Handler) SignUpHandler() gin.HandlerFunc {
+func (h *UserHandler) SignUpHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		req, err := h.parseRequest(c)
 		if err != nil {
@@ -54,7 +54,7 @@ func (h *Handler) SignUpHandler() gin.HandlerFunc {
 	}
 }
 
-func (h *Handler) parseRequest(c *gin.Context) (*user.SignUpInput, error) {
+func (h *UserHandler) parseRequest(c *gin.Context) (*user_usecase.SignUpInput, error) {
 	if c.Request.Body == nil {
 		return nil, errors.New("request body is nil")
 	}
@@ -70,7 +70,7 @@ func (h *Handler) parseRequest(c *gin.Context) (*user.SignUpInput, error) {
 	}
 
 	// service 入力 DTO に詰め替え
-	in := &user.SignUpInput{
+	in := &user_usecase.SignUpInput{
 		Name:     req.Name,
 		Email:    req.Email,
 		Password: req.Password,

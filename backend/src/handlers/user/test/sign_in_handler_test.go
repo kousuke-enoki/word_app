@@ -8,10 +8,10 @@ import (
 	"testing"
 
 	h "word_app/backend/src/handlers/user"
-	user_interface "word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/mocks"
 	user_mocks "word_app/backend/src/mocks/http/user"
 	"word_app/backend/src/usecase/apperror"
+	user_usecase "word_app/backend/src/usecase/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -58,7 +58,7 @@ func TestSignInHandler_AllPaths(t *testing.T) {
 
 		req := Req{Email: "alice@example.com", Password: "Secret_123!"}
 		uc.On("FindByEmail", mock.Anything, req.Email).
-			Return(&user_interface.FindByEmailOutput{
+			Return(&user_usecase.FindByEmailOutput{
 				UserID:         42,
 				HashedPassword: hash(req.Password),
 			}, nil)
@@ -119,7 +119,7 @@ func TestSignInHandler_AllPaths(t *testing.T) {
 
 		req := Req{Email: "unknown@example.com", Password: "Secret_123!"}
 		uc.On("FindByEmail", mock.Anything, req.Email).
-			Return((*user_interface.FindByEmailOutput)(nil), apperror.NotFoundf("user not found", nil))
+			Return((*user_usecase.FindByEmailOutput)(nil), apperror.NotFoundf("user not found", nil))
 
 		w := performJSON(r, "/signin", req)
 
@@ -135,7 +135,7 @@ func TestSignInHandler_AllPaths(t *testing.T) {
 
 		req := Req{Email: "bob@example.com", Password: "Wrong_123!"}
 		uc.On("FindByEmail", mock.Anything, req.Email).
-			Return(&user_interface.FindByEmailOutput{
+			Return(&user_usecase.FindByEmailOutput{
 				UserID:         7,
 				HashedPassword: hash("Correct_123!"),
 			}, nil)
@@ -154,7 +154,7 @@ func TestSignInHandler_AllPaths(t *testing.T) {
 		r := newSignInRouter(uc, jwt)
 		req := Req{Email: "line-only@example.com", Password: "Secret_123!"}
 		uc.On("FindByEmail", mock.Anything, req.Email).
-			Return(&user_interface.FindByEmailOutput{
+			Return(&user_usecase.FindByEmailOutput{
 				UserID:         100,
 				HashedPassword: "", // 未設定
 			}, nil)
@@ -173,7 +173,7 @@ func TestSignInHandler_AllPaths(t *testing.T) {
 
 		req := Req{Email: "ok@example.com", Password: "Secret_123!"}
 		uc.On("FindByEmail", mock.Anything, req.Email).
-			Return(&user_interface.FindByEmailOutput{
+			Return(&user_usecase.FindByEmailOutput{
 				UserID:         55,
 				HashedPassword: hash(req.Password),
 			}, nil)

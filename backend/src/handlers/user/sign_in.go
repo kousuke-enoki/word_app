@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"word_app/backend/src/handlers"
 	"word_app/backend/src/handlers/httperr"
 	"word_app/backend/src/models"
 	"word_app/backend/src/usecase/apperror"
@@ -18,7 +19,12 @@ func (h *Handler) SignInHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req models.SignInRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
-			httperr.Write(c, err)
+			if fs := handlers.FieldsFromBindError(err); len(fs) > 0 {
+				httperr.Write(c, apperror.WithFieldErrors(apperror.Validation, "invalid input", fs))
+				return
+			}
+			// バリデータ以外のbindエラーも 400 に寄せたいならこちら
+			httperr.Write(c, apperror.Validationf("invalid input", err))
 			return
 		}
 		validationErrors := user.ValidateSignIn(req)

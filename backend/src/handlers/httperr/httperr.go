@@ -40,7 +40,7 @@ func Write(c *gin.Context, err error) {
 		logger.Error("server error")
 	}
 
-	status := statusOf(ae.Kind)
+	status := StatusOf(ae.Kind)
 	body := gin.H{"error": ae.Message}
 	if f, ok := ae.Meta["fields"]; ok {
 		body["fields"] = f
@@ -48,7 +48,7 @@ func Write(c *gin.Context, err error) {
 	c.JSON(status, body)
 }
 
-func statusOf(k apperror.Kind) int {
+func StatusOf(k apperror.Kind) int {
 	switch k {
 	case apperror.Unauthorized:
 		return http.StatusUnauthorized

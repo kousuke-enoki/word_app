@@ -75,7 +75,7 @@ func TestSignInHandler_AllPaths(t *testing.T) {
 		jwt.AssertExpectations(t)
 	})
 
-	t.Run("500 - invalid JSON (bind error)", func(t *testing.T) {
+	t.Run("400 - invalid JSON (bind error)", func(t *testing.T) {
 		uc := new(user_mocks.MockUsecase)
 		jwt := &mocks.MockJwtGenerator{}
 		r := newSignInRouter(uc, jwt)
@@ -89,8 +89,8 @@ func TestSignInHandler_AllPaths(t *testing.T) {
 			return w
 		}()
 
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-		assert.JSONEq(t, `{"error":"internal error"}`, w.Body.String())
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.JSONEq(t, `{"error":"invalid input"}`, w.Body.String())
 		uc.AssertNotCalled(t, "FindByEmail", mock.Anything, mock.Anything)
 	})
 
@@ -117,7 +117,7 @@ func TestSignInHandler_AllPaths(t *testing.T) {
 		jwt := &mocks.MockJwtGenerator{}
 		r := newSignInRouter(uc, jwt)
 
-		req := Req{Email: "unknown@example.com", Password: "x"}
+		req := Req{Email: "unknown@example.com", Password: "Secret_123!"}
 		uc.On("FindByEmail", mock.Anything, req.Email).
 			Return((*user_interface.FindByEmailOutput)(nil), apperror.NotFoundf("user not found", nil))
 
@@ -152,8 +152,7 @@ func TestSignInHandler_AllPaths(t *testing.T) {
 		uc := new(user_mocks.MockUsecase)
 		jwt := &mocks.MockJwtGenerator{}
 		r := newSignInRouter(uc, jwt)
-
-		req := Req{Email: "line-only@example.com", Password: "anything"}
+		req := Req{Email: "line-only@example.com", Password: "Secret_123!"}
 		uc.On("FindByEmail", mock.Anything, req.Email).
 			Return(&user_interface.FindByEmailOutput{
 				UserID:         100,

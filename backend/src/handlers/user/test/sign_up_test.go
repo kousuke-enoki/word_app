@@ -9,10 +9,10 @@ import (
 	"testing"
 
 	h "word_app/backend/src/handlers/user"
-	user_interface "word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/mocks"
 	user_mocks "word_app/backend/src/mocks/http/user"
 	"word_app/backend/src/usecase/apperror"
+	user_usecase "word_app/backend/src/usecase/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -62,11 +62,11 @@ func TestSignUpHandler_AllPaths(t *testing.T) {
 		}
 
 		// Usecase: 入力DTOが正しく詰め替えられていることをざっくり検証
-		argMatcher := mock.MatchedBy(func(in user_interface.SignUpInput) bool {
+		argMatcher := mock.MatchedBy(func(in user_usecase.SignUpInput) bool {
 			return in.Name == req.Name && in.Email == req.Email && in.Password == req.Password
 		})
 		uc.On("SignUp", mock.Anything, argMatcher).
-			Return(&user_interface.SignUpOutput{UserID: 42}, nil)
+			Return(&user_usecase.SignUpOutput{UserID: 42}, nil)
 		jwt.On("GenerateJWT", "42").Return("tok_abc", nil)
 
 		w := postJSON(r, "/signup", req)
@@ -135,11 +135,11 @@ func TestSignUpHandler_AllPaths(t *testing.T) {
 			Password: "Secret_123!",
 		}
 
-		argMatcher := mock.MatchedBy(func(in user_interface.SignUpInput) bool {
+		argMatcher := mock.MatchedBy(func(in user_usecase.SignUpInput) bool {
 			return in.Email == req.Email
 		})
 		uc.On("SignUp", mock.Anything, argMatcher).
-			Return((*user_interface.SignUpOutput)(nil), apperror.Conflictf("email already exists", nil))
+			Return((*user_usecase.SignUpOutput)(nil), apperror.Conflictf("email already exists", nil))
 
 		w := postJSON(r, "/signup", req)
 
@@ -161,7 +161,7 @@ func TestSignUpHandler_AllPaths(t *testing.T) {
 		}
 
 		uc.On("SignUp", mock.Anything, mock.Anything).
-			Return((*user_interface.SignUpOutput)(nil), apperror.Internalf("internal error", nil))
+			Return((*user_usecase.SignUpOutput)(nil), apperror.Internalf("internal error", nil))
 
 		w := postJSON(r, "/signup", req)
 
@@ -183,7 +183,7 @@ func TestSignUpHandler_AllPaths(t *testing.T) {
 		}
 
 		uc.On("SignUp", mock.Anything, mock.Anything).
-			Return(&user_interface.SignUpOutput{UserID: 777}, nil)
+			Return(&user_usecase.SignUpOutput{UserID: 777}, nil)
 		jwt.On("GenerateJWT", "777").Return("", assert.AnError)
 
 		w := postJSON(r, "/signup", req)

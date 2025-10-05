@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) MyPageHandler() gin.HandlerFunc {
+func (h *UserHandler) MyPageHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 		// userID の取得

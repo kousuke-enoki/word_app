@@ -15,7 +15,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (h *Handler) SignInHandler() gin.HandlerFunc {
+func (h *UserHandler) SignInHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req models.SignInRequest
 		if err := c.ShouldBindJSON(&req); err != nil {

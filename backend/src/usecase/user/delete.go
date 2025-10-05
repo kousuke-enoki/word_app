@@ -5,11 +5,10 @@ import (
 	"context"
 	"time"
 
-	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/usecase/shared/ucerr"
 )
 
-func (uc *UserUsecase) Delete(ctx context.Context, in user.DeleteUserInput) error {
+func (uc *UserUsecase) Delete(ctx context.Context, in DeleteUserInput) error {
 	// Tx開始（既存Txがあればjoinされる実装が理想）
 	txCtx, done, err := uc.txm.Begin(ctx)
 	if err != nil {

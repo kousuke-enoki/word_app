@@ -2,8 +2,8 @@
 package user
 
 import (
-	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/models"
+	"word_app/backend/src/usecase/user"
 	userfields "word_app/backend/src/validators/user/userFields"
 )
 

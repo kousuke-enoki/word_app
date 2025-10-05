@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) MeHandler() gin.HandlerFunc {
+func (h *UserHandler) MeHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		viewerID, err := contextutil.MustUserID(c)
 		if err != nil {
@@ -29,7 +29,7 @@ func (h *Handler) MeHandler() gin.HandlerFunc {
 	}
 }
 
-func (h *Handler) ShowHandler() gin.HandlerFunc {
+func (h *UserHandler) ShowHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		viewerID, err := contextutil.MustUserID(c)
 		if err != nil {

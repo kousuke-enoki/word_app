@@ -7,14 +7,14 @@ import (
 	"strconv"
 
 	"word_app/backend/src/handlers/httperr"
-	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/usecase/apperror"
+	user_usecase "word_app/backend/src/usecase/user"
 	"word_app/backend/src/utils/contextutil"
 
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) DeleteHandler() gin.HandlerFunc {
+func (h *UserHandler) DeleteHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 		// 操作対象者
@@ -31,7 +31,7 @@ func (h *Handler) DeleteHandler() gin.HandlerFunc {
 			httperr.Write(c, apperror.Validationf("invalid userID type", nil))
 			return
 		}
-		in := user.DeleteUserInput{
+		in := user_usecase.DeleteUserInput{
 			EditorID: editorID,
 			TargetID: targetID,
 		}

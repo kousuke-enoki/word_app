@@ -4,7 +4,6 @@ package di
 import (
 	"word_app/backend/config"
 	AuthH "word_app/backend/src/handlers/auth"
-
 	quizH "word_app/backend/src/handlers/quiz"
 	resultH "word_app/backend/src/handlers/result"
 	settingH "word_app/backend/src/handlers/setting"
@@ -17,7 +16,6 @@ import (
 	"word_app/backend/src/interfaces/http/quiz"
 	"word_app/backend/src/interfaces/http/result"
 	"word_app/backend/src/interfaces/http/setting"
-	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/interfaces/http/word"
 	jwt_middleware "word_app/backend/src/middleware/jwt"
 
@@ -30,7 +28,7 @@ type Handlers struct {
 	JWTMiD  middleware_interface.Middleware // JWT ミドルウェアは Handler ではなく、インターフェースとして定義
 	Auth    auth.Handler
 	Setting setting.Handler
-	User    user.Handler
+	User    userH.Handler
 	Word    word.Handler
 	Quiz    quiz.Handler
 	Result  result.Handler

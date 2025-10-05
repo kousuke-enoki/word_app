@@ -6,8 +6,9 @@ package user
 
 import (
 	"context"
-	"word_app/backend/src/interfaces/http/user"
+
 	"word_app/backend/src/models"
+	"word_app/backend/src/usecase/user"
 
 	"github.com/gin-gonic/gin"
 	mock "github.com/stretchr/testify/mock"

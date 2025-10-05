@@ -6,7 +6,6 @@ import (
 
 	"word_app/backend/src/domain"
 	"word_app/backend/src/domain/repository"
-	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/models"
 	"word_app/backend/src/usecase/shared/ucerr"
 )
@@ -16,7 +15,7 @@ import (
 // 	UserQueryRepo repository.UserQueryRepository // 上で定義した一覧Repo
 // }
 
-func (uc *UserUsecase) ListUsers(ctx context.Context, in user.ListUsersInput) (*user.UserListResponse, error) {
+func (uc *UserUsecase) ListUsers(ctx context.Context, in ListUsersInput) (*UserListResponse, error) {
 	// 1) 権限チェック（rootのみ）
 	viewer, err := uc.userRepo.FindByID(ctx, in.ViewerID)
 	if err != nil || viewer == nil {
@@ -53,7 +52,7 @@ func (uc *UserUsecase) ListUsers(ctx context.Context, in user.ListUsersInput) (*
 		users = append(users, toUserDTO(u))
 	}
 	totalPages := (res.TotalCount + in.Limit - 1) / in.Limit
-	return &user.UserListResponse{
+	return &UserListResponse{
 		Users:      users,
 		TotalPages: totalPages,
 	}, nil

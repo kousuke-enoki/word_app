@@ -1,5 +1,5 @@
 # ---------- base build stage ----------
-FROM golang:1.24.3 AS build-base
+FROM golang:1.25.1 AS build-base
 WORKDIR /src
 
 COPY go.mod go.sum ./
@@ -16,11 +16,21 @@ RUN CGO_ENABLED=0 go build -o /out/server      ./cmd/server && \
 FROM golangci/golangci-lint:v2.3.0 AS lint
 
 # ---------- development (hot‑reload) ----------
-FROM golang:1.24.3 AS dev
+FROM golang:1.25.1 AS dev
 WORKDIR /app
+
+# Go モジュール解決をプロキシ経由に固定（直接 GitHub に行かない）
+ENV GOPROXY=https://proxy.golang.org \
+    GOSUMDB=sum.golang.org \
+    GOPRIVATE= \
+    GONOSUMDB=
+
+# デバッグ用（あとで消してOK）: 実際に反映されているか確認
+RUN go env GOPROXY GOSUMDB GOPRIVATE GONOSUMDB
+
 # air をインストール
-RUN go install entgo.io/ent/cmd/ent@latest \
- && go install github.com/air-verse/air@latest
+RUN go install entgo.io/ent/cmd/ent@v0.14.4 \
+&& go install github.com/air-verse/air@latest
 
 COPY --from=lint /usr/bin/golangci-lint /usr/local/bin/golangci-lint
 

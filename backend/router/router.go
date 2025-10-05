@@ -4,12 +4,12 @@ import (
 	"net/http"
 	"time"
 
+	"word_app/backend/src/handlers/user"
 	"word_app/backend/src/interfaces/http/auth"
 	middleware_interface "word_app/backend/src/interfaces/http/middleware"
 	"word_app/backend/src/interfaces/http/quiz"
 	"word_app/backend/src/interfaces/http/result"
 	"word_app/backend/src/interfaces/http/setting"
-	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/interfaces/http/word"
 
 	"github.com/gin-gonic/gin"

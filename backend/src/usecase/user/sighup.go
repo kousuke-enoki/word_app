@@ -5,10 +5,9 @@ import (
 	"context"
 
 	"word_app/backend/src/domain"
-	"word_app/backend/src/interfaces/http/user"
 )
 
-func (uc *UserUsecase) SignUp(ctx context.Context, in user.SignUpInput) (*user.SignUpOutput, error) {
+func (uc *UserUsecase) SignUp(ctx context.Context, in SignUpInput) (*SignUpOutput, error) {
 	u, err := domain.NewUser(in.Name, &in.Email, &in.Password)
 	if err != nil {
 		return nil, err
@@ -35,5 +34,5 @@ func (uc *UserUsecase) SignUp(ctx context.Context, in user.SignUpInput) (*user.S
 		return nil, err
 	}
 
-	return &user.SignUpOutput{UserID: createdUser.ID}, nil
+	return &SignUpOutput{UserID: createdUser.ID}, nil
 }

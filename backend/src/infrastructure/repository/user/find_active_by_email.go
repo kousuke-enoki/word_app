@@ -14,7 +14,7 @@ func (r *EntUserRepo) FindActiveByEmail(ctx context.Context, email string) (*dom
 	u, err := r.client.User().
 		Query().
 		Where(user.EmailEQ(email), user.DeletedAtIsNil()).
-		Select(user.FieldID, user.FieldEmail, user.FieldPassword, user.FieldIsAdmin, user.FieldIsRoot, user.FieldIsTest, user.FieldCreatedAt, user.FieldUpdatedAt).
+		Select(user.FieldID, user.FieldName, user.FieldEmail, user.FieldPassword, user.FieldIsAdmin, user.FieldIsRoot, user.FieldIsTest, user.FieldCreatedAt, user.FieldUpdatedAt).
 		First(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {

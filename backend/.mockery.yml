@@ -25,7 +25,7 @@ packages:
       dir: src/mocks/http/setting
       recursive: false
 
-  word_app/backend/src/interfaces/http/user:
+  word_app/backend/src/handlers/user:
     config:
       dir: src/mocks/http/user
       recursive: false

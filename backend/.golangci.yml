@@ -22,9 +22,9 @@ linters:
     generated: strict
     # ディレクトリ/ファイルのパス除外（正規表現）
     paths:
-      - ^ent($|/)                   # ent 配下は除外
-      - ^src/mocks($|/)             # mockery の自動生成を丸ごと除外
-      - ^src/infrastructure/app_client\.go$  # 当面スキップしたいファイル
+      - ^ent($|/) # ent 配下は除外
+      - ^src/mocks($|/) # mockery の自動生成を丸ごと除外
+      - ^src/infrastructure/app_client\.go$ # 当面スキップしたいファイル
 
     # さらに特定リンターを特定パスだけ無視したい時は rules を使う
     # rules:

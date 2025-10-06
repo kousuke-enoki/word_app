@@ -7,7 +7,6 @@ package auth
 import (
 	"context"
 	"time"
-
 	"word_app/backend/src/domain"
 
 	mock "github.com/stretchr/testify/mock"

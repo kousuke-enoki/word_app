@@ -1,4 +1,4 @@
-// usecase/user_detail.go
+// usecase/user_usecase.go
 package user
 
 import (

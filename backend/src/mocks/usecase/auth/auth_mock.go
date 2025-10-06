@@ -7,7 +7,6 @@ package auth
 import (
 	"context"
 	"time"
-
 	"word_app/backend/src/utils/tempjwt"
 
 	"github.com/coreos/go-oidc/v3/oidc"

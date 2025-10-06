@@ -19,6 +19,9 @@ func (r *EntUserRepo) Create(ctx context.Context, u *domain.User) (user *domain.
 		SetNillableEmail(emailPtr).
 		SetName(u.Name).
 		SetPassword(u.Password).
+		SetIsAdmin(u.IsAdmin).
+		SetIsRoot(u.IsRoot).
+		SetIsTest(u.IsTest).
 		Save(ctx)
 	if err != nil {
 		return nil, repoerr.FromEnt(err, "failed to user create", "")

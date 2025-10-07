@@ -61,6 +61,7 @@ jobs:
           version: v1.64.2
           working-directory: ./backend
           args: -v
+          install-mode: go # ← これを必ず付ける
 
       # --- Vet & Test ---
       - name: Run go vet

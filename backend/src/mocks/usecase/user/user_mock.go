@@ -6,7 +6,6 @@ package user
 
 import (
 	"context"
-
 	"word_app/backend/src/models"
 	"word_app/backend/src/usecase/user"
 

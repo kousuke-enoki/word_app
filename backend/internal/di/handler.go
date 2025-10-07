@@ -14,7 +14,6 @@ import (
 	middleware_interface "word_app/backend/src/interfaces/http/middleware"
 	"word_app/backend/src/interfaces/http/quiz"
 	"word_app/backend/src/interfaces/http/result"
-	"word_app/backend/src/interfaces/http/setting"
 	"word_app/backend/src/interfaces/http/word"
 	jwt_middleware "word_app/backend/src/middleware/jwt"
 
@@ -26,7 +25,7 @@ import (
 type Handlers struct {
 	JWTMiD  middleware_interface.Middleware // JWT ミドルウェアは Handler ではなく、インターフェースとして定義
 	Auth    AuthH.Handler
-	Setting setting.Handler
+	Setting settingH.Handler
 	User    userH.Handler
 	Word    word.Handler
 	Quiz    quiz.Handler

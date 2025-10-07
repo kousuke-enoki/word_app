@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"word_app/backend/src/handlers/auth"
+	"word_app/backend/src/handlers/setting"
 	"word_app/backend/src/handlers/user"
 	middleware_interface "word_app/backend/src/interfaces/http/middleware"
 	"word_app/backend/src/interfaces/http/quiz"
 	"word_app/backend/src/interfaces/http/result"
-	"word_app/backend/src/interfaces/http/setting"
 	"word_app/backend/src/interfaces/http/word"
 
 	"github.com/gin-gonic/gin"

@@ -1,262 +1,200 @@
+// src/handlers/user/test/sign_up_handler_test.go
 package user_test
 
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
-	"word_app/backend/ent"
-	"word_app/backend/src/handlers/user"
+	h "word_app/backend/src/handlers/user"
 	"word_app/backend/src/mocks"
-	"word_app/backend/src/models"
-	user_service "word_app/backend/src/service/user"
+	user_mocks "word_app/backend/src/mocks/usecase/user"
+	"word_app/backend/src/usecase/apperror"
+	user_usecase "word_app/backend/src/usecase/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-func TestSignUpHandler(t *testing.T) {
+/************ テスト用ヘルパー ************/
+
+func newSignUpRouter(uc *user_mocks.MockUsecase, jwt *mocks.MockJwtGenerator) *gin.Engine {
 	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	hd := h.NewHandler(uc, jwt)
+	r.POST("/signup", hd.SignUpHandler())
+	return r
+}
 
-	// モックの初期化
-	mockClient := new(mocks.UserClient)
-	mockJWTGen := &mocks.MockJwtGenerator{}
-	handler := user.NewHandler(mockClient, mockJWTGen)
+func postJSON(r *gin.Engine, path string, body any) *httptest.ResponseRecorder {
+	w := httptest.NewRecorder()
+	var buf bytes.Buffer
+	if body != nil {
+		_ = json.NewEncoder(&buf).Encode(body)
+	}
+	req := httptest.NewRequest(http.MethodPost, path, &buf)
+	req.Header.Set("Content-Type", "application/json")
+	r.ServeHTTP(w, req)
+	return w
+}
 
-	t.Run("error: request body is nil", func(t *testing.T) {
-		req, _ := http.NewRequest("POST", "/sign_up", nil)
-		w := httptest.NewRecorder()
+/************ 本体テスト ************/
 
-		router := gin.Default()
-		router.POST("/sign_up", handler.SignUpHandler())
+func TestSignUpHandler_AllPaths(t *testing.T) {
+	type Req struct {
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
 
-		router.ServeHTTP(w, req)
+	t.Run("200 OK - success", func(t *testing.T) {
+		uc := new(user_mocks.MockUsecase)
+		jwt := &mocks.MockJwtGenerator{}
+		r := newSignUpRouter(uc, jwt)
 
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		var resp map[string]string
-		err := json.Unmarshal(w.Body.Bytes(), &resp)
-		assert.NoError(t, err)
-		assert.Equal(t, "request body is nil", resp["error"])
-		mockClient.AssertExpectations(t)
-	})
-
-	t.Run("error: invalid JSON request", func(t *testing.T) {
-		reqBody := `{"invalidJson":`
-		req, _ := http.NewRequest("POST", "/sign_up", bytes.NewBufferString(reqBody))
-		req.Header.Set("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-
-		router := gin.Default()
-		router.POST("/sign_up", handler.SignUpHandler())
-
-		router.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		var resp map[string]string
-		err := json.Unmarshal(w.Body.Bytes(), &resp)
-		assert.NoError(t, err)
-		assert.Contains(t, resp["error"], "invalid request")
-		mockClient.AssertExpectations(t)
-	})
-
-	t.Run("error: validation errors", func(t *testing.T) {
-		reqBody := `{"email": "", "name": "", "password": ""}`
-		req, _ := http.NewRequest("POST", "/sign_up", bytes.NewBufferString(reqBody))
-		req.Header.Set("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-
-		router := gin.Default()
-		router.POST("/sign_up", handler.SignUpHandler())
-
-		router.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		var resp map[string]interface{}
-		err := json.Unmarshal(w.Body.Bytes(), &resp)
-		assert.NoError(t, err)
-		assert.Equal(t, "invalid request: Key: 'SignUpRequest.Email' Error:Field validation for 'Email' failed on the 'required' tag\nKey: 'SignUpRequest.Name' Error:Field validation for 'Name' failed on the 'required' tag\nKey: 'SignUpRequest.Password' Error:Field validation for 'Password' failed on the 'required' tag", resp["error"])
-		mockClient.AssertExpectations(t)
-	})
-
-	t.Run("error: validate input fields", func(t *testing.T) {
-		mockClient := new(mocks.UserClient)
-		userHandler := user.NewHandler(mockClient, mockJWTGen)
-
-		// モックの設定
-		mockClient.On("Create", mock.Anything, "test@example.com", "te", "pass").
-			Return(nil, user_service.ErrDuplicateEmail)
-
-		// リクエストの設定
-		req, _ := http.NewRequest("POST", "/sign_up", strings.NewReader(`{"email":"test@example.com","name":"te","password":"pass"}`))
-		req.Header.Set("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-
-		// Ginルーターの設定
-		router := gin.Default()
-		router.POST("/sign_up", userHandler.SignUpHandler())
-
-		// テストリクエストの送信
-		router.ServeHTTP(w, req)
-
-		// ステータスコードの確認
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-
-		// レスポンスの解析
-		var resp struct {
-			Errors []struct {
-				Field   string `json:"field"`
-				Message string `json:"message"`
-			} `json:"errors"`
+		req := Req{
+			Name:     "Alice",
+			Email:    "alice@example.com",
+			Password: "Secret_123!",
 		}
-		err := json.Unmarshal(w.Body.Bytes(), &resp)
-		assert.NoError(t, err)
 
-		// エラーメッセージの確認
-		assert.Len(t, resp.Errors, 3)
+		// Usecase: 入力DTOが正しく詰め替えられていることをざっくり検証
+		argMatcher := mock.MatchedBy(func(in user_usecase.SignUpInput) bool {
+			return in.Name == req.Name && in.Email == req.Email && in.Password == req.Password
+		})
+		uc.On("SignUp", mock.Anything, argMatcher).
+			Return(&user_usecase.SignUpOutput{UserID: 42}, nil)
+		jwt.On("GenerateJWT", "42").Return("tok_abc", nil)
 
-		// エラー内容の確認
-		assert.Equal(t, "name", resp.Errors[0].Field)
-		assert.Equal(t, "name must be between 3 and 20 characters", resp.Errors[0].Message)
-
-		assert.Equal(t, "password", resp.Errors[1].Field)
-		assert.Equal(t, "password must be between 8 and 30 characters", resp.Errors[1].Message)
-
-		assert.Equal(t, "password", resp.Errors[2].Field)
-		assert.Equal(t, "password must include at least one uppercase letter, one lowercase letter, one number, and one special character", resp.Errors[2].Message)
-	})
-
-	t.Run("error: database failure", func(t *testing.T) {
-		mockClient := new(mocks.UserClient)
-		userHandler := user.NewHandler(mockClient, mockJWTGen)
-		// hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("Password123$"), bcrypt.DefaultCost)
-
-		mockClient.On("Create", mock.Anything, "test@example.com", "test", mock.Anything).
-			Return(nil, user_service.ErrDatabaseFailure)
-
-		req, _ := http.NewRequest("POST", "/sign_up", strings.NewReader(`{"email":"test@example.com","name":"test","password":"Password123$"}`))
-		// reqBody := `{"email": "test@example.com", "name": "test", "password": "Password123$"}`
-		// req, _ := http.NewRequest("POST", "/sign_up", bytes.NewBufferString(reqBody))
-		req.Header.Set("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-
-		router := gin.Default()
-		router.POST("/sign_up", userHandler.SignUpHandler())
-
-		router.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-		var resp map[string]string
-		err := json.Unmarshal(w.Body.Bytes(), &resp)
-		assert.NoError(t, err)
-		assert.Equal(t, "Failed to create user", resp["error"])
-	})
-
-	t.Run("error: JWT generation fails", func(t *testing.T) {
-		mockClient := new(mocks.UserClient)
-		mockJWTGen := &mocks.MockJwtGenerator{}
-		userHandler := user.NewHandler(mockClient, mockJWTGen)
-		Email := "test@example.com"
-		mockUser := &ent.User{ID: 1, Name: "test", Email: &Email}
-
-		mockClient.On("Create", mock.Anything, "test@example.com", "test", mock.Anything).
-			Return(mockUser, nil)
-		mockJWTGen.On("GenerateJWT", "1").Return("", errors.New("JWT generation error"))
-
-		req, _ := http.NewRequest("POST", "/sign_up", strings.NewReader(`{"email":"test@example.com","name":"test","password":"Password123$"}`))
-
-		// reqBody := `{"email": "test@example.com", "name": "test", "password": "Password123$"}`
-		// req, _ := http.NewRequest("POST", "/sign_up", bytes.NewBufferString(reqBody))
-		req.Header.Set("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-
-		router := gin.Default()
-		router.POST("/sign_up", userHandler.SignUpHandler())
-
-		router.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-		var resp map[string]string
-		err := json.Unmarshal(w.Body.Bytes(), &resp)
-		assert.NoError(t, err)
-		assert.Equal(t, "Failed to generate token", resp["error"])
-	})
-
-	t.Run("success: user created and token generated", func(t *testing.T) {
-		mockClient := new(mocks.UserClient)
-		mockJWTGen := &mocks.MockJwtGenerator{}
-		userHandler := user.NewHandler(mockClient, mockJWTGen)
-		// 正常なリクエストデータ
-		reqData := models.SignUpRequest{
-			Email:    "test@example.com",
-			Name:     "TestUser",
-			Password: "Secure123!",
-		}
-		reqBody, _ := json.Marshal(reqData)
-
-		mockClient.On("Create", mock.Anything, reqData.Email, reqData.Name, mock.Anything).
-			Return(&ent.User{ID: 1, Name: reqData.Name, Email: &reqData.Email}, nil)
-		mockJWTGen.On("GenerateJWT", "1").Return("mocked_jwt_token", nil)
-
-		req, _ := http.NewRequest(http.MethodPost, "/sign_up", bytes.NewBuffer(reqBody))
-		req.Header.Set("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-
-		c, _ := gin.CreateTestContext(w)
-		c.Request = req
-
-		userHandler.SignUpHandler()(c)
+		w := postJSON(r, "/signup", req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		responseData := map[string]string{}
-		err := json.Unmarshal(w.Body.Bytes(), &responseData)
-		assert.NoError(t, err)
-		assert.Equal(t, "mocked_jwt_token", responseData["token"])
-
-		mockClient.AssertExpectations(t)
-		mockJWTGen.AssertExpectations(t)
+		var got map[string]any
+		_ = json.Unmarshal(w.Body.Bytes(), &got)
+		assert.Equal(t, "Authentication successful", got["message"])
+		assert.Equal(t, "tok_abc", got["token"])
+		uc.AssertExpectations(t)
+		jwt.AssertExpectations(t)
 	})
 
-	t.Run("TestSignUpHandler_InvalidRequest", func(t *testing.T) {
-		gin.SetMode(gin.TestMode)
+	t.Run("500 - invalid JSON (bind error at parseRequest)", func(t *testing.T) {
+		uc := new(user_mocks.MockUsecase)
+		jwt := &mocks.MockJwtGenerator{}
+		r := newSignUpRouter(uc, jwt)
 
-		mockClient := new(mocks.UserClient)
-		mockJWTGen := &mocks.MockJwtGenerator{}
-
-		handler := user.NewHandler(mockClient, mockJWTGen)
-
-		// バリデーションエラーケース（短すぎる名前、無効なメール、簡単すぎるパスワード）
-		testCases := []models.SignUpRequest{
-			{Email: "invalid-email", Name: "T", Password: "simple"},
-			{Email: "test@example.com", Name: "TestUser", Password: "short1"},
-			{Email: "test@example.com", Name: "TestUser", Password: "NoSpecialChar1"},
-		}
-
-		for _, reqData := range testCases {
-			reqBody, _ := json.Marshal(reqData)
-
-			req, _ := http.NewRequest(http.MethodPost, "/signup", bytes.NewBuffer(reqBody))
-			req.Header.Set("Content-Type", "application/json")
+		// email を number にして JSON バインドエラーを発生させる
+		w := func() *httptest.ResponseRecorder {
 			w := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewBufferString(`{"name":"A","email":123,"password":"Secret_123!"}`))
+			req.Header.Set("Content-Type", "application/json")
+			r.ServeHTTP(w, req)
+			return w
+		}()
 
-			c, _ := gin.CreateTestContext(w)
-			c.Request = req
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.JSONEq(t, `{"error":"internal error"}`, w.Body.String())
+		uc.AssertNotCalled(t, "SignUp", mock.Anything, mock.Anything)
+		jwt.AssertNotCalled(t, "GenerateJWT", mock.Anything)
+	})
 
-			handler.SignUpHandler()(c)
+	t.Run("400 - validation error (ValidateSignUp)", func(t *testing.T) {
+		uc := new(user_mocks.MockUsecase)
+		jwt := &mocks.MockJwtGenerator{}
+		r := newSignUpRouter(uc, jwt)
 
-			assert.Equal(t, http.StatusBadRequest, w.Code)
-			responseData := map[string][]map[string]string{}
-			err := json.Unmarshal(w.Body.Bytes(), &responseData)
-			assert.NoError(t, err)
-
-			// バリデーションエラーメッセージが返されていることを確認
-			assert.Greater(t, len(responseData["errors"]), 0)
+		// わざと不正: 短すぎる名前/パスワードなど（実装側の validator に合わせて調整）
+		req := Req{
+			Name:     "",                 // 必須
+			Email:    "bad_email_format", // 不正フォーマット
+			Password: "short",            // 要件未達
 		}
 
-		mockClient.AssertExpectations(t)
+		w := postJSON(r, "/signup", req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		var got map[string]any
+		_ = json.Unmarshal(w.Body.Bytes(), &got)
+		assert.Equal(t, "invalid input", got["error"])
+		_, hasFields := got["fields"] // fields が返ってくることのみ確認（詳細は validator 側の責務）
+		assert.True(t, hasFields)
+		uc.AssertNotCalled(t, "SignUp", mock.Anything, mock.Anything)
+		jwt.AssertNotCalled(t, "GenerateJWT", mock.Anything)
+	})
+
+	t.Run("409 - conflict from usecase (duplicate email)", func(t *testing.T) {
+		uc := new(user_mocks.MockUsecase)
+		jwt := &mocks.MockJwtGenerator{}
+		r := newSignUpRouter(uc, jwt)
+
+		req := Req{
+			Name:     "Bob",
+			Email:    "dup@example.com",
+			Password: "Secret_123!",
+		}
+
+		argMatcher := mock.MatchedBy(func(in user_usecase.SignUpInput) bool {
+			return in.Email == req.Email
+		})
+		uc.On("SignUp", mock.Anything, argMatcher).
+			Return((*user_usecase.SignUpOutput)(nil), apperror.Conflictf("email already exists", nil))
+
+		w := postJSON(r, "/signup", req)
+
+		assert.Equal(t, http.StatusConflict, w.Code)
+		assert.JSONEq(t, `{"error":"email already exists"}`, w.Body.String())
+		jwt.AssertNotCalled(t, "GenerateJWT", mock.Anything)
+		uc.AssertExpectations(t)
+	})
+
+	t.Run("500 - internal from usecase", func(t *testing.T) {
+		uc := new(user_mocks.MockUsecase)
+		jwt := &mocks.MockJwtGenerator{}
+		r := newSignUpRouter(uc, jwt)
+
+		req := Req{
+			Name:     "Carol",
+			Email:    "carol@example.com",
+			Password: "Secret_123!",
+		}
+
+		uc.On("SignUp", mock.Anything, mock.Anything).
+			Return((*user_usecase.SignUpOutput)(nil), apperror.Internalf("internal error", nil))
+
+		w := postJSON(r, "/signup", req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.JSONEq(t, `{"error":"internal error"}`, w.Body.String())
+		jwt.AssertNotCalled(t, "GenerateJWT", mock.Anything)
+		uc.AssertExpectations(t)
+	})
+
+	t.Run("400 - JWT generation failure", func(t *testing.T) {
+		uc := new(user_mocks.MockUsecase)
+		jwt := &mocks.MockJwtGenerator{}
+		r := newSignUpRouter(uc, jwt)
+
+		req := Req{
+			Name:     "Dave",
+			Email:    "dave@example.com",
+			Password: "Secret_123!",
+		}
+
+		uc.On("SignUp", mock.Anything, mock.Anything).
+			Return(&user_usecase.SignUpOutput{UserID: 777}, nil)
+		jwt.On("GenerateJWT", "777").Return("", assert.AnError)
+
+		w := postJSON(r, "/signup", req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		// ここはハンドラー側が Validation で「Failed to generate token」というメッセージを返す
+		var got map[string]any
+		_ = json.Unmarshal(w.Body.Bytes(), &got)
+		// メッセージ文字列はコードに合わせる（固定文言にしている場合は JSONEq でもOK）
+		assert.Equal(t, "Failed to generate token", got["error"])
+		uc.AssertExpectations(t)
+		jwt.AssertExpectations(t)
 	})
 }

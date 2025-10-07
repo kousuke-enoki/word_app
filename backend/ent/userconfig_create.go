@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
 
@@ -38,6 +39,20 @@ func (ucc *UserConfigCreate) SetIsDarkMode(b bool) *UserConfigCreate {
 func (ucc *UserConfigCreate) SetNillableIsDarkMode(b *bool) *UserConfigCreate {
 	if b != nil {
 		ucc.SetIsDarkMode(*b)
+	}
+	return ucc
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (ucc *UserConfigCreate) SetDeletedAt(t time.Time) *UserConfigCreate {
+	ucc.mutation.SetDeletedAt(t)
+	return ucc
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (ucc *UserConfigCreate) SetNillableDeletedAt(t *time.Time) *UserConfigCreate {
+	if t != nil {
+		ucc.SetDeletedAt(*t)
 	}
 	return ucc
 }
@@ -135,6 +150,10 @@ func (ucc *UserConfigCreate) createSpec() (*UserConfig, *sqlgraph.CreateSpec) {
 		_spec.SetField(userconfig.FieldIsDarkMode, field.TypeBool, value)
 		_node.IsDarkMode = value
 	}
+	if value, ok := ucc.mutation.DeletedAt(); ok {
+		_spec.SetField(userconfig.FieldDeletedAt, field.TypeTime, value)
+		_node.DeletedAt = &value
+	}
 	if nodes := ucc.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
@@ -228,6 +247,24 @@ func (u *UserConfigUpsert) UpdateIsDarkMode() *UserConfigUpsert {
 	return u
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (u *UserConfigUpsert) SetDeletedAt(v time.Time) *UserConfigUpsert {
+	u.Set(userconfig.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *UserConfigUpsert) UpdateDeletedAt() *UserConfigUpsert {
+	u.SetExcluded(userconfig.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *UserConfigUpsert) ClearDeletedAt() *UserConfigUpsert {
+	u.SetNull(userconfig.FieldDeletedAt)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
@@ -293,6 +330,27 @@ func (u *UserConfigUpsertOne) SetIsDarkMode(v bool) *UserConfigUpsertOne {
 func (u *UserConfigUpsertOne) UpdateIsDarkMode() *UserConfigUpsertOne {
 	return u.Update(func(s *UserConfigUpsert) {
 		s.UpdateIsDarkMode()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *UserConfigUpsertOne) SetDeletedAt(v time.Time) *UserConfigUpsertOne {
+	return u.Update(func(s *UserConfigUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *UserConfigUpsertOne) UpdateDeletedAt() *UserConfigUpsertOne {
+	return u.Update(func(s *UserConfigUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *UserConfigUpsertOne) ClearDeletedAt() *UserConfigUpsertOne {
+	return u.Update(func(s *UserConfigUpsert) {
+		s.ClearDeletedAt()
 	})
 }
 
@@ -525,6 +583,27 @@ func (u *UserConfigUpsertBulk) SetIsDarkMode(v bool) *UserConfigUpsertBulk {
 func (u *UserConfigUpsertBulk) UpdateIsDarkMode() *UserConfigUpsertBulk {
 	return u.Update(func(s *UserConfigUpsert) {
 		s.UpdateIsDarkMode()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *UserConfigUpsertBulk) SetDeletedAt(v time.Time) *UserConfigUpsertBulk {
+	return u.Update(func(s *UserConfigUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *UserConfigUpsertBulk) UpdateDeletedAt() *UserConfigUpsertBulk {
+	return u.Update(func(s *UserConfigUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *UserConfigUpsertBulk) ClearDeletedAt() *UserConfigUpsertBulk {
+	return u.Update(func(s *UserConfigUpsert) {
+		s.ClearDeletedAt()
 	})
 }
 

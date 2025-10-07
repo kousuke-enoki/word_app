@@ -2,7 +2,7 @@
 package contextutil
 
 import (
-	"errors"
+	"word_app/backend/src/usecase/apperror"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,11 +12,11 @@ import (
 func MustUserID(c *gin.Context) (int, error) {
 	v, ok := c.Get("userID")
 	if !ok {
-		return 0, errors.New("unauthorized: userID not found in context")
+		return 0, apperror.Unauthorizedf("unauthorized: userID not found in context", nil)
 	}
 	id, ok := v.(int)
 	if !ok {
-		return 0, errors.New("invalid userID type")
+		return 0, apperror.Unauthorizedf("unauthorized: userID not found in context", nil)
 	}
 	return id, nil
 }

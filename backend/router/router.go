@@ -4,23 +4,22 @@ import (
 	"net/http"
 	"time"
 
-	"word_app/backend/src/interfaces/http/auth"
-	middleware_interface "word_app/backend/src/interfaces/http/middleware"
+	"word_app/backend/src/handlers/auth"
+	"word_app/backend/src/handlers/setting"
+	"word_app/backend/src/handlers/user"
 	"word_app/backend/src/interfaces/http/quiz"
 	"word_app/backend/src/interfaces/http/result"
-	"word_app/backend/src/interfaces/http/setting"
-	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/interfaces/http/word"
+	"word_app/backend/src/middleware/jwt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
 type Implementation struct {
-	JwtMiddleware  middleware_interface.Middleware
+	JwtMiddleware  jwt.Middleware
 	AuthHandler    auth.Handler
 	UserHandler    user.Handler
-	DetailHandler  user.DetailHandler
 	SettingHandler setting.Handler
 	WordHandler    word.Handler
 	QuizHandler    quiz.Handler
@@ -28,10 +27,9 @@ type Implementation struct {
 }
 
 func NewRouter(
-	jwtMiddleware middleware_interface.Middleware,
+	jwtMiddleware jwt.Middleware,
 	authHandler auth.Handler,
 	userHandler user.Handler,
-	detailHandler user.DetailHandler,
 	settingHandler setting.Handler,
 	wordHandler word.Handler,
 	quizHandler quiz.Handler,
@@ -41,7 +39,6 @@ func NewRouter(
 		JwtMiddleware:  jwtMiddleware,
 		AuthHandler:    authHandler,
 		UserHandler:    userHandler,
-		DetailHandler:  detailHandler,
 		SettingHandler: settingHandler,
 		WordHandler:    wordHandler,
 		QuizHandler:    quizHandler,
@@ -78,8 +75,8 @@ func (r *Implementation) MountRoutes(router *gin.Engine) {
 
 		protectedRoutes.GET("/users/my_page", r.UserHandler.MyPageHandler())
 		protectedRoutes.GET("/users", r.UserHandler.ListHandler())
-		protectedRoutes.GET("/users/me", r.DetailHandler.MeHandler())
-		protectedRoutes.GET("/users/:id", r.DetailHandler.ShowHandler())
+		protectedRoutes.GET("/users/me", r.UserHandler.MeHandler())
+		protectedRoutes.GET("/users/:id", r.UserHandler.ShowHandler())
 		protectedRoutes.PUT("/users/:id", r.UserHandler.EditHandler())
 		protectedRoutes.DELETE("/users/:id", r.UserHandler.DeleteHandler())
 		protectedRoutes.GET("/setting/user_config", r.SettingHandler.GetUserConfigHandler())

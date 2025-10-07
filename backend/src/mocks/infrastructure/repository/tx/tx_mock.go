@@ -37,6 +37,76 @@ func (_m *MockManager) EXPECT() *MockManager_Expecter {
 	return &MockManager_Expecter{mock: &_m.Mock}
 }
 
+// Begin provides a mock function for the type MockManager
+func (_mock *MockManager) Begin(ctx context.Context) (context.Context, func(commit bool) error, error) {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Begin")
+	}
+
+	var r0 context.Context
+	var r1 func(commit bool) error
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) (context.Context, func(commit bool) error, error)); ok {
+		return returnFunc(ctx)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context) context.Context); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(context.Context)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context) func(commit bool) error); ok {
+		r1 = returnFunc(ctx)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(func(commit bool) error)
+		}
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context) error); ok {
+		r2 = returnFunc(ctx)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockManager_Begin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Begin'
+type MockManager_Begin_Call struct {
+	*mock.Call
+}
+
+// Begin is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockManager_Expecter) Begin(ctx interface{}) *MockManager_Begin_Call {
+	return &MockManager_Begin_Call{Call: _e.mock.On("Begin", ctx)}
+}
+
+func (_c *MockManager_Begin_Call) Run(run func(ctx context.Context)) *MockManager_Begin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockManager_Begin_Call) Return(context1 context.Context, fn func(commit bool) error, err error) *MockManager_Begin_Call {
+	_c.Call.Return(context1, fn, err)
+	return _c
+}
+
+func (_c *MockManager_Begin_Call) RunAndReturn(run func(ctx context.Context) (context.Context, func(commit bool) error, error)) *MockManager_Begin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // WithTx provides a mock function for the type MockManager
 func (_mock *MockManager) WithTx(ctx context.Context, f func(ctx context.Context) error) error {
 	ret := _mock.Called(ctx, f)

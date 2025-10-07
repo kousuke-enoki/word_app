@@ -16,6 +16,8 @@ const (
 	FieldUserID = "user_id"
 	// FieldIsDarkMode holds the string denoting the is_dark_mode field in the database.
 	FieldIsDarkMode = "is_dark_mode"
+	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
+	FieldDeletedAt = "deleted_at"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// Table holds the table name of the userconfig in the database.
@@ -34,6 +36,7 @@ var Columns = []string{
 	FieldID,
 	FieldUserID,
 	FieldIsDarkMode,
+	FieldDeletedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -69,6 +72,11 @@ func ByUserID(opts ...sql.OrderTermOption) OrderOption {
 // ByIsDarkMode orders the results by the is_dark_mode field.
 func ByIsDarkMode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsDarkMode, opts...).ToFunc()
+}
+
+// ByDeletedAt orders the results by the deleted_at field.
+func ByDeletedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeletedAt, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

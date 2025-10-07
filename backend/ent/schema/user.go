@@ -9,8 +9,10 @@ import (
 
 	"entgo.io/ent"
 
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // User holds the schema definition for the User entity.
@@ -76,5 +78,14 @@ func (User) Edges() []ent.Edge {
 		edge.To("user_config", UserConfig.Type).
 			Unique(),
 		edge.To("external_auths", ExternalAuth.Type),
+	}
+}
+
+func (User) Indexes() []ent.Index {
+	return []ent.Index{
+		// 有効ユーザーのemailだけユニーク
+		index.Fields("email").
+			Annotations(entsql.IndexWhere("deleted_at IS NULL")).
+			Unique(),
 	}
 }

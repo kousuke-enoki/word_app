@@ -2,47 +2,54 @@ package auth
 
 import (
 	"context"
-	"time"
 
+	"word_app/backend/src/infrastructure/auth/line"
+	"word_app/backend/src/infrastructure/jwt"
 	auth_repo "word_app/backend/src/infrastructure/repository/auth"
+	setting_repo "word_app/backend/src/infrastructure/repository/setting"
+	tx_repo "word_app/backend/src/infrastructure/repository/tx"
 	user_repo "word_app/backend/src/infrastructure/repository/user"
-	"word_app/backend/src/interfaces/http/auth"
-	"word_app/backend/src/utils/tempjwt"
-
-	"github.com/coreos/go-oidc/v3/oidc"
 )
 
-type Usecase struct {
-	provider     Provider
+type AuthUsecase struct {
+	txm          tx_repo.Manager
+	provider     line.Provider
 	userRepo     user_repo.Repository
+	settingRepo  setting_repo.UserConfigRepository
 	extAuthRepo  auth_repo.ExternalAuthRepository
-	jwtGenerator auth.JWTGenerator
-	tempJwtGen   TempTokenGenerator
+	jwtGenerator jwt.JWTGenerator
+	tempJwtGen   jwt.TempTokenGenerator
 }
 
 func NewUsecase(
-	provider Provider,
+	txm tx_repo.Manager,
+	provider line.Provider,
 	userRepo user_repo.Repository,
+	settingRepo setting_repo.UserConfigRepository,
 	extAuthRepo auth_repo.ExternalAuthRepository,
-	jwtGen auth.JWTGenerator,
-	tempJwtGen TempTokenGenerator,
-) *Usecase {
-	return &Usecase{
+	jwtGen jwt.JWTGenerator,
+	tempJwtGen jwt.TempTokenGenerator,
+) *AuthUsecase {
+	return &AuthUsecase{
+		txm:          txm,
 		provider:     provider,
 		userRepo:     userRepo,
+		settingRepo:  settingRepo,
 		extAuthRepo:  extAuthRepo,
 		jwtGenerator: jwtGen,
 		tempJwtGen:   tempJwtGen,
 	}
 }
 
-type Provider interface {
-	AuthURL(state, nonce string) string
-	Exchange(ctx context.Context, code string) (*tempjwt.Identity, error)
-	ValidateNonce(idTok *oidc.IDToken, expected string) error
+type Usecase interface {
+	StartLogin(ctx context.Context, state, nonce string) string
+	HandleCallback(ctx context.Context, code string) (*CallbackResult, error)
+	CompleteSignUp(ctx context.Context, tempToken string, pass *string) (string, error)
 }
 
-type TempTokenGenerator interface {
-	GenerateTemp(id *tempjwt.Identity, ttl time.Duration) (string, error)
-	ParseTemp(tok string) (*tempjwt.Identity, error)
+type CallbackResult struct {
+	Token         string  `json:"token,omitempty"`
+	NeedPassword  bool    `json:"need_password,omitempty"`
+	TempToken     string  `json:"temp_token,omitempty"`
+	SuggestedMail *string `json:"suggested_mail,omitempty"`
 }

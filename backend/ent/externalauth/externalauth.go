@@ -16,6 +16,8 @@ const (
 	FieldProvider = "provider"
 	// FieldProviderUserID holds the string denoting the provider_user_id field in the database.
 	FieldProviderUserID = "provider_user_id"
+	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
+	FieldDeletedAt = "deleted_at"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// Table holds the table name of the externalauth in the database.
@@ -34,6 +36,7 @@ var Columns = []string{
 	FieldID,
 	FieldProvider,
 	FieldProviderUserID,
+	FieldDeletedAt,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "external_auths"
@@ -80,6 +83,11 @@ func ByProvider(opts ...sql.OrderTermOption) OrderOption {
 // ByProviderUserID orders the results by the provider_user_id field.
 func ByProviderUserID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldProviderUserID, opts...).ToFunc()
+}
+
+// ByDeletedAt orders the results by the deleted_at field.
+func ByDeletedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeletedAt, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

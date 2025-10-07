@@ -14,20 +14,25 @@ import (
 	"word_app/backend/src/utils/contextutil"
 )
 
-type TokenValidator struct {
+type JwtTokenValidator struct {
 	secret []byte
 	client serviceinterfaces.EntClientInterface
 }
 
-func NewJWTValidator(secret string, client serviceinterfaces.EntClientInterface) *TokenValidator {
-	return &TokenValidator{
+func NewJWTValidator(secret string, client serviceinterfaces.EntClientInterface) *JwtTokenValidator {
+	return &JwtTokenValidator{
 		secret: []byte(secret),
 		client: client,
 	}
 }
 
+type TokenValidator interface {
+	// raw JWT を検証してユーザ権限を返す
+	Validate(ctx context.Context, token string) (contextutil.UserRoles, error)
+}
+
 // Validate は JWT を検証し、DB からロールを取得して返す。
-func (v *TokenValidator) Validate(ctx context.Context, tokenStr string) (contextutil.UserRoles, error) {
+func (v *JwtTokenValidator) Validate(ctx context.Context, tokenStr string) (contextutil.UserRoles, error) {
 	var zero contextutil.UserRoles
 	tok, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {

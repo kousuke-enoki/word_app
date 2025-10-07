@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 	"word_app/backend/ent/externalauth"
 	"word_app/backend/ent/predicate"
 	"word_app/backend/ent/user"
@@ -53,6 +54,26 @@ func (eau *ExternalAuthUpdate) SetNillableProviderUserID(s *string) *ExternalAut
 	if s != nil {
 		eau.SetProviderUserID(*s)
 	}
+	return eau
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (eau *ExternalAuthUpdate) SetDeletedAt(t time.Time) *ExternalAuthUpdate {
+	eau.mutation.SetDeletedAt(t)
+	return eau
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (eau *ExternalAuthUpdate) SetNillableDeletedAt(t *time.Time) *ExternalAuthUpdate {
+	if t != nil {
+		eau.SetDeletedAt(*t)
+	}
+	return eau
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (eau *ExternalAuthUpdate) ClearDeletedAt() *ExternalAuthUpdate {
+	eau.mutation.ClearDeletedAt()
 	return eau
 }
 
@@ -141,6 +162,12 @@ func (eau *ExternalAuthUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := eau.mutation.ProviderUserID(); ok {
 		_spec.SetField(externalauth.FieldProviderUserID, field.TypeString, value)
 	}
+	if value, ok := eau.mutation.DeletedAt(); ok {
+		_spec.SetField(externalauth.FieldDeletedAt, field.TypeTime, value)
+	}
+	if eau.mutation.DeletedAtCleared() {
+		_spec.ClearField(externalauth.FieldDeletedAt, field.TypeTime)
+	}
 	if eau.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -215,6 +242,26 @@ func (eauo *ExternalAuthUpdateOne) SetNillableProviderUserID(s *string) *Externa
 	if s != nil {
 		eauo.SetProviderUserID(*s)
 	}
+	return eauo
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (eauo *ExternalAuthUpdateOne) SetDeletedAt(t time.Time) *ExternalAuthUpdateOne {
+	eauo.mutation.SetDeletedAt(t)
+	return eauo
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (eauo *ExternalAuthUpdateOne) SetNillableDeletedAt(t *time.Time) *ExternalAuthUpdateOne {
+	if t != nil {
+		eauo.SetDeletedAt(*t)
+	}
+	return eauo
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (eauo *ExternalAuthUpdateOne) ClearDeletedAt() *ExternalAuthUpdateOne {
+	eauo.mutation.ClearDeletedAt()
 	return eauo
 }
 
@@ -332,6 +379,12 @@ func (eauo *ExternalAuthUpdateOne) sqlSave(ctx context.Context) (_node *External
 	}
 	if value, ok := eauo.mutation.ProviderUserID(); ok {
 		_spec.SetField(externalauth.FieldProviderUserID, field.TypeString, value)
+	}
+	if value, ok := eauo.mutation.DeletedAt(); ok {
+		_spec.SetField(externalauth.FieldDeletedAt, field.TypeTime, value)
+	}
+	if eauo.mutation.DeletedAtCleared() {
+		_spec.ClearField(externalauth.FieldDeletedAt, field.TypeTime)
 	}
 	if eauo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -56,6 +56,7 @@ type ExternalAuthMutation struct {
 	id               *int
 	provider         *string
 	provider_user_id *string
+	deleted_at       *time.Time
 	clearedFields    map[string]struct{}
 	user             *int
 	cleareduser      bool
@@ -234,6 +235,55 @@ func (m *ExternalAuthMutation) ResetProviderUserID() {
 	m.provider_user_id = nil
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (m *ExternalAuthMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *ExternalAuthMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the ExternalAuth entity.
+// If the ExternalAuth object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExternalAuthMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *ExternalAuthMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[externalauth.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *ExternalAuthMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[externalauth.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *ExternalAuthMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, externalauth.FieldDeletedAt)
+}
+
 // SetUserID sets the "user" edge to the User entity by id.
 func (m *ExternalAuthMutation) SetUserID(id int) {
 	m.user = &id
@@ -307,12 +357,15 @@ func (m *ExternalAuthMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ExternalAuthMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.provider != nil {
 		fields = append(fields, externalauth.FieldProvider)
 	}
 	if m.provider_user_id != nil {
 		fields = append(fields, externalauth.FieldProviderUserID)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, externalauth.FieldDeletedAt)
 	}
 	return fields
 }
@@ -326,6 +379,8 @@ func (m *ExternalAuthMutation) Field(name string) (ent.Value, bool) {
 		return m.Provider()
 	case externalauth.FieldProviderUserID:
 		return m.ProviderUserID()
+	case externalauth.FieldDeletedAt:
+		return m.DeletedAt()
 	}
 	return nil, false
 }
@@ -339,6 +394,8 @@ func (m *ExternalAuthMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldProvider(ctx)
 	case externalauth.FieldProviderUserID:
 		return m.OldProviderUserID(ctx)
+	case externalauth.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown ExternalAuth field %s", name)
 }
@@ -361,6 +418,13 @@ func (m *ExternalAuthMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetProviderUserID(v)
+		return nil
+	case externalauth.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ExternalAuth field %s", name)
@@ -391,7 +455,11 @@ func (m *ExternalAuthMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *ExternalAuthMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(externalauth.FieldDeletedAt) {
+		fields = append(fields, externalauth.FieldDeletedAt)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -404,6 +472,11 @@ func (m *ExternalAuthMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *ExternalAuthMutation) ClearField(name string) error {
+	switch name {
+	case externalauth.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
 	return fmt.Errorf("unknown ExternalAuth nullable field %s", name)
 }
 
@@ -416,6 +489,9 @@ func (m *ExternalAuthMutation) ResetField(name string) error {
 		return nil
 	case externalauth.FieldProviderUserID:
 		m.ResetProviderUserID()
+		return nil
+	case externalauth.FieldDeletedAt:
+		m.ResetDeletedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown ExternalAuth field %s", name)
@@ -7363,6 +7439,7 @@ type UserConfigMutation struct {
 	typ           string
 	id            *int
 	is_dark_mode  *bool
+	deleted_at    *time.Time
 	clearedFields map[string]struct{}
 	user          *int
 	cleareduser   bool
@@ -7541,6 +7618,55 @@ func (m *UserConfigMutation) ResetIsDarkMode() {
 	m.is_dark_mode = nil
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (m *UserConfigMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *UserConfigMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the UserConfig entity.
+// If the UserConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserConfigMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *UserConfigMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[userconfig.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *UserConfigMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[userconfig.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *UserConfigMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, userconfig.FieldDeletedAt)
+}
+
 // ClearUser clears the "user" edge to the User entity.
 func (m *UserConfigMutation) ClearUser() {
 	m.cleareduser = true
@@ -7602,12 +7728,15 @@ func (m *UserConfigMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserConfigMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.user != nil {
 		fields = append(fields, userconfig.FieldUserID)
 	}
 	if m.is_dark_mode != nil {
 		fields = append(fields, userconfig.FieldIsDarkMode)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, userconfig.FieldDeletedAt)
 	}
 	return fields
 }
@@ -7621,6 +7750,8 @@ func (m *UserConfigMutation) Field(name string) (ent.Value, bool) {
 		return m.UserID()
 	case userconfig.FieldIsDarkMode:
 		return m.IsDarkMode()
+	case userconfig.FieldDeletedAt:
+		return m.DeletedAt()
 	}
 	return nil, false
 }
@@ -7634,6 +7765,8 @@ func (m *UserConfigMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldUserID(ctx)
 	case userconfig.FieldIsDarkMode:
 		return m.OldIsDarkMode(ctx)
+	case userconfig.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown UserConfig field %s", name)
 }
@@ -7656,6 +7789,13 @@ func (m *UserConfigMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsDarkMode(v)
+		return nil
+	case userconfig.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
 		return nil
 	}
 	return fmt.Errorf("unknown UserConfig field %s", name)
@@ -7689,7 +7829,11 @@ func (m *UserConfigMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserConfigMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(userconfig.FieldDeletedAt) {
+		fields = append(fields, userconfig.FieldDeletedAt)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -7702,6 +7846,11 @@ func (m *UserConfigMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserConfigMutation) ClearField(name string) error {
+	switch name {
+	case userconfig.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
 	return fmt.Errorf("unknown UserConfig nullable field %s", name)
 }
 
@@ -7714,6 +7863,9 @@ func (m *UserConfigMutation) ResetField(name string) error {
 		return nil
 	case userconfig.FieldIsDarkMode:
 		m.ResetIsDarkMode()
+		return nil
+	case userconfig.FieldDeletedAt:
+		m.ResetDeletedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown UserConfig field %s", name)

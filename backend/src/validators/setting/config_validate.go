@@ -3,8 +3,6 @@ package setting
 import (
 	"word_app/backend/src/models"
 	settingUc "word_app/backend/src/usecase/setting"
-
-	"github.com/sirupsen/logrus"
 )
 
 type Validator interface {
@@ -27,8 +25,6 @@ func validateEditingPermissions(editingPermissions string) []*models.FieldError 
 		"admin": true,
 		"root":  true,
 	}
-	logrus.Info("editingPermissions")
-	logrus.Info(editingPermissions)
 	if !validRoles[editingPermissions] {
 		fieldErrors = append(fieldErrors, &models.FieldError{
 			Field:   "editing_permissions",

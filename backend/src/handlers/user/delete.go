@@ -6,47 +6,40 @@ import (
 	"net/http"
 	"strconv"
 
-	user_service "word_app/backend/src/service/user"
+	"word_app/backend/src/handlers/httperr"
+	"word_app/backend/src/usecase/apperror"
+	user_usecase "word_app/backend/src/usecase/user"
+	"word_app/backend/src/utils/contextutil"
 
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) DeleteHandler() gin.HandlerFunc {
+func (h *UserHandler) DeleteHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
-
 		// 操作対象者
 		// editorID はミドルウェアで設定済み前提
-		editorIDAny, ok := c.Get("userID")
-		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		editorID, err := contextutil.MustUserID(c)
+		if err != nil {
+			httperr.Write(c, err)
 			return
 		}
-		editorID, _ := editorIDAny.(int)
 
 		// 削除対象IDの取得
 		targetID, err := strconv.Atoi(c.Param("id"))
 		if err != nil || targetID <= 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+			httperr.Write(c, apperror.Validationf("invalid userID type", nil))
 			return
 		}
-
-		// サービス呼び出し
-		err = h.userClient.Delete(ctx, editorID, targetID)
+		in := user_usecase.DeleteUserInput{
+			EditorID: editorID,
+			TargetID: targetID,
+		}
+		// ユースケース呼び出し
+		err = h.userUsecase.Delete(ctx, in)
 		if err != nil {
-			switch err {
-			case user_service.ErrUnauthorized:
-				c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-				return
-			case user_service.ErrUserNotFound:
-				c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
-				return
-			case user_service.ErrDatabaseFailure:
-				fallthrough
-			default:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete user"})
-				return
-			}
+			httperr.Write(c, err)
+			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{"message": "deleted"})

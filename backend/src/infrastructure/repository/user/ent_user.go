@@ -4,8 +4,10 @@ package user
 import (
 	"context"
 	"errors"
+	"time"
 
 	"word_app/backend/src/domain"
+	"word_app/backend/src/domain/repository"
 	serviceinterfaces "word_app/backend/src/interfaces/service_interfaces"
 )
 
@@ -15,10 +17,15 @@ type EntUserRepo struct {
 
 type Repository interface {
 	FindByProvider(ctx context.Context, provider, sub string) (*domain.User, error)
-	Create(ctx context.Context, u *domain.User, ext *domain.ExternalAuth) error
+	Create(ctx context.Context, u *domain.User) (user *domain.User, err error)
 	FindByID(ctx context.Context, id int) (*domain.User, error)
 	IsRoot(ctx context.Context, userID int) (bool, error)
 	FindDetailByID(ctx context.Context, id int) (*domain.User, error) // 詳細用：preload 付き
+	SoftDeleteByID(ctx context.Context, id int, t time.Time) error
+	FindActiveByEmail(ctx context.Context, email string) (*domain.User, error)
+	ListUsers(ctx context.Context, f repository.UserListFilter) (*repository.UserListResult, error)
+	FindForUpdate(ctx context.Context, id int) (*domain.User, error)
+	UpdatePartial(ctx context.Context, targetID int, f *repository.UserUpdateFields) (*domain.User, error)
 }
 
 func NewEntUserRepo(c serviceinterfaces.EntClientInterface) *EntUserRepo {

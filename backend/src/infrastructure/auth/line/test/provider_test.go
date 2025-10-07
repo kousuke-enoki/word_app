@@ -134,13 +134,13 @@ func TestProvider_Exchange(t *testing.T) {
 
 	tests := []struct {
 		name string
-		// setUp returns *line.Provider, fakeServer.CloseFn
-		setUp func(t *testing.T) (*line.Provider, func())
+		// setUp returns *line.AuthProvider, fakeServer.CloseFn
+		setUp func(t *testing.T) (*line.AuthProvider, func())
 		want
 	}{
 		{
 			name: "success",
-			setUp: func(t *testing.T) (*line.Provider, func()) {
+			setUp: func(t *testing.T) (*line.AuthProvider, func()) {
 				priv, jwks, kid := newRSAKey(t)
 				nonce := "nonce123"
 
@@ -197,7 +197,7 @@ func TestProvider_Exchange(t *testing.T) {
 		},
 		{
 			name: "token endpoint 500",
-			setUp: func(_ *testing.T) (*line.Provider, func()) {
+			setUp: func(_ *testing.T) (*line.AuthProvider, func()) {
 				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 					http.Error(w, "fail", http.StatusInternalServerError)
 				}))
@@ -218,7 +218,7 @@ func TestProvider_Exchange(t *testing.T) {
 		},
 		{
 			name: "id_token missing",
-			setUp: func(_ *testing.T) (*line.Provider, func()) {
+			setUp: func(_ *testing.T) (*line.AuthProvider, func()) {
 				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 					resp := map[string]interface{}{
 						"access_token": "dummy",
@@ -244,7 +244,7 @@ func TestProvider_Exchange(t *testing.T) {
 		},
 		{
 			name: "signature invalid",
-			setUp: func(t *testing.T) (*line.Provider, func()) {
+			setUp: func(t *testing.T) (*line.AuthProvider, func()) {
 				// 一度正常に構築 → その後 JWK に含まれない鍵で署名
 				_, jwks, _ := newRSAKey(t)
 

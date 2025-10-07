@@ -3,6 +3,7 @@
 package userconfig
 
 import (
+	"time"
 	"word_app/backend/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
@@ -64,6 +65,11 @@ func IsDarkMode(v bool) predicate.UserConfig {
 	return predicate.UserConfig(sql.FieldEQ(FieldIsDarkMode, v))
 }
 
+// DeletedAt applies equality check predicate on the "deleted_at" field. It's identical to DeletedAtEQ.
+func DeletedAt(v time.Time) predicate.UserConfig {
+	return predicate.UserConfig(sql.FieldEQ(FieldDeletedAt, v))
+}
+
 // UserIDEQ applies the EQ predicate on the "user_id" field.
 func UserIDEQ(v int) predicate.UserConfig {
 	return predicate.UserConfig(sql.FieldEQ(FieldUserID, v))
@@ -92,6 +98,56 @@ func IsDarkModeEQ(v bool) predicate.UserConfig {
 // IsDarkModeNEQ applies the NEQ predicate on the "is_dark_mode" field.
 func IsDarkModeNEQ(v bool) predicate.UserConfig {
 	return predicate.UserConfig(sql.FieldNEQ(FieldIsDarkMode, v))
+}
+
+// DeletedAtEQ applies the EQ predicate on the "deleted_at" field.
+func DeletedAtEQ(v time.Time) predicate.UserConfig {
+	return predicate.UserConfig(sql.FieldEQ(FieldDeletedAt, v))
+}
+
+// DeletedAtNEQ applies the NEQ predicate on the "deleted_at" field.
+func DeletedAtNEQ(v time.Time) predicate.UserConfig {
+	return predicate.UserConfig(sql.FieldNEQ(FieldDeletedAt, v))
+}
+
+// DeletedAtIn applies the In predicate on the "deleted_at" field.
+func DeletedAtIn(vs ...time.Time) predicate.UserConfig {
+	return predicate.UserConfig(sql.FieldIn(FieldDeletedAt, vs...))
+}
+
+// DeletedAtNotIn applies the NotIn predicate on the "deleted_at" field.
+func DeletedAtNotIn(vs ...time.Time) predicate.UserConfig {
+	return predicate.UserConfig(sql.FieldNotIn(FieldDeletedAt, vs...))
+}
+
+// DeletedAtGT applies the GT predicate on the "deleted_at" field.
+func DeletedAtGT(v time.Time) predicate.UserConfig {
+	return predicate.UserConfig(sql.FieldGT(FieldDeletedAt, v))
+}
+
+// DeletedAtGTE applies the GTE predicate on the "deleted_at" field.
+func DeletedAtGTE(v time.Time) predicate.UserConfig {
+	return predicate.UserConfig(sql.FieldGTE(FieldDeletedAt, v))
+}
+
+// DeletedAtLT applies the LT predicate on the "deleted_at" field.
+func DeletedAtLT(v time.Time) predicate.UserConfig {
+	return predicate.UserConfig(sql.FieldLT(FieldDeletedAt, v))
+}
+
+// DeletedAtLTE applies the LTE predicate on the "deleted_at" field.
+func DeletedAtLTE(v time.Time) predicate.UserConfig {
+	return predicate.UserConfig(sql.FieldLTE(FieldDeletedAt, v))
+}
+
+// DeletedAtIsNil applies the IsNil predicate on the "deleted_at" field.
+func DeletedAtIsNil() predicate.UserConfig {
+	return predicate.UserConfig(sql.FieldIsNull(FieldDeletedAt))
+}
+
+// DeletedAtNotNil applies the NotNil predicate on the "deleted_at" field.
+func DeletedAtNotNil() predicate.UserConfig {
+	return predicate.UserConfig(sql.FieldNotNull(FieldDeletedAt))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

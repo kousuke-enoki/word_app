@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
 
@@ -21,6 +22,8 @@ type UserConfig struct {
 	UserID int `json:"user_id,omitempty"`
 	// IsDarkMode holds the value of the "is_dark_mode" field.
 	IsDarkMode bool `json:"is_dark_mode,omitempty"`
+	// DeletedAt holds the value of the "deleted_at" field.
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserConfigQuery when eager-loading is set.
 	Edges        UserConfigEdges `json:"edges"`
@@ -56,6 +59,8 @@ func (*UserConfig) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case userconfig.FieldID, userconfig.FieldUserID:
 			values[i] = new(sql.NullInt64)
+		case userconfig.FieldDeletedAt:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -88,6 +93,13 @@ func (uc *UserConfig) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_dark_mode", values[i])
 			} else if value.Valid {
 				uc.IsDarkMode = value.Bool
+			}
+		case userconfig.FieldDeletedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
+			} else if value.Valid {
+				uc.DeletedAt = new(time.Time)
+				*uc.DeletedAt = value.Time
 			}
 		default:
 			uc.selectValues.Set(columns[i], values[i])
@@ -135,6 +147,11 @@ func (uc *UserConfig) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_dark_mode=")
 	builder.WriteString(fmt.Sprintf("%v", uc.IsDarkMode))
+	builder.WriteString(", ")
+	if v := uc.DeletedAt; v != nil {
+		builder.WriteString("deleted_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

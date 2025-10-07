@@ -3,6 +3,7 @@
 package migrate
 
 import (
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/schema/field"
 )
@@ -13,6 +14,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "provider", Type: field.TypeString},
 		{Name: "provider_user_id", Type: field.TypeString},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "user_external_auths", Type: field.TypeInt},
 	}
 	// ExternalAuthsTable holds the schema information for the "external_auths" table.
@@ -23,7 +25,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "external_auths_users_external_auths",
-				Columns:    []*schema.Column{ExternalAuthsColumns[3]},
+				Columns:    []*schema.Column{ExternalAuthsColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -33,6 +35,11 @@ var (
 				Name:    "externalauth_provider_provider_user_id",
 				Unique:  true,
 				Columns: []*schema.Column{ExternalAuthsColumns[1], ExternalAuthsColumns[2]},
+			},
+			{
+				Name:    "externalauth_provider_user_external_auths",
+				Unique:  true,
+				Columns: []*schema.Column{ExternalAuthsColumns[1], ExternalAuthsColumns[4]},
 			},
 		},
 	}
@@ -227,11 +234,22 @@ var (
 		Name:       "users",
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "user_email",
+				Unique:  true,
+				Columns: []*schema.Column{UsersColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+		},
 	}
 	// UserConfigsColumns holds the columns for the "user_configs" table.
 	UserConfigsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "is_dark_mode", Type: field.TypeBool, Default: false},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "user_id", Type: field.TypeInt, Unique: true},
 	}
 	// UserConfigsTable holds the schema information for the "user_configs" table.
@@ -242,7 +260,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "user_configs_users_user_config",
-				Columns:    []*schema.Column{UserConfigsColumns[2]},
+				Columns:    []*schema.Column{UserConfigsColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

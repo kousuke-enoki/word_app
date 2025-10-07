@@ -31,7 +31,7 @@ func TestJwtCheckMiddleware(t *testing.T) {
 			c.Set("isTest", false)
 		})
 		// ② テスト対象
-		r.GET("/mypage", new(jwt.Middleware).JwtCheckMiddleware())
+		r.GET("/mypage", new(jwt.JwtMiddleware).JwtCheckMiddleware())
 
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/mypage", nil)
@@ -49,7 +49,7 @@ func TestJwtCheckMiddleware(t *testing.T) {
 	t.Run("user not logined", func(t *testing.T) {
 		r := gin.New()
 		// Recovery は使わず自前 recover で panic を確認
-		r.GET("/mypage", new(jwt.Middleware).JwtCheckMiddleware())
+		r.GET("/mypage", new(jwt.JwtMiddleware).JwtCheckMiddleware())
 
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/mypage", nil)

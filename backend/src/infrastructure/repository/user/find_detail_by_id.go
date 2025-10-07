@@ -7,6 +7,8 @@ import (
 	"word_app/backend/ent/externalauth"
 	"word_app/backend/ent/user"
 	"word_app/backend/src/domain"
+	usermapper "word_app/backend/src/infrastructure/mapper/user"
+	"word_app/backend/src/infrastructure/repoerr"
 )
 
 func (e *EntUserRepo) FindDetailByID(ctx context.Context, id int) (*domain.User, error) {
@@ -18,26 +20,10 @@ func (e *EntUserRepo) FindDetailByID(ctx context.Context, id int) (*domain.User,
 		}).
 		First(ctx)
 	if err != nil {
-		return nil, ErrUserNotFound
+		if ent.IsNotFound(err) {
+			return nil, repoerr.FromEnt(err, "user not found", "duplicate id") // 外部認証未連携
+		}
+		return nil, repoerr.FromEnt(err, "internal", "internal server error")
 	}
-	return mapEntToDomain(u, u.Edges.ExternalAuths), nil
-}
-
-// --- mapper（Ent → Domain） ---
-func mapEntToDomain(u *ent.User, auths []*ent.ExternalAuth) *domain.User {
-	emailPtr := u.Email       // そのまま使える
-	hasLine := len(auths) > 0 // QF1007対応
-
-	return &domain.User{
-		ID:          u.ID,
-		Email:       emailPtr,
-		Name:        u.Name,
-		IsAdmin:     u.IsAdmin,
-		IsRoot:      u.IsRoot,
-		IsTest:      u.IsTest,
-		HasPassword: u.Password != nil && *u.Password != "",
-		HasLine:     hasLine,
-		CreatedAt:   u.CreatedAt,
-		UpdatedAt:   u.UpdatedAt,
-	}
+	return usermapper.MapEntUser(u, usermapper.WithAuths(u.Edges.ExternalAuths)), nil
 }

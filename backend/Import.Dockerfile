@@ -1,7 +1,7 @@
 # backend/dockerfiles/Import.Dockerfile
 
 # --- build stage -------------------------------------------------------------
-FROM --platform=linux/amd64 golang:1.24.3 AS build
+FROM --platform=linux/amd64 golang:1.25.1 AS build
 WORKDIR /src
 
 COPY go.mod go.sum ./

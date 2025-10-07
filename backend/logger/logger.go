@@ -5,14 +5,29 @@
 package logger
 
 import (
+	"io"
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 )
+
+type Options struct {
+	Level        string // "debug"|"info"|...
+	Format       string // "json"|"text"
+	Stdout       bool
+	FilePath     string // emptyならファイル出力なし
+	ReportCaller bool
+	MaxSizeMB    int
+	MaxBackups   int
+	MaxAgeDays   int
+	Compress     bool
+}
 
 // InitLogger initializes logrus for the application.
 // It reads LOG_LEVEL (e.g. "debug", "info", "warn", "error") and falls back
@@ -23,30 +38,56 @@ import (
 // Note: By default this replaces logrus' output with a file writer.
 // If you want to log to both stdout and a file, consider using io.MultiWriter.
 func InitLogger() {
-	logLevel := os.Getenv("LOG_LEVEL")
-	if logLevel == "" {
-		logLevel = "info"
-	}
-	log.Println("logLevel:", logLevel)
-	logrus.Info("logLevel:", logLevel)
-	level, err := logrus.ParseLevel(strings.ToLower(logLevel))
-	if err != nil {
-		log.Fatalf("Invalid LOG_LEVEL: %s", logLevel)
-	}
+	opt := readOptionsFromEnv()
 
+	// level
+	level, err := logrus.ParseLevel(strings.ToLower(opt.Level))
+	if err != nil {
+		log.Fatalf("Invalid LOG_LEVEL: %s", opt.Level)
+	}
 	logrus.SetLevel(level)
 
-	if inLambda() {
-		// Lambda は「標準出力」に JSON で出す（/aws/lambda/<fn> に流れる）
-		logrus.SetFormatter(&logrus.JSONFormatter{})
-		logrus.SetOutput(os.Stdout)
-		logrus.WithField("level", level.String()).Info("logger initialized (lambda stdout)")
-		return
+	// format
+	switch strings.ToLower(opt.Format) {
+	case "json":
+		logrus.SetFormatter(&logrus.JSONFormatter{
+			TimestampFormat: time.RFC3339Nano,
+		})
+	default:
+		logrus.SetFormatter(&logrus.TextFormatter{
+			FullTimestamp:   true,
+			TimestampFormat: time.RFC3339,
+		})
 	}
 
-	logrus.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
-	setupFileLogger()
-	logrus.Info("Logger initialized successfully ", logLevel)
+	// outputs
+	var writers []io.Writer
+	if opt.Stdout {
+		writers = append(writers, os.Stdout)
+	}
+	if opt.FilePath != "" {
+		ensureDir(filepath.Dir(opt.FilePath))
+		writers = append(writers, &lumberjack.Logger{
+			Filename:   opt.FilePath,
+			MaxSize:    max1(opt.MaxSizeMB, 3),
+			MaxBackups: max1(opt.MaxBackups, 3),
+			MaxAge:     max1(opt.MaxAgeDays, 30),
+			Compress:   opt.Compress,
+		})
+	}
+	if len(writers) == 0 {
+		// デフォルトはstdout
+		writers = []io.Writer{os.Stdout}
+	}
+	logrus.SetOutput(io.MultiWriter(writers...))
+	logrus.SetReportCaller(opt.ReportCaller)
+
+	logrus.WithFields(logrus.Fields{
+		"level":  level.String(),
+		"format": opt.Format,
+		"stdout": opt.Stdout,
+		"file":   opt.FilePath,
+	}).Info("logger initialized")
 }
 
 // lambdaでの動作かどうか
@@ -54,39 +95,64 @@ func inLambda() bool {
 	return os.Getenv("AWS_LAMBDA_FUNCTION_NAME") != "" || os.Getenv("LAMBDA_TASK_ROOT") != ""
 }
 
-// ログファイルの設定
-func setupFileLogger() {
-	// ローカル等のみファイル出力（失敗しても落とさない）
-	logPath := os.Getenv("LOG_FILE")
-	if logPath == "" {
-		logPath = "log/app.log"
-	}
-	logDir := filepath.Dir(logPath)
-
-	if _, err := os.Stat(logDir); os.IsNotExist(err) {
-		if err := os.MkdirAll(logDir, 0755); err != nil {
-			logrus.Fatalf("Failed to create log directory: %v", err)
+func readOptionsFromEnv() Options {
+	// Lambdaならstdout+json固定（CloudWatchへ）
+	if inLambda() {
+		return Options{
+			Level:        envOr("LOG_LEVEL", "info"),
+			Format:       "json",
+			Stdout:       true,
+			FilePath:     "",
+			ReportCaller: envBool("LOG_REPORT_CALLER", false),
 		}
 	}
-
-	// setupFileLogger configures a lumberjack rotating file writer and directs
-	// logrus output to it. Logs are written to "log/app.log". The directory is
-	// created when it does not exist. Rotation rules are:
-	//   - MaxSize:    3 MB per file
-	//   - MaxBackups: keep at most 3 old files
-	//   - MaxAge:     30 days
-	//   - Compress:   gzip-compress old files
-	//
-	// Consider making the path and rotation policy configurable via environment
-	// variables if you need different behavior per environment.
-	logFile := &lumberjack.Logger{
-		Filename:   logPath,
-		MaxSize:    3,  // megabytes
-		MaxBackups: 3,  // number of files
-		MaxAge:     30, // days
-		Compress:   true,
+	return Options{
+		Level:        envOr("LOG_LEVEL", "info"),
+		Format:       envOr("LOG_FORMAT", "json"),
+		Stdout:       envBool("LOG_STDOUT", true),      // ローカルでも見えるように
+		FilePath:     envOr("LOG_FILE", "log/app.log"), // 空でファイル出力OFF
+		ReportCaller: envBool("LOG_REPORT_CALLER", false),
+		MaxSizeMB:    envInt("LOG_ROTATE_SIZE_MB", 1),
+		MaxBackups:   envInt("LOG_ROTATE_BACKUPS", 5),
+		MaxAgeDays:   envInt("LOG_ROTATE_MAX_DAYS", 30),
+		Compress:     envBool("LOG_ROTATE_COMPRESS", true),
 	}
+}
 
-	logrus.SetOutput(logFile)
-	logrus.Infof("Logging to file: %s", logPath)
+func envOr(k, def string) string {
+	if v := os.Getenv(k); v != "" {
+		return v
+	}
+	return def
+}
+
+func envBool(k string, def bool) bool {
+	if v := os.Getenv(k); v != "" {
+		b, _ := strconv.ParseBool(v)
+		return b
+	}
+	return def
+}
+
+func envInt(k string, def int) int {
+	if v := os.Getenv(k); v != "" {
+		if i, err := strconv.Atoi(v); err == nil {
+			return i
+		}
+	}
+	return def
+}
+
+func ensureDir(dir string) {
+	if dir == "" {
+		return
+	}
+	_ = os.MkdirAll(dir, 0o755)
+}
+
+func max1(v, def int) int {
+	if v <= 0 {
+		return def
+	}
+	return v
 }

@@ -4,15 +4,15 @@ on:
   pull_request:
     branches: [main, develop]
   push:
-    branches: [main, develop, 'feature/**', 'hotfix/**']
+    branches: [main, develop, "feature/**", "hotfix/**"]
   workflow_dispatch:
 
 env:
-  GO_VERSION: "1.24.x"
+  GO_VERSION: "1.25.x"
   NODE_VERSION: "22.x"
 
 jobs:
-# ---------- Backend ----------
+  # ---------- Backend ----------
   backend:
     runs-on: ubuntu-latest
     services:
@@ -41,7 +41,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go${{ env.GO_VERSION }}-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-go${{ env.GO_VERSION }}-${{ hashFiles('backend/**/go.sum') }}
           restore-keys: ${{ runner.os }}-go${{ env.GO_VERSION }}-
 
       - name: Tidy & Download
@@ -54,13 +54,15 @@ jobs:
         working-directory: ./backend
         run: go generate ./ent
 
-      # --- Lint ---
+      # --- Lint（手動インストール） ---
+      - name: Install golangci-lint from source (uses Go 1.25.x)
+        run: |
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.2
+          golangci-lint version
+
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v4
-        with:
-          version: v1.64.2
-          working-directory: ./backend
-          args: -v
+        working-directory: ./backend
+        run: golangci-lint run -v --out-format=github-actions
 
       # --- Vet & Test ---
       - name: Run go vet
@@ -71,7 +73,7 @@ jobs:
         working-directory: ./backend
         run: go test ./... -cover
 
-# ---------- Frontend ----------
+  # ---------- Frontend ----------
   frontend:
     runs-on: ubuntu-latest
     steps:
@@ -90,7 +92,7 @@ jobs:
 
       - name: Lint
         working-directory: ./frontend
-        run: npm run lint          # package.json 側で eslint をラップ
+        run: npm run lint # package.json 側で eslint をラップ
 
       - name: Test
         working-directory: ./frontend

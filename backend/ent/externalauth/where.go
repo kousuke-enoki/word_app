@@ -3,6 +3,7 @@
 package externalauth
 
 import (
+	"time"
 	"word_app/backend/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
@@ -62,6 +63,11 @@ func Provider(v string) predicate.ExternalAuth {
 // ProviderUserID applies equality check predicate on the "provider_user_id" field. It's identical to ProviderUserIDEQ.
 func ProviderUserID(v string) predicate.ExternalAuth {
 	return predicate.ExternalAuth(sql.FieldEQ(FieldProviderUserID, v))
+}
+
+// DeletedAt applies equality check predicate on the "deleted_at" field. It's identical to DeletedAtEQ.
+func DeletedAt(v time.Time) predicate.ExternalAuth {
+	return predicate.ExternalAuth(sql.FieldEQ(FieldDeletedAt, v))
 }
 
 // ProviderEQ applies the EQ predicate on the "provider" field.
@@ -192,6 +198,56 @@ func ProviderUserIDEqualFold(v string) predicate.ExternalAuth {
 // ProviderUserIDContainsFold applies the ContainsFold predicate on the "provider_user_id" field.
 func ProviderUserIDContainsFold(v string) predicate.ExternalAuth {
 	return predicate.ExternalAuth(sql.FieldContainsFold(FieldProviderUserID, v))
+}
+
+// DeletedAtEQ applies the EQ predicate on the "deleted_at" field.
+func DeletedAtEQ(v time.Time) predicate.ExternalAuth {
+	return predicate.ExternalAuth(sql.FieldEQ(FieldDeletedAt, v))
+}
+
+// DeletedAtNEQ applies the NEQ predicate on the "deleted_at" field.
+func DeletedAtNEQ(v time.Time) predicate.ExternalAuth {
+	return predicate.ExternalAuth(sql.FieldNEQ(FieldDeletedAt, v))
+}
+
+// DeletedAtIn applies the In predicate on the "deleted_at" field.
+func DeletedAtIn(vs ...time.Time) predicate.ExternalAuth {
+	return predicate.ExternalAuth(sql.FieldIn(FieldDeletedAt, vs...))
+}
+
+// DeletedAtNotIn applies the NotIn predicate on the "deleted_at" field.
+func DeletedAtNotIn(vs ...time.Time) predicate.ExternalAuth {
+	return predicate.ExternalAuth(sql.FieldNotIn(FieldDeletedAt, vs...))
+}
+
+// DeletedAtGT applies the GT predicate on the "deleted_at" field.
+func DeletedAtGT(v time.Time) predicate.ExternalAuth {
+	return predicate.ExternalAuth(sql.FieldGT(FieldDeletedAt, v))
+}
+
+// DeletedAtGTE applies the GTE predicate on the "deleted_at" field.
+func DeletedAtGTE(v time.Time) predicate.ExternalAuth {
+	return predicate.ExternalAuth(sql.FieldGTE(FieldDeletedAt, v))
+}
+
+// DeletedAtLT applies the LT predicate on the "deleted_at" field.
+func DeletedAtLT(v time.Time) predicate.ExternalAuth {
+	return predicate.ExternalAuth(sql.FieldLT(FieldDeletedAt, v))
+}
+
+// DeletedAtLTE applies the LTE predicate on the "deleted_at" field.
+func DeletedAtLTE(v time.Time) predicate.ExternalAuth {
+	return predicate.ExternalAuth(sql.FieldLTE(FieldDeletedAt, v))
+}
+
+// DeletedAtIsNil applies the IsNil predicate on the "deleted_at" field.
+func DeletedAtIsNil() predicate.ExternalAuth {
+	return predicate.ExternalAuth(sql.FieldIsNull(FieldDeletedAt))
+}
+
+// DeletedAtNotNil applies the NotNil predicate on the "deleted_at" field.
+func DeletedAtNotNil() predicate.ExternalAuth {
+	return predicate.ExternalAuth(sql.FieldNotNull(FieldDeletedAt))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

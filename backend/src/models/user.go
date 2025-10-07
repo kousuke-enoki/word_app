@@ -47,27 +47,3 @@ type MyPageResponse struct {
 	User    User `json:"user" binding:"required"`
 	IsLogin bool `json:"isLogin"`
 }
-
-type UserListRequest struct {
-	UserID int    `json:"userId"`
-	Search string `json:"search"`
-	SortBy string `json:"sortBy"`
-	Order  string `json:"order"`
-	Page   int    `json:"page"`
-	Limit  int    `json:"limit"`
-}
-
-type UserListResponse struct {
-	Users      []User `json:"users"`
-	TotalPages int    `json:"totalPages"`
-}
-
-type UpdateUserInput struct {
-	UserID          int
-	TargetID        int
-	Name            *string
-	Email           *string
-	PasswordNew     *string
-	PasswordCurrent *string
-	Role            *string // "admin" | "user"
-}

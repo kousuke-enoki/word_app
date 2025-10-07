@@ -19,6 +19,9 @@ func (ExternalAuth) Fields() []ent.Field {
 			NotEmpty(), // "line" など
 		field.String("provider_user_id").
 			NotEmpty(), // LINE側 sub
+		field.Time("deleted_at").
+			Nillable().
+			Optional(),
 	}
 }
 
@@ -33,6 +36,11 @@ func (ExternalAuth) Edges() []ent.Edge {
 
 func (ExternalAuth) Indexes() []ent.Index {
 	return []ent.Index{
+		// ① provider + provider_user_id は世界で一意（外部IDの衝突防止）
 		index.Fields("provider", "provider_user_id").Unique(),
+
+		// ② 同一ユーザー内で provider は一意（同じproviderの二重連携防止）
+		//    Edges("user") を使うと user_id に対するインデックス/ユニークを張れる
+		index.Edges("user").Fields("provider").Unique(),
 	}
 }

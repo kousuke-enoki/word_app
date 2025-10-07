@@ -19,11 +19,6 @@ import (
 	uc "word_app/backend/src/usecase/user"
 )
 
-// func fixedTime() time.Time { return time.Date(2025, 1, 2, 3, 4, 5, 0, time.UTC) }
-// func mustFmt(t time.Time) string {
-// 	return t.Format("2006-01-02 15:04:05")
-// }
-
 func makeUC_List(t *testing.T, ur *usermock.MockRepository) *uc.UserUsecase {
 	// tx.Manager を使わないユースケースだが、New には渡す必要がある
 	tm := txmock.NewMockManager(t)

@@ -3,13 +3,13 @@ package jwt
 import (
 	"testing"
 
-	"word_app/backend/src/mocks/http/middleware"
+	"word_app/backend/src/mocks/infrastructure/jwt"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewAuthHandler(t *testing.T) {
-	mockTokenValidator := new(middleware.MockTokenValidator)
+	mockTokenValidator := new(jwt.MockTokenValidator)
 
 	newMiddleware := NewMiddleware(mockTokenValidator)
 

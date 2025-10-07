@@ -15,12 +15,7 @@ packages:
       dir: src/mocks/http/auth
       recursive: false
 
-  word_app/backend/src/interfaces/http/middleware:
-    config:
-      dir: src/mocks/http/middleware
-      recursive: false
-
-  word_app/backend/src/interfaces/http/setting:
+  word_app/backend/src/handlers/setting:
     config:
       dir: src/mocks/http/setting
       recursive: false
@@ -28,6 +23,11 @@ packages:
   word_app/backend/src/handlers/user:
     config:
       dir: src/mocks/http/user
+      recursive: false
+
+  word_app/backend/src/middleware/jwt:
+    config:
+      dir: src/mocks/middleware/jwt
       recursive: false
 
   word_app/backend/src/infrastructure/auth/line:

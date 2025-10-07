@@ -7,17 +7,17 @@ import (
 	"word_app/backend/src/handlers/auth"
 	"word_app/backend/src/handlers/setting"
 	"word_app/backend/src/handlers/user"
-	middleware_interface "word_app/backend/src/interfaces/http/middleware"
 	"word_app/backend/src/interfaces/http/quiz"
 	"word_app/backend/src/interfaces/http/result"
 	"word_app/backend/src/interfaces/http/word"
+	"word_app/backend/src/middleware/jwt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
 type Implementation struct {
-	JwtMiddleware  middleware_interface.Middleware
+	JwtMiddleware  jwt.Middleware
 	AuthHandler    auth.Handler
 	UserHandler    user.Handler
 	SettingHandler setting.Handler
@@ -27,7 +27,7 @@ type Implementation struct {
 }
 
 func NewRouter(
-	jwtMiddleware middleware_interface.Middleware,
+	jwtMiddleware jwt.Middleware,
 	authHandler auth.Handler,
 	userHandler user.Handler,
 	settingHandler setting.Handler,

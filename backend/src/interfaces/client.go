@@ -2,7 +2,6 @@ package interfaces
 
 import (
 	"word_app/backend/ent"
-	"word_app/backend/src/interfaces/http/middleware"
 	"word_app/backend/src/interfaces/http/quiz"
 	"word_app/backend/src/interfaces/http/word"
 	serviceinterfaces "word_app/backend/src/interfaces/service_interfaces"
@@ -12,7 +11,6 @@ import (
 type ClientInterface interface {
 	word.Service
 	quiz.Service
-	middleware.TokenValidator
 	EntClient() *ent.Client
 	serviceinterfaces.EntClientInterface
 }

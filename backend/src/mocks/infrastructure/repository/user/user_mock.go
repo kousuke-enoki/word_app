@@ -7,7 +7,6 @@ package user
 import (
 	"context"
 	"time"
-
 	"word_app/backend/src/domain"
 	"word_app/backend/src/domain/repository"
 

@@ -11,9 +11,8 @@ import (
 
 // JwtAuth : JWT検証 & ユーザー情報(ロール)取得
 // GinのミドルウェアとしてJWTを検証し、ユーザーロールをフロントに返す
-func (m *Middleware) JwtCheckMiddleware() gin.HandlerFunc {
+func (m *JwtMiddleware) JwtCheckMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		roles, err := contextutil.GetUserRoles(c)
 		if err != nil || roles == nil {
 			c.JSON(http.StatusOK, models.MyPageResponse{

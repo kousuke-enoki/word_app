@@ -3,7 +3,6 @@ package jwt
 import (
 	"time"
 
-	"word_app/backend/src/usecase/auth"
 	"word_app/backend/src/utils/tempjwt"
 )
 
@@ -11,7 +10,12 @@ type TempJWTAdapter struct {
 	inner *tempjwt.TempJWT
 }
 
-func New(secret string) auth.TempTokenGenerator {
+type TempTokenGenerator interface {
+	GenerateTemp(id *tempjwt.Identity, ttl time.Duration) (string, error)
+	ParseTemp(tok string) (*tempjwt.Identity, error)
+}
+
+func New(secret string) TempTokenGenerator {
 	return &TempJWTAdapter{inner: tempjwt.New(secret)}
 }
 

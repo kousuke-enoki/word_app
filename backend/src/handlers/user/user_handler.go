@@ -2,7 +2,7 @@
 package user
 
 import (
-	"word_app/backend/src/interfaces/http/auth"
+	"word_app/backend/src/infrastructure/jwt"
 	"word_app/backend/src/usecase/user"
 
 	"github.com/gin-gonic/gin"
@@ -10,12 +10,12 @@ import (
 
 type UserHandler struct {
 	userUsecase  user.Usecase
-	jwtGenerator auth.JWTGenerator
+	jwtGenerator jwt.JWTGenerator
 }
 
 func NewHandler(
 	usecase user.Usecase,
-	jwtGen auth.JWTGenerator,
+	jwtGen jwt.JWTGenerator,
 ) *UserHandler {
 	return &UserHandler{
 		userUsecase:  usecase,

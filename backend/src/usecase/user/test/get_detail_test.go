@@ -4,6 +4,7 @@ package user_test
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -18,13 +19,6 @@ import (
 	"word_app/backend/src/models"
 	uc "word_app/backend/src/usecase/user"
 )
-
-// Tx.Manager は本処理で使わないためダミー
-type dummyTx struct{}
-
-func (d *dummyTx) Begin(ctx context.Context) (context.Context, func(bool) error, error) {
-	return ctx, func(bool) error { return nil }, nil
-}
 
 func ptr[T any](v T) *T { return &v }
 
@@ -238,7 +232,7 @@ func TestUserUsecase_GetDetailByID_WithMocks(t *testing.T) {
 		got, err := ucase.GetDetailByID(context.Background(), 10, 20)
 		require.Error(t, err)
 		require.Nil(t, got)
-		require.Contains(t, err.Error(), "forbidden")
+		require.Contains(t, strings.ToLower(err.Error()), "forbidden")
 	})
 
 	t.Run("NG: target not found", func(t *testing.T) {

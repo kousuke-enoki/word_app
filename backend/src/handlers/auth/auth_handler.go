@@ -1,20 +1,29 @@
 package auth
 
 import (
-	"word_app/backend/src/interfaces/http/auth"
+	"word_app/backend/src/infrastructure/jwt"
+	"word_app/backend/src/usecase/auth"
+
+	"github.com/gin-gonic/gin"
 )
 
-type Handler struct {
+type AuthHandler struct {
 	AuthUsecase  auth.Usecase
-	jwtGenerator auth.JWTGenerator
+	jwtGenerator jwt.JWTGenerator
 }
 
 func NewHandler(
 	authUsecase auth.Usecase,
-	jwtGen auth.JWTGenerator,
-) *Handler {
-	return &Handler{
+	jwtGen jwt.JWTGenerator,
+) *AuthHandler {
+	return &AuthHandler{
 		AuthUsecase:  authUsecase,
 		jwtGenerator: jwtGen,
 	}
+}
+
+type Handler interface {
+	LineLogin() gin.HandlerFunc
+	LineCallback() gin.HandlerFunc
+	LineComplete() gin.HandlerFunc
 }

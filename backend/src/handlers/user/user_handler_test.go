@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"word_app/backend/src/mocks"
-	"word_app/backend/src/mocks/http/user"
+	"word_app/backend/src/mocks/usecase/user"
 
 	"github.com/stretchr/testify/assert"
 )

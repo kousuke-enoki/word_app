@@ -4,6 +4,7 @@ package user_test
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,43 +14,11 @@ import (
 	"word_app/backend/src/domain"
 	authmock "word_app/backend/src/mocks/infrastructure/repository/auth"
 	settingmock "word_app/backend/src/mocks/infrastructure/repository/setting"
-	repomock "word_app/backend/src/mocks/infrastructure/repository/user"
+	txmock "word_app/backend/src/mocks/infrastructure/repository/tx"
+
 	usermock "word_app/backend/src/mocks/infrastructure/repository/user"
 	uc "word_app/backend/src/usecase/user"
 )
-
-// --- Tx.Manager のモック（testify/mock を使った最小実装） ---
-// もし mockery で tx.Manager のモックを既に生成済みなら、そちらを使ってOKです。
-type mockTxManager struct{ mock.Mock }
-
-func (m *mockTxManager) Begin(ctx context.Context) (context.Context, func(bool) error, error) {
-	ret := m.Called(ctx)
-	var (
-		txCtx  context.Context
-		doneFn func(bool) error
-		err    error
-	)
-
-	if f, ok := ret.Get(0).(func() context.Context); ok {
-		txCtx = f()
-	} else {
-		txCtx, _ = ret.Get(0).(context.Context)
-	}
-	if f, ok := ret.Get(1).(func() func(bool) error); ok {
-		doneFn = f()
-	} else {
-		doneFn, _ = ret.Get(1).(func(bool) error)
-	}
-	err = ret.Error(2)
-	return txCtx, doneFn, err
-}
-
-// アサート補助：Forbidden かどうか（apperror の Kind が "FORBIDDEN" を含む前提）
-func assertForbidden(t *testing.T, err error) {
-	t.Helper()
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "FORBIDDEN") // Kind かメッセージに含まれる文字列で判定
-}
 
 func TestUserUsecase_Delete_WithMocks(t *testing.T) {
 	type ids struct {
@@ -81,8 +50,8 @@ func TestUserUsecase_Delete_WithMocks(t *testing.T) {
 			ctx := context.Background()
 
 			// --- モックの用意 ---
-			tx := &mockTxManager{}
-			userRepo := repomock.NewMockRepository(t)
+			tx := txmock.NewMockManager(t)
+			userRepo := usermock.NewMockRepository(t)
 			authRepo := authmock.NewMockExternalAuthRepository(t)
 			setRepo := settingmock.NewMockUserConfigRepository(t)
 
@@ -90,19 +59,21 @@ func TestUserUsecase_Delete_WithMocks(t *testing.T) {
 			var capturedCommit *bool
 			tx.On("Begin", mock.Anything).Return(
 				ctx,
-				func() func(bool) error {
-					return func(commit bool) error {
-						capturedCommit = &commit
-						return f.doneErr
-					}
+				func(commit bool) error {
+					capturedCommit = &commit
+					return f.doneErr
 				},
 				f.txBegin,
 			).Once()
 
 			// txBegin で即エラー帰るパス
 			if f.txBegin != nil {
-				ur := usermock.NewMockRepository(t)
-				ucase := makeUC(t, ur)
+				// userRepo := usermock.NewMockRepository(t)
+				// authRepo := authmock.NewMockExternalAuthRepository(t)
+				// setRepo := settingmock.NewMockUserConfigRepository(t)
+				// tx := txmock.NewMockManager(t)
+				ucase := uc.NewUserUsecase(tx, userRepo, setRepo, authRepo)
+
 				// ucase := uc.NewUserUsecase(tx, userRepo, setRepo, authRepo)
 				err := ucase.Delete(ctx, uc.DeleteUserInput{EditorID: id.editor, TargetID: id.target})
 				require.Error(t, err)
@@ -171,8 +142,11 @@ func TestUserUsecase_Delete_WithMocks(t *testing.T) {
 				Return(f.userErr).Maybe()
 
 			// --- 実行 ---
-			ur := usermock.NewMockRepository(t)
-			ucase := makeUC(t, ur)
+			// userRepo = usermock.NewMockRepository(t)
+			// authRepo = authmock.NewMockExternalAuthRepository(t)
+			// setRepo = settingmock.NewMockUserConfigRepository(t)
+			// tx = txmock.NewMockManager(t)
+			ucase := uc.NewUserUsecase(tx, userRepo, setRepo, authRepo)
 			err := ucase.Delete(ctx, uc.DeleteUserInput{EditorID: id.editor, TargetID: id.target})
 
 			// --- 検証 ---
@@ -181,7 +155,7 @@ func TestUserUsecase_Delete_WithMocks(t *testing.T) {
 			} else {
 				require.Error(t, err)
 				if e.expectForbidden {
-					assertForbidden(t, err)
+					require.Contains(t, strings.ToLower(err.Error()), "forbidden")
 				}
 				if e.expectNotFoundLike {
 					require.Contains(t, err.Error(), "not found")
@@ -191,8 +165,6 @@ func TestUserUsecase_Delete_WithMocks(t *testing.T) {
 			// commit フラグの検証
 			if capturedCommit != nil {
 				require.Equal(t, e.commitTrue, *capturedCommit)
-			} else {
-				// Begin は成功しているので、基本ここには来ない
 			}
 
 			// done エラーケースは、成功フローの末尾で commit=true のまま done でエラー返す

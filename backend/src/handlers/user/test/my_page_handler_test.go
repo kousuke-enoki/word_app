@@ -13,7 +13,7 @@ import (
 	"word_app/backend/src/mocks"
 	"word_app/backend/src/models"
 
-	user_mocks "word_app/backend/src/mocks/http/user"
+	user_mocks "word_app/backend/src/mocks/usecase/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"

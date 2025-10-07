@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"word_app/backend/src/middleware/jwt"
-	"word_app/backend/src/mocks/http/middleware"
+	mockJwt "word_app/backend/src/mocks/infrastructure/jwt"
 	"word_app/backend/src/utils/contextutil"
 
 	"github.com/gin-gonic/gin"
@@ -34,7 +34,7 @@ func TestAuthMiddleware(t *testing.T) {
 	}
 
 	t.Run("header missing → 401", func(t *testing.T) {
-		mockVal := middleware.NewMockTokenValidator(t)
+		mockVal := mockJwt.NewMockTokenValidator(t)
 		mw := jwt.NewMiddleware(mockVal).AuthMiddleware()
 		// mw := (&jwt.Middleware{tokenValidator: mockVal}).AuthMiddleware()
 		r := newRouter(mw)
@@ -48,7 +48,7 @@ func TestAuthMiddleware(t *testing.T) {
 	})
 
 	t.Run("invalid token → 401", func(t *testing.T) {
-		mockVal := middleware.NewMockTokenValidator(t)
+		mockVal := mockJwt.NewMockTokenValidator(t)
 		mockVal.
 			EXPECT().
 			Validate(mock.Anything, "badtoken").
@@ -68,7 +68,7 @@ func TestAuthMiddleware(t *testing.T) {
 	})
 
 	t.Run("valid token → 200 & context set", func(t *testing.T) {
-		mockVal := middleware.NewMockTokenValidator(t)
+		mockVal := mockJwt.NewMockTokenValidator(t)
 
 		mockVal.
 			EXPECT().

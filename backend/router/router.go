@@ -4,20 +4,20 @@ import (
 	"net/http"
 	"time"
 
-	"word_app/backend/src/interfaces/http/auth"
-	middleware_interface "word_app/backend/src/interfaces/http/middleware"
+	"word_app/backend/src/handlers/auth"
+	"word_app/backend/src/handlers/setting"
+	"word_app/backend/src/handlers/user"
 	"word_app/backend/src/interfaces/http/quiz"
 	"word_app/backend/src/interfaces/http/result"
-	"word_app/backend/src/interfaces/http/setting"
-	"word_app/backend/src/interfaces/http/user"
 	"word_app/backend/src/interfaces/http/word"
+	"word_app/backend/src/middleware/jwt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
 type Implementation struct {
-	JwtMiddleware  middleware_interface.Middleware
+	JwtMiddleware  jwt.Middleware
 	AuthHandler    auth.Handler
 	UserHandler    user.Handler
 	SettingHandler setting.Handler
@@ -27,7 +27,7 @@ type Implementation struct {
 }
 
 func NewRouter(
-	jwtMiddleware middleware_interface.Middleware,
+	jwtMiddleware jwt.Middleware,
 	authHandler auth.Handler,
 	userHandler user.Handler,
 	settingHandler setting.Handler,
@@ -35,7 +35,6 @@ func NewRouter(
 	quizHandler quiz.Handler,
 	resultHandler result.Handler,
 ) *Implementation {
-
 	return &Implementation{
 		JwtMiddleware:  jwtMiddleware,
 		AuthHandler:    authHandler,
@@ -75,6 +74,11 @@ func (r *Implementation) MountRoutes(router *gin.Engine) {
 		protectedRoutes.GET("/auth/check", r.JwtMiddleware.JwtCheckMiddleware())
 
 		protectedRoutes.GET("/users/my_page", r.UserHandler.MyPageHandler())
+		protectedRoutes.GET("/users", r.UserHandler.ListHandler())
+		protectedRoutes.GET("/users/me", r.UserHandler.MeHandler())
+		protectedRoutes.GET("/users/:id", r.UserHandler.ShowHandler())
+		protectedRoutes.PUT("/users/:id", r.UserHandler.EditHandler())
+		protectedRoutes.DELETE("/users/:id", r.UserHandler.DeleteHandler())
 		protectedRoutes.GET("/setting/user_config", r.SettingHandler.GetUserConfigHandler())
 		protectedRoutes.POST("/setting/user_config", r.SettingHandler.SaveUserConfigHandler())
 		protectedRoutes.GET("/setting/root_config", r.SettingHandler.GetRootConfigHandler())

@@ -28,9 +28,10 @@ func TestJwtCheckMiddleware(t *testing.T) {
 			c.Set("userID", 42)
 			c.Set("isAdmin", true)
 			c.Set("isRoot", false)
+			c.Set("isTest", false)
 		})
 		// ② テスト対象
-		r.GET("/mypage", new(jwt.Middleware).JwtCheckMiddleware())
+		r.GET("/mypage", new(jwt.JwtMiddleware).JwtCheckMiddleware())
 
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/mypage", nil)
@@ -40,7 +41,7 @@ func TestJwtCheckMiddleware(t *testing.T) {
 
 		// want := `{"user":{"id":42,"isAdmin":true,"isRoot":false}}`
 		require.JSONEq(t,
-			`{"user":{"id":42,"name":"","isAdmin":true,"isRoot":false}, "isLogin": true}`,
+			`{"user":{"id":42,"name":"","isAdmin":true,"isRoot":false,"isTest":false}, "isLogin": true}`,
 			string(bytes.TrimSpace(w.Body.Bytes())),
 		)
 	})
@@ -48,7 +49,7 @@ func TestJwtCheckMiddleware(t *testing.T) {
 	t.Run("user not logined", func(t *testing.T) {
 		r := gin.New()
 		// Recovery は使わず自前 recover で panic を確認
-		r.GET("/mypage", new(jwt.Middleware).JwtCheckMiddleware())
+		r.GET("/mypage", new(jwt.JwtMiddleware).JwtCheckMiddleware())
 
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/mypage", nil)
@@ -73,7 +74,7 @@ func TestJwtCheckMiddleware(t *testing.T) {
 			require.Equal(t, float64(0), u["id"])
 			require.Equal(t, false, u["isAdmin"])
 			require.Equal(t, false, u["isRoot"])
+			require.Equal(t, false, u["isTest"])
 		}
 	})
-
 }

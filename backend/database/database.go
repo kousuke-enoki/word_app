@@ -55,10 +55,11 @@ func initEntClientWithContext(ctx context.Context) error {
 			sslMode = "disable" // ローカルのデフォルト
 		}
 	}
+	tz := getenv("DB_TIMEZONE", "Asia/Tokyo")
 
 	dsn := fmt.Sprintf(
-		"host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
-		cfg.Host, cfg.Port, cfg.User, cfg.Name, cfg.Pass, sslMode,
+		"host=%s port=%d user=%s dbname=%s password=%s sslmode=%s TimeZone=%s",
+		cfg.Host, cfg.Port, cfg.User, cfg.Name, cfg.Pass, sslMode, tz,
 	)
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
@@ -100,6 +101,7 @@ func getenv(k, def string) string {
 	}
 	return def
 }
+
 func loadDbConfig(ctx context.Context) (*dbCfg, error) {
 	// 0) まず環境変数優先
 	if host := os.Getenv("DB_HOST"); host != "" &&

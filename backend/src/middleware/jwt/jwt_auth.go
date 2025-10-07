@@ -9,7 +9,7 @@ import (
 
 // 後続ハンドラでユーザーロールを使えるようにcontextにセットするミドルウェア
 // ユーザーID、isAdmin、isRootをcontextにセットする
-func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
+func (m *JwtMiddleware) AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := strings.TrimPrefix(c.GetHeader("Authorization"), "Bearer ")
 		if token == "" {
@@ -30,6 +30,7 @@ func (m *Middleware) AuthMiddleware() gin.HandlerFunc {
 		c.Set("userID", roles.UserID)
 		c.Set("isAdmin", roles.IsAdmin)
 		c.Set("isRoot", roles.IsRoot)
+		c.Set("isTest", roles.IsTest)
 
 		c.Next()
 	}

@@ -18,6 +18,7 @@ import (
 	"word_app/backend/seeder"
 	"word_app/backend/src/infrastructure"
 	"word_app/backend/src/interfaces"
+	middleware_logger "word_app/backend/src/middleware/logger"
 	"word_app/backend/src/validators"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -205,6 +206,7 @@ func runSeederIfNeeded(client interfaces.ClientInterface) error {
 func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery())
+	router.Use(middleware_logger.RequestLogger())
 
 	// 1) CORS: 環境変数（カンマ区切り）→ スライス
 	allowed := []string{}

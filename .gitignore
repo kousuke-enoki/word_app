@@ -29,6 +29,9 @@ backend/.env.staging
 backend/.env.staging
 frontend/.env.test
 .env.local
+
+frontend/.vercel
+
 # # IDEの設定ファイル
 .vscode/
 .DS_Store

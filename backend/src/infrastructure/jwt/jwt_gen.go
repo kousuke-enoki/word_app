@@ -17,6 +17,10 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
+type JWTGenerator interface {
+	GenerateJWT(userID string) (string, error)
+}
+
 func NewMyJWTGenerator(secretKey string) *MyJWTGenerator {
 	if secretKey == "" {
 		log.Fatal("JWT_SECRET environment variable is required")

@@ -6,7 +6,6 @@ package auth
 
 import (
 	"context"
-
 	"word_app/backend/src/interfaces/http/auth"
 
 	"github.com/gin-gonic/gin"

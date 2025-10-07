@@ -79,3 +79,8 @@ func authorizeDelete(editorID int, isEditorRoot bool, targetID int, isTargetRoot
 	}
 	return nil
 }
+
+// テスト専用フック：内部の authorizeDelete をそのまま呼ぶ
+func AuthorizeDeleteForTest(editorID int, isEditorRoot bool, targetID int, isTargetRoot bool) error {
+	return authorizeDelete(editorID, isEditorRoot, targetID, isTargetRoot)
+}

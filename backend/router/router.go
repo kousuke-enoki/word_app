@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"word_app/backend/src/handlers/auth"
 	"word_app/backend/src/handlers/user"
-	"word_app/backend/src/interfaces/http/auth"
 	middleware_interface "word_app/backend/src/interfaces/http/middleware"
 	"word_app/backend/src/interfaces/http/quiz"
 	"word_app/backend/src/interfaces/http/result"

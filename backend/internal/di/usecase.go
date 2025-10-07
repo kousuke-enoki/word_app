@@ -12,7 +12,7 @@ import (
 )
 
 type UseCases struct {
-	Auth    *authUc.Usecase
+	Auth    *authUc.AuthUsecase
 	Setting settingUc.SettingFacade // interface
 	User    *userUc.UserUsecase     // interface
 }

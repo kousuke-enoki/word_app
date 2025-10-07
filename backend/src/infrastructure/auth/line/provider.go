@@ -8,7 +8,6 @@ import (
 	"golang.org/x/oauth2"
 
 	"word_app/backend/config"
-	auth_port "word_app/backend/src/usecase/auth"
 	"word_app/backend/src/utils/tempjwt"
 )
 
@@ -17,18 +16,24 @@ var endpoint = oauth2.Endpoint{
 	TokenURL: "https://api.line.me/oauth2/v2.1/token",
 }
 
-type Provider struct {
+type AuthProvider struct {
 	cfg      *oauth2.Config
 	verifier *oidc.IDTokenVerifier
 }
 
-func NewProvider(c config.LineOAuthCfg) (auth_port.Provider, error) {
+type Provider interface {
+	AuthURL(state, nonce string) string
+	Exchange(ctx context.Context, code string) (*tempjwt.Identity, error)
+	ValidateNonce(idTok *oidc.IDToken, expected string) error
+}
+
+func NewProvider(c config.LineOAuthCfg) (Provider, error) {
 	oidcProvider, err := oidc.NewProvider(context.Background(), "https://access.line.me")
 	if err != nil {
 		return nil, err
 	}
 
-	return &Provider{
+	return &AuthProvider{
 		cfg: &oauth2.Config{
 			ClientID:     c.ClientID,
 			ClientSecret: c.ClientSecret,
@@ -42,8 +47,8 @@ func NewProvider(c config.LineOAuthCfg) (auth_port.Provider, error) {
 	}, nil
 }
 
-func NewTestProvider(cfg *oauth2.Config, verifier *oidc.IDTokenVerifier) *Provider {
-	return &Provider{
+func NewTestProvider(cfg *oauth2.Config, verifier *oidc.IDTokenVerifier) *AuthProvider {
+	return &AuthProvider{
 		cfg:      cfg,
 		verifier: verifier,
 	}
@@ -51,14 +56,14 @@ func NewTestProvider(cfg *oauth2.Config, verifier *oidc.IDTokenVerifier) *Provid
 
 // ------------------- AuthProvider 実装 -------------------
 
-func (p *Provider) AuthURL(state, nonce string) string {
+func (p *AuthProvider) AuthURL(state, nonce string) string {
 	return p.cfg.AuthCodeURL(
 		state,
 		oauth2.SetAuthURLParam("nonce", nonce),
 	)
 }
 
-func (p *Provider) Exchange(ctx context.Context, code string) (*tempjwt.Identity, error) {
+func (p *AuthProvider) Exchange(ctx context.Context, code string) (*tempjwt.Identity, error) {
 	tok, err := p.cfg.Exchange(ctx, code)
 	if err != nil {
 		return nil, err
@@ -91,7 +96,7 @@ func (p *Provider) Exchange(ctx context.Context, code string) (*tempjwt.Identity
 	}, nil
 }
 
-func (p *Provider) ValidateNonce(idTok *oidc.IDToken, expected string) error {
+func (p *AuthProvider) ValidateNonce(idTok *oidc.IDToken, expected string) error {
 	var cl struct {
 		Nonce string `json:"nonce"`
 	}

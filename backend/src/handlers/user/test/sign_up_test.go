@@ -10,7 +10,7 @@ import (
 
 	h "word_app/backend/src/handlers/user"
 	"word_app/backend/src/mocks"
-	user_mocks "word_app/backend/src/mocks/http/user"
+	user_mocks "word_app/backend/src/mocks/usecase/user"
 	"word_app/backend/src/usecase/apperror"
 	user_usecase "word_app/backend/src/usecase/user"
 

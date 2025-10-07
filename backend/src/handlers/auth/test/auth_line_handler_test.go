@@ -10,8 +10,9 @@ import (
 	"testing"
 
 	auth_handler "word_app/backend/src/handlers/auth"
-	"word_app/backend/src/interfaces/http/auth"
-	auth_mock "word_app/backend/src/mocks/http/auth"
+	jwt_mock "word_app/backend/src/mocks/infrastructure/jwt"
+	auth_mock "word_app/backend/src/mocks/usecase/auth"
+	"word_app/backend/src/usecase/auth"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -37,7 +38,7 @@ func TestAuthLineHandler(t *testing.T) {
 					On("StartLogin", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("string")).
 					Return(tt.redirectURL)
 
-				mockJWTGen := new(auth_mock.MockJWTGenerator)
+				mockJWTGen := new(jwt_mock.MockJWTGenerator)
 				h := auth_handler.NewHandler(mockUC, mockJWTGen)
 
 				w := httptest.NewRecorder()
@@ -93,7 +94,7 @@ func TestAuthLineHandler(t *testing.T) {
 				mockUC.
 					On("HandleCallback", mock.Anything, "abc", mock.Anything).
 					Return(tt.mockReturn, tt.mockErr)
-				mockJWTGenerator := new(auth_mock.MockJWTGenerator)
+				mockJWTGenerator := new(jwt_mock.MockJWTGenerator)
 
 				userHandler := auth_handler.NewHandler(mockUC, mockJWTGenerator)
 				// h := &auth.Handler{Usecase: mockUC, jwtGenerator: mockJWTGenerator}
@@ -169,7 +170,7 @@ func TestAuthLineHandler(t *testing.T) {
 						On("CompleteSignUp", mock.Anything, "tmp123", &pass).
 						Return(tt.mockJWT, tt.mockErr)
 				}
-				mockJWTGenerator := new(auth_mock.MockJWTGenerator)
+				mockJWTGenerator := new(jwt_mock.MockJWTGenerator)
 
 				userHandler := auth_handler.NewHandler(mockUC, mockJWTGenerator)
 				// h := &auth.Handler{Usecase: mockUC}

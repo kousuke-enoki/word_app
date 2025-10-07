@@ -10,7 +10,7 @@ template: testify
 template-schema: "{{.Template}}.schema.json"
 all: true # パッケージ内すべての interface
 packages:
-  word_app/backend/src/interfaces/http/auth:
+  word_app/backend/src/handlers/auth:
     config:
       dir: src/mocks/http/auth
       recursive: false
@@ -30,9 +30,14 @@ packages:
       dir: src/mocks/http/user
       recursive: false
 
-  word_app/backend/src/infrastructure/repository/auth:
+  word_app/backend/src/infrastructure/auth/line:
     config:
-      dir: src/mocks/infrastructure/repository/auth
+      dir: src/mocks/infrastructure/auth/line
+      recursive: false
+
+  word_app/backend/src/infrastructure/jwt:
+    config:
+      dir: src/mocks/infrastructure/jwt
       recursive: false
 
   word_app/backend/src/infrastructure/repository/user:

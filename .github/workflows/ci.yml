@@ -41,7 +41,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go${{ env.GO_VERSION }}-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-go${{ env.GO_VERSION }}-${{ hashFiles('backend/**/go.sum') }}
           restore-keys: ${{ runner.os }}-go${{ env.GO_VERSION }}-
 
       - name: Tidy & Download
@@ -54,14 +54,15 @@ jobs:
         working-directory: ./backend
         run: go generate ./ent
 
-      # --- Lint ---
+      # --- Lint（手動インストール） ---
+      - name: Install golangci-lint from source (uses Go 1.25.x)
+        run: |
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.2
+          golangci-lint version
+
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v4
-        with:
-          version: v1.64.2
-          working-directory: ./backend
-          args: -v
-          install-mode: go # ← これを必ず付ける
+        working-directory: ./backend
+        run: golangci-lint run -v --out-format=github-actions
 
       # --- Vet & Test ---
       - name: Run go vet

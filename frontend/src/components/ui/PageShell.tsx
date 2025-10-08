@@ -6,9 +6,11 @@ export const PageShell: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
+    <div className="min-h-screen flex flex-col bg-[var(--bg)] text-[var(--fg)]">
       <Header />
-      <main>{children}</main>
+      <main className="flex-1">
+        <div className="mx-auto w-full max-w-5xl px-4 py-10">{children}</div>
+      </main>
       <Footer />
     </div>
   )
@@ -45,9 +47,25 @@ const ThemeToggle: React.FC = () => {
 }
 
 const Footer: React.FC = () => (
-  <footer className="mt-16 border-t border-[var(--border)]">
-    <div className="mx-auto max-w-5xl px-4 py-8 text-xs opacity-70">
-      © {new Date().getFullYear()} DictQuiz / Designed by EK
+  <footer className="mt-8 border-t border-[var(--border)]">
+    <div className="mx-auto w-full max-w-5xl px-4 py-6">
+      <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-center">
+        <Link className="hover:underline" to="/terms">
+          利用規約
+        </Link>
+        <Link className="hover:underline" to="/privacy">
+          プライバシーポリシー
+        </Link>
+        <Link className="hover:underline" to="/cookies">
+          クッキーポリシー
+        </Link>
+        <Link className="hover:underline" to="/credits">
+          クレジット
+        </Link>
+      </nav>
+      <div className="mt-3 text-xs opacity-70">
+        © {new Date().getFullYear()} スグ単
+      </div>
     </div>
   </footer>
 )

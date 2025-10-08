@@ -183,3 +183,46 @@ button:disabled {
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* --- 法務ページの読みやすさ統一（隣接セレクタ） --- */
+
+/* 本文ブロック（p/ul/ol）の直後に見出し（h1-3）が来たら “広め” に空ける */
+.prose :where(p + h1),
+.prose :where(p + h2),
+.prose :where(p + h3),
+.prose :where(ul + h1),
+.prose :where(ul + h2),
+.prose :where(ul + h3),
+.prose :where(blockquote + h1),
+.prose :where(blockquote + h2),
+.prose :where(blockquote + h3),
+.prose :where(ol + h1),
+.prose :where(ol + h2),
+.prose :where(ol + h3) {
+  margin-top: 1.75rem; /* ≒ mt-7：見出し前は気持ち広め */
+}
+
+/* 見出し（h1-3）の直後に本文ブロック（p/ul/ol）が来たら “適度に” 空ける */
+.prose :where(h1 + p),
+.prose :where(h1 + ul),
+.prose :where(h1 + ol),
+.prose :where(h1 + blockquote),
+.prose :where(h2 + p),
+.prose :where(h2 + ul),
+.prose :where(h2 + ol),
+.prose :where(h2 + blockquote),
+.prose :where(h3 + p),
+.prose :where(h3 + ul),
+.prose :where(h3 + ol),
+.prose :where(h3 + blockquote) {
+  margin-top: 0.75rem; /* ≒ mt-3：見出しの次は控えめに */
+}
+
+/* p と li の行間を完全一致させたい場合の保険（Tailwind指定の明示化） */
+.prose p {
+  line-height: 1.75;
+} /* = leading-7 */
+.prose ul > li,
+.prose ol > li {
+  line-height: 1.75;
+} /* = leading-7 */

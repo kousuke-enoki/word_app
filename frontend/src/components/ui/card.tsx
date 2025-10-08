@@ -41,7 +41,7 @@ export const PageContainer: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   ...props
 }) => (
   <div
-    className={`mx-auto w-full max-w-3xl px-4 py-10 ${className}`}
+    className={`mx-auto w-full max-w-3xl px-4 py-8 ${className}`}
     {...props}
   />
 )

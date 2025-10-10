@@ -55,6 +55,11 @@ packages:
       dir: src/mocks/infrastructure/repository/tx
       recursive: false
 
+  word_app/backend/src/infrastructure/repository/userdailyusage:
+    config:
+      dir: src/mocks/infrastructure/repository/userdailyusage
+      recursive: false
+
   word_app/backend/src/usecase/auth:
     config:
       dir: src/mocks/usecase/auth

@@ -61,6 +61,7 @@ func (r *Implementation) MountRoutes(router *gin.Engine) {
 		userRoutes.GET("/auth/line/login", r.AuthHandler.LineLogin())
 		userRoutes.GET("/auth/line/callback", r.AuthHandler.LineCallback())
 		userRoutes.POST("/auth/line/complete", r.AuthHandler.LineComplete())
+		userRoutes.POST("/auth/test-login", r.AuthHandler.TestLoginHandler())
 	}
 
 	SettingRoutes := router.Group("/setting")

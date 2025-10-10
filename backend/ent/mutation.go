@@ -18,6 +18,7 @@ import (
 	"word_app/backend/ent/rootconfig"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
+	"word_app/backend/ent/userdailyusage"
 	"word_app/backend/ent/word"
 	"word_app/backend/ent/wordinfo"
 	"word_app/backend/src/models"
@@ -44,6 +45,7 @@ const (
 	TypeRootConfig     = "RootConfig"
 	TypeUser           = "User"
 	TypeUserConfig     = "UserConfig"
+	TypeUserDailyUsage = "UserDailyUsage"
 	TypeWord           = "Word"
 	TypeWordInfo       = "WordInfo"
 )
@@ -6323,6 +6325,8 @@ type UserMutation struct {
 	external_auths          map[int]struct{}
 	removedexternal_auths   map[int]struct{}
 	clearedexternal_auths   bool
+	user_daily_usage        *int
+	cleareduser_daily_usage bool
 	done                    bool
 	oldValue                func(context.Context) (*User, error)
 	predicates              []predicate.User
@@ -6990,6 +6994,45 @@ func (m *UserMutation) ResetExternalAuths() {
 	m.removedexternal_auths = nil
 }
 
+// SetUserDailyUsageID sets the "user_daily_usage" edge to the UserDailyUsage entity by id.
+func (m *UserMutation) SetUserDailyUsageID(id int) {
+	m.user_daily_usage = &id
+}
+
+// ClearUserDailyUsage clears the "user_daily_usage" edge to the UserDailyUsage entity.
+func (m *UserMutation) ClearUserDailyUsage() {
+	m.cleareduser_daily_usage = true
+}
+
+// UserDailyUsageCleared reports if the "user_daily_usage" edge to the UserDailyUsage entity was cleared.
+func (m *UserMutation) UserDailyUsageCleared() bool {
+	return m.cleareduser_daily_usage
+}
+
+// UserDailyUsageID returns the "user_daily_usage" edge ID in the mutation.
+func (m *UserMutation) UserDailyUsageID() (id int, exists bool) {
+	if m.user_daily_usage != nil {
+		return *m.user_daily_usage, true
+	}
+	return
+}
+
+// UserDailyUsageIDs returns the "user_daily_usage" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserDailyUsageID instead. It exists only for internal usage by the builders.
+func (m *UserMutation) UserDailyUsageIDs() (ids []int) {
+	if id := m.user_daily_usage; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUserDailyUsage resets all changes to the "user_daily_usage" edge.
+func (m *UserMutation) ResetUserDailyUsage() {
+	m.user_daily_usage = nil
+	m.cleareduser_daily_usage = false
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -7280,7 +7323,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.registered_words != nil {
 		edges = append(edges, user.EdgeRegisteredWords)
 	}
@@ -7292,6 +7335,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.external_auths != nil {
 		edges = append(edges, user.EdgeExternalAuths)
+	}
+	if m.user_daily_usage != nil {
+		edges = append(edges, user.EdgeUserDailyUsage)
 	}
 	return edges
 }
@@ -7322,13 +7368,17 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeUserDailyUsage:
+		if id := m.user_daily_usage; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedregistered_words != nil {
 		edges = append(edges, user.EdgeRegisteredWords)
 	}
@@ -7369,7 +7419,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedregistered_words {
 		edges = append(edges, user.EdgeRegisteredWords)
 	}
@@ -7381,6 +7431,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedexternal_auths {
 		edges = append(edges, user.EdgeExternalAuths)
+	}
+	if m.cleareduser_daily_usage {
+		edges = append(edges, user.EdgeUserDailyUsage)
 	}
 	return edges
 }
@@ -7397,6 +7450,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.cleareduser_config
 	case user.EdgeExternalAuths:
 		return m.clearedexternal_auths
+	case user.EdgeUserDailyUsage:
+		return m.cleareduser_daily_usage
 	}
 	return false
 }
@@ -7407,6 +7462,9 @@ func (m *UserMutation) ClearEdge(name string) error {
 	switch name {
 	case user.EdgeUserConfig:
 		m.ClearUserConfig()
+		return nil
+	case user.EdgeUserDailyUsage:
+		m.ClearUserDailyUsage()
 		return nil
 	}
 	return fmt.Errorf("unknown User unique edge %s", name)
@@ -7427,6 +7485,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeExternalAuths:
 		m.ResetExternalAuths()
+		return nil
+	case user.EdgeUserDailyUsage:
+		m.ResetUserDailyUsage()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)
@@ -7943,6 +8004,630 @@ func (m *UserConfigMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown UserConfig edge %s", name)
+}
+
+// UserDailyUsageMutation represents an operation that mutates the UserDailyUsage nodes in the graph.
+type UserDailyUsageMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *int
+	last_reset_date *time.Time
+	quiz_count      *int
+	addquiz_count   *int
+	bulk_count      *int
+	addbulk_count   *int
+	updated_at      *time.Time
+	clearedFields   map[string]struct{}
+	user            *int
+	cleareduser     bool
+	done            bool
+	oldValue        func(context.Context) (*UserDailyUsage, error)
+	predicates      []predicate.UserDailyUsage
+}
+
+var _ ent.Mutation = (*UserDailyUsageMutation)(nil)
+
+// userdailyusageOption allows management of the mutation configuration using functional options.
+type userdailyusageOption func(*UserDailyUsageMutation)
+
+// newUserDailyUsageMutation creates new mutation for the UserDailyUsage entity.
+func newUserDailyUsageMutation(c config, op Op, opts ...userdailyusageOption) *UserDailyUsageMutation {
+	m := &UserDailyUsageMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeUserDailyUsage,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withUserDailyUsageID sets the ID field of the mutation.
+func withUserDailyUsageID(id int) userdailyusageOption {
+	return func(m *UserDailyUsageMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *UserDailyUsage
+		)
+		m.oldValue = func(ctx context.Context) (*UserDailyUsage, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().UserDailyUsage.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withUserDailyUsage sets the old UserDailyUsage of the mutation.
+func withUserDailyUsage(node *UserDailyUsage) userdailyusageOption {
+	return func(m *UserDailyUsageMutation) {
+		m.oldValue = func(context.Context) (*UserDailyUsage, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m UserDailyUsageMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m UserDailyUsageMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *UserDailyUsageMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *UserDailyUsageMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().UserDailyUsage.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetLastResetDate sets the "last_reset_date" field.
+func (m *UserDailyUsageMutation) SetLastResetDate(t time.Time) {
+	m.last_reset_date = &t
+}
+
+// LastResetDate returns the value of the "last_reset_date" field in the mutation.
+func (m *UserDailyUsageMutation) LastResetDate() (r time.Time, exists bool) {
+	v := m.last_reset_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastResetDate returns the old "last_reset_date" field's value of the UserDailyUsage entity.
+// If the UserDailyUsage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserDailyUsageMutation) OldLastResetDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastResetDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastResetDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastResetDate: %w", err)
+	}
+	return oldValue.LastResetDate, nil
+}
+
+// ResetLastResetDate resets all changes to the "last_reset_date" field.
+func (m *UserDailyUsageMutation) ResetLastResetDate() {
+	m.last_reset_date = nil
+}
+
+// SetQuizCount sets the "quiz_count" field.
+func (m *UserDailyUsageMutation) SetQuizCount(i int) {
+	m.quiz_count = &i
+	m.addquiz_count = nil
+}
+
+// QuizCount returns the value of the "quiz_count" field in the mutation.
+func (m *UserDailyUsageMutation) QuizCount() (r int, exists bool) {
+	v := m.quiz_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuizCount returns the old "quiz_count" field's value of the UserDailyUsage entity.
+// If the UserDailyUsage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserDailyUsageMutation) OldQuizCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuizCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuizCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuizCount: %w", err)
+	}
+	return oldValue.QuizCount, nil
+}
+
+// AddQuizCount adds i to the "quiz_count" field.
+func (m *UserDailyUsageMutation) AddQuizCount(i int) {
+	if m.addquiz_count != nil {
+		*m.addquiz_count += i
+	} else {
+		m.addquiz_count = &i
+	}
+}
+
+// AddedQuizCount returns the value that was added to the "quiz_count" field in this mutation.
+func (m *UserDailyUsageMutation) AddedQuizCount() (r int, exists bool) {
+	v := m.addquiz_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetQuizCount resets all changes to the "quiz_count" field.
+func (m *UserDailyUsageMutation) ResetQuizCount() {
+	m.quiz_count = nil
+	m.addquiz_count = nil
+}
+
+// SetBulkCount sets the "bulk_count" field.
+func (m *UserDailyUsageMutation) SetBulkCount(i int) {
+	m.bulk_count = &i
+	m.addbulk_count = nil
+}
+
+// BulkCount returns the value of the "bulk_count" field in the mutation.
+func (m *UserDailyUsageMutation) BulkCount() (r int, exists bool) {
+	v := m.bulk_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBulkCount returns the old "bulk_count" field's value of the UserDailyUsage entity.
+// If the UserDailyUsage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserDailyUsageMutation) OldBulkCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBulkCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBulkCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBulkCount: %w", err)
+	}
+	return oldValue.BulkCount, nil
+}
+
+// AddBulkCount adds i to the "bulk_count" field.
+func (m *UserDailyUsageMutation) AddBulkCount(i int) {
+	if m.addbulk_count != nil {
+		*m.addbulk_count += i
+	} else {
+		m.addbulk_count = &i
+	}
+}
+
+// AddedBulkCount returns the value that was added to the "bulk_count" field in this mutation.
+func (m *UserDailyUsageMutation) AddedBulkCount() (r int, exists bool) {
+	v := m.addbulk_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetBulkCount resets all changes to the "bulk_count" field.
+func (m *UserDailyUsageMutation) ResetBulkCount() {
+	m.bulk_count = nil
+	m.addbulk_count = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *UserDailyUsageMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *UserDailyUsageMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the UserDailyUsage entity.
+// If the UserDailyUsage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserDailyUsageMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *UserDailyUsageMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUserID sets the "user" edge to the User entity by id.
+func (m *UserDailyUsageMutation) SetUserID(id int) {
+	m.user = &id
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *UserDailyUsageMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *UserDailyUsageMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserID returns the "user" edge ID in the mutation.
+func (m *UserDailyUsageMutation) UserID() (id int, exists bool) {
+	if m.user != nil {
+		return *m.user, true
+	}
+	return
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *UserDailyUsageMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *UserDailyUsageMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the UserDailyUsageMutation builder.
+func (m *UserDailyUsageMutation) Where(ps ...predicate.UserDailyUsage) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the UserDailyUsageMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UserDailyUsageMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.UserDailyUsage, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *UserDailyUsageMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UserDailyUsageMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (UserDailyUsage).
+func (m *UserDailyUsageMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *UserDailyUsageMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.last_reset_date != nil {
+		fields = append(fields, userdailyusage.FieldLastResetDate)
+	}
+	if m.quiz_count != nil {
+		fields = append(fields, userdailyusage.FieldQuizCount)
+	}
+	if m.bulk_count != nil {
+		fields = append(fields, userdailyusage.FieldBulkCount)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, userdailyusage.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *UserDailyUsageMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case userdailyusage.FieldLastResetDate:
+		return m.LastResetDate()
+	case userdailyusage.FieldQuizCount:
+		return m.QuizCount()
+	case userdailyusage.FieldBulkCount:
+		return m.BulkCount()
+	case userdailyusage.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *UserDailyUsageMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case userdailyusage.FieldLastResetDate:
+		return m.OldLastResetDate(ctx)
+	case userdailyusage.FieldQuizCount:
+		return m.OldQuizCount(ctx)
+	case userdailyusage.FieldBulkCount:
+		return m.OldBulkCount(ctx)
+	case userdailyusage.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown UserDailyUsage field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UserDailyUsageMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case userdailyusage.FieldLastResetDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastResetDate(v)
+		return nil
+	case userdailyusage.FieldQuizCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuizCount(v)
+		return nil
+	case userdailyusage.FieldBulkCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBulkCount(v)
+		return nil
+	case userdailyusage.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UserDailyUsage field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *UserDailyUsageMutation) AddedFields() []string {
+	var fields []string
+	if m.addquiz_count != nil {
+		fields = append(fields, userdailyusage.FieldQuizCount)
+	}
+	if m.addbulk_count != nil {
+		fields = append(fields, userdailyusage.FieldBulkCount)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *UserDailyUsageMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case userdailyusage.FieldQuizCount:
+		return m.AddedQuizCount()
+	case userdailyusage.FieldBulkCount:
+		return m.AddedBulkCount()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UserDailyUsageMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case userdailyusage.FieldQuizCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddQuizCount(v)
+		return nil
+	case userdailyusage.FieldBulkCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBulkCount(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UserDailyUsage numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *UserDailyUsageMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *UserDailyUsageMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *UserDailyUsageMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown UserDailyUsage nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *UserDailyUsageMutation) ResetField(name string) error {
+	switch name {
+	case userdailyusage.FieldLastResetDate:
+		m.ResetLastResetDate()
+		return nil
+	case userdailyusage.FieldQuizCount:
+		m.ResetQuizCount()
+		return nil
+	case userdailyusage.FieldBulkCount:
+		m.ResetBulkCount()
+		return nil
+	case userdailyusage.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown UserDailyUsage field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *UserDailyUsageMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, userdailyusage.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *UserDailyUsageMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case userdailyusage.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *UserDailyUsageMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *UserDailyUsageMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *UserDailyUsageMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, userdailyusage.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *UserDailyUsageMutation) EdgeCleared(name string) bool {
+	switch name {
+	case userdailyusage.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *UserDailyUsageMutation) ClearEdge(name string) error {
+	switch name {
+	case userdailyusage.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown UserDailyUsage unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *UserDailyUsageMutation) ResetEdge(name string) error {
+	switch name {
+	case userdailyusage.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown UserDailyUsage edge %s", name)
 }
 
 // WordMutation represents an operation that mutates the Word nodes in the graph.

@@ -36,6 +36,7 @@ func (a entAdapter) User() *ent.UserClient                     { return a.Client
 func (a entAdapter) UserConfig() *ent.UserConfigClient         { return a.Client.UserConfig }
 func (a entAdapter) Word() *ent.WordClient                     { return a.Client.Word }
 func (a entAdapter) WordInfo() *ent.WordInfoClient             { return a.Client.WordInfo }
+func (a entAdapter) UserDailyUsage() *ent.UserDailyUsageClient { return a.Client.UserDailyUsage }
 
 /* -------------------------------------------------------------------------- */
 /*                               helper factory                               */

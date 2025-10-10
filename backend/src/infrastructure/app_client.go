@@ -3,6 +3,7 @@ package infrastructure
 
 import (
 	"context"
+	"database/sql"
 
 	"word_app/backend/ent"
 	"word_app/backend/src/domain"
@@ -20,6 +21,11 @@ import (
 
 type appClient struct {
 	entClient *ent.Client
+}
+
+// DB implements interfaces.ClientInterface.
+func (c *appClient) DB() *sql.DB {
+	panic("unimplemented")
 }
 
 // GetDetailByID implements interfaces.ClientInterface.
@@ -275,4 +281,9 @@ func (c *appClient) QuizQuestion() *ent.QuizQuestionClient {
 // ExternalAuth は ExternalAuth を返します。
 func (c *appClient) ExternalAuth() *ent.ExternalAuthClient {
 	return c.entClient.ExternalAuth
+}
+
+// UserDailyUsage implements interfaces.ClientInterface.
+func (c *appClient) UserDailyUsage() *ent.UserDailyUsageClient {
+	return c.entClient.UserDailyUsage
 }

@@ -6,6 +6,7 @@ import (
 	"word_app/backend/src/infrastructure/auth/line"
 	"word_app/backend/src/infrastructure/jwt"
 	authUc "word_app/backend/src/usecase/auth"
+	"word_app/backend/src/usecase/clock"
 	settingUc "word_app/backend/src/usecase/setting"
 	userUc "word_app/backend/src/usecase/user"
 	"word_app/backend/src/utils/tempjwt"
@@ -36,7 +37,8 @@ func NewUseCases(config *config.Config, r *Repos) (*UseCases, error) {
 	settingFacade := settingUc.NewSettingFacade(authCfgUc, getRootUc, getUserUc, updateRootUc, updateUserUc)
 
 	return &UseCases{
-		Auth:    authUc.NewUsecase(r.Tx, lineProv, r.User, r.UserSetting, r.Auth, jwtGen, tempJwt),
+		Auth: authUc.NewUsecase(r.Tx, lineProv, r.User, r.UserSetting,
+			r.Auth, jwtGen, tempJwt, r.RootSetting, r.UserDailyUsage, clock.SystemClock{}),
 		Setting: settingFacade, // まとめ役だけ保持
 		User:    userUc.NewUserUsecase(r.Tx, r.User, r.UserSetting, r.Auth),
 	}, nil

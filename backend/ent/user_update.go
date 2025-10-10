@@ -13,6 +13,7 @@ import (
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
+	"word_app/backend/ent/userdailyusage"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -232,6 +233,25 @@ func (uu *UserUpdate) AddExternalAuths(e ...*ExternalAuth) *UserUpdate {
 	return uu.AddExternalAuthIDs(ids...)
 }
 
+// SetUserDailyUsageID sets the "user_daily_usage" edge to the UserDailyUsage entity by ID.
+func (uu *UserUpdate) SetUserDailyUsageID(id int) *UserUpdate {
+	uu.mutation.SetUserDailyUsageID(id)
+	return uu
+}
+
+// SetNillableUserDailyUsageID sets the "user_daily_usage" edge to the UserDailyUsage entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableUserDailyUsageID(id *int) *UserUpdate {
+	if id != nil {
+		uu = uu.SetUserDailyUsageID(*id)
+	}
+	return uu
+}
+
+// SetUserDailyUsage sets the "user_daily_usage" edge to the UserDailyUsage entity.
+func (uu *UserUpdate) SetUserDailyUsage(u *UserDailyUsage) *UserUpdate {
+	return uu.SetUserDailyUsageID(u.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -304,6 +324,12 @@ func (uu *UserUpdate) RemoveExternalAuths(e ...*ExternalAuth) *UserUpdate {
 		ids[i] = e[i].ID
 	}
 	return uu.RemoveExternalAuthIDs(ids...)
+}
+
+// ClearUserDailyUsage clears the "user_daily_usage" edge to the UserDailyUsage entity.
+func (uu *UserUpdate) ClearUserDailyUsage() *UserUpdate {
+	uu.mutation.ClearUserDailyUsage()
+	return uu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -569,6 +595,35 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.UserDailyUsageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.UserDailyUsageTable,
+			Columns: []string{user.UserDailyUsageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userdailyusage.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.UserDailyUsageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.UserDailyUsageTable,
+			Columns: []string{user.UserDailyUsageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userdailyusage.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -789,6 +844,25 @@ func (uuo *UserUpdateOne) AddExternalAuths(e ...*ExternalAuth) *UserUpdateOne {
 	return uuo.AddExternalAuthIDs(ids...)
 }
 
+// SetUserDailyUsageID sets the "user_daily_usage" edge to the UserDailyUsage entity by ID.
+func (uuo *UserUpdateOne) SetUserDailyUsageID(id int) *UserUpdateOne {
+	uuo.mutation.SetUserDailyUsageID(id)
+	return uuo
+}
+
+// SetNillableUserDailyUsageID sets the "user_daily_usage" edge to the UserDailyUsage entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableUserDailyUsageID(id *int) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetUserDailyUsageID(*id)
+	}
+	return uuo
+}
+
+// SetUserDailyUsage sets the "user_daily_usage" edge to the UserDailyUsage entity.
+func (uuo *UserUpdateOne) SetUserDailyUsage(u *UserDailyUsage) *UserUpdateOne {
+	return uuo.SetUserDailyUsageID(u.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -861,6 +935,12 @@ func (uuo *UserUpdateOne) RemoveExternalAuths(e ...*ExternalAuth) *UserUpdateOne
 		ids[i] = e[i].ID
 	}
 	return uuo.RemoveExternalAuthIDs(ids...)
+}
+
+// ClearUserDailyUsage clears the "user_daily_usage" edge to the UserDailyUsage entity.
+func (uuo *UserUpdateOne) ClearUserDailyUsage() *UserUpdateOne {
+	uuo.mutation.ClearUserDailyUsage()
+	return uuo
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -1149,6 +1229,35 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(externalauth.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.UserDailyUsageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.UserDailyUsageTable,
+			Columns: []string{user.UserDailyUsageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userdailyusage.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.UserDailyUsageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.UserDailyUsageTable,
+			Columns: []string{user.UserDailyUsageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userdailyusage.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

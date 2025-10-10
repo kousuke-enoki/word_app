@@ -14,6 +14,7 @@ import (
 	"word_app/backend/ent/schema"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
+	"word_app/backend/ent/userdailyusage"
 	"word_app/backend/ent/word"
 	"word_app/backend/ent/wordinfo"
 )
@@ -268,6 +269,22 @@ func init() {
 	userconfigDescIsDarkMode := userconfigFields[1].Descriptor()
 	// userconfig.DefaultIsDarkMode holds the default value on creation for the is_dark_mode field.
 	userconfig.DefaultIsDarkMode = userconfigDescIsDarkMode.Default.(bool)
+	userdailyusageFields := schema.UserDailyUsage{}.Fields()
+	_ = userdailyusageFields
+	// userdailyusageDescQuizCount is the schema descriptor for quiz_count field.
+	userdailyusageDescQuizCount := userdailyusageFields[1].Descriptor()
+	// userdailyusage.DefaultQuizCount holds the default value on creation for the quiz_count field.
+	userdailyusage.DefaultQuizCount = userdailyusageDescQuizCount.Default.(int)
+	// userdailyusageDescBulkCount is the schema descriptor for bulk_count field.
+	userdailyusageDescBulkCount := userdailyusageFields[2].Descriptor()
+	// userdailyusage.DefaultBulkCount holds the default value on creation for the bulk_count field.
+	userdailyusage.DefaultBulkCount = userdailyusageDescBulkCount.Default.(int)
+	// userdailyusageDescUpdatedAt is the schema descriptor for updated_at field.
+	userdailyusageDescUpdatedAt := userdailyusageFields[3].Descriptor()
+	// userdailyusage.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	userdailyusage.DefaultUpdatedAt = userdailyusageDescUpdatedAt.Default.(func() time.Time)
+	// userdailyusage.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	userdailyusage.UpdateDefaultUpdatedAt = userdailyusageDescUpdatedAt.UpdateDefault.(func() time.Time)
 	wordFields := schema.Word{}.Fields()
 	_ = wordFields
 	// wordDescName is the schema descriptor for name field.

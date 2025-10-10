@@ -19,4 +19,5 @@ type EntClientInterface interface {
 	QuizQuestion() *ent.QuizQuestionClient
 	ExternalAuth() *ent.ExternalAuthClient
 	EntClient() *ent.Client
+	UserDailyUsage() *ent.UserDailyUsageClient
 }

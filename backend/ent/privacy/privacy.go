@@ -326,6 +326,30 @@ func (f UserConfigMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Muta
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.UserConfigMutation", m)
 }
 
+// The UserDailyUsageQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type UserDailyUsageQueryRuleFunc func(context.Context, *ent.UserDailyUsageQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f UserDailyUsageQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.UserDailyUsageQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.UserDailyUsageQuery", q)
+}
+
+// The UserDailyUsageMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type UserDailyUsageMutationRuleFunc func(context.Context, *ent.UserDailyUsageMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f UserDailyUsageMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.UserDailyUsageMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.UserDailyUsageMutation", m)
+}
+
 // The WordQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type WordQueryRuleFunc func(context.Context, *ent.WordQuery) error

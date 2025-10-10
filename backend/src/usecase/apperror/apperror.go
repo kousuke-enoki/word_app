@@ -17,6 +17,7 @@ const (
 	Validation        Kind = "VALIDATION"
 	Internal          Kind = "INTERNAL"
 	InvalidCredential Kind = "INVALID_CREDENTIAL"
+	TooManyRequests   Kind = "TOO_MANY_REQUESTS"
 )
 
 type Error struct {
@@ -52,6 +53,7 @@ func Conflictf(msg string, err error) *Error          { return New(Conflict, msg
 func Validationf(msg string, err error) *Error        { return New(Validation, msg, err) }
 func InvalidCredentialf(msg string, err error) *Error { return New(InvalidCredential, msg, err) }
 func Internalf(msg string, err error) *Error          { return New(Internal, msg, err) }
+func TooManyRequestsf(msg string, err error) *Error   { return New(TooManyRequests, msg, err) }
 
 // ユーティリティ
 func IsKind(err error, k Kind) bool {

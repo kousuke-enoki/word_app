@@ -6,6 +6,7 @@ package serviceinterfaces
 
 import (
 	"context"
+	"database/sql"
 
 	"word_app/backend/ent"
 
@@ -37,6 +38,52 @@ type MockEntClientInterface_Expecter struct {
 
 func (_m *MockEntClientInterface) EXPECT() *MockEntClientInterface_Expecter {
 	return &MockEntClientInterface_Expecter{mock: &_m.Mock}
+}
+
+// DB provides a mock function for the type MockEntClientInterface
+func (_mock *MockEntClientInterface) DB() *sql.DB {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for DB")
+	}
+
+	var r0 *sql.DB
+	if returnFunc, ok := ret.Get(0).(func() *sql.DB); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*sql.DB)
+		}
+	}
+	return r0
+}
+
+// MockEntClientInterface_DB_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DB'
+type MockEntClientInterface_DB_Call struct {
+	*mock.Call
+}
+
+// DB is a helper method to define mock.On call
+func (_e *MockEntClientInterface_Expecter) DB() *MockEntClientInterface_DB_Call {
+	return &MockEntClientInterface_DB_Call{Call: _e.mock.On("DB")}
+}
+
+func (_c *MockEntClientInterface_DB_Call) Run(run func()) *MockEntClientInterface_DB_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockEntClientInterface_DB_Call) Return(dB *sql.DB) *MockEntClientInterface_DB_Call {
+	_c.Call.Return(dB)
+	return _c
+}
+
+func (_c *MockEntClientInterface_DB_Call) RunAndReturn(run func() *sql.DB) *MockEntClientInterface_DB_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // EntClient provides a mock function for the type MockEntClientInterface
@@ -511,6 +558,52 @@ func (_c *MockEntClientInterface_UserConfig_Call) Return(userConfigClient *ent.U
 }
 
 func (_c *MockEntClientInterface_UserConfig_Call) RunAndReturn(run func() *ent.UserConfigClient) *MockEntClientInterface_UserConfig_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UserDailyUsage provides a mock function for the type MockEntClientInterface
+func (_mock *MockEntClientInterface) UserDailyUsage() *ent.UserDailyUsageClient {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserDailyUsage")
+	}
+
+	var r0 *ent.UserDailyUsageClient
+	if returnFunc, ok := ret.Get(0).(func() *ent.UserDailyUsageClient); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ent.UserDailyUsageClient)
+		}
+	}
+	return r0
+}
+
+// MockEntClientInterface_UserDailyUsage_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UserDailyUsage'
+type MockEntClientInterface_UserDailyUsage_Call struct {
+	*mock.Call
+}
+
+// UserDailyUsage is a helper method to define mock.On call
+func (_e *MockEntClientInterface_Expecter) UserDailyUsage() *MockEntClientInterface_UserDailyUsage_Call {
+	return &MockEntClientInterface_UserDailyUsage_Call{Call: _e.mock.On("UserDailyUsage")}
+}
+
+func (_c *MockEntClientInterface_UserDailyUsage_Call) Run(run func()) *MockEntClientInterface_UserDailyUsage_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockEntClientInterface_UserDailyUsage_Call) Return(userDailyUsageClient *ent.UserDailyUsageClient) *MockEntClientInterface_UserDailyUsage_Call {
+	_c.Call.Return(userDailyUsageClient)
+	return _c
+}
+
+func (_c *MockEntClientInterface_UserDailyUsage_Call) RunAndReturn(run func() *ent.UserDailyUsageClient) *MockEntClientInterface_UserDailyUsage_Call {
 	_c.Call.Return(run)
 	return _c
 }

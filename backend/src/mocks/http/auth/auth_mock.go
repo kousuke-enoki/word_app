@@ -173,3 +173,49 @@ func (_c *MockHandler_LineLogin_Call) RunAndReturn(run func() gin.HandlerFunc) *
 	_c.Call.Return(run)
 	return _c
 }
+
+// TestLoginHandler provides a mock function for the type MockHandler
+func (_mock *MockHandler) TestLoginHandler() gin.HandlerFunc {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for TestLoginHandler")
+	}
+
+	var r0 gin.HandlerFunc
+	if returnFunc, ok := ret.Get(0).(func() gin.HandlerFunc); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(gin.HandlerFunc)
+		}
+	}
+	return r0
+}
+
+// MockHandler_TestLoginHandler_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TestLoginHandler'
+type MockHandler_TestLoginHandler_Call struct {
+	*mock.Call
+}
+
+// TestLoginHandler is a helper method to define mock.On call
+func (_e *MockHandler_Expecter) TestLoginHandler() *MockHandler_TestLoginHandler_Call {
+	return &MockHandler_TestLoginHandler_Call{Call: _e.mock.On("TestLoginHandler")}
+}
+
+func (_c *MockHandler_TestLoginHandler_Call) Run(run func()) *MockHandler_TestLoginHandler_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockHandler_TestLoginHandler_Call) Return(handlerFunc gin.HandlerFunc) *MockHandler_TestLoginHandler_Call {
+	_c.Call.Return(handlerFunc)
+	return _c
+}
+
+func (_c *MockHandler_TestLoginHandler_Call) RunAndReturn(run func() gin.HandlerFunc) *MockHandler_TestLoginHandler_Call {
+	_c.Call.Return(run)
+	return _c
+}

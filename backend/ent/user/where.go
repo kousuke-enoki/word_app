@@ -567,6 +567,29 @@ func HasExternalAuthsWith(preds ...predicate.ExternalAuth) predicate.User {
 	})
 }
 
+// HasUserDailyUsage applies the HasEdge predicate on the "user_daily_usage" edge.
+func HasUserDailyUsage() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, UserDailyUsageTable, UserDailyUsageColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserDailyUsageWith applies the HasEdge predicate on the "user_daily_usage" edge with a given conditions (other predicates).
+func HasUserDailyUsageWith(preds ...predicate.UserDailyUsage) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newUserDailyUsageStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(sql.AndPredicates(predicates...))

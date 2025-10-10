@@ -62,7 +62,7 @@ func (v *JwtTokenValidator) Validate(ctx context.Context, tokenStr string) (cont
 	u, err := v.client.User().
 		Query().
 		Where(user.ID(id)).
-		Select(user.FieldIsAdmin, user.FieldIsRoot).
+		Select(user.FieldIsAdmin, user.FieldIsRoot, user.FieldIsTest).
 		Only(ctx)
 	if err != nil {
 		return zero, errors.New("user_not_found")

@@ -20,6 +20,7 @@ import (
 	"word_app/backend/ent/rootconfig"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
+	"word_app/backend/ent/userdailyusage"
 	"word_app/backend/ent/word"
 	"word_app/backend/ent/wordinfo"
 
@@ -54,6 +55,8 @@ type Client struct {
 	User *UserClient
 	// UserConfig is the client for interacting with the UserConfig builders.
 	UserConfig *UserConfigClient
+	// UserDailyUsage is the client for interacting with the UserDailyUsage builders.
+	UserDailyUsage *UserDailyUsageClient
 	// Word is the client for interacting with the Word builders.
 	Word *WordClient
 	// WordInfo is the client for interacting with the WordInfo builders.
@@ -78,6 +81,7 @@ func (c *Client) init() {
 	c.RootConfig = NewRootConfigClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UserConfig = NewUserConfigClient(c.config)
+	c.UserDailyUsage = NewUserDailyUsageClient(c.config)
 	c.Word = NewWordClient(c.config)
 	c.WordInfo = NewWordInfoClient(c.config)
 }
@@ -181,6 +185,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		RootConfig:     NewRootConfigClient(cfg),
 		User:           NewUserClient(cfg),
 		UserConfig:     NewUserConfigClient(cfg),
+		UserDailyUsage: NewUserDailyUsageClient(cfg),
 		Word:           NewWordClient(cfg),
 		WordInfo:       NewWordInfoClient(cfg),
 	}, nil
@@ -211,6 +216,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		RootConfig:     NewRootConfigClient(cfg),
 		User:           NewUserClient(cfg),
 		UserConfig:     NewUserConfigClient(cfg),
+		UserDailyUsage: NewUserDailyUsageClient(cfg),
 		Word:           NewWordClient(cfg),
 		WordInfo:       NewWordInfoClient(cfg),
 	}, nil
@@ -243,7 +249,8 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.ExternalAuth, c.JapaneseMean, c.PartOfSpeech, c.Quiz, c.QuizQuestion,
-		c.RegisteredWord, c.RootConfig, c.User, c.UserConfig, c.Word, c.WordInfo,
+		c.RegisteredWord, c.RootConfig, c.User, c.UserConfig, c.UserDailyUsage, c.Word,
+		c.WordInfo,
 	} {
 		n.Use(hooks...)
 	}
@@ -254,7 +261,8 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.ExternalAuth, c.JapaneseMean, c.PartOfSpeech, c.Quiz, c.QuizQuestion,
-		c.RegisteredWord, c.RootConfig, c.User, c.UserConfig, c.Word, c.WordInfo,
+		c.RegisteredWord, c.RootConfig, c.User, c.UserConfig, c.UserDailyUsage, c.Word,
+		c.WordInfo,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -281,6 +289,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	case *UserConfigMutation:
 		return c.UserConfig.mutate(ctx, m)
+	case *UserDailyUsageMutation:
+		return c.UserDailyUsage.mutate(ctx, m)
 	case *WordMutation:
 		return c.Word.mutate(ctx, m)
 	case *WordInfoMutation:
@@ -1585,6 +1595,22 @@ func (c *UserClient) QueryExternalAuths(u *User) *ExternalAuthQuery {
 	return query
 }
 
+// QueryUserDailyUsage queries the user_daily_usage edge of a User.
+func (c *UserClient) QueryUserDailyUsage(u *User) *UserDailyUsageQuery {
+	query := (&UserDailyUsageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(userdailyusage.Table, userdailyusage.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.UserDailyUsageTable, user.UserDailyUsageColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -1756,6 +1782,155 @@ func (c *UserConfigClient) mutate(ctx context.Context, m *UserConfigMutation) (V
 		return (&UserConfigDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown UserConfig mutation op: %q", m.Op())
+	}
+}
+
+// UserDailyUsageClient is a client for the UserDailyUsage schema.
+type UserDailyUsageClient struct {
+	config
+}
+
+// NewUserDailyUsageClient returns a client for the UserDailyUsage from the given config.
+func NewUserDailyUsageClient(c config) *UserDailyUsageClient {
+	return &UserDailyUsageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `userdailyusage.Hooks(f(g(h())))`.
+func (c *UserDailyUsageClient) Use(hooks ...Hook) {
+	c.hooks.UserDailyUsage = append(c.hooks.UserDailyUsage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `userdailyusage.Intercept(f(g(h())))`.
+func (c *UserDailyUsageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserDailyUsage = append(c.inters.UserDailyUsage, interceptors...)
+}
+
+// Create returns a builder for creating a UserDailyUsage entity.
+func (c *UserDailyUsageClient) Create() *UserDailyUsageCreate {
+	mutation := newUserDailyUsageMutation(c.config, OpCreate)
+	return &UserDailyUsageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserDailyUsage entities.
+func (c *UserDailyUsageClient) CreateBulk(builders ...*UserDailyUsageCreate) *UserDailyUsageCreateBulk {
+	return &UserDailyUsageCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserDailyUsageClient) MapCreateBulk(slice any, setFunc func(*UserDailyUsageCreate, int)) *UserDailyUsageCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserDailyUsageCreateBulk{err: fmt.Errorf("calling to UserDailyUsageClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserDailyUsageCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserDailyUsageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserDailyUsage.
+func (c *UserDailyUsageClient) Update() *UserDailyUsageUpdate {
+	mutation := newUserDailyUsageMutation(c.config, OpUpdate)
+	return &UserDailyUsageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserDailyUsageClient) UpdateOne(udu *UserDailyUsage) *UserDailyUsageUpdateOne {
+	mutation := newUserDailyUsageMutation(c.config, OpUpdateOne, withUserDailyUsage(udu))
+	return &UserDailyUsageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserDailyUsageClient) UpdateOneID(id int) *UserDailyUsageUpdateOne {
+	mutation := newUserDailyUsageMutation(c.config, OpUpdateOne, withUserDailyUsageID(id))
+	return &UserDailyUsageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserDailyUsage.
+func (c *UserDailyUsageClient) Delete() *UserDailyUsageDelete {
+	mutation := newUserDailyUsageMutation(c.config, OpDelete)
+	return &UserDailyUsageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserDailyUsageClient) DeleteOne(udu *UserDailyUsage) *UserDailyUsageDeleteOne {
+	return c.DeleteOneID(udu.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserDailyUsageClient) DeleteOneID(id int) *UserDailyUsageDeleteOne {
+	builder := c.Delete().Where(userdailyusage.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserDailyUsageDeleteOne{builder}
+}
+
+// Query returns a query builder for UserDailyUsage.
+func (c *UserDailyUsageClient) Query() *UserDailyUsageQuery {
+	return &UserDailyUsageQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserDailyUsage},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserDailyUsage entity by its id.
+func (c *UserDailyUsageClient) Get(ctx context.Context, id int) (*UserDailyUsage, error) {
+	return c.Query().Where(userdailyusage.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserDailyUsageClient) GetX(ctx context.Context, id int) *UserDailyUsage {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a UserDailyUsage.
+func (c *UserDailyUsageClient) QueryUser(udu *UserDailyUsage) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := udu.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userdailyusage.Table, userdailyusage.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, userdailyusage.UserTable, userdailyusage.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(udu.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *UserDailyUsageClient) Hooks() []Hook {
+	return c.hooks.UserDailyUsage
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserDailyUsageClient) Interceptors() []Interceptor {
+	return c.inters.UserDailyUsage
+}
+
+func (c *UserDailyUsageClient) mutate(ctx context.Context, m *UserDailyUsageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserDailyUsageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserDailyUsageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserDailyUsageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserDailyUsageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserDailyUsage mutation op: %q", m.Op())
 	}
 }
 
@@ -2125,11 +2300,11 @@ func (c *WordInfoClient) mutate(ctx context.Context, m *WordInfoMutation) (Value
 type (
 	hooks struct {
 		ExternalAuth, JapaneseMean, PartOfSpeech, Quiz, QuizQuestion, RegisteredWord,
-		RootConfig, User, UserConfig, Word, WordInfo []ent.Hook
+		RootConfig, User, UserConfig, UserDailyUsage, Word, WordInfo []ent.Hook
 	}
 	inters struct {
 		ExternalAuth, JapaneseMean, PartOfSpeech, Quiz, QuizQuestion, RegisteredWord,
-		RootConfig, User, UserConfig, Word, WordInfo []ent.Interceptor
+		RootConfig, User, UserConfig, UserDailyUsage, Word, WordInfo []ent.Interceptor
 	}
 )
 

@@ -8,6 +8,7 @@ import (
 	"time"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
+	"word_app/backend/ent/userdailyusage"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -53,9 +54,11 @@ type UserEdges struct {
 	UserConfig *UserConfig `json:"user_config,omitempty"`
 	// ExternalAuths holds the value of the external_auths edge.
 	ExternalAuths []*ExternalAuth `json:"external_auths,omitempty"`
+	// UserDailyUsage holds the value of the user_daily_usage edge.
+	UserDailyUsage *UserDailyUsage `json:"user_daily_usage,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // RegisteredWordsOrErr returns the RegisteredWords value or an error if the edge
@@ -94,6 +97,17 @@ func (e UserEdges) ExternalAuthsOrErr() ([]*ExternalAuth, error) {
 		return e.ExternalAuths, nil
 	}
 	return nil, &NotLoadedError{edge: "external_auths"}
+}
+
+// UserDailyUsageOrErr returns the UserDailyUsage value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) UserDailyUsageOrErr() (*UserDailyUsage, error) {
+	if e.UserDailyUsage != nil {
+		return e.UserDailyUsage, nil
+	} else if e.loadedTypes[4] {
+		return nil, &NotFoundError{label: userdailyusage.Label}
+	}
+	return nil, &NotLoadedError{edge: "user_daily_usage"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -218,6 +232,11 @@ func (u *User) QueryUserConfig() *UserConfigQuery {
 // QueryExternalAuths queries the "external_auths" edge of the User entity.
 func (u *User) QueryExternalAuths() *ExternalAuthQuery {
 	return NewUserClient(u.config).QueryExternalAuths(u)
+}
+
+// QueryUserDailyUsage queries the "user_daily_usage" edge of the User entity.
+func (u *User) QueryUserDailyUsage() *UserDailyUsageQuery {
+	return NewUserClient(u.config).QueryUserDailyUsage(u)
 }
 
 // Update returns a builder for updating this User.

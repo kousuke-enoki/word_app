@@ -40,6 +40,8 @@ const (
 	EdgeUserConfig = "user_config"
 	// EdgeExternalAuths holds the string denoting the external_auths edge name in mutations.
 	EdgeExternalAuths = "external_auths"
+	// EdgeUserDailyUsage holds the string denoting the user_daily_usage edge name in mutations.
+	EdgeUserDailyUsage = "user_daily_usage"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// RegisteredWordsTable is the table that holds the registered_words relation/edge.
@@ -70,6 +72,13 @@ const (
 	ExternalAuthsInverseTable = "external_auths"
 	// ExternalAuthsColumn is the table column denoting the external_auths relation/edge.
 	ExternalAuthsColumn = "user_external_auths"
+	// UserDailyUsageTable is the table that holds the user_daily_usage relation/edge.
+	UserDailyUsageTable = "user_daily_usages"
+	// UserDailyUsageInverseTable is the table name for the UserDailyUsage entity.
+	// It exists in this package in order to avoid circular dependency with the "userdailyusage" package.
+	UserDailyUsageInverseTable = "user_daily_usages"
+	// UserDailyUsageColumn is the table column denoting the user_daily_usage relation/edge.
+	UserDailyUsageColumn = "user_user_daily_usage"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -218,6 +227,13 @@ func ByExternalAuths(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newExternalAuthsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByUserDailyUsageField orders the results by user_daily_usage field.
+func ByUserDailyUsageField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserDailyUsageStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newRegisteredWordsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -244,5 +260,12 @@ func newExternalAuthsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ExternalAuthsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ExternalAuthsTable, ExternalAuthsColumn),
+	)
+}
+func newUserDailyUsageStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserDailyUsageInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, UserDailyUsageTable, UserDailyUsageColumn),
 	)
 }

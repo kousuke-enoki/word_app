@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -18,11 +19,18 @@ import (
 	mockSetting "word_app/backend/src/mocks/infrastructure/repository/setting"
 	mockTx "word_app/backend/src/mocks/infrastructure/repository/tx"
 	mockUser "word_app/backend/src/mocks/infrastructure/repository/user"
+	mockudu "word_app/backend/src/mocks/infrastructure/repository/userdailyusage"
 )
 
 /* -------------------------------------------------------------------------- */
 /*                              helper to build UC                            */
 /* -------------------------------------------------------------------------- */
+
+type mockClock struct{ mock.Mock }
+
+func (m *mockClock) Now() time.Time {
+	return time.Now()
+}
 
 func newUC(
 	txm *mockTx.MockManager,
@@ -32,6 +40,9 @@ func newUC(
 	a *mockAuth.MockExternalAuthRepository,
 	j *mockJwt.MockJWTGenerator,
 	t *mockJwt.MockTempTokenGenerator,
+	rs *mockSetting.MockRootConfigRepository,
+	udu *mockudu.MockRepository,
+	c *mockClock,
 	tHelper testing.TB, // *testing.T を渡すため追加
 ) *authUc.AuthUsecase {
 	ext := mockAuth.NewMockExternalAuthRepository(tHelper)
@@ -44,6 +55,9 @@ func newUC(
 		ext, // ExternalAuthRepository
 		j,   // JWTGenerator
 		t,   // TempTokenGenerator
+		rs,  // rootSettingRepo
+		udu, // userDailyUsageRepo
+		c,   // clock
 	)
 }
 
@@ -55,14 +69,17 @@ func TestStartLogin(t *testing.T) {
 	// p := &providerMock{}
 	p := new(mockLine.MockProvider)
 	mockTx := new(mockTx.MockManager)
-	mockSetting := new(mockSetting.MockUserConfigRepository)
+	mockUserSetting := new(mockSetting.MockUserConfigRepository)
 	mockAuth := new(mockAuth.MockExternalAuthRepository)
 	mockJwtg := new(mockJwt.MockJWTGenerator)
 	mockTempJwt := new(mockJwt.MockTempTokenGenerator)
+	mockRootSetting := new(mockSetting.MockRootConfigRepository)
+	mockUdu := new(mockudu.MockRepository)
+	c := &mockClock{}
 
 	p.On("AuthURL", "st", "no").Return("https://example/auth")
-	uc := newUC(mockTx, p, mockUser.NewMockRepository(t), mockSetting, mockAuth, mockJwtg, mockTempJwt,
-		t)
+	uc := newUC(mockTx, p, mockUser.NewMockRepository(t), mockUserSetting, mockAuth, mockJwtg, mockTempJwt,
+		mockRootSetting, mockUdu, c, t)
 
 	got := uc.StartLogin(context.Background(), "st", "no")
 	assert.Equal(t, "https://example/auth", got)
@@ -132,13 +149,17 @@ func TestHandleCallback(t *testing.T) {
 			p := new(mockLine.MockProvider)
 			r := mockUser.NewMockRepository(t)
 			mockTx := new(mockTx.MockManager)
-			mockSetting := new(mockSetting.MockUserConfigRepository)
+			mockUserSetting := new(mockSetting.MockUserConfigRepository)
 			mockAuth := new(mockAuth.MockExternalAuthRepository)
 			j := new(mockJwt.MockJWTGenerator)
 			tmp := new(mockJwt.MockTempTokenGenerator)
+			mockRootSetting := new(mockSetting.MockRootConfigRepository)
+			mockUdu := new(mockudu.MockRepository)
+			c := &mockClock{}
 
 			tc.setup(p, r, j, tmp)
-			uc := newUC(mockTx, p, r, mockSetting, mockAuth, j, tmp, t)
+			uc := newUC(mockTx, p, r, mockUserSetting, mockAuth, j, tmp,
+				mockRootSetting, mockUdu, c, t)
 			res, err := uc.HandleCallback(ctx, "code")
 
 			if tc.wantErr {
@@ -233,12 +254,17 @@ func TestHandleCallback(t *testing.T) {
 func TestProviderAuthURLDelegation(t *testing.T) {
 	p := new(mockLine.MockProvider)
 	mockTx := new(mockTx.MockManager)
-	mockSetting := new(mockSetting.MockUserConfigRepository)
+	mockUserSetting := new(mockSetting.MockUserConfigRepository)
 	mockAuth := new(mockAuth.MockExternalAuthRepository)
 	mockJwtg := new(mockJwt.MockJWTGenerator)
 	mockTempJwt := new(mockJwt.MockTempTokenGenerator)
+	mockRootSetting := new(mockSetting.MockRootConfigRepository)
+	mockUdu := new(mockudu.MockRepository)
+	c := &mockClock{}
+
 	p.On("AuthURL", "s", "n").Return("url")
-	uc := newUC(mockTx, p, mockUser.NewMockRepository(t), mockSetting, mockAuth, mockJwtg, mockTempJwt, t)
+	uc := newUC(mockTx, p, mockUser.NewMockRepository(t), mockUserSetting,
+		mockAuth, mockJwtg, mockTempJwt, mockRootSetting, mockUdu, c, t)
 
 	assert.Equal(t, "url", uc.StartLogin(context.Background(), "s", "n"))
 	p.AssertCalled(t, "AuthURL", "s", "n")

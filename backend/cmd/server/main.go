@@ -18,6 +18,7 @@ import (
 	"word_app/backend/seeder"
 	"word_app/backend/src/infrastructure"
 	"word_app/backend/src/interfaces"
+	"word_app/backend/src/interfaces/sqlexec"
 	middleware_logger "word_app/backend/src/middleware/logger"
 	"word_app/backend/src/validators"
 
@@ -111,6 +112,8 @@ func mustInitServer(needCleanup bool) (*gin.Engine, string, string, func()) {
 		logrus.Error(err)
 	}
 	entClient := database.GetEntClient()
+	sqlDB := database.GetSQLDB()
+
 	// cleanup は呼ぶタイミングを呼び出し側に委譲
 	cleanup := func() {}
 	if needCleanup {
@@ -122,6 +125,7 @@ func mustInitServer(needCleanup bool) (*gin.Engine, string, string, func()) {
 	}
 
 	client := infrastructure.NewAppClient(entClient)
+	runner := sqlexec.NewStdSQLRunner(sqlDB)
 
 	runMig := shouldRun("RUN_MIGRATION")
 	runSeed := shouldRun("RUN_SEEDER")
@@ -147,7 +151,7 @@ func mustInitServer(needCleanup bool) (*gin.Engine, string, string, func()) {
 		logrus.Info("Skip seeder on boot")
 	}
 
-	router := setupRouter(client, corsOrigin)
+	router := setupRouter(client, runner, corsOrigin)
 	return router, appPort, appEnv, cleanup
 }
 
@@ -203,7 +207,7 @@ func runSeederIfNeeded(client interfaces.ClientInterface) error {
 	return nil
 }
 
-func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engine {
+func setupRouter(client interfaces.ClientInterface, runner sqlexec.Runner, corsOrigin string) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(middleware_logger.RequestLogger())
@@ -234,7 +238,7 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 
 	// ルータのセットアップ
 	cfgObj := config.NewConfig() // ← env 読み取りなど 1 箇所に集約
-	repos := di.NewRepositories(client)
+	repos := di.NewRepositories(client, runner)
 	ucs, err := di.NewUseCases(cfgObj, repos)
 	if err != nil {
 		logrus.Fatal(err)

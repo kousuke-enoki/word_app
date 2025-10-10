@@ -13,6 +13,7 @@ import (
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
+	"word_app/backend/ent/userdailyusage"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -31,6 +32,7 @@ type UserQuery struct {
 	withQuizs           *QuizQuery
 	withUserConfig      *UserConfigQuery
 	withExternalAuths   *ExternalAuthQuery
+	withUserDailyUsage  *UserDailyUsageQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -148,6 +150,28 @@ func (uq *UserQuery) QueryExternalAuths() *ExternalAuthQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(externalauth.Table, externalauth.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.ExternalAuthsTable, user.ExternalAuthsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUserDailyUsage chains the current query on the "user_daily_usage" edge.
+func (uq *UserQuery) QueryUserDailyUsage() *UserDailyUsageQuery {
+	query := (&UserDailyUsageClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(userdailyusage.Table, userdailyusage.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.UserDailyUsageTable, user.UserDailyUsageColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -351,6 +375,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		withQuizs:           uq.withQuizs.Clone(),
 		withUserConfig:      uq.withUserConfig.Clone(),
 		withExternalAuths:   uq.withExternalAuths.Clone(),
+		withUserDailyUsage:  uq.withUserDailyUsage.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -398,6 +423,17 @@ func (uq *UserQuery) WithExternalAuths(opts ...func(*ExternalAuthQuery)) *UserQu
 		opt(query)
 	}
 	uq.withExternalAuths = query
+	return uq
+}
+
+// WithUserDailyUsage tells the query-builder to eager-load the nodes that are connected to
+// the "user_daily_usage" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithUserDailyUsage(opts ...func(*UserDailyUsageQuery)) *UserQuery {
+	query := (&UserDailyUsageClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withUserDailyUsage = query
 	return uq
 }
 
@@ -479,11 +515,12 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			uq.withRegisteredWords != nil,
 			uq.withQuizs != nil,
 			uq.withUserConfig != nil,
 			uq.withExternalAuths != nil,
+			uq.withUserDailyUsage != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -528,6 +565,12 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadExternalAuths(ctx, query, nodes,
 			func(n *User) { n.Edges.ExternalAuths = []*ExternalAuth{} },
 			func(n *User, e *ExternalAuth) { n.Edges.ExternalAuths = append(n.Edges.ExternalAuths, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withUserDailyUsage; query != nil {
+		if err := uq.loadUserDailyUsage(ctx, query, nodes, nil,
+			func(n *User, e *UserDailyUsage) { n.Edges.UserDailyUsage = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -647,6 +690,34 @@ func (uq *UserQuery) loadExternalAuths(ctx context.Context, query *ExternalAuthQ
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_external_auths" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadUserDailyUsage(ctx context.Context, query *UserDailyUsageQuery, nodes []*User, init func(*User), assign func(*User, *UserDailyUsage)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+	}
+	query.withFKs = true
+	query.Where(predicate.UserDailyUsage(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.UserDailyUsageColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_user_daily_usage
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_user_daily_usage" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_user_daily_usage" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

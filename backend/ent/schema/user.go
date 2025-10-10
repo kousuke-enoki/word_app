@@ -48,8 +48,8 @@ func (User) Fields() []ent.Field {
 			Comment("Name of the user.\n If not specified, defaults to \"John Doe\".").
 			NotEmpty().
 			Validate(func(name string) error {
-				if len(name) < 3 || len(name) > 20 {
-					return errors.New("name must be between 3 and 20 characters")
+				if len(name) < 3 || len(name) > 40 {
+					return errors.New("name must be between 3 and 40 characters")
 				}
 				return nil
 			}),
@@ -78,6 +78,8 @@ func (User) Edges() []ent.Edge {
 		edge.To("user_config", UserConfig.Type).
 			Unique(),
 		edge.To("external_auths", ExternalAuth.Type),
+		edge.To("user_daily_usage", UserDailyUsage.Type).
+			Unique(),
 	}
 }
 

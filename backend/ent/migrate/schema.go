@@ -266,6 +266,29 @@ var (
 			},
 		},
 	}
+	// UserDailyUsagesColumns holds the columns for the "user_daily_usages" table.
+	UserDailyUsagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "last_reset_date", Type: field.TypeTime},
+		{Name: "quiz_count", Type: field.TypeInt, Default: 0},
+		{Name: "bulk_count", Type: field.TypeInt, Default: 0},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_user_daily_usage", Type: field.TypeInt, Unique: true},
+	}
+	// UserDailyUsagesTable holds the schema information for the "user_daily_usages" table.
+	UserDailyUsagesTable = &schema.Table{
+		Name:       "user_daily_usages",
+		Columns:    UserDailyUsagesColumns,
+		PrimaryKey: []*schema.Column{UserDailyUsagesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_daily_usages_users_user_daily_usage",
+				Columns:    []*schema.Column{UserDailyUsagesColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// WordsColumns holds the columns for the "words" table.
 	WordsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -322,6 +345,7 @@ var (
 		RootConfigsTable,
 		UsersTable,
 		UserConfigsTable,
+		UserDailyUsagesTable,
 		WordsTable,
 		WordInfosTable,
 	}
@@ -338,6 +362,7 @@ func init() {
 	RegisteredWordsTable.ForeignKeys[0].RefTable = UsersTable
 	RegisteredWordsTable.ForeignKeys[1].RefTable = WordsTable
 	UserConfigsTable.ForeignKeys[0].RefTable = UsersTable
+	UserDailyUsagesTable.ForeignKeys[0].RefTable = UsersTable
 	WordInfosTable.ForeignKeys[0].RefTable = PartOfSpeechesTable
 	WordInfosTable.ForeignKeys[1].RefTable = WordsTable
 }

@@ -116,6 +116,18 @@ func (f UserConfigFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserConfigMutation", m)
 }
 
+// The UserDailyUsageFunc type is an adapter to allow the use of ordinary
+// function as UserDailyUsage mutator.
+type UserDailyUsageFunc func(context.Context, *ent.UserDailyUsageMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserDailyUsageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserDailyUsageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserDailyUsageMutation", m)
+}
+
 // The WordFunc type is an adapter to allow the use of ordinary
 // function as Word mutator.
 type WordFunc func(context.Context, *ent.WordMutation) (ent.Value, error)

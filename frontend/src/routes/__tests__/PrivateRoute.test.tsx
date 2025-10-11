@@ -7,7 +7,7 @@
 import { render, screen } from '@testing-library/react'
 import React from 'react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
-import { beforeEach,describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import PrivateRoute from '../PrivateRoute'
 
@@ -17,18 +17,18 @@ import PrivateRoute from '../PrivateRoute'
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(),
 }))
-import { useAuth } from '@/hooks/useAuth'         // ← 上でモック化済み
+import { useAuth } from '@/hooks/useAuth' // ← 上でモック化済み
 
-const mockedUseAuth = vi.mocked(useAuth);   // 型付きのモック関数になる
+const mockedUseAuth = vi.mocked(useAuth) // 型付きのモック関数になる
 
 const setAuthState = (state: Partial<ReturnType<typeof useAuth>>) => {
   mockedUseAuth.mockReturnValue({
-    isLoggedIn : false,
-    userRole   : 'guest',
-    isLoading  : false,
+    isLoggedIn: false,
+    userRole: 'test',
+    isLoading: false,
     ...state,
-  });
-};
+  })
+}
 
 /* ------------------------------------------------------------------ */
 /* ❷ 現在パスを確認できるダミーコンポーネント                           */
@@ -45,8 +45,8 @@ const renderWithRouter = (ui: React.ReactElement, startPath = '/private') =>
   render(
     <MemoryRouter initialEntries={[startPath]}>
       <Routes>
-        <Route path="/"       element={<WhereAmI />} />
-        <Route path="/private" element={ui}          />
+        <Route path="/" element={<WhereAmI />} />
+        <Route path="/private" element={ui} />
       </Routes>
     </MemoryRouter>,
   )

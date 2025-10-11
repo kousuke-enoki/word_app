@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom'
 
 import { useAuth } from '../hooks/useAuth'
 
-type UserRole = 'guest' | 'general' | 'admin' | 'root'
+type UserRole = 'test' | 'general' | 'admin' | 'root'
 
 type PrivateRouteProps = {
   children: React.ReactNode

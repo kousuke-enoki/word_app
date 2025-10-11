@@ -18,6 +18,7 @@ const MyPage: React.FC = () => {
       try {
         const res = await axiosInstance.get('/users/my_page')
         setUser(res.data.user)
+        console.log(res.data.user)
         if (message) localStorage.removeItem('logoutMessage')
       } catch {
         localStorage.removeItem('token')
@@ -55,6 +56,8 @@ const MyPage: React.FC = () => {
             <Badge>⭐ Root</Badge>
           ) : user?.isAdmin ? (
             <Badge>🔧 Admin</Badge>
+          ) : user?.isTest ? (
+            <Badge>👾 Test</Badge>
           ) : (
             <Badge>👤 User</Badge>
           )}

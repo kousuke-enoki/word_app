@@ -6,7 +6,6 @@ package auth
 
 import (
 	"context"
-
 	"word_app/backend/src/usecase/auth"
 
 	mock "github.com/stretchr/testify/mock"
@@ -300,6 +299,63 @@ func (_c *MockUsecase_TestLogin_Call) Return(testLoginOutput *auth.TestLoginOutp
 }
 
 func (_c *MockUsecase_TestLogin_Call) RunAndReturn(run func(ctx context.Context) (*auth.TestLoginOutput, error)) *MockUsecase_TestLogin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// TestLogout provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) TestLogout(ctx context.Context, actorID int) error {
+	ret := _mock.Called(ctx, actorID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TestLogout")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) error); ok {
+		r0 = returnFunc(ctx, actorID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockUsecase_TestLogout_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TestLogout'
+type MockUsecase_TestLogout_Call struct {
+	*mock.Call
+}
+
+// TestLogout is a helper method to define mock.On call
+//   - ctx context.Context
+//   - actorID int
+func (_e *MockUsecase_Expecter) TestLogout(ctx interface{}, actorID interface{}) *MockUsecase_TestLogout_Call {
+	return &MockUsecase_TestLogout_Call{Call: _e.mock.On("TestLogout", ctx, actorID)}
+}
+
+func (_c *MockUsecase_TestLogout_Call) Run(run func(ctx context.Context, actorID int)) *MockUsecase_TestLogout_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 int
+		if args[1] != nil {
+			arg1 = args[1].(int)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_TestLogout_Call) Return(err error) *MockUsecase_TestLogout_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockUsecase_TestLogout_Call) RunAndReturn(run func(ctx context.Context, actorID int) error) *MockUsecase_TestLogout_Call {
 	_c.Call.Return(run)
 	return _c
 }

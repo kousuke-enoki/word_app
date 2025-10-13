@@ -6,8 +6,6 @@ package serviceinterfaces
 
 import (
 	"context"
-	"database/sql"
-
 	"word_app/backend/ent"
 
 	mock "github.com/stretchr/testify/mock"
@@ -38,52 +36,6 @@ type MockEntClientInterface_Expecter struct {
 
 func (_m *MockEntClientInterface) EXPECT() *MockEntClientInterface_Expecter {
 	return &MockEntClientInterface_Expecter{mock: &_m.Mock}
-}
-
-// DB provides a mock function for the type MockEntClientInterface
-func (_mock *MockEntClientInterface) DB() *sql.DB {
-	ret := _mock.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for DB")
-	}
-
-	var r0 *sql.DB
-	if returnFunc, ok := ret.Get(0).(func() *sql.DB); ok {
-		r0 = returnFunc()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*sql.DB)
-		}
-	}
-	return r0
-}
-
-// MockEntClientInterface_DB_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DB'
-type MockEntClientInterface_DB_Call struct {
-	*mock.Call
-}
-
-// DB is a helper method to define mock.On call
-func (_e *MockEntClientInterface_Expecter) DB() *MockEntClientInterface_DB_Call {
-	return &MockEntClientInterface_DB_Call{Call: _e.mock.On("DB")}
-}
-
-func (_c *MockEntClientInterface_DB_Call) Run(run func()) *MockEntClientInterface_DB_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *MockEntClientInterface_DB_Call) Return(dB *sql.DB) *MockEntClientInterface_DB_Call {
-	_c.Call.Return(dB)
-	return _c
-}
-
-func (_c *MockEntClientInterface_DB_Call) RunAndReturn(run func() *sql.DB) *MockEntClientInterface_DB_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // EntClient provides a mock function for the type MockEntClientInterface

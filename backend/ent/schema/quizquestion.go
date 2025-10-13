@@ -8,6 +8,7 @@ import (
 	"word_app/backend/src/models"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -60,7 +61,8 @@ func (QuizQuestion) Edges() []ent.Edge {
 			Ref("quiz_questions").
 			Field("quiz_id").
 			Unique().
-			Required(),
+			Required().
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
 		edge.From("word", Word.Type).
 			Ref("quiz_questions").
 			Field("word_id").

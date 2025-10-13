@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -62,7 +63,8 @@ func (RegisteredWord) Edges() []ent.Edge {
 			Ref("registered_words").
 			Unique().
 			Field("user_id").
-			Required(),
+			Required().
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
 		edge.From("word", Word.Type).
 			Ref("registered_words").
 			Unique().

@@ -57,6 +57,7 @@ type Usecase interface {
 	HandleCallback(ctx context.Context, code string) (*CallbackResult, error)
 	CompleteSignUp(ctx context.Context, tempToken string, pass *string) (string, error)
 	TestLogin(ctx context.Context) (*TestLoginOutput, error)
+	TestLogout(ctx context.Context, actorID int) error
 }
 
 type CallbackResult struct {

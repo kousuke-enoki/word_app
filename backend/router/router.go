@@ -80,10 +80,13 @@ func (r *Implementation) MountRoutes(router *gin.Engine) {
 		protectedRoutes.GET("/users/:id", r.UserHandler.ShowHandler())
 		protectedRoutes.PUT("/users/:id", r.UserHandler.EditHandler())
 		protectedRoutes.DELETE("/users/:id", r.UserHandler.DeleteHandler())
+		protectedRoutes.POST("/users/auth/test-logout", r.AuthHandler.TestLogoutHandler())
+
 		protectedRoutes.GET("/setting/user_config", r.SettingHandler.GetUserConfigHandler())
 		protectedRoutes.POST("/setting/user_config", r.SettingHandler.SaveUserConfigHandler())
 		protectedRoutes.GET("/setting/root_config", r.SettingHandler.GetRootConfigHandler())
 		protectedRoutes.POST("/setting/root_config", r.SettingHandler.SaveRootConfigHandler())
+
 		protectedRoutes.GET("/words", r.WordHandler.ListHandler())
 		protectedRoutes.GET("/words/:id", r.WordHandler.ShowHandler())
 		protectedRoutes.POST("/words/register", r.WordHandler.RegisterHandler())

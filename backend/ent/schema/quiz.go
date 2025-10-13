@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -77,7 +78,8 @@ func (Quiz) Edges() []ent.Edge {
 			Unique().
 			Ref("quizs").
 			Field("user_id").
-			Required(),
+			Required().
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
 		edge.To("quiz_questions", QuizQuestion.Type),
 	}
 }

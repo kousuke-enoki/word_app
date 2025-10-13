@@ -26,6 +26,9 @@ type Repository interface {
 	ListUsers(ctx context.Context, f repository.UserListFilter) (*repository.UserListResult, error)
 	FindForUpdate(ctx context.Context, id int) (*domain.User, error)
 	UpdatePartial(ctx context.Context, targetID int, f *repository.UserUpdateFields) (*domain.User, error)
+	DeleteIfTest(ctx context.Context, id int) (deleted bool, err error)
+	Exists(ctx context.Context, id int) (bool, error)
+	IsTest(ctx context.Context, id int) (bool, error)
 }
 
 func NewEntUserRepo(c serviceinterfaces.EntClientInterface) *EntUserRepo {

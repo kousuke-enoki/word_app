@@ -55,6 +55,11 @@ func IDLTE(id int) predicate.ExternalAuth {
 	return predicate.ExternalAuth(sql.FieldLTE(FieldID, id))
 }
 
+// UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
+func UserID(v int) predicate.ExternalAuth {
+	return predicate.ExternalAuth(sql.FieldEQ(FieldUserID, v))
+}
+
 // Provider applies equality check predicate on the "provider" field. It's identical to ProviderEQ.
 func Provider(v string) predicate.ExternalAuth {
 	return predicate.ExternalAuth(sql.FieldEQ(FieldProvider, v))
@@ -68,6 +73,26 @@ func ProviderUserID(v string) predicate.ExternalAuth {
 // DeletedAt applies equality check predicate on the "deleted_at" field. It's identical to DeletedAtEQ.
 func DeletedAt(v time.Time) predicate.ExternalAuth {
 	return predicate.ExternalAuth(sql.FieldEQ(FieldDeletedAt, v))
+}
+
+// UserIDEQ applies the EQ predicate on the "user_id" field.
+func UserIDEQ(v int) predicate.ExternalAuth {
+	return predicate.ExternalAuth(sql.FieldEQ(FieldUserID, v))
+}
+
+// UserIDNEQ applies the NEQ predicate on the "user_id" field.
+func UserIDNEQ(v int) predicate.ExternalAuth {
+	return predicate.ExternalAuth(sql.FieldNEQ(FieldUserID, v))
+}
+
+// UserIDIn applies the In predicate on the "user_id" field.
+func UserIDIn(vs ...int) predicate.ExternalAuth {
+	return predicate.ExternalAuth(sql.FieldIn(FieldUserID, vs...))
+}
+
+// UserIDNotIn applies the NotIn predicate on the "user_id" field.
+func UserIDNotIn(vs ...int) predicate.ExternalAuth {
+	return predicate.ExternalAuth(sql.FieldNotIn(FieldUserID, vs...))
 }
 
 // ProviderEQ applies the EQ predicate on the "provider" field.

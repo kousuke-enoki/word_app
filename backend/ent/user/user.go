@@ -34,8 +34,8 @@ const (
 	FieldIsTest = "is_test"
 	// EdgeRegisteredWords holds the string denoting the registered_words edge name in mutations.
 	EdgeRegisteredWords = "registered_words"
-	// EdgeQuizs holds the string denoting the quizs edge name in mutations.
-	EdgeQuizs = "quizs"
+	// EdgeQuizzes holds the string denoting the quizzes edge name in mutations.
+	EdgeQuizzes = "quizzes"
 	// EdgeUserConfig holds the string denoting the user_config edge name in mutations.
 	EdgeUserConfig = "user_config"
 	// EdgeExternalAuths holds the string denoting the external_auths edge name in mutations.
@@ -51,13 +51,13 @@ const (
 	RegisteredWordsInverseTable = "registered_words"
 	// RegisteredWordsColumn is the table column denoting the registered_words relation/edge.
 	RegisteredWordsColumn = "user_id"
-	// QuizsTable is the table that holds the quizs relation/edge.
-	QuizsTable = "quizs"
-	// QuizsInverseTable is the table name for the Quiz entity.
+	// QuizzesTable is the table that holds the quizzes relation/edge.
+	QuizzesTable = "quizs"
+	// QuizzesInverseTable is the table name for the Quiz entity.
 	// It exists in this package in order to avoid circular dependency with the "quiz" package.
-	QuizsInverseTable = "quizs"
-	// QuizsColumn is the table column denoting the quizs relation/edge.
-	QuizsColumn = "user_id"
+	QuizzesInverseTable = "quizs"
+	// QuizzesColumn is the table column denoting the quizzes relation/edge.
+	QuizzesColumn = "user_id"
 	// UserConfigTable is the table that holds the user_config relation/edge.
 	UserConfigTable = "user_configs"
 	// UserConfigInverseTable is the table name for the UserConfig entity.
@@ -71,14 +71,14 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "externalauth" package.
 	ExternalAuthsInverseTable = "external_auths"
 	// ExternalAuthsColumn is the table column denoting the external_auths relation/edge.
-	ExternalAuthsColumn = "user_external_auths"
+	ExternalAuthsColumn = "user_id"
 	// UserDailyUsageTable is the table that holds the user_daily_usage relation/edge.
 	UserDailyUsageTable = "user_daily_usages"
 	// UserDailyUsageInverseTable is the table name for the UserDailyUsage entity.
 	// It exists in this package in order to avoid circular dependency with the "userdailyusage" package.
 	UserDailyUsageInverseTable = "user_daily_usages"
 	// UserDailyUsageColumn is the table column denoting the user_daily_usage relation/edge.
-	UserDailyUsageColumn = "user_user_daily_usage"
+	UserDailyUsageColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -193,17 +193,17 @@ func ByRegisteredWords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByQuizsCount orders the results by quizs count.
-func ByQuizsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByQuizzesCount orders the results by quizzes count.
+func ByQuizzesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newQuizsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newQuizzesStep(), opts...)
 	}
 }
 
-// ByQuizs orders the results by quizs terms.
-func ByQuizs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByQuizzes orders the results by quizzes terms.
+func ByQuizzes(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newQuizsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newQuizzesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -241,11 +241,11 @@ func newRegisteredWordsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, RegisteredWordsTable, RegisteredWordsColumn),
 	)
 }
-func newQuizsStep() *sqlgraph.Step {
+func newQuizzesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(QuizsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, QuizsTable, QuizsColumn),
+		sqlgraph.To(QuizzesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, QuizzesTable, QuizzesColumn),
 	)
 }
 func newUserConfigStep() *sqlgraph.Step {

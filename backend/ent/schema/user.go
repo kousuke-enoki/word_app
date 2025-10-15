@@ -74,7 +74,7 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("registered_words", RegisteredWord.Type),
-		edge.To("quizs", Quiz.Type),
+		edge.To("quizzes", Quiz.Type),
 		edge.To("user_config", UserConfig.Type).
 			Unique(),
 		edge.To("external_auths", ExternalAuth.Type),

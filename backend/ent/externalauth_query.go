@@ -24,7 +24,6 @@ type ExternalAuthQuery struct {
 	inters     []Interceptor
 	predicates []predicate.ExternalAuth
 	withUser   *UserQuery
-	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -299,12 +298,12 @@ func (eaq *ExternalAuthQuery) WithUser(opts ...func(*UserQuery)) *ExternalAuthQu
 // Example:
 //
 //	var v []struct {
-//		Provider string `json:"provider,omitempty"`
+//		UserID int `json:"user_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.ExternalAuth.Query().
-//		GroupBy(externalauth.FieldProvider).
+//		GroupBy(externalauth.FieldUserID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (eaq *ExternalAuthQuery) GroupBy(field string, fields ...string) *ExternalAuthGroupBy {
@@ -322,11 +321,11 @@ func (eaq *ExternalAuthQuery) GroupBy(field string, fields ...string) *ExternalA
 // Example:
 //
 //	var v []struct {
-//		Provider string `json:"provider,omitempty"`
+//		UserID int `json:"user_id,omitempty"`
 //	}
 //
 //	client.ExternalAuth.Query().
-//		Select(externalauth.FieldProvider).
+//		Select(externalauth.FieldUserID).
 //		Scan(ctx, &v)
 func (eaq *ExternalAuthQuery) Select(fields ...string) *ExternalAuthSelect {
 	eaq.ctx.Fields = append(eaq.ctx.Fields, fields...)
@@ -370,18 +369,11 @@ func (eaq *ExternalAuthQuery) prepareQuery(ctx context.Context) error {
 func (eaq *ExternalAuthQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ExternalAuth, error) {
 	var (
 		nodes       = []*ExternalAuth{}
-		withFKs     = eaq.withFKs
 		_spec       = eaq.querySpec()
 		loadedTypes = [1]bool{
 			eaq.withUser != nil,
 		}
 	)
-	if eaq.withUser != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, externalauth.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*ExternalAuth).scanValues(nil, columns)
 	}
@@ -413,10 +405,7 @@ func (eaq *ExternalAuthQuery) loadUser(ctx context.Context, query *UserQuery, no
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*ExternalAuth)
 	for i := range nodes {
-		if nodes[i].user_external_auths == nil {
-			continue
-		}
-		fk := *nodes[i].user_external_auths
+		fk := nodes[i].UserID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -433,7 +422,7 @@ func (eaq *ExternalAuthQuery) loadUser(ctx context.Context, query *UserQuery, no
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_external_auths" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -466,6 +455,9 @@ func (eaq *ExternalAuthQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != externalauth.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if eaq.withUser != nil {
+			_spec.Node.AddColumnOnce(externalauth.FieldUserID)
 		}
 	}
 	if ps := eaq.predicates; len(ps) > 0 {

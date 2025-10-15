@@ -18,6 +18,8 @@ type UserDailyUsage struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// UserID holds the value of the "user_id" field.
+	UserID int `json:"user_id,omitempty"`
 	// JSTでの当日0時。これと今日JSTを比較してリセット判定する
 	LastResetDate time.Time `json:"last_reset_date,omitempty"`
 	// QuizCount holds the value of the "quiz_count" field.
@@ -28,9 +30,8 @@ type UserDailyUsage struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserDailyUsageQuery when eager-loading is set.
-	Edges                 UserDailyUsageEdges `json:"edges"`
-	user_user_daily_usage *int
-	selectValues          sql.SelectValues
+	Edges        UserDailyUsageEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // UserDailyUsageEdges holds the relations/edges for other nodes in the graph.
@@ -58,12 +59,10 @@ func (*UserDailyUsage) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case userdailyusage.FieldID, userdailyusage.FieldQuizCount, userdailyusage.FieldBulkCount:
+		case userdailyusage.FieldID, userdailyusage.FieldUserID, userdailyusage.FieldQuizCount, userdailyusage.FieldBulkCount:
 			values[i] = new(sql.NullInt64)
 		case userdailyusage.FieldLastResetDate, userdailyusage.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case userdailyusage.ForeignKeys[0]: // user_user_daily_usage
-			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -85,6 +84,12 @@ func (udu *UserDailyUsage) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			udu.ID = int(value.Int64)
+		case userdailyusage.FieldUserID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
+			} else if value.Valid {
+				udu.UserID = int(value.Int64)
+			}
 		case userdailyusage.FieldLastResetDate:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field last_reset_date", values[i])
@@ -108,13 +113,6 @@ func (udu *UserDailyUsage) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				udu.UpdatedAt = value.Time
-			}
-		case userdailyusage.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field user_user_daily_usage", value)
-			} else if value.Valid {
-				udu.user_user_daily_usage = new(int)
-				*udu.user_user_daily_usage = int(value.Int64)
 			}
 		default:
 			udu.selectValues.Set(columns[i], values[i])
@@ -157,6 +155,9 @@ func (udu *UserDailyUsage) String() string {
 	var builder strings.Builder
 	builder.WriteString("UserDailyUsage(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", udu.ID))
+	builder.WriteString("user_id=")
+	builder.WriteString(fmt.Sprintf("%v", udu.UserID))
+	builder.WriteString(", ")
 	builder.WriteString("last_reset_date=")
 	builder.WriteString(udu.LastResetDate.Format(time.ANSIC))
 	builder.WriteString(", ")

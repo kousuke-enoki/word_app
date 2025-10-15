@@ -24,7 +24,6 @@ type UserDailyUsageQuery struct {
 	inters     []Interceptor
 	predicates []predicate.UserDailyUsage
 	withUser   *UserQuery
-	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -299,12 +298,12 @@ func (uduq *UserDailyUsageQuery) WithUser(opts ...func(*UserQuery)) *UserDailyUs
 // Example:
 //
 //	var v []struct {
-//		LastResetDate time.Time `json:"last_reset_date,omitempty"`
+//		UserID int `json:"user_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.UserDailyUsage.Query().
-//		GroupBy(userdailyusage.FieldLastResetDate).
+//		GroupBy(userdailyusage.FieldUserID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (uduq *UserDailyUsageQuery) GroupBy(field string, fields ...string) *UserDailyUsageGroupBy {
@@ -322,11 +321,11 @@ func (uduq *UserDailyUsageQuery) GroupBy(field string, fields ...string) *UserDa
 // Example:
 //
 //	var v []struct {
-//		LastResetDate time.Time `json:"last_reset_date,omitempty"`
+//		UserID int `json:"user_id,omitempty"`
 //	}
 //
 //	client.UserDailyUsage.Query().
-//		Select(userdailyusage.FieldLastResetDate).
+//		Select(userdailyusage.FieldUserID).
 //		Scan(ctx, &v)
 func (uduq *UserDailyUsageQuery) Select(fields ...string) *UserDailyUsageSelect {
 	uduq.ctx.Fields = append(uduq.ctx.Fields, fields...)
@@ -370,18 +369,11 @@ func (uduq *UserDailyUsageQuery) prepareQuery(ctx context.Context) error {
 func (uduq *UserDailyUsageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*UserDailyUsage, error) {
 	var (
 		nodes       = []*UserDailyUsage{}
-		withFKs     = uduq.withFKs
 		_spec       = uduq.querySpec()
 		loadedTypes = [1]bool{
 			uduq.withUser != nil,
 		}
 	)
-	if uduq.withUser != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, userdailyusage.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*UserDailyUsage).scanValues(nil, columns)
 	}
@@ -413,10 +405,7 @@ func (uduq *UserDailyUsageQuery) loadUser(ctx context.Context, query *UserQuery,
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*UserDailyUsage)
 	for i := range nodes {
-		if nodes[i].user_user_daily_usage == nil {
-			continue
-		}
-		fk := *nodes[i].user_user_daily_usage
+		fk := nodes[i].UserID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -433,7 +422,7 @@ func (uduq *UserDailyUsageQuery) loadUser(ctx context.Context, query *UserQuery,
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_user_daily_usage" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -466,6 +455,9 @@ func (uduq *UserDailyUsageQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != userdailyusage.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if uduq.withUser != nil {
+			_spec.Node.AddColumnOnce(userdailyusage.FieldUserID)
 		}
 	}
 	if ps := uduq.predicates; len(ps) > 0 {

@@ -1547,15 +1547,15 @@ func (c *UserClient) QueryRegisteredWords(u *User) *RegisteredWordQuery {
 	return query
 }
 
-// QueryQuizs queries the quizs edge of a User.
-func (c *UserClient) QueryQuizs(u *User) *QuizQuery {
+// QueryQuizzes queries the quizzes edge of a User.
+func (c *UserClient) QueryQuizzes(u *User) *QuizQuery {
 	query := (&QuizClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(quiz.Table, quiz.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.QuizsTable, user.QuizsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.QuizzesTable, user.QuizzesColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

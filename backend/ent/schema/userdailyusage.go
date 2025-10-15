@@ -14,6 +14,8 @@ type UserDailyUsage struct{ ent.Schema }
 
 func (UserDailyUsage) Fields() []ent.Field {
 	return []ent.Field{
+		field.Int("user_id").
+			Positive(),
 		field.Time("last_reset_date").
 			Comment("JSTでの当日0時。これと今日JSTを比較してリセット判定する"),
 		field.Int("quiz_count").Default(0),
@@ -26,6 +28,7 @@ func (UserDailyUsage) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("user", User.Type).
 			Ref("user_daily_usage").
+			Field("user_id").
 			Unique().
 			Required().
 			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),

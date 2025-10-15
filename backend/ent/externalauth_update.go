@@ -29,6 +29,20 @@ func (eau *ExternalAuthUpdate) Where(ps ...predicate.ExternalAuth) *ExternalAuth
 	return eau
 }
 
+// SetUserID sets the "user_id" field.
+func (eau *ExternalAuthUpdate) SetUserID(i int) *ExternalAuthUpdate {
+	eau.mutation.SetUserID(i)
+	return eau
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (eau *ExternalAuthUpdate) SetNillableUserID(i *int) *ExternalAuthUpdate {
+	if i != nil {
+		eau.SetUserID(*i)
+	}
+	return eau
+}
+
 // SetProvider sets the "provider" field.
 func (eau *ExternalAuthUpdate) SetProvider(s string) *ExternalAuthUpdate {
 	eau.mutation.SetProvider(s)
@@ -77,12 +91,6 @@ func (eau *ExternalAuthUpdate) ClearDeletedAt() *ExternalAuthUpdate {
 	return eau
 }
 
-// SetUserID sets the "user" edge to the User entity by ID.
-func (eau *ExternalAuthUpdate) SetUserID(id int) *ExternalAuthUpdate {
-	eau.mutation.SetUserID(id)
-	return eau
-}
-
 // SetUser sets the "user" edge to the User entity.
 func (eau *ExternalAuthUpdate) SetUser(u *User) *ExternalAuthUpdate {
 	return eau.SetUserID(u.ID)
@@ -128,6 +136,11 @@ func (eau *ExternalAuthUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (eau *ExternalAuthUpdate) check() error {
+	if v, ok := eau.mutation.UserID(); ok {
+		if err := externalauth.UserIDValidator(v); err != nil {
+			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "ExternalAuth.user_id": %w`, err)}
+		}
+	}
 	if v, ok := eau.mutation.Provider(); ok {
 		if err := externalauth.ProviderValidator(v); err != nil {
 			return &ValidationError{Name: "provider", err: fmt.Errorf(`ent: validator failed for field "ExternalAuth.provider": %w`, err)}
@@ -217,6 +230,20 @@ type ExternalAuthUpdateOne struct {
 	mutation *ExternalAuthMutation
 }
 
+// SetUserID sets the "user_id" field.
+func (eauo *ExternalAuthUpdateOne) SetUserID(i int) *ExternalAuthUpdateOne {
+	eauo.mutation.SetUserID(i)
+	return eauo
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (eauo *ExternalAuthUpdateOne) SetNillableUserID(i *int) *ExternalAuthUpdateOne {
+	if i != nil {
+		eauo.SetUserID(*i)
+	}
+	return eauo
+}
+
 // SetProvider sets the "provider" field.
 func (eauo *ExternalAuthUpdateOne) SetProvider(s string) *ExternalAuthUpdateOne {
 	eauo.mutation.SetProvider(s)
@@ -262,12 +289,6 @@ func (eauo *ExternalAuthUpdateOne) SetNillableDeletedAt(t *time.Time) *ExternalA
 // ClearDeletedAt clears the value of the "deleted_at" field.
 func (eauo *ExternalAuthUpdateOne) ClearDeletedAt() *ExternalAuthUpdateOne {
 	eauo.mutation.ClearDeletedAt()
-	return eauo
-}
-
-// SetUserID sets the "user" edge to the User entity by ID.
-func (eauo *ExternalAuthUpdateOne) SetUserID(id int) *ExternalAuthUpdateOne {
-	eauo.mutation.SetUserID(id)
 	return eauo
 }
 
@@ -329,6 +350,11 @@ func (eauo *ExternalAuthUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (eauo *ExternalAuthUpdateOne) check() error {
+	if v, ok := eauo.mutation.UserID(); ok {
+		if err := externalauth.UserIDValidator(v); err != nil {
+			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "ExternalAuth.user_id": %w`, err)}
+		}
+	}
 	if v, ok := eauo.mutation.Provider(); ok {
 		if err := externalauth.ProviderValidator(v); err != nil {
 			return &ValidationError{Name: "provider", err: fmt.Errorf(`ent: validator failed for field "ExternalAuth.provider": %w`, err)}

@@ -18,6 +18,8 @@ type ExternalAuth struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// UserID holds the value of the "user_id" field.
+	UserID int `json:"user_id,omitempty"`
 	// Provider holds the value of the "provider" field.
 	Provider string `json:"provider,omitempty"`
 	// ProviderUserID holds the value of the "provider_user_id" field.
@@ -26,9 +28,8 @@ type ExternalAuth struct {
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ExternalAuthQuery when eager-loading is set.
-	Edges               ExternalAuthEdges `json:"edges"`
-	user_external_auths *int
-	selectValues        sql.SelectValues
+	Edges        ExternalAuthEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // ExternalAuthEdges holds the relations/edges for other nodes in the graph.
@@ -56,14 +57,12 @@ func (*ExternalAuth) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case externalauth.FieldID:
+		case externalauth.FieldID, externalauth.FieldUserID:
 			values[i] = new(sql.NullInt64)
 		case externalauth.FieldProvider, externalauth.FieldProviderUserID:
 			values[i] = new(sql.NullString)
 		case externalauth.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
-		case externalauth.ForeignKeys[0]: // user_external_auths
-			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -85,6 +84,12 @@ func (ea *ExternalAuth) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			ea.ID = int(value.Int64)
+		case externalauth.FieldUserID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
+			} else if value.Valid {
+				ea.UserID = int(value.Int64)
+			}
 		case externalauth.FieldProvider:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field provider", values[i])
@@ -103,13 +108,6 @@ func (ea *ExternalAuth) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ea.DeletedAt = new(time.Time)
 				*ea.DeletedAt = value.Time
-			}
-		case externalauth.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field user_external_auths", value)
-			} else if value.Valid {
-				ea.user_external_auths = new(int)
-				*ea.user_external_auths = int(value.Int64)
 			}
 		default:
 			ea.selectValues.Set(columns[i], values[i])
@@ -152,6 +150,9 @@ func (ea *ExternalAuth) String() string {
 	var builder strings.Builder
 	builder.WriteString("ExternalAuth(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", ea.ID))
+	builder.WriteString("user_id=")
+	builder.WriteString(fmt.Sprintf("%v", ea.UserID))
+	builder.WriteString(", ")
 	builder.WriteString("provider=")
 	builder.WriteString(ea.Provider)
 	builder.WriteString(", ")

@@ -55,6 +55,11 @@ func IDLTE(id int) predicate.UserDailyUsage {
 	return predicate.UserDailyUsage(sql.FieldLTE(FieldID, id))
 }
 
+// UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
+func UserID(v int) predicate.UserDailyUsage {
+	return predicate.UserDailyUsage(sql.FieldEQ(FieldUserID, v))
+}
+
 // LastResetDate applies equality check predicate on the "last_reset_date" field. It's identical to LastResetDateEQ.
 func LastResetDate(v time.Time) predicate.UserDailyUsage {
 	return predicate.UserDailyUsage(sql.FieldEQ(FieldLastResetDate, v))
@@ -73,6 +78,26 @@ func BulkCount(v int) predicate.UserDailyUsage {
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.UserDailyUsage {
 	return predicate.UserDailyUsage(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// UserIDEQ applies the EQ predicate on the "user_id" field.
+func UserIDEQ(v int) predicate.UserDailyUsage {
+	return predicate.UserDailyUsage(sql.FieldEQ(FieldUserID, v))
+}
+
+// UserIDNEQ applies the NEQ predicate on the "user_id" field.
+func UserIDNEQ(v int) predicate.UserDailyUsage {
+	return predicate.UserDailyUsage(sql.FieldNEQ(FieldUserID, v))
+}
+
+// UserIDIn applies the In predicate on the "user_id" field.
+func UserIDIn(vs ...int) predicate.UserDailyUsage {
+	return predicate.UserDailyUsage(sql.FieldIn(FieldUserID, vs...))
+}
+
+// UserIDNotIn applies the NotIn predicate on the "user_id" field.
+func UserIDNotIn(vs ...int) predicate.UserDailyUsage {
+	return predicate.UserDailyUsage(sql.FieldNotIn(FieldUserID, vs...))
 }
 
 // LastResetDateEQ applies the EQ predicate on the "last_reset_date" field.

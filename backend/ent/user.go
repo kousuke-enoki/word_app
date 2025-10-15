@@ -48,8 +48,8 @@ type User struct {
 type UserEdges struct {
 	// RegisteredWords holds the value of the registered_words edge.
 	RegisteredWords []*RegisteredWord `json:"registered_words,omitempty"`
-	// Quizs holds the value of the quizs edge.
-	Quizs []*Quiz `json:"quizs,omitempty"`
+	// Quizzes holds the value of the quizzes edge.
+	Quizzes []*Quiz `json:"quizzes,omitempty"`
 	// UserConfig holds the value of the user_config edge.
 	UserConfig *UserConfig `json:"user_config,omitempty"`
 	// ExternalAuths holds the value of the external_auths edge.
@@ -70,13 +70,13 @@ func (e UserEdges) RegisteredWordsOrErr() ([]*RegisteredWord, error) {
 	return nil, &NotLoadedError{edge: "registered_words"}
 }
 
-// QuizsOrErr returns the Quizs value or an error if the edge
+// QuizzesOrErr returns the Quizzes value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) QuizsOrErr() ([]*Quiz, error) {
+func (e UserEdges) QuizzesOrErr() ([]*Quiz, error) {
 	if e.loadedTypes[1] {
-		return e.Quizs, nil
+		return e.Quizzes, nil
 	}
-	return nil, &NotLoadedError{edge: "quizs"}
+	return nil, &NotLoadedError{edge: "quizzes"}
 }
 
 // UserConfigOrErr returns the UserConfig value or an error if the edge
@@ -219,9 +219,9 @@ func (u *User) QueryRegisteredWords() *RegisteredWordQuery {
 	return NewUserClient(u.config).QueryRegisteredWords(u)
 }
 
-// QueryQuizs queries the "quizs" edge of the User entity.
-func (u *User) QueryQuizs() *QuizQuery {
-	return NewUserClient(u.config).QueryQuizs(u)
+// QueryQuizzes queries the "quizzes" edge of the User entity.
+func (u *User) QueryQuizzes() *QuizQuery {
+	return NewUserClient(u.config).QueryQuizzes(u)
 }
 
 // QueryUserConfig queries the "user_config" edge of the User entity.

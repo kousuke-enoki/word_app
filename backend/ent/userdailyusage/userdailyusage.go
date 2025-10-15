@@ -14,6 +14,8 @@ const (
 	Label = "user_daily_usage"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldUserID holds the string denoting the user_id field in the database.
+	FieldUserID = "user_id"
 	// FieldLastResetDate holds the string denoting the last_reset_date field in the database.
 	FieldLastResetDate = "last_reset_date"
 	// FieldQuizCount holds the string denoting the quiz_count field in the database.
@@ -32,22 +34,17 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
-	UserColumn = "user_user_daily_usage"
+	UserColumn = "user_id"
 )
 
 // Columns holds all SQL columns for userdailyusage fields.
 var Columns = []string{
 	FieldID,
+	FieldUserID,
 	FieldLastResetDate,
 	FieldQuizCount,
 	FieldBulkCount,
 	FieldUpdatedAt,
-}
-
-// ForeignKeys holds the SQL foreign-keys that are owned by the "user_daily_usages"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"user_user_daily_usage",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -57,15 +54,12 @@ func ValidColumn(column string) bool {
 			return true
 		}
 	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
-			return true
-		}
-	}
 	return false
 }
 
 var (
+	// UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	UserIDValidator func(int) error
 	// DefaultQuizCount holds the default value on creation for the "quiz_count" field.
 	DefaultQuizCount int
 	// DefaultBulkCount holds the default value on creation for the "bulk_count" field.
@@ -82,6 +76,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByUserID orders the results by the user_id field.
+func ByUserID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserID, opts...).ToFunc()
 }
 
 // ByLastResetDate orders the results by the last_reset_date field.

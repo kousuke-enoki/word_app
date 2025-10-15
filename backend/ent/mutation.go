@@ -165,6 +165,42 @@ func (m *ExternalAuthMutation) IDs(ctx context.Context) ([]int, error) {
 	}
 }
 
+// SetUserID sets the "user_id" field.
+func (m *ExternalAuthMutation) SetUserID(i int) {
+	m.user = &i
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *ExternalAuthMutation) UserID() (r int, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the ExternalAuth entity.
+// If the ExternalAuth object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExternalAuthMutation) OldUserID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *ExternalAuthMutation) ResetUserID() {
+	m.user = nil
+}
+
 // SetProvider sets the "provider" field.
 func (m *ExternalAuthMutation) SetProvider(s string) {
 	m.provider = &s
@@ -286,27 +322,15 @@ func (m *ExternalAuthMutation) ResetDeletedAt() {
 	delete(m.clearedFields, externalauth.FieldDeletedAt)
 }
 
-// SetUserID sets the "user" edge to the User entity by id.
-func (m *ExternalAuthMutation) SetUserID(id int) {
-	m.user = &id
-}
-
 // ClearUser clears the "user" edge to the User entity.
 func (m *ExternalAuthMutation) ClearUser() {
 	m.cleareduser = true
+	m.clearedFields[externalauth.FieldUserID] = struct{}{}
 }
 
 // UserCleared reports if the "user" edge to the User entity was cleared.
 func (m *ExternalAuthMutation) UserCleared() bool {
 	return m.cleareduser
-}
-
-// UserID returns the "user" edge ID in the mutation.
-func (m *ExternalAuthMutation) UserID() (id int, exists bool) {
-	if m.user != nil {
-		return *m.user, true
-	}
-	return
 }
 
 // UserIDs returns the "user" edge IDs in the mutation.
@@ -359,7 +383,10 @@ func (m *ExternalAuthMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ExternalAuthMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
+	if m.user != nil {
+		fields = append(fields, externalauth.FieldUserID)
+	}
 	if m.provider != nil {
 		fields = append(fields, externalauth.FieldProvider)
 	}
@@ -377,6 +404,8 @@ func (m *ExternalAuthMutation) Fields() []string {
 // schema.
 func (m *ExternalAuthMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case externalauth.FieldUserID:
+		return m.UserID()
 	case externalauth.FieldProvider:
 		return m.Provider()
 	case externalauth.FieldProviderUserID:
@@ -392,6 +421,8 @@ func (m *ExternalAuthMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *ExternalAuthMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case externalauth.FieldUserID:
+		return m.OldUserID(ctx)
 	case externalauth.FieldProvider:
 		return m.OldProvider(ctx)
 	case externalauth.FieldProviderUserID:
@@ -407,6 +438,13 @@ func (m *ExternalAuthMutation) OldField(ctx context.Context, name string) (ent.V
 // type.
 func (m *ExternalAuthMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case externalauth.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
 	case externalauth.FieldProvider:
 		v, ok := value.(string)
 		if !ok {
@@ -435,13 +473,16 @@ func (m *ExternalAuthMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *ExternalAuthMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *ExternalAuthMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
 	return nil, false
 }
 
@@ -486,6 +527,9 @@ func (m *ExternalAuthMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *ExternalAuthMutation) ResetField(name string) error {
 	switch name {
+	case externalauth.FieldUserID:
+		m.ResetUserID()
+		return nil
 	case externalauth.FieldProvider:
 		m.ResetProvider()
 		return nil
@@ -6317,9 +6361,9 @@ type UserMutation struct {
 	registered_words        map[int]struct{}
 	removedregistered_words map[int]struct{}
 	clearedregistered_words bool
-	quizs                   map[int]struct{}
-	removedquizs            map[int]struct{}
-	clearedquizs            bool
+	quizzes                 map[int]struct{}
+	removedquizzes          map[int]struct{}
+	clearedquizzes          bool
 	user_config             *int
 	cleareduser_config      bool
 	external_auths          map[int]struct{}
@@ -6847,58 +6891,58 @@ func (m *UserMutation) ResetRegisteredWords() {
 	m.removedregistered_words = nil
 }
 
-// AddQuizIDs adds the "quizs" edge to the Quiz entity by ids.
+// AddQuizIDs adds the "quizzes" edge to the Quiz entity by ids.
 func (m *UserMutation) AddQuizIDs(ids ...int) {
-	if m.quizs == nil {
-		m.quizs = make(map[int]struct{})
+	if m.quizzes == nil {
+		m.quizzes = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.quizs[ids[i]] = struct{}{}
+		m.quizzes[ids[i]] = struct{}{}
 	}
 }
 
-// ClearQuizs clears the "quizs" edge to the Quiz entity.
-func (m *UserMutation) ClearQuizs() {
-	m.clearedquizs = true
+// ClearQuizzes clears the "quizzes" edge to the Quiz entity.
+func (m *UserMutation) ClearQuizzes() {
+	m.clearedquizzes = true
 }
 
-// QuizsCleared reports if the "quizs" edge to the Quiz entity was cleared.
-func (m *UserMutation) QuizsCleared() bool {
-	return m.clearedquizs
+// QuizzesCleared reports if the "quizzes" edge to the Quiz entity was cleared.
+func (m *UserMutation) QuizzesCleared() bool {
+	return m.clearedquizzes
 }
 
-// RemoveQuizIDs removes the "quizs" edge to the Quiz entity by IDs.
+// RemoveQuizIDs removes the "quizzes" edge to the Quiz entity by IDs.
 func (m *UserMutation) RemoveQuizIDs(ids ...int) {
-	if m.removedquizs == nil {
-		m.removedquizs = make(map[int]struct{})
+	if m.removedquizzes == nil {
+		m.removedquizzes = make(map[int]struct{})
 	}
 	for i := range ids {
-		delete(m.quizs, ids[i])
-		m.removedquizs[ids[i]] = struct{}{}
+		delete(m.quizzes, ids[i])
+		m.removedquizzes[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedQuizs returns the removed IDs of the "quizs" edge to the Quiz entity.
-func (m *UserMutation) RemovedQuizsIDs() (ids []int) {
-	for id := range m.removedquizs {
+// RemovedQuizzes returns the removed IDs of the "quizzes" edge to the Quiz entity.
+func (m *UserMutation) RemovedQuizzesIDs() (ids []int) {
+	for id := range m.removedquizzes {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// QuizsIDs returns the "quizs" edge IDs in the mutation.
-func (m *UserMutation) QuizsIDs() (ids []int) {
-	for id := range m.quizs {
+// QuizzesIDs returns the "quizzes" edge IDs in the mutation.
+func (m *UserMutation) QuizzesIDs() (ids []int) {
+	for id := range m.quizzes {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetQuizs resets all changes to the "quizs" edge.
-func (m *UserMutation) ResetQuizs() {
-	m.quizs = nil
-	m.clearedquizs = false
-	m.removedquizs = nil
+// ResetQuizzes resets all changes to the "quizzes" edge.
+func (m *UserMutation) ResetQuizzes() {
+	m.quizzes = nil
+	m.clearedquizzes = false
+	m.removedquizzes = nil
 }
 
 // SetUserConfigID sets the "user_config" edge to the UserConfig entity by id.
@@ -7327,8 +7371,8 @@ func (m *UserMutation) AddedEdges() []string {
 	if m.registered_words != nil {
 		edges = append(edges, user.EdgeRegisteredWords)
 	}
-	if m.quizs != nil {
-		edges = append(edges, user.EdgeQuizs)
+	if m.quizzes != nil {
+		edges = append(edges, user.EdgeQuizzes)
 	}
 	if m.user_config != nil {
 		edges = append(edges, user.EdgeUserConfig)
@@ -7352,9 +7396,9 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeQuizs:
-		ids := make([]ent.Value, 0, len(m.quizs))
-		for id := range m.quizs {
+	case user.EdgeQuizzes:
+		ids := make([]ent.Value, 0, len(m.quizzes))
+		for id := range m.quizzes {
 			ids = append(ids, id)
 		}
 		return ids
@@ -7382,8 +7426,8 @@ func (m *UserMutation) RemovedEdges() []string {
 	if m.removedregistered_words != nil {
 		edges = append(edges, user.EdgeRegisteredWords)
 	}
-	if m.removedquizs != nil {
-		edges = append(edges, user.EdgeQuizs)
+	if m.removedquizzes != nil {
+		edges = append(edges, user.EdgeQuizzes)
 	}
 	if m.removedexternal_auths != nil {
 		edges = append(edges, user.EdgeExternalAuths)
@@ -7401,9 +7445,9 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeQuizs:
-		ids := make([]ent.Value, 0, len(m.removedquizs))
-		for id := range m.removedquizs {
+	case user.EdgeQuizzes:
+		ids := make([]ent.Value, 0, len(m.removedquizzes))
+		for id := range m.removedquizzes {
 			ids = append(ids, id)
 		}
 		return ids
@@ -7423,8 +7467,8 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedregistered_words {
 		edges = append(edges, user.EdgeRegisteredWords)
 	}
-	if m.clearedquizs {
-		edges = append(edges, user.EdgeQuizs)
+	if m.clearedquizzes {
+		edges = append(edges, user.EdgeQuizzes)
 	}
 	if m.cleareduser_config {
 		edges = append(edges, user.EdgeUserConfig)
@@ -7444,8 +7488,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
 	case user.EdgeRegisteredWords:
 		return m.clearedregistered_words
-	case user.EdgeQuizs:
-		return m.clearedquizs
+	case user.EdgeQuizzes:
+		return m.clearedquizzes
 	case user.EdgeUserConfig:
 		return m.cleareduser_config
 	case user.EdgeExternalAuths:
@@ -7477,8 +7521,8 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeRegisteredWords:
 		m.ResetRegisteredWords()
 		return nil
-	case user.EdgeQuizs:
-		m.ResetQuizs()
+	case user.EdgeQuizzes:
+		m.ResetQuizzes()
 		return nil
 	case user.EdgeUserConfig:
 		m.ResetUserConfig()
@@ -8124,6 +8168,42 @@ func (m *UserDailyUsageMutation) IDs(ctx context.Context) ([]int, error) {
 	}
 }
 
+// SetUserID sets the "user_id" field.
+func (m *UserDailyUsageMutation) SetUserID(i int) {
+	m.user = &i
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *UserDailyUsageMutation) UserID() (r int, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the UserDailyUsage entity.
+// If the UserDailyUsage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserDailyUsageMutation) OldUserID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *UserDailyUsageMutation) ResetUserID() {
+	m.user = nil
+}
+
 // SetLastResetDate sets the "last_reset_date" field.
 func (m *UserDailyUsageMutation) SetLastResetDate(t time.Time) {
 	m.last_reset_date = &t
@@ -8308,27 +8388,15 @@ func (m *UserDailyUsageMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// SetUserID sets the "user" edge to the User entity by id.
-func (m *UserDailyUsageMutation) SetUserID(id int) {
-	m.user = &id
-}
-
 // ClearUser clears the "user" edge to the User entity.
 func (m *UserDailyUsageMutation) ClearUser() {
 	m.cleareduser = true
+	m.clearedFields[userdailyusage.FieldUserID] = struct{}{}
 }
 
 // UserCleared reports if the "user" edge to the User entity was cleared.
 func (m *UserDailyUsageMutation) UserCleared() bool {
 	return m.cleareduser
-}
-
-// UserID returns the "user" edge ID in the mutation.
-func (m *UserDailyUsageMutation) UserID() (id int, exists bool) {
-	if m.user != nil {
-		return *m.user, true
-	}
-	return
 }
 
 // UserIDs returns the "user" edge IDs in the mutation.
@@ -8381,7 +8449,10 @@ func (m *UserDailyUsageMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserDailyUsageMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
+	if m.user != nil {
+		fields = append(fields, userdailyusage.FieldUserID)
+	}
 	if m.last_reset_date != nil {
 		fields = append(fields, userdailyusage.FieldLastResetDate)
 	}
@@ -8402,6 +8473,8 @@ func (m *UserDailyUsageMutation) Fields() []string {
 // schema.
 func (m *UserDailyUsageMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case userdailyusage.FieldUserID:
+		return m.UserID()
 	case userdailyusage.FieldLastResetDate:
 		return m.LastResetDate()
 	case userdailyusage.FieldQuizCount:
@@ -8419,6 +8492,8 @@ func (m *UserDailyUsageMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *UserDailyUsageMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case userdailyusage.FieldUserID:
+		return m.OldUserID(ctx)
 	case userdailyusage.FieldLastResetDate:
 		return m.OldLastResetDate(ctx)
 	case userdailyusage.FieldQuizCount:
@@ -8436,6 +8511,13 @@ func (m *UserDailyUsageMutation) OldField(ctx context.Context, name string) (ent
 // type.
 func (m *UserDailyUsageMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case userdailyusage.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
 	case userdailyusage.FieldLastResetDate:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -8540,6 +8622,9 @@ func (m *UserDailyUsageMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *UserDailyUsageMutation) ResetField(name string) error {
 	switch name {
+	case userdailyusage.FieldUserID:
+		m.ResetUserID()
+		return nil
 	case userdailyusage.FieldLastResetDate:
 		m.ResetLastResetDate()
 		return nil

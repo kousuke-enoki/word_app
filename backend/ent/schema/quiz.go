@@ -76,7 +76,7 @@ func (Quiz) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("user", User.Type).
 			Unique().
-			Ref("quizs").
+			Ref("quizzes").
 			Field("user_id").
 			Required().
 			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),

@@ -15,7 +15,7 @@ var (
 		{Name: "provider", Type: field.TypeString},
 		{Name: "provider_user_id", Type: field.TypeString},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "user_external_auths", Type: field.TypeInt},
+		{Name: "user_id", Type: field.TypeInt},
 	}
 	// ExternalAuthsTable holds the schema information for the "external_auths" table.
 	ExternalAuthsTable = &schema.Table{
@@ -37,7 +37,7 @@ var (
 				Columns: []*schema.Column{ExternalAuthsColumns[1], ExternalAuthsColumns[2]},
 			},
 			{
-				Name:    "externalauth_provider_user_external_auths",
+				Name:    "externalauth_provider_user_id",
 				Unique:  true,
 				Columns: []*schema.Column{ExternalAuthsColumns[1], ExternalAuthsColumns[4]},
 			},
@@ -111,7 +111,7 @@ var (
 		PrimaryKey: []*schema.Column{QuizsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "quizs_users_quizs",
+				Symbol:     "quizs_users_quizzes",
 				Columns:    []*schema.Column{QuizsColumns[15]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
@@ -273,7 +273,7 @@ var (
 		{Name: "quiz_count", Type: field.TypeInt, Default: 0},
 		{Name: "bulk_count", Type: field.TypeInt, Default: 0},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "user_user_daily_usage", Type: field.TypeInt, Unique: true},
+		{Name: "user_id", Type: field.TypeInt, Unique: true},
 	}
 	// UserDailyUsagesTable holds the schema information for the "user_daily_usages" table.
 	UserDailyUsagesTable = &schema.Table{

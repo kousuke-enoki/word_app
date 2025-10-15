@@ -29,7 +29,7 @@ type UserQuery struct {
 	inters              []Interceptor
 	predicates          []predicate.User
 	withRegisteredWords *RegisteredWordQuery
-	withQuizs           *QuizQuery
+	withQuizzes         *QuizQuery
 	withUserConfig      *UserConfigQuery
 	withExternalAuths   *ExternalAuthQuery
 	withUserDailyUsage  *UserDailyUsageQuery
@@ -91,8 +91,8 @@ func (uq *UserQuery) QueryRegisteredWords() *RegisteredWordQuery {
 	return query
 }
 
-// QueryQuizs chains the current query on the "quizs" edge.
-func (uq *UserQuery) QueryQuizs() *QuizQuery {
+// QueryQuizzes chains the current query on the "quizzes" edge.
+func (uq *UserQuery) QueryQuizzes() *QuizQuery {
 	query := (&QuizClient{config: uq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
@@ -105,7 +105,7 @@ func (uq *UserQuery) QueryQuizs() *QuizQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(quiz.Table, quiz.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.QuizsTable, user.QuizsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.QuizzesTable, user.QuizzesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -372,7 +372,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		inters:              append([]Interceptor{}, uq.inters...),
 		predicates:          append([]predicate.User{}, uq.predicates...),
 		withRegisteredWords: uq.withRegisteredWords.Clone(),
-		withQuizs:           uq.withQuizs.Clone(),
+		withQuizzes:         uq.withQuizzes.Clone(),
 		withUserConfig:      uq.withUserConfig.Clone(),
 		withExternalAuths:   uq.withExternalAuths.Clone(),
 		withUserDailyUsage:  uq.withUserDailyUsage.Clone(),
@@ -393,14 +393,14 @@ func (uq *UserQuery) WithRegisteredWords(opts ...func(*RegisteredWordQuery)) *Us
 	return uq
 }
 
-// WithQuizs tells the query-builder to eager-load the nodes that are connected to
-// the "quizs" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithQuizs(opts ...func(*QuizQuery)) *UserQuery {
+// WithQuizzes tells the query-builder to eager-load the nodes that are connected to
+// the "quizzes" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithQuizzes(opts ...func(*QuizQuery)) *UserQuery {
 	query := (&QuizClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withQuizs = query
+	uq.withQuizzes = query
 	return uq
 }
 
@@ -517,7 +517,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		_spec       = uq.querySpec()
 		loadedTypes = [5]bool{
 			uq.withRegisteredWords != nil,
-			uq.withQuizs != nil,
+			uq.withQuizzes != nil,
 			uq.withUserConfig != nil,
 			uq.withExternalAuths != nil,
 			uq.withUserDailyUsage != nil,
@@ -548,10 +548,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
-	if query := uq.withQuizs; query != nil {
-		if err := uq.loadQuizs(ctx, query, nodes,
-			func(n *User) { n.Edges.Quizs = []*Quiz{} },
-			func(n *User, e *Quiz) { n.Edges.Quizs = append(n.Edges.Quizs, e) }); err != nil {
+	if query := uq.withQuizzes; query != nil {
+		if err := uq.loadQuizzes(ctx, query, nodes,
+			func(n *User) { n.Edges.Quizzes = []*Quiz{} },
+			func(n *User, e *Quiz) { n.Edges.Quizzes = append(n.Edges.Quizzes, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -607,7 +607,7 @@ func (uq *UserQuery) loadRegisteredWords(ctx context.Context, query *RegisteredW
 	}
 	return nil
 }
-func (uq *UserQuery) loadQuizs(ctx context.Context, query *QuizQuery, nodes []*User, init func(*User), assign func(*User, *Quiz)) error {
+func (uq *UserQuery) loadQuizzes(ctx context.Context, query *QuizQuery, nodes []*User, init func(*User), assign func(*User, *Quiz)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*User)
 	for i := range nodes {
@@ -621,7 +621,7 @@ func (uq *UserQuery) loadQuizs(ctx context.Context, query *QuizQuery, nodes []*U
 		query.ctx.AppendFieldOnce(quiz.FieldUserID)
 	}
 	query.Where(predicate.Quiz(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.QuizsColumn), fks...))
+		s.Where(sql.InValues(s.C(user.QuizzesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -674,7 +674,9 @@ func (uq *UserQuery) loadExternalAuths(ctx context.Context, query *ExternalAuthQ
 			init(nodes[i])
 		}
 	}
-	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(externalauth.FieldUserID)
+	}
 	query.Where(predicate.ExternalAuth(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.ExternalAuthsColumn), fks...))
 	}))
@@ -683,13 +685,10 @@ func (uq *UserQuery) loadExternalAuths(ctx context.Context, query *ExternalAuthQ
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_external_auths
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_external_auths" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		fk := n.UserID
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "user_external_auths" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -702,7 +701,9 @@ func (uq *UserQuery) loadUserDailyUsage(ctx context.Context, query *UserDailyUsa
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
 	}
-	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(userdailyusage.FieldUserID)
+	}
 	query.Where(predicate.UserDailyUsage(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.UserDailyUsageColumn), fks...))
 	}))
@@ -711,13 +712,10 @@ func (uq *UserQuery) loadUserDailyUsage(ctx context.Context, query *UserDailyUsa
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_user_daily_usage
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_user_daily_usage" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		fk := n.UserID
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "user_user_daily_usage" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

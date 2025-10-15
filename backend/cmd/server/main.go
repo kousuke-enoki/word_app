@@ -10,6 +10,7 @@ import (
 
 	"word_app/backend/config"
 	"word_app/backend/database"
+	"word_app/backend/ent/migrate"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/word"
 	"word_app/backend/internal/di"
@@ -166,7 +167,8 @@ func runMigration(client interfaces.ClientInterface) error {
 	if entClient == nil {
 		return fmt.Errorf("ent.Client is nil")
 	}
-	return entClient.Schema.Create(ctx)
+	// 外部キーも明確に生成するようにする。
+	return entClient.Schema.Create(ctx, migrate.WithForeignKeys(true))
 }
 
 func runSeederIfNeeded(client interfaces.ClientInterface) error {

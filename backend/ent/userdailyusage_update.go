@@ -29,6 +29,20 @@ func (uduu *UserDailyUsageUpdate) Where(ps ...predicate.UserDailyUsage) *UserDai
 	return uduu
 }
 
+// SetUserID sets the "user_id" field.
+func (uduu *UserDailyUsageUpdate) SetUserID(i int) *UserDailyUsageUpdate {
+	uduu.mutation.SetUserID(i)
+	return uduu
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (uduu *UserDailyUsageUpdate) SetNillableUserID(i *int) *UserDailyUsageUpdate {
+	if i != nil {
+		uduu.SetUserID(*i)
+	}
+	return uduu
+}
+
 // SetLastResetDate sets the "last_reset_date" field.
 func (uduu *UserDailyUsageUpdate) SetLastResetDate(t time.Time) *UserDailyUsageUpdate {
 	uduu.mutation.SetLastResetDate(t)
@@ -91,12 +105,6 @@ func (uduu *UserDailyUsageUpdate) SetUpdatedAt(t time.Time) *UserDailyUsageUpdat
 	return uduu
 }
 
-// SetUserID sets the "user" edge to the User entity by ID.
-func (uduu *UserDailyUsageUpdate) SetUserID(id int) *UserDailyUsageUpdate {
-	uduu.mutation.SetUserID(id)
-	return uduu
-}
-
 // SetUser sets the "user" edge to the User entity.
 func (uduu *UserDailyUsageUpdate) SetUser(u *User) *UserDailyUsageUpdate {
 	return uduu.SetUserID(u.ID)
@@ -151,6 +159,11 @@ func (uduu *UserDailyUsageUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (uduu *UserDailyUsageUpdate) check() error {
+	if v, ok := uduu.mutation.UserID(); ok {
+		if err := userdailyusage.UserIDValidator(v); err != nil {
+			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "UserDailyUsage.user_id": %w`, err)}
+		}
+	}
 	if uduu.mutation.UserCleared() && len(uduu.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "UserDailyUsage.user"`)
 	}
@@ -236,6 +249,20 @@ type UserDailyUsageUpdateOne struct {
 	mutation *UserDailyUsageMutation
 }
 
+// SetUserID sets the "user_id" field.
+func (uduuo *UserDailyUsageUpdateOne) SetUserID(i int) *UserDailyUsageUpdateOne {
+	uduuo.mutation.SetUserID(i)
+	return uduuo
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (uduuo *UserDailyUsageUpdateOne) SetNillableUserID(i *int) *UserDailyUsageUpdateOne {
+	if i != nil {
+		uduuo.SetUserID(*i)
+	}
+	return uduuo
+}
+
 // SetLastResetDate sets the "last_reset_date" field.
 func (uduuo *UserDailyUsageUpdateOne) SetLastResetDate(t time.Time) *UserDailyUsageUpdateOne {
 	uduuo.mutation.SetLastResetDate(t)
@@ -295,12 +322,6 @@ func (uduuo *UserDailyUsageUpdateOne) AddBulkCount(i int) *UserDailyUsageUpdateO
 // SetUpdatedAt sets the "updated_at" field.
 func (uduuo *UserDailyUsageUpdateOne) SetUpdatedAt(t time.Time) *UserDailyUsageUpdateOne {
 	uduuo.mutation.SetUpdatedAt(t)
-	return uduuo
-}
-
-// SetUserID sets the "user" edge to the User entity by ID.
-func (uduuo *UserDailyUsageUpdateOne) SetUserID(id int) *UserDailyUsageUpdateOne {
-	uduuo.mutation.SetUserID(id)
 	return uduuo
 }
 
@@ -371,6 +392,11 @@ func (uduuo *UserDailyUsageUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (uduuo *UserDailyUsageUpdateOne) check() error {
+	if v, ok := uduuo.mutation.UserID(); ok {
+		if err := userdailyusage.UserIDValidator(v); err != nil {
+			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "UserDailyUsage.user_id": %w`, err)}
+		}
+	}
 	if uduuo.mutation.UserCleared() && len(uduuo.mutation.UserIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "UserDailyUsage.user"`)
 	}

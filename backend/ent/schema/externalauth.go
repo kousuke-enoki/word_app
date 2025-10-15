@@ -16,6 +16,8 @@ type ExternalAuth struct {
 
 func (ExternalAuth) Fields() []ent.Field {
 	return []ent.Field{
+		field.Int("user_id").
+			Positive(),
 		field.String("provider").
 			NotEmpty(), // "line" など
 		field.String("provider_user_id").
@@ -30,6 +32,7 @@ func (ExternalAuth) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("user", User.Type).
 			Ref("external_auths").
+			Field("user_id").
 			Unique().
 			Required().
 			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),

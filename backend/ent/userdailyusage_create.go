@@ -23,6 +23,12 @@ type UserDailyUsageCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetUserID sets the "user_id" field.
+func (uduc *UserDailyUsageCreate) SetUserID(i int) *UserDailyUsageCreate {
+	uduc.mutation.SetUserID(i)
+	return uduc
+}
+
 // SetLastResetDate sets the "last_reset_date" field.
 func (uduc *UserDailyUsageCreate) SetLastResetDate(t time.Time) *UserDailyUsageCreate {
 	uduc.mutation.SetLastResetDate(t)
@@ -68,12 +74,6 @@ func (uduc *UserDailyUsageCreate) SetNillableUpdatedAt(t *time.Time) *UserDailyU
 	if t != nil {
 		uduc.SetUpdatedAt(*t)
 	}
-	return uduc
-}
-
-// SetUserID sets the "user" edge to the User entity by ID.
-func (uduc *UserDailyUsageCreate) SetUserID(id int) *UserDailyUsageCreate {
-	uduc.mutation.SetUserID(id)
 	return uduc
 }
 
@@ -133,6 +133,14 @@ func (uduc *UserDailyUsageCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (uduc *UserDailyUsageCreate) check() error {
+	if _, ok := uduc.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "UserDailyUsage.user_id"`)}
+	}
+	if v, ok := uduc.mutation.UserID(); ok {
+		if err := userdailyusage.UserIDValidator(v); err != nil {
+			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "UserDailyUsage.user_id": %w`, err)}
+		}
+	}
 	if _, ok := uduc.mutation.LastResetDate(); !ok {
 		return &ValidationError{Name: "last_reset_date", err: errors.New(`ent: missing required field "UserDailyUsage.last_reset_date"`)}
 	}
@@ -205,7 +213,7 @@ func (uduc *UserDailyUsageCreate) createSpec() (*UserDailyUsage, *sqlgraph.Creat
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_user_daily_usage = &nodes[0]
+		_node.UserID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -215,7 +223,7 @@ func (uduc *UserDailyUsageCreate) createSpec() (*UserDailyUsage, *sqlgraph.Creat
 // of the `INSERT` statement. For example:
 //
 //	client.UserDailyUsage.Create().
-//		SetLastResetDate(v).
+//		SetUserID(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -224,7 +232,7 @@ func (uduc *UserDailyUsageCreate) createSpec() (*UserDailyUsage, *sqlgraph.Creat
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.UserDailyUsageUpsert) {
-//			SetLastResetDate(v+v).
+//			SetUserID(v+v).
 //		}).
 //		Exec(ctx)
 func (uduc *UserDailyUsageCreate) OnConflict(opts ...sql.ConflictOption) *UserDailyUsageUpsertOne {
@@ -259,6 +267,18 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetUserID sets the "user_id" field.
+func (u *UserDailyUsageUpsert) SetUserID(v int) *UserDailyUsageUpsert {
+	u.Set(userdailyusage.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *UserDailyUsageUpsert) UpdateUserID() *UserDailyUsageUpsert {
+	u.SetExcluded(userdailyusage.FieldUserID)
+	return u
+}
 
 // SetLastResetDate sets the "last_reset_date" field.
 func (u *UserDailyUsageUpsert) SetLastResetDate(v time.Time) *UserDailyUsageUpsert {
@@ -358,6 +378,20 @@ func (u *UserDailyUsageUpsertOne) Update(set func(*UserDailyUsageUpsert)) *UserD
 		set(&UserDailyUsageUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *UserDailyUsageUpsertOne) SetUserID(v int) *UserDailyUsageUpsertOne {
+	return u.Update(func(s *UserDailyUsageUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *UserDailyUsageUpsertOne) UpdateUserID() *UserDailyUsageUpsertOne {
+	return u.Update(func(s *UserDailyUsageUpsert) {
+		s.UpdateUserID()
+	})
 }
 
 // SetLastResetDate sets the "last_reset_date" field.
@@ -565,7 +599,7 @@ func (uducb *UserDailyUsageCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.UserDailyUsageUpsert) {
-//			SetLastResetDate(v+v).
+//			SetUserID(v+v).
 //		}).
 //		Exec(ctx)
 func (uducb *UserDailyUsageCreateBulk) OnConflict(opts ...sql.ConflictOption) *UserDailyUsageUpsertBulk {
@@ -632,6 +666,20 @@ func (u *UserDailyUsageUpsertBulk) Update(set func(*UserDailyUsageUpsert)) *User
 		set(&UserDailyUsageUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *UserDailyUsageUpsertBulk) SetUserID(v int) *UserDailyUsageUpsertBulk {
+	return u.Update(func(s *UserDailyUsageUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *UserDailyUsageUpsertBulk) UpdateUserID() *UserDailyUsageUpsertBulk {
+	return u.Update(func(s *UserDailyUsageUpsert) {
+		s.UpdateUserID()
+	})
 }
 
 // SetLastResetDate sets the "last_reset_date" field.

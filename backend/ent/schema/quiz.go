@@ -80,6 +80,7 @@ func (Quiz) Edges() []ent.Edge {
 			Field("user_id").
 			Required().
 			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
-		edge.To("quiz_questions", QuizQuestion.Type),
+		edge.To("quiz_questions", QuizQuestion.Type).
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
 	}
 }

@@ -27,7 +27,7 @@ var (
 				Symbol:     "external_auths_users_external_auths",
 				Columns:    []*schema.Column{ExternalAuthsColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -114,7 +114,7 @@ var (
 				Symbol:     "quizs_users_quizzes",
 				Columns:    []*schema.Column{QuizsColumns[15]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -152,7 +152,7 @@ var (
 				Symbol:     "quiz_questions_quizs_quiz_questions",
 				Columns:    []*schema.Column{QuizQuestionsColumns[12]},
 				RefColumns: []*schema.Column{QuizsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "quiz_questions_registered_words_quiz_questions",
@@ -192,7 +192,7 @@ var (
 				Symbol:     "registered_words_users_registered_words",
 				Columns:    []*schema.Column{RegisteredWordsColumns[9]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "registered_words_words_registered_words",
@@ -262,7 +262,7 @@ var (
 				Symbol:     "user_configs_users_user_config",
 				Columns:    []*schema.Column{UserConfigsColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -285,7 +285,7 @@ var (
 				Symbol:     "user_daily_usages_users_user_daily_usage",
 				Columns:    []*schema.Column{UserDailyUsagesColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}

@@ -73,13 +73,18 @@ func (User) Fields() []ent.Field {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("registered_words", RegisteredWord.Type),
-		edge.To("quizzes", Quiz.Type),
+		edge.To("registered_words", RegisteredWord.Type).
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
+		edge.To("quizzes", Quiz.Type).
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
 		edge.To("user_config", UserConfig.Type).
-			Unique(),
-		edge.To("external_auths", ExternalAuth.Type),
+			Unique().
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
+		edge.To("external_auths", ExternalAuth.Type).
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
 		edge.To("user_daily_usage", UserDailyUsage.Type).
-			Unique(),
+			Unique().
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
 	}
 }
 

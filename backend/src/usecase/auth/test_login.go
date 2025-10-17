@@ -36,7 +36,7 @@ func (uc *AuthUsecase) TestLogin(ctx context.Context) (*TestLoginOutput, error) 
 		return nil, ucerr.Forbidden("test user mode is disabled")
 	}
 
-	// 1) ここでレート制限（DynamoDB等）を入れる余地あり（省略可能）
+	// 1) ここでレート制限（DynamoDB等）を入れる
 	//    uc.rateLimiter.AllowWithLastResult(ctx, in.IP, in.UAHash, "/auth/test-login")
 
 	// 2) ユーザー作成（Tx内）

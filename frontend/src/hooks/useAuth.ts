@@ -25,7 +25,7 @@ export const useAuth = () => {
         .then((response) => {
           const user = response.data.user
           const isLogin = response.data.isLogin
-          console.log(user)
+
           if (isLogin && user.id) {
             setIsLoggedIn(true)
             if (user.isAdmin) {
@@ -40,11 +40,13 @@ export const useAuth = () => {
           } else {
             setIsLoggedIn(false)
             setUserRole('guest')
+            localStorage.removeItem('token')
           }
         })
         .catch(() => {
           setIsLoggedIn(false)
           setUserRole('guest')
+          localStorage.removeItem('token')
         })
         .finally(() => {
           setIsLoading(false)

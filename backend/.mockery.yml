@@ -65,6 +65,11 @@ packages:
       dir: src/mocks/usecase/auth
       recursive: false
 
+  word_app/backend/src/usecase/jwt:
+    config:
+      dir: src/mocks/usecase/jwt
+      recursive: false
+
   word_app/backend/src/usecase/setting:
     config:
       dir: src/mocks/usecase/setting

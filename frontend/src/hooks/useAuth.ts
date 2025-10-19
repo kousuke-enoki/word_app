@@ -24,9 +24,8 @@ export const useAuth = () => {
         .get('/auth/check')
         .then((response) => {
           const user = response.data.user
-          const isLogin = response.data.isLogin
 
-          if (isLogin && user.id) {
+          if (user.id) {
             setIsLoggedIn(true)
             if (user.isAdmin) {
               setUserRole('admin')

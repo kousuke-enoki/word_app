@@ -246,10 +246,11 @@ func setupRouter(client interfaces.ClientInterface, runner sqlexec.Runner, corsO
 		logrus.Fatal(err)
 	}
 
+	middlewares := di.NewMiddlewares(ucs)
 	handlers := di.NewHandlers(cfgObj, ucs, client)
 
 	routerImpl := routerConfig.NewRouter(
-		handlers.JWTMiD, handlers.Auth, handlers.User,
+		middlewares.Auth, handlers.Auth, handlers.User,
 		handlers.Setting, handlers.Word, handlers.Quiz, handlers.Result)
 	routerImpl.MountRoutes(router)
 	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {

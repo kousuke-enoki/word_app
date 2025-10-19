@@ -2,6 +2,7 @@
 package contextutil
 
 import (
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/usecase/apperror"
 
 	"github.com/gin-gonic/gin"
@@ -10,13 +11,9 @@ import (
 // MustUserID returns the authenticated user ID stored in Gin context.
 // It fails with error when not present or of wrong type.
 func MustUserID(c *gin.Context) (int, error) {
-	v, ok := c.Get("userID")
+	principal, ok := jwt.GetPrincipal(c)
 	if !ok {
 		return 0, apperror.Unauthorizedf("unauthorized: userID not found in context", nil)
 	}
-	id, ok := v.(int)
-	if !ok {
-		return 0, apperror.Unauthorizedf("unauthorized: userID not found in context", nil)
-	}
-	return id, nil
+	return principal.UserID, nil
 }

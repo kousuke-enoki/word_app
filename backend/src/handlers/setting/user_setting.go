@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"word_app/backend/src/middleware/jwt"
 	settingUc "word_app/backend/src/usecase/setting"
 
 	"github.com/gin-gonic/gin"
@@ -11,14 +12,13 @@ import (
 
 func (h *AuthSettingHandler) GetUserConfigHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, ok := c.Get("userID")
-
-		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": ErrUserNotFound})
+		userID, err := jwt.RequireUserID(c)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err})
 			return
 		}
 		var req settingUc.InputGetUserConfig
-		req.UserID = userID.(int)
+		req.UserID = userID
 
 		setting, err := h.settingUsecase.GetUser(c, req)
 		if err != nil {
@@ -31,10 +31,14 @@ func (h *AuthSettingHandler) GetUserConfigHandler() gin.HandlerFunc {
 
 func (h *AuthSettingHandler) SaveUserConfigHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, _ := c.Get("userID")
+		userID, err := jwt.RequireUserID(c)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err})
+			return
+		}
 
 		var req settingUc.InputUpdateUserConfig
-		req.UserID = userID.(int)
+		req.UserID = userID
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -49,6 +53,4 @@ func (h *AuthSettingHandler) SaveUserConfigHandler() gin.HandlerFunc {
 	}
 }
 
-var (
-	ErrUserNotFound = errors.New("user not found")
-)
+var ErrUserNotFound = errors.New("user not found")

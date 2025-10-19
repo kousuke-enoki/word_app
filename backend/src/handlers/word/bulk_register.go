@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/models"
 
 	"github.com/gin-gonic/gin"
@@ -14,18 +15,10 @@ import (
 func (h *Handler) BulkRegisterHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
-		// userID は認証ミドルウェアでセットされている前提
-		userID, ok := c.Get("userID")
-		if !ok {
+		userID, err := jwt.RequireUserID(c)
+		if err != nil {
 			logrus.Errorf("userID not found in context")
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "userID not found in context"})
-			return
-		}
-		// userIDの型チェック
-		userIDInt, ok := userID.(int)
-		if !ok {
-			logrus.Errorf("invalid userID type")
-			c.JSON(http.StatusBadRequest, gin.H{"errors": "invalid userID type"})
 			return
 		}
 
@@ -46,7 +39,7 @@ func (h *Handler) BulkRegisterHandler() gin.HandlerFunc {
 			return
 		}
 
-		response, err := h.wordService.BulkRegister(ctx, userIDInt, req.Words)
+		response, err := h.wordService.BulkRegister(ctx, userID, req.Words)
 		if err != nil {
 			logrus.Errorf("Failed to bulk register: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

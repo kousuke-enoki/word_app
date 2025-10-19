@@ -9,29 +9,20 @@ import (
 
 // 後続ハンドラでユーザーロールを使えるようにcontextにセットするミドルウェア
 // ユーザーID、isAdmin、isRootをcontextにセットする
-func (m *JwtMiddleware) AuthMiddleware() gin.HandlerFunc {
+func (m *JwtMiddleware) AuthenticateMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token := strings.TrimPrefix(c.GetHeader("Authorization"), "Bearer ")
-		if token == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized,
-				gin.H{"error": "authorization header required"})
+		raw := strings.TrimPrefix(c.GetHeader("Authorization"), "Bearer ")
+		if raw == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "authorization header required"})
 			return
 		}
-
-		// validateでトークンからuserRolesを取得
-		roles, err := m.tokenValidator.Validate(c.Request.Context(), token)
+		p, err := m.JwtUsecase.Authenticate(c.Request.Context(), raw)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized,
-				gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
-
-		// 後続ハンドラで使えるようにセット
-		c.Set("userID", roles.UserID)
-		c.Set("isAdmin", roles.IsAdmin)
-		c.Set("isRoot", roles.IsRoot)
-		c.Set("isTest", roles.IsTest)
-
+		// Principal を context へ（キーは型安全に）
+		SetPrincipal(c, p)
 		c.Next()
 	}
 }

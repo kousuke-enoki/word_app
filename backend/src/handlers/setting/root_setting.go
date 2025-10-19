@@ -14,8 +14,8 @@ import (
 
 func (h *AuthSettingHandler) GetRootConfigHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, ok := c.Get("userID")
-		if !ok {
+		userID, err := contextutil.MustUserID(c)
+		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "userID not found"})
 			return
 		}
@@ -28,7 +28,7 @@ func (h *AuthSettingHandler) GetRootConfigHandler() gin.HandlerFunc {
 			return
 		}
 		var req settingUc.InputGetRootConfig
-		req.UserID = userID.(int)
+		req.UserID = userID
 		rootConfig, err := h.settingUsecase.GetRoot(c, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -40,8 +40,8 @@ func (h *AuthSettingHandler) GetRootConfigHandler() gin.HandlerFunc {
 
 func (h *AuthSettingHandler) SaveRootConfigHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, ok := c.Get("userID")
-		if !ok {
+		userID, err := contextutil.MustUserID(c)
+		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "userID not found"})
 			return
 		}
@@ -55,7 +55,7 @@ func (h *AuthSettingHandler) SaveRootConfigHandler() gin.HandlerFunc {
 		}
 
 		var req settingUc.InputUpdateRootConfig
-		req.UserID = userID.(int)
+		req.UserID = userID
 		if bindErr := c.ShouldBindJSON(&req); bindErr != nil {
 			logrus.Error(bindErr)
 			c.JSON(http.StatusBadRequest, gin.H{"error": bindErr.Error()})

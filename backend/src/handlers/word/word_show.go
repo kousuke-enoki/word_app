@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/models"
 
 	"github.com/gin-gonic/gin"
@@ -41,21 +42,15 @@ func (h *Handler) parseWordShowRequest(c *gin.Context) (*models.WordShowRequest,
 	}
 
 	// ユーザーIDをコンテキストから取得
-	userID, exists := c.Get("userID")
-	if !exists {
+	userID, err := jwt.RequireUserID(c)
+	if err != nil {
 		return nil, errors.New("unauthorized: userID not found in context")
-	}
-
-	// userIDの型チェック
-	userIDInt, ok := userID.(int)
-	if !ok {
-		return nil, errors.New("invalid userID type")
 	}
 
 	// リクエストオブジェクトを構築
 	req := &models.WordShowRequest{
 		WordID: wordID,
-		UserID: userIDInt,
+		UserID: userID,
 	}
 
 	logrus.Infof("Final parsed request: %+v", req)

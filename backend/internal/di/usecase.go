@@ -7,6 +7,7 @@ import (
 	"word_app/backend/src/infrastructure/jwt"
 	authUc "word_app/backend/src/usecase/auth"
 	"word_app/backend/src/usecase/clock"
+	jwtUc "word_app/backend/src/usecase/jwt"
 	settingUc "word_app/backend/src/usecase/setting"
 	userUc "word_app/backend/src/usecase/user"
 	"word_app/backend/src/utils/tempjwt"
@@ -16,6 +17,7 @@ type UseCases struct {
 	Auth    *authUc.AuthUsecase
 	Setting settingUc.SettingFacade // interface
 	User    *userUc.UserUsecase     // interface
+	Jwt     *jwtUc.JwtUsecase       // interface
 }
 
 func NewUseCases(config *config.Config, r *Repos) (*UseCases, error) {
@@ -41,5 +43,6 @@ func NewUseCases(config *config.Config, r *Repos) (*UseCases, error) {
 			r.Auth, jwtGen, tempJwt, r.RootSetting, r.UserDailyUsage, clock.SystemClock{}),
 		Setting: settingFacade, // まとめ役だけ保持
 		User:    userUc.NewUserUsecase(r.Tx, r.User, r.UserSetting, r.Auth),
+		Jwt:     jwtUc.NewJwtUsecase(jwt.NewHS256Verifier(config.JWT.Secret), r.User),
 	}, nil
 }

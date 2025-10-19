@@ -14,7 +14,6 @@ import (
 	"word_app/backend/src/interfaces/http/quiz"
 	"word_app/backend/src/interfaces/http/result"
 	"word_app/backend/src/interfaces/http/word"
-	jwt_middleware "word_app/backend/src/middleware/jwt"
 
 	quizSvc "word_app/backend/src/service/quiz"
 	resultSvc "word_app/backend/src/service/result"
@@ -22,7 +21,6 @@ import (
 )
 
 type Handlers struct {
-	JWTMiD  jwt_middleware.Middleware // JWT ミドルウェアは Handler ではなく、インターフェースとして定義
 	Auth    AuthH.Handler
 	Setting settingH.Handler
 	User    userH.Handler
@@ -33,10 +31,8 @@ type Handlers struct {
 
 func NewHandlers(config *config.Config, uc *UseCases, client interfaces.ClientInterface) *Handlers {
 	jwtGen := jwt.NewMyJWTGenerator(config.JWT.Secret)
-	authClient := jwt.NewJWTValidator(config.JWT.Secret, client)
 	// 既存のservice 層は “薄い Facade” として存続させる想定
 	return &Handlers{
-		JWTMiD:  jwt_middleware.NewMiddleware(authClient),
 		Auth:    AuthH.NewHandler(uc.Auth, jwtGen),
 		Setting: settingH.NewHandler(uc.Setting),
 		User:    userH.NewHandler(uc.User, jwtGen),

@@ -70,9 +70,9 @@ func (r *Implementation) MountRoutes(router *gin.Engine) {
 	}
 
 	protectedRoutes := router.Group("/")
-	protectedRoutes.Use(r.JwtMiddleware.AuthMiddleware())
+	protectedRoutes.Use(r.JwtMiddleware.AuthenticateMiddleware())
 	{
-		protectedRoutes.GET("/auth/check", r.JwtMiddleware.JwtCheckMiddleware())
+		protectedRoutes.GET("/auth/check", r.AuthHandler.AuthMeHandler())
 
 		protectedRoutes.GET("/users/my_page", r.UserHandler.MyPageHandler())
 		protectedRoutes.GET("/users", r.UserHandler.ListHandler())

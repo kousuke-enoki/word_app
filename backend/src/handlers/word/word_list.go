@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/models"
 	"word_app/backend/src/validators/word"
 
@@ -63,20 +64,14 @@ func (h *Handler) parseWordListRequest(c *gin.Context) (*models.WordListRequest,
 	}
 
 	// ユーザーIDをコンテキストから取得
-	userID, exists := c.Get("userID")
-	if !exists {
+	userID, err := jwt.RequireUserID(c)
+	if err != nil {
 		return nil, errors.New("userID not found in context")
-	}
-
-	// userIDの型チェック
-	userIDInt, ok := userID.(int)
-	if !ok {
-		return nil, errors.New("invalid userID type")
 	}
 
 	// リクエストオブジェクトを構築
 	req := &models.WordListRequest{
-		UserID: userIDInt,
+		UserID: userID,
 		Search: search,
 		SortBy: sortBy,
 		Order:  order,

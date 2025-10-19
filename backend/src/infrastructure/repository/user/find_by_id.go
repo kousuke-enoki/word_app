@@ -13,7 +13,13 @@ func (r *EntUserRepo) FindByID(ctx context.Context, id int) (*domain.User, error
 	u, err := r.client.User().
 		Query().
 		Where(user.ID(id)).
-		Select(user.FieldID, user.FieldIsRoot, user.FieldIsTest).
+		Select(
+			user.FieldID,
+			user.FieldIsRoot,
+			user.FieldIsAdmin,
+			user.FieldIsTest,
+			user.FieldDeletedAt,
+		).
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -22,5 +28,11 @@ func (r *EntUserRepo) FindByID(ctx context.Context, id int) (*domain.User, error
 		return nil, repoerr.FromEnt(err, "internal", "internal server error")
 	}
 
-	return &domain.User{ID: u.ID, IsRoot: u.IsRoot}, nil
+	return &domain.User{
+		ID:        u.ID,
+		IsRoot:    u.IsRoot,
+		IsAdmin:   u.IsAdmin,
+		IsTest:    u.IsTest,
+		DeletedAt: u.DeletedAt,
+	}, nil
 }

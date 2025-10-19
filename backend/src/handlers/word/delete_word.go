@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/models"
 	"word_app/backend/src/utils/contextutil"
 
@@ -52,21 +53,15 @@ func (h *Handler) parseDeleteWordRequest(c *gin.Context) (*models.DeleteWordRequ
 	}
 
 	// ユーザーIDをコンテキストから取得
-	userID, exists := c.Get("userID")
-	if !exists {
+	userID, err := jwt.RequireUserID(c)
+	if err != nil {
 		return nil, errors.New("unauthorized: userID not found in context")
-	}
-
-	// userIDの型チェック
-	userIDInt, ok := userID.(int)
-	if !ok {
-		return nil, errors.New("invalid userID type")
 	}
 
 	// リクエストオブジェクトを構築
 	req := &models.DeleteWordRequest{
 		WordID: wordID,
-		UserID: userIDInt,
+		UserID: userID,
 	}
 
 	logrus.Infof("Final parsed request: %+v", req)

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/models"
 
 	"github.com/gin-gonic/gin"
@@ -15,17 +16,10 @@ func (h *Handler) BulkTokenizeHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 		// userID は認証ミドルウェアでセットされている前提
-		userID, ok := c.Get("userID")
-		if !ok {
+		userID, err := jwt.RequireUserID(c)
+		if err != nil {
 			logrus.Errorf("userID not found in context")
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "userID not found in context"})
-			return
-		}
-		// userIDの型チェック
-		userIDInt, ok := userID.(int)
-		if !ok {
-			logrus.Errorf("invalid userID type")
-			c.JSON(http.StatusBadRequest, gin.H{"errors": "invalid userID type"})
 			return
 		}
 
@@ -36,7 +30,7 @@ func (h *Handler) BulkTokenizeHandler() gin.HandlerFunc {
 			return
 		}
 
-		cands, regs, notExist, err := h.wordService.BulkTokenize(ctx, userIDInt, req.Text)
+		cands, regs, notExist, err := h.wordService.BulkTokenize(ctx, userID, req.Text)
 		if err != nil {
 			if strings.HasPrefix(err.Error(), "too many tokens") {
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

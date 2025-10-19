@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/models"
 	"word_app/backend/src/validators/word"
 
@@ -62,19 +63,13 @@ func (h *Handler) parseSaveMemoRequest(c *gin.Context) (*models.SaveMemoRequest,
 	}
 
 	// 必要に応じて追加処理（例: ユーザーIDをコンテキストから取得）
-	userID, exists := c.Get("userID")
-	if !exists {
+	userID, err := jwt.RequireUserID(c)
+	if err != nil {
 		return nil, errors.New("unauthorized: userID not found in context")
 	}
 
-	// userIDの型チェック
-	userIDInt, ok := userID.(int)
-	if !ok {
-		return nil, errors.New("invalid userID type")
-	}
-
 	// コンテキストから取得したuserIDをリクエストに設定
-	req.UserID = userIDInt
+	req.UserID = userID
 	logrus.Infof("Final parsed request with userID: %+v", req)
 
 	return &models.SaveMemoRequest{

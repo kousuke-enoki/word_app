@@ -2,6 +2,8 @@ package jwt
 
 import (
 	"log"
+	"os"
+	"strconv"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
@@ -30,17 +32,17 @@ func (j *MyJWTGenerator) GenerateJWT(userID string) (string, error) {
 	// 有効期限のデフォルト: 1時間
 	expirationTime := time.Now().Add(1 * time.Minute)
 
-	// // 環境変数から有効期限を取得（オプション）
-	// if hours := os.Getenv("JWT_EXPIRATION_HOURS"); hours != "" {
-	// 	if h, err := strconv.Atoi(hours); err == nil {
-	// 		expirationTime = time.Now().Add(time.Duration(h) * time.Hour)
-	// 	}
-	// }
-	// if minutes := os.Getenv("JWT_EXPIRATION_MINUTES"); minutes != "" {
-	// 	if m, err := strconv.Atoi(minutes); err == nil {
-	// 		expirationTime = expirationTime.Add(time.Duration(m) * time.Minute)
-	// 	}
-	// }
+	// 環境変数から有効期限を取得（オプション）
+	if hours := os.Getenv("JWT_EXPIRATION_HOURS"); hours != "" {
+		if h, err := strconv.Atoi(hours); err == nil {
+			expirationTime = time.Now().Add(time.Duration(h) * time.Hour)
+		}
+	}
+	if minutes := os.Getenv("JWT_EXPIRATION_MINUTES"); minutes != "" {
+		if m, err := strconv.Atoi(minutes); err == nil {
+			expirationTime = expirationTime.Add(time.Duration(m) * time.Minute)
+		}
+	}
 
 	// クレームを作成
 	claims := &Claims{

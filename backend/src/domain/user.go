@@ -22,6 +22,7 @@ type User struct {
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	DeletedAt *time.Time
 }
 
 func NewUser(name string, email, rawPass *string) (*User, error) {

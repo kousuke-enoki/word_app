@@ -2,27 +2,19 @@
 package user
 
 import (
-	"context"
 	"net/http"
 
 	"word_app/backend/src/handlers/httperr"
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/models"
-	"word_app/backend/src/utils/contextutil"
 
 	"github.com/gin-gonic/gin"
 )
 
 func (h *UserHandler) MyPageHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ctx := context.Background()
-		// userID の取得
-		userID, err := contextutil.MustUserID(c)
-		if err != nil {
-			httperr.Write(c, err)
-			return
-		}
-
-		// ユーザー情報の取得
+	return jwt.WithUser(func(c *gin.Context, userID int) {
+		// ← ここは userID が必ずある前提の世界
+		ctx := c.Request.Context()
 		signInUser, err := h.userUsecase.GetMyDetail(ctx, userID)
 		if err != nil {
 			httperr.Write(c, err)
@@ -39,5 +31,5 @@ func (h *UserHandler) MyPageHandler() gin.HandlerFunc {
 			},
 			IsLogin: true,
 		})
-	}
+	})
 }

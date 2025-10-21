@@ -2,28 +2,20 @@
 package user
 
 import (
-	"context"
 	"net/http"
 	"strconv"
 
 	"word_app/backend/src/handlers/httperr"
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/usecase/apperror"
 	user_usecase "word_app/backend/src/usecase/user"
-	"word_app/backend/src/utils/contextutil"
 
 	"github.com/gin-gonic/gin"
 )
 
 func (h *UserHandler) DeleteHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ctx := context.Background()
-		// 操作対象者
-		// editorID はミドルウェアで設定済み前提
-		editorID, err := contextutil.MustUserID(c)
-		if err != nil {
-			httperr.Write(c, err)
-			return
-		}
+	return jwt.WithUser(func(c *gin.Context, editorID int) {
+		ctx := c.Request.Context()
 
 		// 削除対象IDの取得
 		targetID, err := strconv.Atoi(c.Param("id"))
@@ -43,5 +35,5 @@ func (h *UserHandler) DeleteHandler() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, gin.H{"message": "deleted"})
-	}
+	})
 }

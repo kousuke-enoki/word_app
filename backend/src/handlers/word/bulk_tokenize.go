@@ -1,7 +1,6 @@
 package word
 
 import (
-	"context"
 	"net/http"
 	"strings"
 
@@ -13,15 +12,8 @@ import (
 )
 
 func (h *Handler) BulkTokenizeHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ctx := context.Background()
-		// userID は認証ミドルウェアでセットされている前提
-		userID, err := jwt.RequireUserID(c)
-		if err != nil {
-			logrus.Errorf("userID not found in context")
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "userID not found in context"})
-			return
-		}
+	return jwt.WithUser(func(c *gin.Context, userID int) {
+		ctx := c.Request.Context()
 
 		var req models.BulkTokenizeRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -45,5 +37,5 @@ func (h *Handler) BulkTokenizeHandler() gin.HandlerFunc {
 			Registered:   regs,
 			NotExistWord: notExist,
 		})
-	}
+	})
 }

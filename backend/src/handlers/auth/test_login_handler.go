@@ -2,7 +2,7 @@
 package auth
 
 import (
-	"context"
+
 	// "crypto/sha1"
 	// "encoding/hex"
 	"fmt"
@@ -21,6 +21,7 @@ type TestLoginQuery struct {
 
 func (h *AuthHandler) TestLoginHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx := c.Request.Context()
 		// 1) query 受け取り（未指定はデフォルト）
 		// var q TestLoginQuery
 		// _ = c.ShouldBindQuery(&q)
@@ -47,7 +48,7 @@ func (h *AuthHandler) TestLoginHandler() gin.HandlerFunc {
 		// }
 
 		// 4) テストユーザー作成 & 付随処理
-		out, err := h.AuthUsecase.TestLogin(context.Background())
+		out, err := h.AuthUsecase.TestLogin(ctx)
 		if err != nil {
 			httperr.Write(c, err)
 			return

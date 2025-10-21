@@ -2,7 +2,6 @@ package word
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -15,9 +14,9 @@ import (
 )
 
 func (h *Handler) RegisterHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ctx := context.Background()
-		req, err := h.parseRequest(c)
+	return jwt.WithUser(func(c *gin.Context, userID int) {
+		ctx := c.Request.Context()
+		req, err := h.parseRequest(c, userID)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -31,10 +30,10 @@ func (h *Handler) RegisterHandler() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, response)
-	}
+	})
 }
 
-func (h *Handler) parseRequest(c *gin.Context) (*models.RegisterWordRequest, error) {
+func (h *Handler) parseRequest(c *gin.Context, userID int) (*models.RegisterWordRequest, error) {
 	// リクエストボディが空の場合をチェック
 	if c.Request.Body == nil {
 		return nil, errors.New("request body is missing")
@@ -53,12 +52,6 @@ func (h *Handler) parseRequest(c *gin.Context) (*models.RegisterWordRequest, err
 	var req models.RegisterWordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		return nil, errors.New("invalid JSON format: " + err.Error())
-	}
-
-	// ユーザーIDをコンテキストから取得
-	userID, err := jwt.RequireUserID(c)
-	if err != nil {
-		return nil, errors.New("unauthorized: userID not found in context")
 	}
 
 	// コンテキストから取得したuserIDをリクエストに設定

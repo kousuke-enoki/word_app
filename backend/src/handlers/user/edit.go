@@ -2,15 +2,14 @@
 package user
 
 import (
-	"context"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"word_app/backend/src/handlers/httperr"
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/usecase/apperror"
 	user_usecase "word_app/backend/src/usecase/user"
-	"word_app/backend/src/utils/contextutil"
 	user_validator "word_app/backend/src/validators/user"
 
 	"github.com/gin-gonic/gin"
@@ -30,16 +29,16 @@ type UpdateUserRequest struct {
 
 func (h *UserHandler) EditHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ctx := context.Background()
+		ctx := c.Request.Context()
 		// 0) ルートレベルの軽い認可（最終判断はUsecase側）ついでにuserID取得
-		userRoles, err := contextutil.GetUserRoles(c)
-		if err != nil || userRoles == nil || userRoles.IsTest {
-			httperr.Write(c, apperror.Unauthorizedf("unauthorized", err))
+		principal, ok := jwt.GetPrincipal(c)
+		if !ok || principal.IsTest {
+			httperr.Write(c, apperror.Unauthorizedf("unauthorized", nil))
 			return
 		}
 
 		// 1) リクエストparse
-		in, err := h.parseUpdateUserRequest(c, userRoles.UserID)
+		in, err := h.parseUpdateUserRequest(c, principal.UserID)
 		if err != nil {
 			// parse/bind は Validation として返す
 			httperr.Write(c, apperror.Validationf("invalid request", err))

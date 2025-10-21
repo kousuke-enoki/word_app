@@ -2,7 +2,6 @@ package word
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -16,9 +15,9 @@ import (
 )
 
 func (h *Handler) SaveMemoHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ctx := context.Background()
-		req, err := h.parseSaveMemoRequest(c)
+	return jwt.WithUser(func(c *gin.Context, userID int) {
+		ctx := c.Request.Context()
+		req, err := h.parseSaveMemoRequest(c, userID)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -38,10 +37,10 @@ func (h *Handler) SaveMemoHandler() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, response)
-	}
+	})
 }
 
-func (h *Handler) parseSaveMemoRequest(c *gin.Context) (*models.SaveMemoRequest, error) {
+func (h *Handler) parseSaveMemoRequest(c *gin.Context, userID int) (*models.SaveMemoRequest, error) {
 	// リクエストボディが空の場合をチェック
 	if c.Request.Body == nil {
 		return nil, errors.New("request body is missing")
@@ -60,12 +59,6 @@ func (h *Handler) parseSaveMemoRequest(c *gin.Context) (*models.SaveMemoRequest,
 	var req models.SaveMemoRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		return nil, errors.New("invalid JSON format: " + err.Error())
-	}
-
-	// 必要に応じて追加処理（例: ユーザーIDをコンテキストから取得）
-	userID, err := jwt.RequireUserID(c)
-	if err != nil {
-		return nil, errors.New("unauthorized: userID not found in context")
 	}
 
 	// コンテキストから取得したuserIDをリクエストに設定

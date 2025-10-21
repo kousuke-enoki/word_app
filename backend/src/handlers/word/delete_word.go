@@ -1,14 +1,14 @@
 package word
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"strconv"
 
+	"word_app/backend/src/handlers/httperr"
 	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/models"
-	"word_app/backend/src/utils/contextutil"
+	"word_app/backend/src/usecase/apperror"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -17,17 +17,14 @@ import (
 // Word削除用ハンドラー
 func (h *Handler) DeleteHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ctx := context.Background()
-		userRoles, err := contextutil.GetUserRoles(c)
-		if err != nil || userRoles == nil || !userRoles.IsAdmin {
-			if err == nil {
-				err = errors.New("unauthorized: admin access required")
-			}
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		ctx := c.Request.Context()
+		principal, ok := jwt.GetPrincipal(c)
+		if !ok || !principal.IsAdmin {
+			httperr.Write(c, apperror.Unauthorizedf("unauthorized", nil))
 			return
 		}
 
-		req, err := h.parseDeleteWordRequest(c)
+		req, err := h.parseDeleteWordRequest(c, principal.UserID)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -45,17 +42,11 @@ func (h *Handler) DeleteHandler() gin.HandlerFunc {
 	}
 }
 
-func (h *Handler) parseDeleteWordRequest(c *gin.Context) (*models.DeleteWordRequest, error) {
+func (h *Handler) parseDeleteWordRequest(c *gin.Context, userID int) (*models.DeleteWordRequest, error) {
 	// パラメータの取得と検証
 	wordID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return nil, errors.New("invalid word ID")
-	}
-
-	// ユーザーIDをコンテキストから取得
-	userID, err := jwt.RequireUserID(c)
-	if err != nil {
-		return nil, errors.New("unauthorized: userID not found in context")
 	}
 
 	// リクエストオブジェクトを構築

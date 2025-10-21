@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"word_app/backend/logger/logx"
-	"word_app/backend/src/utils/contextutil"
+	"word_app/backend/src/middleware/jwt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -15,10 +15,10 @@ import (
 func RequestLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		reqID := uuid.NewString()
-		user, err := contextutil.GetUserRoles(c)
+		principal, ok := jwt.GetPrincipal(c)
 		actorID := 0
-		if err == nil && user != nil {
-			actorID = user.UserID
+		if ok && principal.UserID != 0 {
+			actorID = principal.UserID
 		}
 
 		entry := logrus.WithFields(logrus.Fields{

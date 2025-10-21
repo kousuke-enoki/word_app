@@ -1,13 +1,12 @@
 package word
 
 import (
-	"context"
-	"errors"
 	"net/http"
 
+	"word_app/backend/src/handlers/httperr"
 	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/models"
-	"word_app/backend/src/utils/contextutil"
+	"word_app/backend/src/usecase/apperror"
 	"word_app/backend/src/validators/word"
 
 	"github.com/gin-gonic/gin"
@@ -16,17 +15,14 @@ import (
 
 func (h *Handler) UpdateHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ctx := context.Background()
-		userRoles, err := contextutil.GetUserRoles(c)
-		if err != nil || userRoles == nil || !userRoles.IsAdmin {
-			if err == nil {
-				err = errors.New("unauthorized: admin access required")
-			}
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		ctx := c.Request.Context()
+		principal, ok := jwt.GetPrincipal(c)
+		if !ok || !principal.IsAdmin {
+			httperr.Write(c, apperror.Unauthorizedf("unauthorized", nil))
 			return
 		}
 		// リクエストを解析
-		req, err := h.parseUpdateWordRequest(c)
+		req, err := h.parseUpdateWordRequest(c, principal.UserID)
 		if err != nil {
 			logrus.Errorf("Failed to parse request: %v", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -53,7 +49,7 @@ func (h *Handler) UpdateHandler() gin.HandlerFunc {
 }
 
 // リクエスト構造体を解析
-func (h *Handler) parseUpdateWordRequest(c *gin.Context) (*models.UpdateWordRequest, error) {
+func (h *Handler) parseUpdateWordRequest(c *gin.Context, userID int) (*models.UpdateWordRequest, error) {
 	var req models.UpdateWordRequest
 
 	// JSONリクエストをバインド
@@ -63,12 +59,6 @@ func (h *Handler) parseUpdateWordRequest(c *gin.Context) (*models.UpdateWordRequ
 	}
 
 	logrus.Infof("Parsed request: %+v", req)
-
-	// ユーザーIDをコンテキストから取得
-	userID, err := jwt.RequireUserID(c)
-	if err != nil {
-		return nil, errors.New("unauthorized: userID not found in context")
-	}
 
 	// コンテキストから取得したuserIDをリクエストに設定
 	req.UserID = userID

@@ -1,35 +1,28 @@
 package setting
 
 import (
-	"errors"
 	"net/http"
 
+	"word_app/backend/src/handlers/httperr"
+	"word_app/backend/src/middleware/jwt"
+	"word_app/backend/src/usecase/apperror"
 	settingUc "word_app/backend/src/usecase/setting"
-	"word_app/backend/src/utils/contextutil"
 	"word_app/backend/src/validators/setting"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 func (h *AuthSettingHandler) GetRootConfigHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, err := contextutil.MustUserID(c)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "userID not found"})
-			return
-		}
-		userRoles, err := contextutil.GetUserRoles(c)
-		if err != nil || userRoles == nil || !userRoles.IsRoot {
-			if err == nil {
-				err = errors.New("unauthorized: root access required")
-			}
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		ctx := c.Request.Context()
+		principal, ok := jwt.GetPrincipal(c)
+		if !ok || !principal.IsRoot {
+			httperr.Write(c, apperror.Unauthorizedf("unauthorized", nil))
 			return
 		}
 		var req settingUc.InputGetRootConfig
-		req.UserID = userID
-		rootConfig, err := h.settingUsecase.GetRoot(c, req)
+		req.UserID = principal.UserID
+		rootConfig, err := h.settingUsecase.GetRoot(ctx, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -40,40 +33,28 @@ func (h *AuthSettingHandler) GetRootConfigHandler() gin.HandlerFunc {
 
 func (h *AuthSettingHandler) SaveRootConfigHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, err := contextutil.MustUserID(c)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "userID not found"})
-			return
-		}
-		userRoles, err := contextutil.GetUserRoles(c)
-		if err != nil || userRoles == nil || !userRoles.IsRoot {
-			if err == nil {
-				err = errors.New("unauthorized: root access required")
-			}
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		ctx := c.Request.Context()
+		principal, ok := jwt.GetPrincipal(c)
+		if !ok || !principal.IsRoot {
+			httperr.Write(c, apperror.Unauthorizedf("unauthorized", nil))
 			return
 		}
 
 		var req settingUc.InputUpdateRootConfig
-		req.UserID = userID
+		req.UserID = principal.UserID
 		if bindErr := c.ShouldBindJSON(&req); bindErr != nil {
-			logrus.Error(bindErr)
 			c.JSON(http.StatusBadRequest, gin.H{"error": bindErr.Error()})
 			return
 		}
 
 		validationErrors := setting.ValidateRootConfig(&req)
 		if len(validationErrors) > 0 {
-			for _, err := range validationErrors {
-				logrus.Error(err)
-			}
 			c.JSON(http.StatusBadRequest, gin.H{"errors": validationErrors})
 			return
 		}
 
-		rootConfig, err := h.settingUsecase.UpdateRoot(c, req)
+		rootConfig, err := h.settingUsecase.UpdateRoot(ctx, req)
 		if err != nil {
-			logrus.Error(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

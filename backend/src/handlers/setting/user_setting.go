@@ -11,32 +11,23 @@ import (
 )
 
 func (h *AuthSettingHandler) GetUserConfigHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		userID, err := jwt.RequireUserID(c)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err})
-			return
-		}
+	return jwt.WithUser(func(c *gin.Context, userID int) {
+		ctx := c.Request.Context()
 		var req settingUc.InputGetUserConfig
 		req.UserID = userID
 
-		setting, err := h.settingUsecase.GetUser(c, req)
+		setting, err := h.settingUsecase.GetUser(ctx, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		c.JSON(http.StatusOK, setting)
-	}
+	})
 }
 
 func (h *AuthSettingHandler) SaveUserConfigHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		userID, err := jwt.RequireUserID(c)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err})
-			return
-		}
-
+	return jwt.WithUser(func(c *gin.Context, userID int) {
+		ctx := c.Request.Context()
 		var req settingUc.InputUpdateUserConfig
 		req.UserID = userID
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -44,13 +35,13 @@ func (h *AuthSettingHandler) SaveUserConfigHandler() gin.HandlerFunc {
 			return
 		}
 
-		setting, err := h.settingUsecase.UpdateUser(c, req)
+		setting, err := h.settingUsecase.UpdateUser(ctx, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		c.JSON(http.StatusOK, setting)
-	}
+	})
 }
 
 var ErrUserNotFound = errors.New("user not found")

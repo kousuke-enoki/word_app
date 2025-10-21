@@ -6,6 +6,7 @@ package jwt
 
 import (
 	"context"
+
 	"word_app/backend/src/models"
 
 	mock "github.com/stretchr/testify/mock"

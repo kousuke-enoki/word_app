@@ -11,7 +11,6 @@ import (
 	"word_app/backend/src/models"
 	settingUc "word_app/backend/src/usecase/setting"
 	user_usecase "word_app/backend/src/usecase/user"
-	"word_app/backend/src/utils/contextutil"
 )
 
 // entの型からはmockeryでモックを作れないので、
@@ -117,11 +116,6 @@ func (c *appClient) GetAuthConfig(_ context.Context) (*settingUc.AuthConfigDTO, 
 
 // GetAuthConfig implements interfaces.ClientInterface.
 func (c *appClient) GetAuthConfigs(_ context.Context) (*models.AuthSettingResponse, error) {
-	panic("unimplemented")
-}
-
-// GetResultSummaries implements interfaces.ClientInterface.
-func (c *appClient) Validate(_ context.Context, tokenStr string) (contextutil.UserRoles, error) {
 	panic("unimplemented")
 }
 

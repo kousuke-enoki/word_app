@@ -12,6 +12,8 @@ func NotFound(msg string) error          { return apperror.NotFoundf(msg, nil) }
 func Conflict(msg string) error          { return apperror.Conflictf(msg, nil) }
 func InvalidCredential(msg string) error { return apperror.InvalidCredentialf(msg, nil) }
 func Validation(msg string) error        { return apperror.Validationf(msg, nil) }
+func TooManyRequests(msg string) error   { return apperror.TooManyRequestsf(msg, nil) }
+func BadRequest(msg string) error        { return apperror.BadRequestf(msg, nil) }
 func Internal(msg string, cause error) error {
 	return apperror.Internalf(msg, cause)
 }

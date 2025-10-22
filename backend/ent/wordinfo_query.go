@@ -29,6 +29,7 @@ type WordInfoQuery struct {
 	withWord          *WordQuery
 	withPartOfSpeech  *PartOfSpeechQuery
 	withJapaneseMeans *JapaneseMeanQuery
+	modifiers         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -327,8 +328,9 @@ func (wiq *WordInfoQuery) Clone() *WordInfoQuery {
 		withPartOfSpeech:  wiq.withPartOfSpeech.Clone(),
 		withJapaneseMeans: wiq.withJapaneseMeans.Clone(),
 		// clone intermediate query.
-		sql:  wiq.sql.Clone(),
-		path: wiq.path,
+		sql:       wiq.sql.Clone(),
+		path:      wiq.path,
+		modifiers: append([]func(*sql.Selector){}, wiq.modifiers...),
 	}
 }
 
@@ -458,6 +460,9 @@ func (wiq *WordInfoQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Wo
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(wiq.modifiers) > 0 {
+		_spec.Modifiers = wiq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -580,6 +585,9 @@ func (wiq *WordInfoQuery) loadJapaneseMeans(ctx context.Context, query *Japanese
 
 func (wiq *WordInfoQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := wiq.querySpec()
+	if len(wiq.modifiers) > 0 {
+		_spec.Modifiers = wiq.modifiers
+	}
 	_spec.Node.Columns = wiq.ctx.Fields
 	if len(wiq.ctx.Fields) > 0 {
 		_spec.Unique = wiq.ctx.Unique != nil && *wiq.ctx.Unique
@@ -648,6 +656,9 @@ func (wiq *WordInfoQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if wiq.ctx.Unique != nil && *wiq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range wiq.modifiers {
+		m(selector)
+	}
 	for _, p := range wiq.predicates {
 		p(selector)
 	}
@@ -663,6 +674,12 @@ func (wiq *WordInfoQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (wiq *WordInfoQuery) Modify(modifiers ...func(s *sql.Selector)) *WordInfoSelect {
+	wiq.modifiers = append(wiq.modifiers, modifiers...)
+	return wiq.Select()
 }
 
 // WordInfoGroupBy is the group-by builder for WordInfo entities.
@@ -753,4 +770,10 @@ func (wis *WordInfoSelect) sqlScan(ctx context.Context, root *WordInfoQuery, v a
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (wis *WordInfoSelect) Modify(modifiers ...func(s *sql.Selector)) *WordInfoSelect {
+	wis.modifiers = append(wis.modifiers, modifiers...)
+	return wis
 }

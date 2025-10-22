@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
 	"math/rand"
 
+	"word_app/backend/config"
 	"word_app/backend/ent"
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/quiz"
@@ -14,6 +14,7 @@ import (
 	"word_app/backend/ent/word"
 	"word_app/backend/ent/wordinfo"
 	"word_app/backend/src/models"
+	"word_app/backend/src/usecase/shared/ucerr"
 
 	"entgo.io/ent/dialect/sql"
 )
@@ -25,6 +26,10 @@ func (s *ServiceImpl) CreateQuiz(
 	userID int,
 	req *models.CreateQuizReq,
 ) (resp *models.CreateQuizResponse, err error) {
+	LimitsCfg := config.NewLimitsConfig()
+	if req.QuestionCount <= 0 || req.QuestionCount > LimitsCfg.QuizMaxQuestions { // 100問上限
+		return nil, ucerr.BadRequest("Question_count must be 1..100")
+	}
 
 	// ① ドメイン集約 ― 候補単語
 	words, err := s.fetchCandidates(ctx, userID, req)
@@ -34,6 +39,11 @@ func (s *ServiceImpl) CreateQuiz(
 
 	// ② Tx で Quiz 作成ユースケース実行
 	err = s.withTx(ctx, func(tx *ent.Tx) error {
+		// クイズ回数カウントと上限を超えているか判定
+		if _, err := s.userDailyUsageRepo.IncQuizOr429(ctx, userID, s.clock.Now()); err != nil {
+			return err // クイズ回数上限を超えていたらTooManyRequests(429) が返る
+		}
+
 		qEnt, err := s.ensureQuizRecord(ctx, tx, userID, req)
 		if err != nil {
 			return err
@@ -63,7 +73,6 @@ func (s *ServiceImpl) fetchCandidates(
 	userID int,
 	req *models.CreateQuizReq,
 ) ([]*ent.Word, error) {
-
 	q := s.baseWordQuery(userID, req) // クエリビルダーも分離
 	words, err := q.
 		Order(func(s *sql.Selector) { s.OrderBy("RANDOM()") }).
@@ -86,7 +95,6 @@ func (s *ServiceImpl) ensureQuizRecord(
 	userID int,
 	req *models.CreateQuizReq,
 ) (*ent.Quiz, error) {
-
 	exists, err := tx.Quiz.Query().
 		Where(quiz.UserID(userID), quiz.IsRunning(true)).
 		Exist(ctx)
@@ -178,7 +186,6 @@ func (s *ServiceImpl) baseWordQuery(
 	userID int,
 	req *models.CreateQuizReq,
 ) *ent.WordQuery {
-
 	q := s.client.Word().
 		Query().
 		Where(word.HasWordInfosWith(

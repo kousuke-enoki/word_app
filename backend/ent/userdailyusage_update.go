@@ -19,8 +19,9 @@ import (
 // UserDailyUsageUpdate is the builder for updating UserDailyUsage entities.
 type UserDailyUsageUpdate struct {
 	config
-	hooks    []Hook
-	mutation *UserDailyUsageMutation
+	hooks     []Hook
+	mutation  *UserDailyUsageMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the UserDailyUsageUpdate builder.
@@ -170,6 +171,12 @@ func (uduu *UserDailyUsageUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (uduu *UserDailyUsageUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *UserDailyUsageUpdate {
+	uduu.modifiers = append(uduu.modifiers, modifiers...)
+	return uduu
+}
+
 func (uduu *UserDailyUsageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := uduu.check(); err != nil {
 		return n, err
@@ -229,6 +236,7 @@ func (uduu *UserDailyUsageUpdate) sqlSave(ctx context.Context) (n int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(uduu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, uduu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{userdailyusage.Label}
@@ -244,9 +252,10 @@ func (uduu *UserDailyUsageUpdate) sqlSave(ctx context.Context) (n int, err error
 // UserDailyUsageUpdateOne is the builder for updating a single UserDailyUsage entity.
 type UserDailyUsageUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *UserDailyUsageMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *UserDailyUsageMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetUserID sets the "user_id" field.
@@ -403,6 +412,12 @@ func (uduuo *UserDailyUsageUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (uduuo *UserDailyUsageUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *UserDailyUsageUpdateOne {
+	uduuo.modifiers = append(uduuo.modifiers, modifiers...)
+	return uduuo
+}
+
 func (uduuo *UserDailyUsageUpdateOne) sqlSave(ctx context.Context) (_node *UserDailyUsage, err error) {
 	if err := uduuo.check(); err != nil {
 		return _node, err
@@ -479,6 +494,7 @@ func (uduuo *UserDailyUsageUpdateOne) sqlSave(ctx context.Context) (_node *UserD
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(uduuo.modifiers...)
 	_node = &UserDailyUsage{config: uduuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

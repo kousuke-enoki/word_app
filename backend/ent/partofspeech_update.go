@@ -19,8 +19,9 @@ import (
 // PartOfSpeechUpdate is the builder for updating PartOfSpeech entities.
 type PartOfSpeechUpdate struct {
 	config
-	hooks    []Hook
-	mutation *PartOfSpeechMutation
+	hooks     []Hook
+	mutation  *PartOfSpeechMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the PartOfSpeechUpdate builder.
@@ -150,6 +151,12 @@ func (posu *PartOfSpeechUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (posu *PartOfSpeechUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *PartOfSpeechUpdate {
+	posu.modifiers = append(posu.modifiers, modifiers...)
+	return posu
+}
+
 func (posu *PartOfSpeechUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := posu.check(); err != nil {
 		return n, err
@@ -216,6 +223,7 @@ func (posu *PartOfSpeechUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(posu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, posu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{partofspeech.Label}
@@ -231,9 +239,10 @@ func (posu *PartOfSpeechUpdate) sqlSave(ctx context.Context) (n int, err error) 
 // PartOfSpeechUpdateOne is the builder for updating a single PartOfSpeech entity.
 type PartOfSpeechUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *PartOfSpeechMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *PartOfSpeechMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetName sets the "name" field.
@@ -370,6 +379,12 @@ func (posuo *PartOfSpeechUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (posuo *PartOfSpeechUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *PartOfSpeechUpdateOne {
+	posuo.modifiers = append(posuo.modifiers, modifiers...)
+	return posuo
+}
+
 func (posuo *PartOfSpeechUpdateOne) sqlSave(ctx context.Context) (_node *PartOfSpeech, err error) {
 	if err := posuo.check(); err != nil {
 		return _node, err
@@ -453,6 +468,7 @@ func (posuo *PartOfSpeechUpdateOne) sqlSave(ctx context.Context) (_node *PartOfS
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(posuo.modifiers...)
 	_node = &PartOfSpeech{config: posuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

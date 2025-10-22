@@ -24,6 +24,7 @@ type UserConfigQuery struct {
 	inters     []Interceptor
 	predicates []predicate.UserConfig
 	withUser   *UserQuery
+	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -276,8 +277,9 @@ func (ucq *UserConfigQuery) Clone() *UserConfigQuery {
 		predicates: append([]predicate.UserConfig{}, ucq.predicates...),
 		withUser:   ucq.withUser.Clone(),
 		// clone intermediate query.
-		sql:  ucq.sql.Clone(),
-		path: ucq.path,
+		sql:       ucq.sql.Clone(),
+		path:      ucq.path,
+		modifiers: append([]func(*sql.Selector){}, ucq.modifiers...),
 	}
 }
 
@@ -383,6 +385,9 @@ func (ucq *UserConfigQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(ucq.modifiers) > 0 {
+		_spec.Modifiers = ucq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -433,6 +438,9 @@ func (ucq *UserConfigQuery) loadUser(ctx context.Context, query *UserQuery, node
 
 func (ucq *UserConfigQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := ucq.querySpec()
+	if len(ucq.modifiers) > 0 {
+		_spec.Modifiers = ucq.modifiers
+	}
 	_spec.Node.Columns = ucq.ctx.Fields
 	if len(ucq.ctx.Fields) > 0 {
 		_spec.Unique = ucq.ctx.Unique != nil && *ucq.ctx.Unique
@@ -498,6 +506,9 @@ func (ucq *UserConfigQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if ucq.ctx.Unique != nil && *ucq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range ucq.modifiers {
+		m(selector)
+	}
 	for _, p := range ucq.predicates {
 		p(selector)
 	}
@@ -513,6 +524,12 @@ func (ucq *UserConfigQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (ucq *UserConfigQuery) Modify(modifiers ...func(s *sql.Selector)) *UserConfigSelect {
+	ucq.modifiers = append(ucq.modifiers, modifiers...)
+	return ucq.Select()
 }
 
 // UserConfigGroupBy is the group-by builder for UserConfig entities.
@@ -603,4 +620,10 @@ func (ucs *UserConfigSelect) sqlScan(ctx context.Context, root *UserConfigQuery,
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (ucs *UserConfigSelect) Modify(modifiers ...func(s *sql.Selector)) *UserConfigSelect {
+	ucs.modifiers = append(ucs.modifiers, modifiers...)
+	return ucs
 }

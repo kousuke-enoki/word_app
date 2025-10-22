@@ -19,8 +19,9 @@ import (
 // ExternalAuthUpdate is the builder for updating ExternalAuth entities.
 type ExternalAuthUpdate struct {
 	config
-	hooks    []Hook
-	mutation *ExternalAuthMutation
+	hooks     []Hook
+	mutation  *ExternalAuthMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the ExternalAuthUpdate builder.
@@ -157,6 +158,12 @@ func (eau *ExternalAuthUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (eau *ExternalAuthUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ExternalAuthUpdate {
+	eau.modifiers = append(eau.modifiers, modifiers...)
+	return eau
+}
+
 func (eau *ExternalAuthUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := eau.check(); err != nil {
 		return n, err
@@ -210,6 +217,7 @@ func (eau *ExternalAuthUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(eau.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, eau.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{externalauth.Label}
@@ -225,9 +233,10 @@ func (eau *ExternalAuthUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // ExternalAuthUpdateOne is the builder for updating a single ExternalAuth entity.
 type ExternalAuthUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *ExternalAuthMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *ExternalAuthMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetUserID sets the "user_id" field.
@@ -371,6 +380,12 @@ func (eauo *ExternalAuthUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (eauo *ExternalAuthUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ExternalAuthUpdateOne {
+	eauo.modifiers = append(eauo.modifiers, modifiers...)
+	return eauo
+}
+
 func (eauo *ExternalAuthUpdateOne) sqlSave(ctx context.Context) (_node *ExternalAuth, err error) {
 	if err := eauo.check(); err != nil {
 		return _node, err
@@ -441,6 +456,7 @@ func (eauo *ExternalAuthUpdateOne) sqlSave(ctx context.Context) (_node *External
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(eauo.modifiers...)
 	_node = &ExternalAuth{config: eauo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

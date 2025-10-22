@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"word_app/backend/ent"
 	"word_app/backend/src/domain"
 	"word_app/backend/src/domain/repository"
 	serviceinterfaces "word_app/backend/src/interfaces/service_interfaces"
@@ -29,6 +30,7 @@ type Repository interface {
 	DeleteIfTest(ctx context.Context, id int) (deleted bool, err error)
 	Exists(ctx context.Context, id int) (bool, error)
 	IsTest(ctx context.Context, id int) (bool, error)
+	LockByID(ctx context.Context, tx *ent.Tx, userID int) error
 }
 
 func NewEntUserRepo(c serviceinterfaces.EntClientInterface) *EntUserRepo {

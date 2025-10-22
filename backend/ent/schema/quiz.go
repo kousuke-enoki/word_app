@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // Quiz holds the schema definition for the Quiz entity.
@@ -82,5 +83,14 @@ func (Quiz) Edges() []ent.Edge {
 			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
 		edge.To("quiz_questions", QuizQuestion.Type).
 			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
+	}
+}
+
+func (Quiz) Indexes() []ent.Index {
+	return []ent.Index{
+		// user_id について、is_running=true の行は常に1件に制約
+		index.Fields("user_id").
+			Unique().
+			Annotations(entsql.IndexWhere("is_running = TRUE")),
 	}
 }

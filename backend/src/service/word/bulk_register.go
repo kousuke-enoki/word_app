@@ -22,7 +22,6 @@ func (s *ServiceImpl) BulkRegister(
 	userID int,
 	words []string,
 ) (resp *models.BulkRegisterResponse, err error) {
-
 	if err = validatePayload(words); err != nil {
 		return nil, err
 	}
@@ -88,7 +87,6 @@ func (s *ServiceImpl) fetchWordIDs(
 	ctx context.Context,
 	names []string,
 ) (map[string]int, error) {
-
 	found, err := s.client.Word().
 		Query().
 		Where(word.NameIn(names...)).
@@ -108,7 +106,6 @@ func (s *ServiceImpl) fetchActiveRegs(
 	userID int,
 	nameToID map[string]int,
 ) (map[int]bool, error) {
-
 	var ids []int
 	for _, id := range nameToID {
 		ids = append(ids, id)
@@ -129,6 +126,15 @@ func (s *ServiceImpl) fetchActiveRegs(
 	return active, nil
 }
 
+const MaxRegisteredPerUser = 200
+
+func activeCountTx(ctx context.Context, tx *ent.Tx, userID int) (int, error) {
+	return tx.RegisteredWord.
+		Query().
+		Where(registeredword.UserID(userID), registeredword.IsActive(true)).
+		Count(ctx)
+}
+
 /*==================== Tx + upsert ====================*/
 
 func (s *ServiceImpl) upsertRegsTx(
@@ -136,38 +142,109 @@ func (s *ServiceImpl) upsertRegsTx(
 	userID int,
 	norm []string,
 	nameToID map[string]int,
-	active map[int]bool,
+	active map[int]bool, // これは “事前読み取りのスナップショット”。Tx内で再評価する。
 ) (okWords []string, failed []models.FailedWord, err error) {
-
 	tx, err := s.client.Tx(ctx)
 	if err != nil {
 		return
 	}
 	defer finishTxWithLog(&err, tx)
 
+	// 1) ユーザーロック（同一ユーザー操作を直列化）
+	if err = s.userRepo.LockByID(ctx, tx, userID); err != nil {
+		return
+	}
+
+	// 2) Tx内で “最新” の有効数を取得 → 残り枠算出
+	curActive, err := activeCountTx(ctx, tx, userID)
+	if err != nil {
+		return
+	}
+	remain := MaxRegisteredPerUser - curActive
+	if remain <= 0 {
+		// もう枠がない：全部 failed にするか、422/409 を返すかは仕様で
+		for _, w := range norm {
+			failed = append(failed, models.FailedWord{Word: w, Reason: "limit_reached"})
+		}
+		return // err=nil で 200 部分失敗応答にするのも可
+		// もしくは return nil, nil, ucerr.TooManyRequests("registered words limit exceeded")
+	}
+
+	// 3) 未登録/非アクティブだけを抽出（Tx時点の最新状態が理想）
+	//    事前の active マップは stale の可能性があるので、Tx内でもう一度軽く確認するやり方がより堅いです。
+	//    ただし性能と実装コストのトレードオフ。最小修正なら active をそのまま使いつつ UPSERT に寄せてOK。
+	addQueue := make([][2]string, 0, len(norm)) // [wordName, reason?] 等
 	for _, w := range norm {
 		wordID, exists := nameToID[w]
 		if !exists {
 			failed = append(failed, models.FailedWord{Word: w, Reason: "not_exists"})
 			continue
 		}
-		if active[wordID] {
+		if active[wordID] { // 事前スナップショット
 			failed = append(failed, models.FailedWord{Word: w, Reason: "already_registered"})
 			continue
 		}
+		addQueue = append(addQueue, [2]string{w, ""})
+	}
 
-		if _, dup := active[wordID]; dup {
-			err = s.activateReg(ctx, tx, userID, wordID)
-		} else {
-			err = s.createReg(ctx, tx, userID, wordID)
+	// 4) 残り枠で切り詰め
+	if remain < len(addQueue) {
+		// 先頭 remain 件だけ登録、残りは limit_reached
+		for i := remain; i < len(addQueue); i++ {
+			failed = append(failed, models.FailedWord{Word: addQueue[i][0], Reason: "limit_reached"})
 		}
-		if err != nil {
+		addQueue = addQueue[:remain]
+	}
+
+	// 5) 追加対象を UPSERT（重複/同時実行に強い）
+	for _, item := range addQueue {
+		w := item[0]
+		wordID := nameToID[w]
+
+		// (A) 既存があれば is_active=true にする UPDATE
+		// (B) なければ INSERT
+		exists, e := tx.RegisteredWord.
+			Query().
+			Where(
+				registeredword.UserIDEQ(userID),
+				registeredword.WordIDEQ(wordID),
+			).
+			Exist(ctx)
+		if e != nil {
+			// DBエラー
 			failed = append(failed, models.FailedWord{Word: w, Reason: "db_error"})
-			err = nil // 1 つ失敗しても続行
 			continue
 		}
+
+		if exists {
+			_, e = tx.RegisteredWord.
+				Update().
+				Where(
+					registeredword.UserIDEQ(userID),
+					registeredword.WordIDEQ(wordID),
+				).
+				SetIsActive(true).
+				Save(ctx)
+			if e != nil {
+				failed = append(failed, models.FailedWord{Word: w, Reason: "db_error"})
+				continue
+			}
+		} else {
+			_, e = tx.RegisteredWord.
+				Create().
+				SetUserID(userID).
+				SetWordID(wordID).
+				SetIsActive(true).
+				Save(ctx)
+			if e != nil {
+				failed = append(failed, models.FailedWord{Word: w, Reason: "db_error"})
+				continue
+			}
+		}
+
 		okWords = append(okWords, w)
 	}
+
 	return
 }
 

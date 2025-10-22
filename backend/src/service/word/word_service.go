@@ -3,15 +3,23 @@ package word
 import (
 	"errors"
 
+	"word_app/backend/src/infrastructure/repository/user"
 	serviceinterfaces "word_app/backend/src/interfaces/service_interfaces"
 )
 
 type ServiceImpl struct {
-	client serviceinterfaces.EntClientInterface
+	client   serviceinterfaces.EntClientInterface
+	userRepo user.Repository
 }
 
-func NewWordService(client serviceinterfaces.EntClientInterface) *ServiceImpl {
-	return &ServiceImpl{client: client}
+func NewWordService(
+	client serviceinterfaces.EntClientInterface,
+	userRepo user.Repository,
+) *ServiceImpl {
+	return &ServiceImpl{
+		client:   client,
+		userRepo: userRepo,
+	}
 }
 
 var (

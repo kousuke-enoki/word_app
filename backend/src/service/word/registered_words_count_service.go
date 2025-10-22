@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// wordのRegistrationCount（登録数）を更新し、その値を返す
 func (s *ServiceImpl) RegisteredWordsCount(ctx context.Context, IsRegistered bool, words []string) ([]string, error) {
 
 	if len(words) <= 0 {

@@ -24,6 +24,7 @@ type UserDailyUsageQuery struct {
 	inters     []Interceptor
 	predicates []predicate.UserDailyUsage
 	withUser   *UserQuery
+	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -276,8 +277,9 @@ func (uduq *UserDailyUsageQuery) Clone() *UserDailyUsageQuery {
 		predicates: append([]predicate.UserDailyUsage{}, uduq.predicates...),
 		withUser:   uduq.withUser.Clone(),
 		// clone intermediate query.
-		sql:  uduq.sql.Clone(),
-		path: uduq.path,
+		sql:       uduq.sql.Clone(),
+		path:      uduq.path,
+		modifiers: append([]func(*sql.Selector){}, uduq.modifiers...),
 	}
 }
 
@@ -383,6 +385,9 @@ func (uduq *UserDailyUsageQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(uduq.modifiers) > 0 {
+		_spec.Modifiers = uduq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -433,6 +438,9 @@ func (uduq *UserDailyUsageQuery) loadUser(ctx context.Context, query *UserQuery,
 
 func (uduq *UserDailyUsageQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := uduq.querySpec()
+	if len(uduq.modifiers) > 0 {
+		_spec.Modifiers = uduq.modifiers
+	}
 	_spec.Node.Columns = uduq.ctx.Fields
 	if len(uduq.ctx.Fields) > 0 {
 		_spec.Unique = uduq.ctx.Unique != nil && *uduq.ctx.Unique
@@ -498,6 +506,9 @@ func (uduq *UserDailyUsageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if uduq.ctx.Unique != nil && *uduq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range uduq.modifiers {
+		m(selector)
+	}
 	for _, p := range uduq.predicates {
 		p(selector)
 	}
@@ -513,6 +524,12 @@ func (uduq *UserDailyUsageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (uduq *UserDailyUsageQuery) Modify(modifiers ...func(s *sql.Selector)) *UserDailyUsageSelect {
+	uduq.modifiers = append(uduq.modifiers, modifiers...)
+	return uduq.Select()
 }
 
 // UserDailyUsageGroupBy is the group-by builder for UserDailyUsage entities.
@@ -603,4 +620,10 @@ func (udus *UserDailyUsageSelect) sqlScan(ctx context.Context, root *UserDailyUs
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (udus *UserDailyUsageSelect) Modify(modifiers ...func(s *sql.Selector)) *UserDailyUsageSelect {
+	udus.modifiers = append(udus.modifiers, modifiers...)
+	return udus
 }

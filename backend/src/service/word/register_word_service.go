@@ -4,155 +4,148 @@ import (
 	"context"
 	"errors"
 
+	"word_app/backend/config"
 	"word_app/backend/ent"
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/word"
 	"word_app/backend/src/models"
-
-	"github.com/sirupsen/logrus"
+	"word_app/backend/src/usecase/shared/ucerr"
 )
 
-func (s *ServiceImpl) RegisterWords(ctx context.Context, req *models.RegisterWordRequest) (*models.RegisterWordResponse, error) {
+// ServiceImpl は起動時に DI で Limits を注入しておく
+// type ServiceImpl struct {
+// 	client *ent.Client
+// 	limits struct {
+// 		RegisteredWordsPerUser int
+// 	}
+// }
 
-	// トランザクション開始
-	tx, txErr := s.client.Tx(ctx)
-	if txErr != nil {
-		logrus.Error("Failed to start transaction: ", txErr)
+// RegisterWords: ユーザーの「この単語の登録ON/OFF」を切り替える。
+// 上限チェックは「ONにする時だけ」、かつ per-user lock でレース対策。
+func (s *ServiceImpl) RegisterWords(ctx context.Context, req *models.RegisterWordRequest) (_ *models.RegisterWordResponse, retErr error) {
+	tx, err := s.client.Tx(ctx)
+	if err != nil {
 		return nil, errors.New("failed to start transaction")
 	}
-
 	defer func() {
-		if r := recover(); r != nil {
-			_ = tx.Rollback()
-			panic(r)
-		} else if txErr != nil {
+		// retErr が nil なら commit、そうでなければ rollback
+		if retErr != nil {
 			_ = tx.Rollback()
 		} else {
-			txErr = tx.Commit()
-			if txErr != nil {
-				logrus.Error(txErr)
+			if cerr := tx.Commit(); cerr != nil {
+				retErr = cerr
 			}
 		}
 	}()
 
-	// トランザクション付きコンテキスト作成
-	ctx = ent.NewTxContext(ctx, tx)
-
-	// ユーザー確認
-	if err := s.checkUserExists(ctx, req.UserID); err != nil {
-		logrus.Error(err)
-		return nil, ErrUserNotFound
-	}
-
-	// 単語取得
-	wordEntity, err := s.getWord(ctx, req.WordID)
+	// --- 1) ユーザーの存在 + ロック（同一ユーザー操作を直列化）---
+	// ent v0.14: Modify で ForUpdate()
+	err = s.userRepo.LockByID(ctx, tx, req.UserID)
 	if err != nil {
 		return nil, err
 	}
 
-	// 登録状態の取得
-	registeredWord, err := s.getRegisteredWord(ctx, req.UserID, req.WordID)
-	if err != nil {
-		return nil, err
-	}
-
-	// 登録状態の処理
-	if registeredWord == nil && req.IsRegistered {
-		return s.createRegisteredWord(ctx, req, wordEntity.Name)
-	}
-
-	if registeredWord == nil && !req.IsRegistered {
-		return nil, errors.New("failed to unregister: word is not registered")
-	}
-
-	if registeredWord.IsActive == req.IsRegistered {
-		return nil, errors.New("no change in registration state")
-	}
-
-	// 更新処理
-	return s.updateRegisteredWord(ctx, registeredWord, req.IsRegistered, wordEntity.Name)
-}
-
-// ユーザーが存在するか確認
-func (s *ServiceImpl) checkUserExists(ctx context.Context, userID int) error {
-	_, err := s.client.User().Get(ctx, userID)
-	return err
-}
-
-// 単語を取得
-func (s *ServiceImpl) getWord(ctx context.Context, wordID int) (*ent.Word, error) {
-	wordEntity, err := s.client.Word().
+	// --- 2) 単語の存在 ---
+	w, err := tx.Word.
 		Query().
-		Where(word.ID(wordID)).
+		Where(word.ID(req.WordID)).
 		Only(ctx)
 	if err != nil {
 		return nil, errors.New("failed to fetch word")
 	}
-	return wordEntity, nil
-}
 
-// 登録状態の取得
-func (s *ServiceImpl) getRegisteredWord(ctx context.Context, userID, wordID int) (*ent.RegisteredWord, error) {
-	registeredWord, err := s.client.RegisteredWord().
+	// --- 3) 現在の登録状態を取得（1行ユニーク前提）---
+	rw, err := tx.RegisteredWord.
 		Query().
 		Where(
-			registeredword.UserID(userID),
-			registeredword.WordID(wordID),
+			registeredword.UserID(req.UserID),
+			registeredword.WordID(req.WordID),
 		).
 		Only(ctx)
-
 	if ent.IsNotFound(err) {
-		return nil, nil // 登録が存在しない場合はnilを返す
-	}
-	if err != nil {
+		rw = nil
+	} else if err != nil {
 		return nil, errors.New("failed to query RegisteredWord")
 	}
 
-	return registeredWord, nil
-}
+	LimitsCfg := config.NewLimitsConfig()
 
-// 登録単語の新規作成
-func (s *ServiceImpl) createRegisteredWord(ctx context.Context, req *models.RegisterWordRequest, wordName string) (*models.RegisterWordResponse, error) {
-	_, err := s.client.RegisteredWord().
-		Create().
-		SetUserID(req.UserID).
-		SetWordID(req.WordID).
-		SetIsActive(true).
-		Save(ctx)
+	// --- 4) 分岐ロジック ---
+	switch {
+	// 4-1) まだ行が無く、登録ONにしたい → 上限チェック→作成
+	case rw == nil && req.IsRegistered:
+		// active だけ数える
+		activeCnt, err := tx.RegisteredWord.
+			Query().
+			Where(
+				registeredword.UserID(req.UserID),
+				registeredword.IsActive(true),
+			).
+			Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if activeCnt >= LimitsCfg.RegisteredWordsPerUser {
+			return nil, ucerr.TooManyRequests("registered words limit exceeded")
+		}
+		if _, err := tx.RegisteredWord.
+			Create().
+			SetUserID(req.UserID).
+			SetWordID(req.WordID).
+			SetIsActive(true).
+			Save(ctx); err != nil {
+			return nil, errors.New("failed to create RegisteredWord")
+		}
+		return &models.RegisterWordResponse{
+			Name:              w.Name,
+			IsRegistered:      true,
+			RegistrationCount: 1, // 必要なら別途集計、ここではダミー
+			Message:           "RegisteredWord created",
+		}, nil
 
-	if err != nil {
-		return nil, errors.New("failed to create RegisteredWord")
+	// 4-2) 行が無く、登録OFF → 何もしない（エラーにしたいなら 400）
+	case rw == nil && !req.IsRegistered:
+		return nil, ucerr.BadRequest("word is not registered")
+
+	// 4-3) 行があり、状態変化なし → 409 or 200（ここでは 400）
+	case rw.IsActive == req.IsRegistered:
+		return nil, ucerr.BadRequest("no change in registration state")
+
+	// 4-4) 行があり、OFF→ON へ → 上限チェック→更新
+	case !rw.IsActive && req.IsRegistered:
+		activeCnt, err := tx.RegisteredWord.
+			Query().
+			Where(
+				registeredword.UserID(req.UserID),
+				registeredword.IsActive(true),
+			).
+			Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if activeCnt >= LimitsCfg.RegisteredWordsPerUser {
+			return nil, ucerr.TooManyRequests("registered words limit exceeded")
+		}
+		if _, err := rw.Update().SetIsActive(true).Save(ctx); err != nil {
+			return nil, errors.New("failed to update RegisteredWord")
+		}
+		return &models.RegisterWordResponse{
+			Name:              w.Name,
+			IsRegistered:      true,
+			RegistrationCount: 1,
+			Message:           "RegisteredWord updated",
+		}, nil
+
+	// 4-5) 行があり、ON→OFF へ → 単にOFF（上限チェック不要）
+	default: // rw.IsActive && !req.IsRegistered
+		if _, err := rw.Update().SetIsActive(false).Save(ctx); err != nil {
+			return nil, errors.New("failed to update RegisteredWord")
+		}
+		return &models.RegisterWordResponse{
+			Name:              w.Name,
+			IsRegistered:      false,
+			RegistrationCount: 0,
+			Message:           "RegisteredWord updated",
+		}, nil
 	}
-
-	return s.generateResponse(ctx, req.WordID, true, wordName, "RegisteredWord created")
-}
-
-// 登録単語の更新
-func (s *ServiceImpl) updateRegisteredWord(ctx context.Context, registeredWord *ent.RegisteredWord, isActive bool, wordName string) (*models.RegisterWordResponse, error) {
-	_, err := registeredWord.Update().
-		SetIsActive(isActive).
-		Save(ctx)
-	if err != nil {
-		return nil, errors.New("failed to update RegisteredWord")
-	}
-
-	return s.generateResponse(ctx, registeredWord.WordID, isActive, wordName, "RegisteredWord updated")
-}
-
-// レスポンスの生成
-func (s *ServiceImpl) generateResponse(ctx context.Context, wordID int, isRegistered bool, wordName, message string) (*models.RegisterWordResponse, error) {
-	registrationCountResponse, err := s.RegisteredWordCount(ctx, &models.RegisteredWordCountRequest{
-		WordID:       wordID,
-		IsRegistered: isRegistered,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &models.RegisterWordResponse{
-		Name:              wordName,
-		IsRegistered:      isRegistered,
-		RegistrationCount: registrationCountResponse.RegistrationCount,
-		Message:           message,
-	}, nil
 }

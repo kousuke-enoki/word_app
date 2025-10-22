@@ -29,6 +29,7 @@ type RegisteredWordQuery struct {
 	withUser          *UserQuery
 	withWord          *WordQuery
 	withQuizQuestions *QuizQuestionQuery
+	modifiers         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -327,8 +328,9 @@ func (rwq *RegisteredWordQuery) Clone() *RegisteredWordQuery {
 		withWord:          rwq.withWord.Clone(),
 		withQuizQuestions: rwq.withQuizQuestions.Clone(),
 		// clone intermediate query.
-		sql:  rwq.sql.Clone(),
-		path: rwq.path,
+		sql:       rwq.sql.Clone(),
+		path:      rwq.path,
+		modifiers: append([]func(*sql.Selector){}, rwq.modifiers...),
 	}
 }
 
@@ -458,6 +460,9 @@ func (rwq *RegisteredWordQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(rwq.modifiers) > 0 {
+		_spec.Modifiers = rwq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -581,6 +586,9 @@ func (rwq *RegisteredWordQuery) loadQuizQuestions(ctx context.Context, query *Qu
 
 func (rwq *RegisteredWordQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := rwq.querySpec()
+	if len(rwq.modifiers) > 0 {
+		_spec.Modifiers = rwq.modifiers
+	}
 	_spec.Node.Columns = rwq.ctx.Fields
 	if len(rwq.ctx.Fields) > 0 {
 		_spec.Unique = rwq.ctx.Unique != nil && *rwq.ctx.Unique
@@ -649,6 +657,9 @@ func (rwq *RegisteredWordQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if rwq.ctx.Unique != nil && *rwq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range rwq.modifiers {
+		m(selector)
+	}
 	for _, p := range rwq.predicates {
 		p(selector)
 	}
@@ -664,6 +675,12 @@ func (rwq *RegisteredWordQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (rwq *RegisteredWordQuery) Modify(modifiers ...func(s *sql.Selector)) *RegisteredWordSelect {
+	rwq.modifiers = append(rwq.modifiers, modifiers...)
+	return rwq.Select()
 }
 
 // RegisteredWordGroupBy is the group-by builder for RegisteredWord entities.
@@ -754,4 +771,10 @@ func (rws *RegisteredWordSelect) sqlScan(ctx context.Context, root *RegisteredWo
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (rws *RegisteredWordSelect) Modify(modifiers ...func(s *sql.Selector)) *RegisteredWordSelect {
+	rws.modifiers = append(rws.modifiers, modifiers...)
+	return rws
 }

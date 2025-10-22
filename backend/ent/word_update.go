@@ -21,8 +21,9 @@ import (
 // WordUpdate is the builder for updating Word entities.
 type WordUpdate struct {
 	config
-	hooks    []Hook
-	mutation *WordMutation
+	hooks     []Hook
+	mutation  *WordMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the WordUpdate builder.
@@ -293,6 +294,12 @@ func (wu *WordUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (wu *WordUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *WordUpdate {
+	wu.modifiers = append(wu.modifiers, modifiers...)
+	return wu
+}
+
 func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := wu.check(); err != nil {
 		return n, err
@@ -467,6 +474,7 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(wu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, wu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{word.Label}
@@ -482,9 +490,10 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // WordUpdateOne is the builder for updating a single Word entity.
 type WordUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *WordMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *WordMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetName sets the "name" field.
@@ -762,6 +771,12 @@ func (wuo *WordUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (wuo *WordUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *WordUpdateOne {
+	wuo.modifiers = append(wuo.modifiers, modifiers...)
+	return wuo
+}
+
 func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (_node *Word, err error) {
 	if err := wuo.check(); err != nil {
 		return _node, err
@@ -953,6 +968,7 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (_node *Word, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(wuo.modifiers...)
 	_node = &Word{config: wuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

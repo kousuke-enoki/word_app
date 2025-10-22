@@ -24,6 +24,7 @@ type ExternalAuthQuery struct {
 	inters     []Interceptor
 	predicates []predicate.ExternalAuth
 	withUser   *UserQuery
+	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -276,8 +277,9 @@ func (eaq *ExternalAuthQuery) Clone() *ExternalAuthQuery {
 		predicates: append([]predicate.ExternalAuth{}, eaq.predicates...),
 		withUser:   eaq.withUser.Clone(),
 		// clone intermediate query.
-		sql:  eaq.sql.Clone(),
-		path: eaq.path,
+		sql:       eaq.sql.Clone(),
+		path:      eaq.path,
+		modifiers: append([]func(*sql.Selector){}, eaq.modifiers...),
 	}
 }
 
@@ -383,6 +385,9 @@ func (eaq *ExternalAuthQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(eaq.modifiers) > 0 {
+		_spec.Modifiers = eaq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -433,6 +438,9 @@ func (eaq *ExternalAuthQuery) loadUser(ctx context.Context, query *UserQuery, no
 
 func (eaq *ExternalAuthQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := eaq.querySpec()
+	if len(eaq.modifiers) > 0 {
+		_spec.Modifiers = eaq.modifiers
+	}
 	_spec.Node.Columns = eaq.ctx.Fields
 	if len(eaq.ctx.Fields) > 0 {
 		_spec.Unique = eaq.ctx.Unique != nil && *eaq.ctx.Unique
@@ -498,6 +506,9 @@ func (eaq *ExternalAuthQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if eaq.ctx.Unique != nil && *eaq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range eaq.modifiers {
+		m(selector)
+	}
 	for _, p := range eaq.predicates {
 		p(selector)
 	}
@@ -513,6 +524,12 @@ func (eaq *ExternalAuthQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (eaq *ExternalAuthQuery) Modify(modifiers ...func(s *sql.Selector)) *ExternalAuthSelect {
+	eaq.modifiers = append(eaq.modifiers, modifiers...)
+	return eaq.Select()
 }
 
 // ExternalAuthGroupBy is the group-by builder for ExternalAuth entities.
@@ -603,4 +620,10 @@ func (eas *ExternalAuthSelect) sqlScan(ctx context.Context, root *ExternalAuthQu
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (eas *ExternalAuthSelect) Modify(modifiers ...func(s *sql.Selector)) *ExternalAuthSelect {
+	eas.modifiers = append(eas.modifiers, modifiers...)
+	return eas
 }

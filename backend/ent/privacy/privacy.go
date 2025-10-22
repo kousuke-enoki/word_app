@@ -7,6 +7,7 @@ import (
 
 	"word_app/backend/ent"
 
+	"entgo.io/ent/entql"
 	"entgo.io/ent/privacy"
 )
 
@@ -396,4 +397,99 @@ func (f WordInfoMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutati
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.WordInfoMutation", m)
+}
+
+type (
+	// Filter is the interface that wraps the Where function
+	// for filtering nodes in queries and mutations.
+	Filter interface {
+		// Where applies a filter on the executed query/mutation.
+		Where(entql.P)
+	}
+
+	// The FilterFunc type is an adapter that allows the use of ordinary
+	// functions as filters for query and mutation types.
+	FilterFunc func(context.Context, Filter) error
+)
+
+// EvalQuery calls f(ctx, q) if the query implements the Filter interface, otherwise it is denied.
+func (f FilterFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	fr, err := queryFilter(q)
+	if err != nil {
+		return err
+	}
+	return f(ctx, fr)
+}
+
+// EvalMutation calls f(ctx, q) if the mutation implements the Filter interface, otherwise it is denied.
+func (f FilterFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	fr, err := mutationFilter(m)
+	if err != nil {
+		return err
+	}
+	return f(ctx, fr)
+}
+
+var _ QueryMutationRule = FilterFunc(nil)
+
+func queryFilter(q ent.Query) (Filter, error) {
+	switch q := q.(type) {
+	case *ent.ExternalAuthQuery:
+		return q.Filter(), nil
+	case *ent.JapaneseMeanQuery:
+		return q.Filter(), nil
+	case *ent.PartOfSpeechQuery:
+		return q.Filter(), nil
+	case *ent.QuizQuery:
+		return q.Filter(), nil
+	case *ent.QuizQuestionQuery:
+		return q.Filter(), nil
+	case *ent.RegisteredWordQuery:
+		return q.Filter(), nil
+	case *ent.RootConfigQuery:
+		return q.Filter(), nil
+	case *ent.UserQuery:
+		return q.Filter(), nil
+	case *ent.UserConfigQuery:
+		return q.Filter(), nil
+	case *ent.UserDailyUsageQuery:
+		return q.Filter(), nil
+	case *ent.WordQuery:
+		return q.Filter(), nil
+	case *ent.WordInfoQuery:
+		return q.Filter(), nil
+	default:
+		return nil, Denyf("ent/privacy: unexpected query type %T for query filter", q)
+	}
+}
+
+func mutationFilter(m ent.Mutation) (Filter, error) {
+	switch m := m.(type) {
+	case *ent.ExternalAuthMutation:
+		return m.Filter(), nil
+	case *ent.JapaneseMeanMutation:
+		return m.Filter(), nil
+	case *ent.PartOfSpeechMutation:
+		return m.Filter(), nil
+	case *ent.QuizMutation:
+		return m.Filter(), nil
+	case *ent.QuizQuestionMutation:
+		return m.Filter(), nil
+	case *ent.RegisteredWordMutation:
+		return m.Filter(), nil
+	case *ent.RootConfigMutation:
+		return m.Filter(), nil
+	case *ent.UserMutation:
+		return m.Filter(), nil
+	case *ent.UserConfigMutation:
+		return m.Filter(), nil
+	case *ent.UserDailyUsageMutation:
+		return m.Filter(), nil
+	case *ent.WordMutation:
+		return m.Filter(), nil
+	case *ent.WordInfoMutation:
+		return m.Filter(), nil
+	default:
+		return nil, Denyf("ent/privacy: unexpected mutation type %T for mutation filter", m)
+	}
 }

@@ -117,6 +117,16 @@ var (
 				OnDelete:   schema.Cascade,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "quiz_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{QuizsColumns[15]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "is_running = TRUE",
+				},
+			},
+		},
 	}
 	// QuizQuestionsColumns holds the columns for the "quiz_questions" table.
 	QuizQuestionsColumns = []*schema.Column{
@@ -199,6 +209,13 @@ var (
 				Columns:    []*schema.Column{RegisteredWordsColumns[10]},
 				RefColumns: []*schema.Column{WordsColumns[0]},
 				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "registeredword_user_id_word_id",
+				Unique:  true,
+				Columns: []*schema.Column{RegisteredWordsColumns[9], RegisteredWordsColumns[10]},
 			},
 		},
 	}

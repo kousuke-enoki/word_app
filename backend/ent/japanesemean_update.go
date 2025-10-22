@@ -20,8 +20,9 @@ import (
 // JapaneseMeanUpdate is the builder for updating JapaneseMean entities.
 type JapaneseMeanUpdate struct {
 	config
-	hooks    []Hook
-	mutation *JapaneseMeanMutation
+	hooks     []Hook
+	mutation  *JapaneseMeanMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the JapaneseMeanUpdate builder.
@@ -184,6 +185,12 @@ func (jmu *JapaneseMeanUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (jmu *JapaneseMeanUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *JapaneseMeanUpdate {
+	jmu.modifiers = append(jmu.modifiers, modifiers...)
+	return jmu
+}
+
 func (jmu *JapaneseMeanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := jmu.check(); err != nil {
 		return n, err
@@ -279,6 +286,7 @@ func (jmu *JapaneseMeanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(jmu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, jmu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{japanesemean.Label}
@@ -294,9 +302,10 @@ func (jmu *JapaneseMeanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // JapaneseMeanUpdateOne is the builder for updating a single JapaneseMean entity.
 type JapaneseMeanUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *JapaneseMeanMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *JapaneseMeanMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetName sets the "name" field.
@@ -466,6 +475,12 @@ func (jmuo *JapaneseMeanUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (jmuo *JapaneseMeanUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *JapaneseMeanUpdateOne {
+	jmuo.modifiers = append(jmuo.modifiers, modifiers...)
+	return jmuo
+}
+
 func (jmuo *JapaneseMeanUpdateOne) sqlSave(ctx context.Context) (_node *JapaneseMean, err error) {
 	if err := jmuo.check(); err != nil {
 		return _node, err
@@ -578,6 +593,7 @@ func (jmuo *JapaneseMeanUpdateOne) sqlSave(ctx context.Context) (_node *Japanese
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(jmuo.modifiers...)
 	_node = &JapaneseMean{config: jmuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

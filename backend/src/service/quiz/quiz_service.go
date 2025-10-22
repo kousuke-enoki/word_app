@@ -3,15 +3,27 @@ package quiz
 import (
 	"errors"
 
+	"word_app/backend/src/infrastructure/repository/userdailyusage"
 	serviceinterfaces "word_app/backend/src/interfaces/service_interfaces"
+	"word_app/backend/src/usecase/clock"
 )
 
 type ServiceImpl struct {
-	client serviceinterfaces.EntClientInterface
+	client             serviceinterfaces.EntClientInterface
+	userDailyUsageRepo userdailyusage.Repository
+	clock              clock.Clock
 }
 
-func NewService(client serviceinterfaces.EntClientInterface) *ServiceImpl {
-	return &ServiceImpl{client: client}
+func NewService(
+	client serviceinterfaces.EntClientInterface,
+	userDailyUsageRepo userdailyusage.Repository,
+	clock clock.Clock,
+) *ServiceImpl {
+	return &ServiceImpl{
+		client:             client,
+		userDailyUsageRepo: userDailyUsageRepo,
+		clock:              clock,
+	}
 }
 
 var (

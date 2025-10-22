@@ -15,6 +15,11 @@ packages:
       dir: src/mocks/http/auth
       recursive: false
 
+  word_app/backend/src/handlers/bulk:
+    config:
+      dir: src/mocks/http/bulk
+      recursive: false
+
   word_app/backend/src/handlers/setting:
     config:
       dir: src/mocks/http/setting
@@ -45,6 +50,11 @@ packages:
       dir: src/mocks/infrastructure/repository/user
       recursive: false
 
+  word_app/backend/src/infrastructure/repository/registeredword:
+    config:
+      dir: src/mocks/infrastructure/repository/registeredword
+      recursive: false
+
   word_app/backend/src/infrastructure/repository/setting:
     config:
       dir: src/mocks/infrastructure/repository/setting
@@ -60,9 +70,19 @@ packages:
       dir: src/mocks/infrastructure/repository/userdailyusage
       recursive: false
 
+  word_app/backend/src/infrastructure/repository/word:
+    config:
+      dir: src/mocks/infrastructure/repository/word
+      recursive: false
+
   word_app/backend/src/usecase/auth:
     config:
       dir: src/mocks/usecase/auth
+      recursive: false
+
+  word_app/backend/src/usecase/bulk:
+    config:
+      dir: src/mocks/usecase/bulk
       recursive: false
 
   word_app/backend/src/usecase/jwt:

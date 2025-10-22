@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"word_app/backend/config"
 	"word_app/backend/ent"
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/word"
@@ -40,7 +39,7 @@ func (s *ServiceImpl) RegisterWords(ctx context.Context, req *models.RegisterWor
 
 	// --- 1) ユーザーの存在 + ロック（同一ユーザー操作を直列化）---
 	// ent v0.14: Modify で ForUpdate()
-	err = s.userRepo.LockByID(ctx, tx, req.UserID)
+	err = s.userRepo.LockByID(ctx, req.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -68,8 +67,6 @@ func (s *ServiceImpl) RegisterWords(ctx context.Context, req *models.RegisterWor
 		return nil, errors.New("failed to query RegisteredWord")
 	}
 
-	LimitsCfg := config.NewLimitsConfig()
-
 	// --- 4) 分岐ロジック ---
 	switch {
 	// 4-1) まだ行が無く、登録ONにしたい → 上限チェック→作成
@@ -85,7 +82,7 @@ func (s *ServiceImpl) RegisterWords(ctx context.Context, req *models.RegisterWor
 		if err != nil {
 			return nil, err
 		}
-		if activeCnt >= LimitsCfg.RegisteredWordsPerUser {
+		if activeCnt >= s.limits.RegisteredWordsPerUser {
 			return nil, ucerr.TooManyRequests("registered words limit exceeded")
 		}
 		if _, err := tx.RegisteredWord.
@@ -123,7 +120,7 @@ func (s *ServiceImpl) RegisterWords(ctx context.Context, req *models.RegisterWor
 		if err != nil {
 			return nil, err
 		}
-		if activeCnt >= LimitsCfg.RegisteredWordsPerUser {
+		if activeCnt >= s.limits.RegisteredWordsPerUser {
 			return nil, ucerr.TooManyRequests("registered words limit exceeded")
 		}
 		if _, err := rw.Update().SetIsActive(true).Save(ctx); err != nil {

@@ -59,6 +59,8 @@ type LimitsCfg struct {
 	QuizMaxQuestions       int // 100
 	BulkMaxPerDay          int // 5
 	BulkMaxBytes           int // 51200 (=50KB)
+	BulkTokenizeMaxTokens  int // 200
+	BulkRegisterMaxItems   int // 200
 }
 
 // Config aggregates all sub-config sections used across the application.
@@ -69,6 +71,7 @@ type Config struct {
 	DB     DBCfg
 	Line   LineOAuthCfg
 	Lambda LambdaCfg
+	Limits LimitsCfg
 }
 
 type appSecret struct {
@@ -125,6 +128,14 @@ func NewConfig() *Config {
 		}
 	}
 
+	registeredWordsPerUser := getenvInt("LIMIT_REGISTERED_WORDS_PER_USER", 200)
+	quizMaxPerDay := getenvInt("LIMIT_QUIZ_MAX_PER_DAY", 20)
+	quizMaxQuestions := getenvInt("LIMIT_QUIZ_MAX_QUESTIONS", 100)
+	bulkMaxPerDay := getenvInt("LIMIT_BULK_MAX_PER_DAY", 5)
+	bulkMaxBytes := getenvInt("LIMIT_BULK_MAX_BYTES", 50*1024)                    // 51200
+	bulkTokenizeMaxTokens := getenvInt("LIMIT_BULK_TOKENIZE_MAX_TOKENS", 50*1024) // 51200
+	bulkRegisterMaxItems := getenvInt("LIMIT_BULK_REGISTER_MAX_ITEMS", 50*1024)   // 51200
+
 	// // 4) DB 認証（ユーザー/パス）は Secrets Manager
 	// // var dbUser, dbPass string
 	// if arn := os.Getenv("DB_SECRET_ARN"); arn != "" {
@@ -153,16 +164,15 @@ func NewConfig() *Config {
 			ClientID: lineID, ClientSecret: lineSec, RedirectURI: lineRedirect,
 		},
 		Lambda: LambdaCfg{LambdaRuntime: lambdaRuntime},
-	}
-}
-
-func NewLimitsConfig() LimitsCfg {
-	return LimitsCfg{
-		RegisteredWordsPerUser: getenvInt("LIMIT_REGISTERED_WORDS_PER_USER", 200),
-		QuizMaxPerDay:          getenvInt("LIMIT_QUIZ_MAX_PER_DAY", 20),
-		QuizMaxQuestions:       getenvInt("LIMIT_QUIZ_MAX_QUESTIONS", 100),
-		BulkMaxPerDay:          getenvInt("LIMIT_BULK_MAX_PER_DAY", 5),
-		BulkMaxBytes:           getenvInt("LIMIT_BULK_MAX_BYTES", 50*1024), // 51200
+		Limits: LimitsCfg{
+			RegisteredWordsPerUser: registeredWordsPerUser,
+			QuizMaxPerDay:          quizMaxPerDay,
+			QuizMaxQuestions:       quizMaxQuestions,
+			BulkMaxPerDay:          bulkMaxPerDay,
+			BulkMaxBytes:           bulkMaxBytes, // 51200
+			BulkTokenizeMaxTokens:  bulkTokenizeMaxTokens,
+			BulkRegisterMaxItems:   bulkRegisterMaxItems,
+		},
 	}
 }
 

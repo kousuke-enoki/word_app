@@ -6,7 +6,6 @@ package auth
 
 import (
 	"context"
-
 	"word_app/backend/src/usecase/auth"
 
 	mock "github.com/stretchr/testify/mock"

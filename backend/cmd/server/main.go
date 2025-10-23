@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -96,7 +97,9 @@ func isLambda() bool {
 func mustInitServer(needCleanup bool) (*gin.Engine, string, string, func()) {
 	defer func() {
 		if p := recover(); p != nil {
-			logrus.Fatalf("PANIC caught in main: %v\n", p)
+			buf := make([]byte, 1<<16)
+			n := runtime.Stack(buf, false)
+			logrus.Fatalf("PANIC caught in main: %v\n--- STACK ---\n%s", p, string(buf[:n]))
 		}
 	}()
 
@@ -110,7 +113,7 @@ func mustInitServer(needCleanup bool) (*gin.Engine, string, string, func()) {
 	appEnv, appPort, corsOrigin := config.LoadAppConfig()
 	err := database.InitEntClient()
 	if err != nil {
-		logrus.Error(err)
+		logrus.Fatalf("failed to init ent client: %v", err)
 	}
 	entClient := database.GetEntClient()
 	sqlDB := database.GetSQLDB()
@@ -246,11 +249,13 @@ func setupRouter(client interfaces.ClientInterface, runner sqlexec.Runner, corsO
 		logrus.Fatal(err)
 	}
 
+	services := di.NewServices(cfgObj, ucs, client, repos)
+
 	middlewares := di.NewMiddlewares(ucs)
-	handlers := di.NewHandlers(cfgObj, ucs, client)
+	handlers := di.NewHandlers(cfgObj, ucs, client, services)
 
 	routerImpl := routerConfig.NewRouter(
-		middlewares.Auth, handlers.Auth, handlers.User,
+		middlewares.Auth, handlers.Auth, handlers.Bulk, handlers.User,
 		handlers.Setting, handlers.Word, handlers.Quiz, handlers.Result)
 	routerImpl.MountRoutes(router)
 	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {

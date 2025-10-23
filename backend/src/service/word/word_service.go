@@ -3,22 +3,26 @@ package word
 import (
 	"errors"
 
+	"word_app/backend/config"
 	"word_app/backend/src/infrastructure/repository/user"
-	serviceinterfaces "word_app/backend/src/interfaces/service_interfaces"
+	"word_app/backend/src/interfaces"
 )
 
 type ServiceImpl struct {
-	client   serviceinterfaces.EntClientInterface
+	client   interfaces.ClientInterface
 	userRepo user.Repository
+	limits   *config.LimitsCfg
 }
 
 func NewWordService(
-	client serviceinterfaces.EntClientInterface,
+	client interfaces.ClientInterface,
 	userRepo user.Repository,
+	limits *config.LimitsCfg,
 ) *ServiceImpl {
 	return &ServiceImpl{
 		client:   client,
 		userRepo: userRepo,
+		limits:   limits,
 	}
 }
 

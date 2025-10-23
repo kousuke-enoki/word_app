@@ -380,6 +380,9 @@ func init() {
 	RegisteredWordsTable.ForeignKeys[1].RefTable = WordsTable
 	UserConfigsTable.ForeignKeys[0].RefTable = UsersTable
 	UserDailyUsagesTable.ForeignKeys[0].RefTable = UsersTable
+	UserDailyUsagesTable.Annotation = &entsql.Annotation{
+		Table: "user_daily_usages",
+	}
 	WordInfosTable.ForeignKeys[0].RefTable = PartOfSpeechesTable
 	WordInfosTable.ForeignKeys[1].RefTable = WordsTable
 }

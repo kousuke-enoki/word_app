@@ -6,7 +6,6 @@ package serviceinterfaces
 
 import (
 	"context"
-
 	"word_app/backend/ent"
 
 	mock "github.com/stretchr/testify/mock"

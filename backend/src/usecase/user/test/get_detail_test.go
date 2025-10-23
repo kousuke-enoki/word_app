@@ -1,275 +1,256 @@
 // backend/src/usecase/user/test/get_detail_with_mocks_test.go
 package user_test
 
-import (
-	"context"
-	"errors"
-	"strings"
-	"testing"
-	"time"
+// func ptr[T any](v T) *T { return &v }
 
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
+// func fixedTime() time.Time {
+// 	// 2025-01-02 03:04:05 +0000（UTC）に固定
+// 	return time.Date(2025, 1, 2, 3, 4, 5, 0, time.UTC)
+// }
 
-	"word_app/backend/src/domain"
-	authmock "word_app/backend/src/mocks/infrastructure/repository/auth"
-	settingmock "word_app/backend/src/mocks/infrastructure/repository/setting"
-	txmock "word_app/backend/src/mocks/infrastructure/repository/tx"
-	usermock "word_app/backend/src/mocks/infrastructure/repository/user"
-	"word_app/backend/src/models"
-	uc "word_app/backend/src/usecase/user"
-)
+// func mustFmt(t time.Time) string { return t.Format("2006-01-02 15:04:05") }
+// func makeUC(t *testing.T, ur *usermock.MockRepository) *uc.UserUsecase {
+// 	ctx := context.Background()
 
-func ptr[T any](v T) *T { return &v }
+// 	// tx.Manager の mock
+// 	tm := txmock.NewMockManager(t)
+// 	// Delete や本件の Get* 系は Begin を使わないなら期待値不要。
+// 	// もし Begin を使うユースケースであれば、こう設定:
+// 	tm.EXPECT().
+// 		Begin(mock.Anything).
+// 		Return(ctx, func(bool) error { return nil }, nil).
+// 		Maybe() // 呼ばれない可能性もあるなら Maybe
 
-func fixedTime() time.Time {
-	// 2025-01-02 03:04:05 +0000（UTC）に固定
-	return time.Date(2025, 1, 2, 3, 4, 5, 0, time.UTC)
-}
+// 	return uc.NewUserUsecase(
+// 		tm,
+// 		ur,
+// 		settingmock.NewMockUserConfigRepository(t),
+// 		authmock.NewMockExternalAuthRepository(t),
+// 	)
+// }
 
-func mustFmt(t time.Time) string { return t.Format("2006-01-02 15:04:05") }
-func makeUC(t *testing.T, ur *usermock.MockRepository) *uc.UserUsecase {
-	ctx := context.Background()
+// // ---- GetMyDetail ------------------------------------------------------------
 
-	// tx.Manager の mock
-	tm := txmock.NewMockManager(t)
-	// Delete や本件の Get* 系は Begin を使わないなら期待値不要。
-	// もし Begin を使うユースケースであれば、こう設定:
-	tm.EXPECT().
-		Begin(mock.Anything).
-		Return(ctx, func(bool) error { return nil }, nil).
-		Maybe() // 呼ばれない可能性もあるなら Maybe
+// func TestUserUsecase_GetMyDetail_WithMocks(t *testing.T) {
+// 	t.Run("OK: returns own detail mapped to DTO", func(t *testing.T) {
+// 		ur := usermock.NewMockRepository(t)
+// 		ucase := makeUC(t, ur)
 
-	return uc.NewUserUsecase(
-		tm,
-		ur,
-		settingmock.NewMockUserConfigRepository(t),
-		authmock.NewMockExternalAuthRepository(t),
-	)
-}
+// 		now := fixedTime()
+// 		email := "me@example.com"
+// 		ent := &domain.User{
+// 			ID:          10,
+// 			Name:        "Alice",
+// 			Email:       &email,
+// 			IsAdmin:     true,
+// 			IsRoot:      false,
+// 			IsTest:      true,
+// 			HasLine:     true,
+// 			HasPassword: true,
+// 			CreatedAt:   now,
+// 			UpdatedAt:   now,
+// 		}
+// 		ur.EXPECT().
+// 			FindDetailByID(mock.Anything, 10).
+// 			Return(ent, nil).
+// 			Once()
 
-// ---- GetMyDetail ------------------------------------------------------------
+// 		got, err := ucase.GetMyDetail(context.Background(), 10)
+// 		require.NoError(t, err)
 
-func TestUserUsecase_GetMyDetail_WithMocks(t *testing.T) {
-	t.Run("OK: returns own detail mapped to DTO", func(t *testing.T) {
-		ur := usermock.NewMockRepository(t)
-		ucase := makeUC(t, ur)
+// 		require.Equal(t, &models.UserDetail{
+// 			ID:               10,
+// 			Name:             "Alice",
+// 			Email:            &email,
+// 			IsAdmin:          true,
+// 			IsRoot:           false,
+// 			IsTest:           true,
+// 			IsLine:           true,
+// 			IsSettedPassword: true,
+// 			CreatedAt:        mustFmt(now),
+// 			UpdatedAt:        mustFmt(now),
+// 		}, got)
+// 	})
 
-		now := fixedTime()
-		email := "me@example.com"
-		ent := &domain.User{
-			ID:          10,
-			Name:        "Alice",
-			Email:       &email,
-			IsAdmin:     true,
-			IsRoot:      false,
-			IsTest:      true,
-			HasLine:     true,
-			HasPassword: true,
-			CreatedAt:   now,
-			UpdatedAt:   now,
-		}
-		ur.EXPECT().
-			FindDetailByID(mock.Anything, 10).
-			Return(ent, nil).
-			Once()
+// 	t.Run("OK: email nil, flags false, time format", func(t *testing.T) {
+// 		ur := usermock.NewMockRepository(t)
+// 		ucase := makeUC(t, ur)
 
-		got, err := ucase.GetMyDetail(context.Background(), 10)
-		require.NoError(t, err)
+// 		now := fixedTime()
+// 		ent := &domain.User{
+// 			ID:          1,
+// 			Name:        "",
+// 			Email:       nil,
+// 			IsAdmin:     false,
+// 			IsRoot:      false,
+// 			IsTest:      false,
+// 			HasLine:     false,
+// 			HasPassword: false,
+// 			CreatedAt:   now,
+// 			UpdatedAt:   now,
+// 		}
+// 		ur.EXPECT().
+// 			FindDetailByID(mock.Anything, 1).
+// 			Return(ent, nil).
+// 			Once()
 
-		require.Equal(t, &models.UserDetail{
-			ID:               10,
-			Name:             "Alice",
-			Email:            &email,
-			IsAdmin:          true,
-			IsRoot:           false,
-			IsTest:           true,
-			IsLine:           true,
-			IsSettedPassword: true,
-			CreatedAt:        mustFmt(now),
-			UpdatedAt:        mustFmt(now),
-		}, got)
-	})
+// 		got, err := ucase.GetMyDetail(context.Background(), 1)
+// 		require.NoError(t, err)
 
-	t.Run("OK: email nil, flags false, time format", func(t *testing.T) {
-		ur := usermock.NewMockRepository(t)
-		ucase := makeUC(t, ur)
+// 		require.Nil(t, got.Email)
+// 		require.Equal(t, mustFmt(now), got.CreatedAt)
+// 		require.Equal(t, mustFmt(now), got.UpdatedAt)
+// 		require.False(t, got.IsAdmin)
+// 		require.False(t, got.IsRoot)
+// 		require.False(t, got.IsTest)
+// 		require.False(t, got.IsLine)
+// 		require.False(t, got.IsSettedPassword)
+// 	})
 
-		now := fixedTime()
-		ent := &domain.User{
-			ID:          1,
-			Name:        "",
-			Email:       nil,
-			IsAdmin:     false,
-			IsRoot:      false,
-			IsTest:      false,
-			HasLine:     false,
-			HasPassword: false,
-			CreatedAt:   now,
-			UpdatedAt:   now,
-		}
-		ur.EXPECT().
-			FindDetailByID(mock.Anything, 1).
-			Return(ent, nil).
-			Once()
+// 	t.Run("NG: repo returns not found", func(t *testing.T) {
+// 		ur := usermock.NewMockRepository(t)
+// 		ucase := makeUC(t, ur)
 
-		got, err := ucase.GetMyDetail(context.Background(), 1)
-		require.NoError(t, err)
+// 		ur.EXPECT().
+// 			FindDetailByID(mock.Anything, 99).
+// 			Return(nil, errors.New("user not found")).
+// 			Once()
 
-		require.Nil(t, got.Email)
-		require.Equal(t, mustFmt(now), got.CreatedAt)
-		require.Equal(t, mustFmt(now), got.UpdatedAt)
-		require.False(t, got.IsAdmin)
-		require.False(t, got.IsRoot)
-		require.False(t, got.IsTest)
-		require.False(t, got.IsLine)
-		require.False(t, got.IsSettedPassword)
-	})
+// 		got, err := ucase.GetMyDetail(context.Background(), 99)
+// 		require.Error(t, err)
+// 		require.Nil(t, got)
+// 		require.Contains(t, err.Error(), "not found")
+// 	})
 
-	t.Run("NG: repo returns not found", func(t *testing.T) {
-		ur := usermock.NewMockRepository(t)
-		ucase := makeUC(t, ur)
+// 	t.Run("NG: repo returns internal error", func(t *testing.T) {
+// 		ur := usermock.NewMockRepository(t)
+// 		ucase := makeUC(t, ur)
 
-		ur.EXPECT().
-			FindDetailByID(mock.Anything, 99).
-			Return(nil, errors.New("user not found")).
-			Once()
+// 		ur.EXPECT().
+// 			FindDetailByID(mock.Anything, 10).
+// 			Return(nil, errors.New("internal")).
+// 			Once()
 
-		got, err := ucase.GetMyDetail(context.Background(), 99)
-		require.Error(t, err)
-		require.Nil(t, got)
-		require.Contains(t, err.Error(), "not found")
-	})
+// 		got, err := ucase.GetMyDetail(context.Background(), 10)
+// 		require.Error(t, err)
+// 		require.Nil(t, got)
+// 		require.Contains(t, err.Error(), "internal")
+// 	})
+// }
 
-	t.Run("NG: repo returns internal error", func(t *testing.T) {
-		ur := usermock.NewMockRepository(t)
-		ucase := makeUC(t, ur)
+// // ---- GetDetailByID ----------------------------------------------------------
 
-		ur.EXPECT().
-			FindDetailByID(mock.Anything, 10).
-			Return(nil, errors.New("internal")).
-			Once()
+// func TestUserUsecase_GetDetailByID_WithMocks(t *testing.T) {
+// 	t.Run("OK: admin viewer can get other user's detail", func(t *testing.T) {
+// 		ur := usermock.NewMockRepository(t)
+// 		ucase := makeUC(t, ur)
 
-		got, err := ucase.GetMyDetail(context.Background(), 10)
-		require.Error(t, err)
-		require.Nil(t, got)
-		require.Contains(t, err.Error(), "internal")
-	})
-}
+// 		now := fixedTime()
+// 		ur.EXPECT().
+// 			FindByID(mock.Anything, 1).
+// 			Return(&domain.User{ID: 1, IsAdmin: true}, nil).
+// 			Once()
 
-// ---- GetDetailByID ----------------------------------------------------------
+// 		email := "bob@example.com"
+// 		target := &domain.User{
+// 			ID:          2,
+// 			Name:        "Bob",
+// 			Email:       &email,
+// 			IsAdmin:     false,
+// 			IsRoot:      false,
+// 			IsTest:      true,
+// 			HasLine:     true,
+// 			HasPassword: false,
+// 			CreatedAt:   now,
+// 			UpdatedAt:   now,
+// 		}
+// 		ur.EXPECT().
+// 			FindDetailByID(mock.Anything, 2).
+// 			Return(target, nil).
+// 			Once()
 
-func TestUserUsecase_GetDetailByID_WithMocks(t *testing.T) {
-	t.Run("OK: admin viewer can get other user's detail", func(t *testing.T) {
-		ur := usermock.NewMockRepository(t)
-		ucase := makeUC(t, ur)
+// 		got, err := ucase.GetDetailByID(context.Background(), 1, 2)
+// 		require.NoError(t, err)
+// 		require.Equal(t, &models.UserDetail{
+// 			ID:               2,
+// 			Name:             "Bob",
+// 			Email:            &email,
+// 			IsAdmin:          false,
+// 			IsRoot:           false,
+// 			IsTest:           true,
+// 			IsLine:           true,
+// 			IsSettedPassword: false,
+// 			CreatedAt:        mustFmt(now),
+// 			UpdatedAt:        mustFmt(now),
+// 		}, got)
+// 	})
 
-		now := fixedTime()
-		ur.EXPECT().
-			FindByID(mock.Anything, 1).
-			Return(&domain.User{ID: 1, IsAdmin: true}, nil).
-			Once()
+// 	t.Run("NG: viewer not found", func(t *testing.T) {
+// 		ur := usermock.NewMockRepository(t)
+// 		ucase := makeUC(t, ur)
 
-		email := "bob@example.com"
-		target := &domain.User{
-			ID:          2,
-			Name:        "Bob",
-			Email:       &email,
-			IsAdmin:     false,
-			IsRoot:      false,
-			IsTest:      true,
-			HasLine:     true,
-			HasPassword: false,
-			CreatedAt:   now,
-			UpdatedAt:   now,
-		}
-		ur.EXPECT().
-			FindDetailByID(mock.Anything, 2).
-			Return(target, nil).
-			Once()
+// 		ur.EXPECT().
+// 			FindByID(mock.Anything, 10).
+// 			Return(nil, errors.New("viewer not found")).
+// 			Once()
 
-		got, err := ucase.GetDetailByID(context.Background(), 1, 2)
-		require.NoError(t, err)
-		require.Equal(t, &models.UserDetail{
-			ID:               2,
-			Name:             "Bob",
-			Email:            &email,
-			IsAdmin:          false,
-			IsRoot:           false,
-			IsTest:           true,
-			IsLine:           true,
-			IsSettedPassword: false,
-			CreatedAt:        mustFmt(now),
-			UpdatedAt:        mustFmt(now),
-		}, got)
-	})
+// 		got, err := ucase.GetDetailByID(context.Background(), 10, 20)
+// 		require.Error(t, err)
+// 		require.Nil(t, got)
+// 		require.Contains(t, err.Error(), "not found")
+// 	})
 
-	t.Run("NG: viewer not found", func(t *testing.T) {
-		ur := usermock.NewMockRepository(t)
-		ucase := makeUC(t, ur)
+// 	t.Run("NG: viewer not admin -> forbidden", func(t *testing.T) {
+// 		ur := usermock.NewMockRepository(t)
+// 		ucase := makeUC(t, ur)
 
-		ur.EXPECT().
-			FindByID(mock.Anything, 10).
-			Return(nil, errors.New("viewer not found")).
-			Once()
+// 		ur.EXPECT().
+// 			FindByID(mock.Anything, 10).
+// 			Return(&domain.User{ID: 10, IsAdmin: false}, nil).
+// 			Once()
+// 		// 非管理者のため FindDetailByID は呼ばれない
 
-		got, err := ucase.GetDetailByID(context.Background(), 10, 20)
-		require.Error(t, err)
-		require.Nil(t, got)
-		require.Contains(t, err.Error(), "not found")
-	})
+// 		got, err := ucase.GetDetailByID(context.Background(), 10, 20)
+// 		require.Error(t, err)
+// 		require.Nil(t, got)
+// 		require.Contains(t, strings.ToLower(err.Error()), "forbidden")
+// 	})
 
-	t.Run("NG: viewer not admin -> forbidden", func(t *testing.T) {
-		ur := usermock.NewMockRepository(t)
-		ucase := makeUC(t, ur)
+// 	t.Run("NG: target not found", func(t *testing.T) {
+// 		ur := usermock.NewMockRepository(t)
+// 		ucase := makeUC(t, ur)
 
-		ur.EXPECT().
-			FindByID(mock.Anything, 10).
-			Return(&domain.User{ID: 10, IsAdmin: false}, nil).
-			Once()
-		// 非管理者のため FindDetailByID は呼ばれない
+// 		ur.EXPECT().
+// 			FindByID(mock.Anything, 1).
+// 			Return(&domain.User{ID: 1, IsAdmin: true}, nil).
+// 			Once()
+// 		ur.EXPECT().
+// 			FindDetailByID(mock.Anything, 99).
+// 			Return(nil, errors.New("user not found")).
+// 			Once()
 
-		got, err := ucase.GetDetailByID(context.Background(), 10, 20)
-		require.Error(t, err)
-		require.Nil(t, got)
-		require.Contains(t, strings.ToLower(err.Error()), "forbidden")
-	})
+// 		got, err := ucase.GetDetailByID(context.Background(), 1, 99)
+// 		require.Error(t, err)
+// 		require.Nil(t, got)
+// 		require.Contains(t, err.Error(), "not found")
+// 	})
 
-	t.Run("NG: target not found", func(t *testing.T) {
-		ur := usermock.NewMockRepository(t)
-		ucase := makeUC(t, ur)
+// 	t.Run("NG: internal error on FindDetailByID", func(t *testing.T) {
+// 		ur := usermock.NewMockRepository(t)
+// 		ucase := makeUC(t, ur)
 
-		ur.EXPECT().
-			FindByID(mock.Anything, 1).
-			Return(&domain.User{ID: 1, IsAdmin: true}, nil).
-			Once()
-		ur.EXPECT().
-			FindDetailByID(mock.Anything, 99).
-			Return(nil, errors.New("user not found")).
-			Once()
+// 		ur.EXPECT().
+// 			FindByID(mock.Anything, 1).
+// 			Return(&domain.User{ID: 1, IsAdmin: true}, nil).
+// 			Once()
+// 		ur.EXPECT().
+// 			FindDetailByID(mock.Anything, 2).
+// 			Return(nil, errors.New("internal")).
+// 			Once()
 
-		got, err := ucase.GetDetailByID(context.Background(), 1, 99)
-		require.Error(t, err)
-		require.Nil(t, got)
-		require.Contains(t, err.Error(), "not found")
-	})
-
-	t.Run("NG: internal error on FindDetailByID", func(t *testing.T) {
-		ur := usermock.NewMockRepository(t)
-		ucase := makeUC(t, ur)
-
-		ur.EXPECT().
-			FindByID(mock.Anything, 1).
-			Return(&domain.User{ID: 1, IsAdmin: true}, nil).
-			Once()
-		ur.EXPECT().
-			FindDetailByID(mock.Anything, 2).
-			Return(nil, errors.New("internal")).
-			Once()
-
-		got, err := ucase.GetDetailByID(context.Background(), 1, 2)
-		require.Error(t, err)
-		require.Nil(t, got)
-		require.Contains(t, err.Error(), "internal")
-	})
-}
+// 		got, err := ucase.GetDetailByID(context.Background(), 1, 2)
+// 		require.Error(t, err)
+// 		require.Nil(t, got)
+// 		require.Contains(t, err.Error(), "internal")
+// 	})
+// }

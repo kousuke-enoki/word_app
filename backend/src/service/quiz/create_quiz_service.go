@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math/rand"
 
-	"word_app/backend/config"
 	"word_app/backend/ent"
 	"word_app/backend/ent/japanesemean"
 	"word_app/backend/ent/quiz"
@@ -26,8 +25,7 @@ func (s *ServiceImpl) CreateQuiz(
 	userID int,
 	req *models.CreateQuizReq,
 ) (resp *models.CreateQuizResponse, err error) {
-	LimitsCfg := config.NewLimitsConfig()
-	if req.QuestionCount <= 0 || req.QuestionCount > LimitsCfg.QuizMaxQuestions { // 100問上限
+	if req.QuestionCount <= 0 || req.QuestionCount > s.limits.QuizMaxQuestions { // 100問上限
 		return nil, ucerr.BadRequest("Question_count must be 1..100")
 	}
 

@@ -16,24 +16,27 @@ const (
 	UsageBulk
 )
 
-const (
-	QUIX_DAILY_CAP = 20
-	BULK_DAILY_CAP = 5
-)
-
 // --- public ---
 
-func (r *EntUserDailyUsageRepo) IncQuizOr429(ctx context.Context, userID int, now time.Time) (*domain.DailyUsageUpdateResult, error) {
-	return r.incWithKind(ctx, userID, now, UsageQuiz, QUIX_DAILY_CAP)
+func (r *EntUserDailyUsageRepo) IncQuizOr429(ctx context.Context, userID int, now time.Time, dailyCap int) (*domain.DailyUsageUpdateResult, error) {
+	return r.incWithKind(ctx, userID, now, UsageQuiz, dailyCap)
 }
 
-func (r *EntUserDailyUsageRepo) IncBulkOr429(ctx context.Context, userID int, now time.Time) (*domain.DailyUsageUpdateResult, error) {
-	return r.incWithKind(ctx, userID, now, UsageBulk, BULK_DAILY_CAP)
+func (r *EntUserDailyUsageRepo) IncBulkOr429(ctx context.Context, userID int, now time.Time, dailyCap int) (*domain.DailyUsageUpdateResult, error) {
+	return r.incWithKind(ctx, userID, now, UsageBulk, dailyCap)
 }
 
 // --- internal ---
 
-func (r *EntUserDailyUsageRepo) incWithKind(ctx context.Context, userID int, now time.Time, kind UsageKind, cap int) (*domain.DailyUsageUpdateResult, error) {
+func (r *EntUserDailyUsageRepo) incWithKind(ctx context.Context, userID int, now time.Time, kind UsageKind, dailyCap int) (*domain.DailyUsageUpdateResult, error) {
+	if dailyCap <= 0 {
+		// ガード（設定漏れに強く）
+		if kind == UsageQuiz {
+			dailyCap = 20
+		} else {
+			dailyCap = 5
+		}
+	}
 	today := r.truncateToJST0(now)
 
 	var q string
@@ -51,7 +54,7 @@ func (r *EntUserDailyUsageRepo) incWithKind(ctx context.Context, userID int, now
 	var res domain.DailyUsageUpdateResult
 	// 注意：ent.Client.DB() は *sql.DB を返す前提（プロジェクトのセットアップに依存）
 	if err := r.sql.
-		QueryRowContext(ctx, q, userID, today, cap).
+		QueryRowContext(ctx, q, userID, today, dailyCap).
 		Scan(&res.QuizCount, &res.BulkCount, &res.LastResetDate); err != nil {
 		return nil, err
 	}
@@ -61,7 +64,7 @@ func (r *EntUserDailyUsageRepo) incWithKind(ctx context.Context, userID int, now
 	// 呼び出し側の意図に合わせ、「capを超えたらエラー（429）」を返す設計にします。
 	switch kind {
 	case UsageQuiz:
-		if res.QuizCount > cap {
+		if res.QuizCount > dailyCap {
 			// 理論上発生しないがガード
 			return &res, apperror.TooManyRequestsf("daily quota exceeded", nil)
 		}
@@ -73,7 +76,7 @@ func (r *EntUserDailyUsageRepo) incWithKind(ctx context.Context, userID int, now
 		// 	// ここではOKとして返す（20回目成功）。21回目でまたこの値が返るので呼び出し側でエラー化しても良い。
 		// }
 	case UsageBulk:
-		if res.BulkCount > cap {
+		if res.BulkCount > dailyCap {
 			return &res, apperror.TooManyRequestsf("daily quota exceeded", nil)
 		}
 		// if res.BulkCount == cap {
@@ -92,48 +95,50 @@ func (r *EntUserDailyUsageRepo) incWithKind(ctx context.Context, userID int, now
 
 func quizAddSql() string {
 	return `
-		INSERT INTO user_daily_usage (user_id, last_reset_date, quiz_count, bulk_count, updated_at)
+		INSERT INTO user_daily_usages (user_id, last_reset_date, quiz_count, bulk_count, updated_at)
 		VALUES ($1, $2, 1, 0, NOW())
 		ON CONFLICT (user_id)
 		DO UPDATE SET
 			quiz_count = CASE
-				WHEN user_daily_usage.last_reset_date < $2 THEN 1
-				WHEN user_daily_usage.quiz_count      < $3 THEN user_daily_usage.quiz_count + 1
-				ELSE user_daily_usage.quiz_count
+				WHEN user_daily_usages.last_reset_date < $2 THEN 1
+				ELSE user_daily_usages.quiz_count + 1
 			END,
 			bulk_count = CASE
-				WHEN user_daily_usage.last_reset_date < $2 THEN 0
-				ELSE user_daily_usage.bulk_count
+				WHEN user_daily_usages.last_reset_date < $2 THEN 0
+				ELSE user_daily_usages.bulk_count
 			END,
 			last_reset_date = CASE
-				WHEN user_daily_usage.last_reset_date < $2 THEN $2
-				ELSE user_daily_usage.last_reset_date
+				WHEN user_daily_usages.last_reset_date < $2 THEN $2
+				ELSE user_daily_usages.last_reset_date
 			END,
 			updated_at = NOW()
+		WHERE user_daily_usages.last_reset_date < $2
+		   OR user_daily_usages.quiz_count < $3
 		RETURNING quiz_count, bulk_count, last_reset_date;
 	`
 }
 
 func bulkAddSql() string {
 	return `
-		INSERT INTO user_daily_usage (user_id, last_reset_date, quiz_count, bulk_count, updated_at)
+		INSERT INTO user_daily_usages (user_id, last_reset_date, quiz_count, bulk_count, updated_at)
 		VALUES ($1, $2, 0, 1, NOW())
 		ON CONFLICT (user_id)
-		DO UPDATE SET
+		DO UPDATE	SET
 			bulk_count = CASE
-				WHEN user_daily_usage.last_reset_date < $2 THEN 1
-				WHEN user_daily_usage.bulk_count      < $3 THEN user_daily_usage.bulk_count + 1
-				ELSE user_daily_usage.bulk_count
+				WHEN user_daily_usages.last_reset_date < $2 THEN 1
+				ELSE user_daily_usages.bulk_count + 1
 			END,
 			quiz_count = CASE
-				WHEN user_daily_usage.last_reset_date < $2 THEN 0
-				ELSE user_daily_usage.quiz_count
+				WHEN user_daily_usages.last_reset_date < $2 THEN 0
+				ELSE user_daily_usages.quiz_count
 			END,
 			last_reset_date = CASE
-				WHEN user_daily_usage.last_reset_date < $2 THEN $2
-				ELSE user_daily_usage.last_reset_date
+				WHEN user_daily_usages.last_reset_date < $2 THEN $2
+				ELSE user_daily_usages.last_reset_date
 			END,
 			updated_at = NOW()
+		WHERE user_daily_usages.last_reset_date < $2
+			OR user_daily_usages.bulk_count < $3
 		RETURNING quiz_count, bulk_count, last_reset_date;
 	`
 }

@@ -3,8 +3,6 @@ package bulk
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"strings"
 
 	"word_app/backend/config"
@@ -13,6 +11,7 @@ import (
 	"word_app/backend/src/infrastructure/repository/user"
 	"word_app/backend/src/infrastructure/repository/word"
 	"word_app/backend/src/models"
+	"word_app/backend/src/usecase/shared/ucerr"
 )
 
 // 返却は既存 models に合わせる
@@ -60,10 +59,10 @@ func (uc *registerUsecase) Register(
 		maxPerReq = 200
 	}
 	if len(payload) == 0 {
-		return nil, errors.New("empty payload")
+		return nil, ucerr.BadRequest("empty payload")
 	}
 	if len(payload) > maxPerReq {
-		return nil, fmt.Errorf("too many words: %d > %d", len(payload), maxPerReq)
+		return nil, ucerr.BadRequest("too many words in request")
 	}
 
 	// 1) 正規化 + 1リクエスト上限

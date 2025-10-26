@@ -128,13 +128,20 @@ func NewConfig() *Config {
 		}
 	}
 
+	// registeredWord の登録可能数/ユーザー
 	registeredWordsPerUser := getenvInt("LIMIT_REGISTERED_WORDS_PER_USER", 200)
+	// quiz_create を使用できる回数の上限/日
 	quizMaxPerDay := getenvInt("LIMIT_QUIZ_MAX_PER_DAY", 20)
+	// quiz_create 作成時に一度に作成できる質問数(quiz_questionの上限)
 	quizMaxQuestions := getenvInt("LIMIT_QUIZ_MAX_QUESTIONS", 100)
+	// bulk_tokenize を使用できる回数の上限/日
 	bulkMaxPerDay := getenvInt("LIMIT_BULK_MAX_PER_DAY", 5)
-	bulkMaxBytes := getenvInt("LIMIT_BULK_MAX_BYTES", 50*1024)                    // 51200
+	// bulk_tokenize で一度に処理できるデータサイズの上限(byte)
+	bulkMaxBytes := getenvInt("LIMIT_BULK_MAX_BYTES", 50*1024) // 51200
+	// bulk_tokenize で一度に処理できるトークン数の上限
 	bulkTokenizeMaxTokens := getenvInt("LIMIT_BULK_TOKENIZE_MAX_TOKENS", 50*1024) // 51200
-	bulkRegisterMaxItems := getenvInt("LIMIT_BULK_REGISTER_MAX_ITEMS", 50*1024)   // 51200
+	// bulk_register で一度に登録できる単語数の上限
+	bulkRegisterMaxItems := getenvInt("LIMIT_BULK_REGISTER_MAX_ITEMS", 50*1024) // 51200
 
 	// // 4) DB 認証（ユーザー/パス）は Secrets Manager
 	// // var dbUser, dbPass string

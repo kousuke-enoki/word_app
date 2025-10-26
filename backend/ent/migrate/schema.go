@@ -305,6 +305,13 @@ var (
 				OnDelete:   schema.Cascade,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "userdailyusage_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{UserDailyUsagesColumns[5]},
+			},
+		},
 	}
 	// WordsColumns holds the columns for the "words" table.
 	WordsColumns = []*schema.Column{
@@ -380,9 +387,6 @@ func init() {
 	RegisteredWordsTable.ForeignKeys[1].RefTable = WordsTable
 	UserConfigsTable.ForeignKeys[0].RefTable = UsersTable
 	UserDailyUsagesTable.ForeignKeys[0].RefTable = UsersTable
-	UserDailyUsagesTable.Annotation = &entsql.Annotation{
-		Table: "user_daily_usages",
-	}
 	WordInfosTable.ForeignKeys[0].RefTable = PartOfSpeechesTable
 	WordInfosTable.ForeignKeys[1].RefTable = WordsTable
 }

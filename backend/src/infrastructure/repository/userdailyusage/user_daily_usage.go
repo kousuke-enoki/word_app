@@ -12,8 +12,8 @@ import (
 
 type Repository interface {
 	CreateIfNotExists(ctx context.Context, userID int, now time.Time) error
-	IncQuizOr429(ctx context.Context, userID int, now time.Time) (*domain.DailyUsageUpdateResult, error)
-	IncBulkOr429(ctx context.Context, userID int, now time.Time) (*domain.DailyUsageUpdateResult, error)
+	IncQuizOr429(ctx context.Context, userID int, now time.Time, dailyCap int) (*domain.DailyUsageUpdateResult, error)
+	IncBulkOr429(ctx context.Context, userID int, now time.Time, dailyCap int) (*domain.DailyUsageUpdateResult, error)
 }
 
 type EntUserDailyUsageRepo struct {

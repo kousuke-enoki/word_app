@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 type UserDailyUsage struct{ ent.Schema }
@@ -32,5 +33,11 @@ func (UserDailyUsage) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
+	}
+}
+
+func (UserDailyUsage) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("user_id").Unique(),
 	}
 }

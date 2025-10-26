@@ -25,10 +25,15 @@ func (s *ServiceImpl) CreateQuiz(
 	userID int,
 	req *models.CreateQuizReq,
 ) (resp *models.CreateQuizResponse, err error) {
+	// 質問数バリデーション
 	if req.QuestionCount <= 0 || req.QuestionCount > s.limits.QuizMaxQuestions { // 100問上限
-		return nil, ucerr.BadRequest("Question_count must be 1..100")
+		return nil, ucerr.BadRequest("Question_count is invalid")
 	}
-
+	// 日次クォータ上限取得
+	cap := s.limits.QuizMaxPerDay
+	if cap <= 0 {
+		cap = 20
+	}
 	// ① ドメイン集約 ― 候補単語
 	words, err := s.fetchCandidates(ctx, userID, req)
 	if err != nil {
@@ -38,7 +43,7 @@ func (s *ServiceImpl) CreateQuiz(
 	// ② Tx で Quiz 作成ユースケース実行
 	err = s.withTx(ctx, func(tx *ent.Tx) error {
 		// クイズ回数カウントと上限を超えているか判定
-		if _, err := s.userDailyUsageRepo.IncQuizOr429(ctx, userID, s.clock.Now()); err != nil {
+		if _, err := s.userDailyUsageRepo.IncQuizOr429(ctx, userID, s.clock.Now(), cap); err != nil {
 			return err // クイズ回数上限を超えていたらTooManyRequests(429) が返る
 		}
 

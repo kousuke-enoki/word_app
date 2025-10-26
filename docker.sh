@@ -7,7 +7,7 @@ set -euo pipefail
 # bash docker.sh up dev|prod
 # bash docker.sh down dev|prod
 # bash docker.sh exec backend|frontend dev|prod
-# bash docker.sh db [dev|prod]        ← ここを改善
+# bash docker.sh db [dev|prod]
 # bash docker.sh import dev|prod
 # ----------------------------------------
 

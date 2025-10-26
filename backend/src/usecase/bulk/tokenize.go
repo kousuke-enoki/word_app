@@ -62,9 +62,15 @@ func (uc *tokenizeUsecase) Execute(
 	[]string,
 	error,
 ) {
+	// 日次クォータ上限取得
+	cap := uc.limits.BulkMaxPerDay
+	if cap <= 0 {
+		cap = 5
+	}
+
 	// 0) 日次クォータ消費（原子的に +1、上限なら 429 相当エラーを返す）
-	if _, err := uc.userDailyUsageRepo.IncBulkOr429(ctx, userID, uc.clock.Now()); err != nil {
-		// ucerr.TooManyRequests を返す実装になっているはず
+	if _, err := uc.userDailyUsageRepo.IncBulkOr429(ctx, userID, uc.clock.Now(), cap); err != nil {
+		// ucerr.TooManyRequests を返す
 		return nil, nil, nil, err
 	}
 

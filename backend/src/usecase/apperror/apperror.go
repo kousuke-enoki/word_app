@@ -16,6 +16,7 @@ const (
 	Conflict          Kind = "CONFLICT"
 	Validation        Kind = "VALIDATION"
 	Internal          Kind = "INTERNAL"
+	Invalid           Kind = "INVALID"
 	InvalidCredential Kind = "INVALID_CREDENTIAL"
 	TooManyRequests   Kind = "TOO_MANY_REQUESTS"
 	BadRequest        Kind = "BAD_REQUEST"
@@ -52,6 +53,7 @@ func Forbiddenf(msg string, err error) *Error         { return New(Forbidden, ms
 func NotFoundf(msg string, err error) *Error          { return New(NotFound, msg, err) }
 func Conflictf(msg string, err error) *Error          { return New(Conflict, msg, err) }
 func Validationf(msg string, err error) *Error        { return New(Validation, msg, err) }
+func Invalidf(msg string, err error) *Error           { return New(Invalid, msg, err) }
 func InvalidCredentialf(msg string, err error) *Error { return New(InvalidCredential, msg, err) }
 func Internalf(msg string, err error) *Error          { return New(Internal, msg, err) }
 func TooManyRequestsf(msg string, err error) *Error   { return New(TooManyRequests, msg, err) }

@@ -83,8 +83,7 @@ func (uc *registerUsecase) Register(
 	if err != nil {
 		return nil, err
 	}
-	commit := false
-	defer func() { _ = done(commit) }()
+	defer func() { _ = done(false) }() // デフォルトはrollback
 
 	// 4) ユーザーロック（同一ユーザーの登録競合を直列化）
 	if err := uc.locker.LockByID(txCtx, userID); err != nil {
@@ -158,8 +157,7 @@ func (uc *registerUsecase) Register(
 	}
 
 	// 8) commit
-	commit = true
-	if err := done(commit); err != nil {
+	if err := done(true); err != nil {
 		return nil, err
 	}
 

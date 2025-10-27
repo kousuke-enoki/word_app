@@ -34,10 +34,14 @@ const WordBulkRegister: React.FC = () => {
     if (!text.trim()) return
     setLoading(true)
     setMsg('')
+    setTokens([])
+    setNotExistWords([])
+    setRegisteredWords([])
     try {
       const { data } = await axiosInstance.post('/words/bulk_tokenize', {
         text,
       })
+      console.log(data)
       const cands = (data.candidates || []) as string[]
       const notExists = (data.not_exists || []) as string[]
       const regs = (data.registered || []) as string[]
@@ -51,8 +55,13 @@ const WordBulkRegister: React.FC = () => {
       }
       setNotExistWords(notExists)
       setRegisteredWords(regs)
-    } catch {
-      setMsg('抽出に失敗しました')
+    } catch (e: any) {
+      console.log(e)
+      const errorMsg = e?.response?.data?.error || '抽出に失敗しました'
+      setMsg(errorMsg)
+      if (e?.response?.status === 429) {
+        setMsg('1日のリクエスト上限に達しました')
+      }
     } finally {
       setLoading(false)
     }
@@ -68,6 +77,7 @@ const WordBulkRegister: React.FC = () => {
       const { data } = await axiosInstance.post('/words/bulk_register', {
         words: selected,
       })
+      console.log(data)
       let resMsg = ''
       if (data.success && data.failed) {
         resMsg = `結果： ${data.success.length} 件登録 / 失敗 ${data.failed.length} 件`
@@ -77,8 +87,23 @@ const WordBulkRegister: React.FC = () => {
         resMsg = `結果： ${data.failed.length} 件失敗`
       }
       setRegistedMsg(resMsg)
-    } catch {
-      setRegistedMsg('登録に失敗しました')
+
+      // 登録成功した単語をチェック解除
+      if (data.success && data.success.length > 0) {
+        const successSet = new Set(data.success)
+        setTokens((prev) =>
+          prev.map((t) =>
+            successSet.has(t.word) ? { ...t, checked: false } : t,
+          ),
+        )
+      }
+    } catch (e: any) {
+      console.log(e)
+      const errorMsg = e?.response?.data?.error || '登録に失敗しました'
+      setRegistedMsg(errorMsg)
+      if (e?.response?.status === 429) {
+        setRegistedMsg('1日のリクエスト上限に達しました')
+      }
     } finally {
       setLoading(false)
     }

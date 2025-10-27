@@ -9,7 +9,6 @@ import (
 	"word_app/backend/src/usecase/apperror"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 func (h *BulkHandler) RegisterHandler() gin.HandlerFunc {

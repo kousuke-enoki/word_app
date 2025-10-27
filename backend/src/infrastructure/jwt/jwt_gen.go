@@ -30,7 +30,7 @@ func NewMyJWTGenerator(secretKey string) *MyJWTGenerator {
 
 func (j *MyJWTGenerator) GenerateJWT(userID string) (string, error) {
 	// 有効期限のデフォルト: 1時間
-	expirationTime := time.Now().Add(1 * time.Minute)
+	expirationTime := time.Now().Add(1 * time.Hour)
 
 	// 環境変数から有効期限を取得（オプション）
 	if hours := os.Getenv("JWT_EXPIRATION_HOURS"); hours != "" {

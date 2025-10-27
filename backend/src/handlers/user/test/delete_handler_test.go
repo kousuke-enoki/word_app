@@ -8,7 +8,9 @@ import (
 	"testing"
 
 	h "word_app/backend/src/handlers/user"
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/mocks"
+	"word_app/backend/src/models"
 	user_mocks "word_app/backend/src/mocks/usecase/user"
 	"word_app/backend/src/usecase/apperror"
 	user_usecase "word_app/backend/src/usecase/user"
@@ -21,10 +23,25 @@ import (
 func newDeleteRouterWithUserID(uc *user_mocks.MockUsecase, userID any) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	// ここで userID を入れるミドルウェアを"ルート登録前"に設定
+	// ここで Principal を入れるミドルウェアを"ルート登録前"に設定
 	if userID != nil {
 		r.Use(func(c *gin.Context) {
-			c.Set("userID", userID)
+			var uid int
+			switch v := userID.(type) {
+			case int:
+				uid = v
+			default:
+				// 型変換できない場合は何もしない
+				c.Next()
+				return
+			}
+			p := models.Principal{
+				UserID:  uid,
+				IsAdmin: false,
+				IsRoot:  false,
+				IsTest:  false,
+			}
+			jwt.SetPrincipal(c, p)
 			c.Next()
 		})
 	}
@@ -66,7 +83,7 @@ func TestDeleteHandler_AllPaths(t *testing.T) {
 		w := performDELETE(r, "/users/10")
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
-		assert.JSONEq(t, `{"error":"unauthorized: userID not found in context"}`, w.Body.String())
+		assert.JSONEq(t, `{"error":"unauthorized"}`, w.Body.String())
 		uc.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything)
 	})
 

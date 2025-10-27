@@ -9,7 +9,6 @@ import (
 	"word_app/backend/ent/enttest"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
 	"word_app/backend/src/domain"
@@ -52,7 +51,6 @@ func TestEntUserRepo_FindActiveByEmail(t *testing.T) {
 		got, err := r.FindActiveByEmail(ctx, "active@example.com")
 		require.NoError(t, err)
 		require.NotNil(t, got)
-		logrus.Info(got)
 		require.Equal(t, u.ID, got.ID)
 		require.Equal(t, "ActiveUser", got.Name)
 		require.NotNil(t, got.Email)

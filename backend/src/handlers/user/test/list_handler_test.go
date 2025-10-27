@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"word_app/backend/src/handlers/user"
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/mocks"
 	user_mocks "word_app/backend/src/mocks/usecase/user"
 	"word_app/backend/src/models"
@@ -36,7 +37,22 @@ func newRouterWithUserID(h *user.UserHandler, userID any) *gin.Engine {
 	// userID をコンテキストに詰めるミドルウェア
 	if userID != nil {
 		r.Use(func(c *gin.Context) {
-			c.Set("userID", userID)
+			var uid int
+			switch v := userID.(type) {
+			case int:
+				uid = v
+			default:
+				// 型変換できない場合は何もしない
+				c.Next()
+				return
+			}
+			p := models.Principal{
+				UserID:  uid,
+				IsAdmin: false,
+				IsRoot:  false,
+				IsTest:  false,
+			}
+			jwt.SetPrincipal(c, p)
 			c.Next()
 		})
 	}
@@ -182,7 +198,7 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 		var got map[string]string
 		_ = json.Unmarshal(w.Body.Bytes(), &got)
-		assert.Equal(t, "unauthorized: userID not found in context", got["error"])
+		assert.Equal(t, "unauthorized", got["error"])
 
 		// ListUsers は呼ばれない
 		mockClient.AssertNotCalled(t, "ListUsers", mock.Anything, mock.Anything)
@@ -199,7 +215,7 @@ func TestUserListHandler_AllPaths(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 		var got map[string]string
 		_ = json.Unmarshal(w.Body.Bytes(), &got)
-		assert.Equal(t, "unauthorized: userID not found in context", got["error"])
+		assert.Equal(t, "unauthorized", got["error"])
 		mockClient.AssertNotCalled(t, "ListUsers", mock.Anything, mock.Anything)
 	})
 

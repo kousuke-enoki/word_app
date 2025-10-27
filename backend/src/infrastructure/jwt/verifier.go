@@ -4,8 +4,7 @@ package jwt
 import (
 	"context"
 	"errors"
-
-	"word_app/backend/src/infrastructure/repoerr"
+	"fmt"
 
 	jwt "github.com/golang-jwt/jwt/v4"
 )
@@ -24,17 +23,28 @@ type TokenVerifier interface {
 func (v *HS256Verifier) VerifyAndExtractSubject(ctx context.Context, raw string) (string, error) {
 	tok, err := jwt.ParseWithClaims(raw, &Claims{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, repoerr.FromEnt(errors.New("unexpected signing method"), "unexpected signing method", "")
+			// ベース非nil + wrap
+			return nil, fmt.Errorf("%w", ErrUnexpectedAlg)
+			// もし repoerr を使いたいなら:
+			// return nil, repoerr.FromEnt(ErrUnexpectedAlg, ErrUnexpectedAlg.Error(), "")
 		}
 		return v.secret, nil
 	})
 	if err != nil || !tok.Valid {
-		return "", repoerr.FromEnt(err, "token not valid", "")
+		return "", fmt.Errorf("%w", ErrTokenInvalid)
+		// or: return "", repoerr.FromEnt(ErrTokenInvalid, ErrTokenInvalid.Error(), "")
 	}
 
 	c, ok := tok.Claims.(*Claims)
 	if !ok || c.UserID == "" {
-		return "", repoerr.FromEnt(err, "claims invalid", "")
+		return "", fmt.Errorf("%w", ErrClaimsInvalid)
+		// or: return "", repoerr.FromEnt(ErrClaimsInvalid, ErrClaimsInvalid.Error(), "")
 	}
 	return c.UserID, nil
 }
+
+var (
+	ErrUnexpectedAlg = errors.New("unexpected signing method")
+	ErrTokenInvalid  = errors.New("token not valid")
+	ErrClaimsInvalid = errors.New("claims invalid")
+)

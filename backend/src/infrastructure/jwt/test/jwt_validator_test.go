@@ -1,104 +1,107 @@
+// infrastructure/jwt/verifier_test.go
 package jwt_test
 
 import (
+	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"testing"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	stdjwt "github.com/golang-jwt/jwt/v4"
 	"github.com/stretchr/testify/require"
 
 	jwti "word_app/backend/src/infrastructure/jwt"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 const secret = "test_secret"
 
-// テスト用トークン生成
-func makeToken(t *testing.T, uid string, exp time.Duration, key []byte) string {
+func makeHS256Token(t *testing.T, uid string, expFromNow time.Duration, key []byte) string {
 	t.Helper()
 	claims := &jwti.Claims{
 		UserID: uid,
-		RegisteredClaims: jwt.RegisteredClaims{
+		RegisteredClaims: stdjwt.RegisteredClaims{
 			Subject:   uid,
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(exp)),
+			ExpiresAt: stdjwt.NewNumericDate(time.Now().Add(expFromNow)),
 		},
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	token := stdjwt.NewWithClaims(stdjwt.SigningMethodHS256, claims)
 	s, err := token.SignedString(key)
 	require.NoError(t, err)
 	return s
 }
 
-// func TestTokenValidator_Validate(t *testing.T) {
-// 	// ❶ in-memory SQLite
-// 	ec := enttest.Open(t, "sqlite3", "file:memdb?mode=memory&cache=shared&_fk=1")
-// 	defer func() {
-// 		if cerr := ec.Close(); cerr != nil {
-// 			logrus.Error("close file:", cerr)
-// 		}
-// 	}()
+func makeRS256Token(t *testing.T, uid string, expFromNow time.Duration, priv *rsa.PrivateKey) string {
+	t.Helper()
+	claims := &jwti.Claims{
+		UserID: uid,
+		RegisteredClaims: stdjwt.RegisteredClaims{
+			Subject:   uid,
+			ExpiresAt: stdjwt.NewNumericDate(time.Now().Add(expFromNow)),
+		},
+	}
+	token := stdjwt.NewWithClaims(stdjwt.SigningMethodRS256, claims)
+	s, err := token.SignedString(priv)
+	require.NoError(t, err)
+	return s
+}
 
-// 	// ❷ テーブルごとにセットアップ
-// 	mustCreate := func(isAdmin, isRoot bool) {
-// 		_, err := ec.User.Create().
-// 			SetEmail("emaill@example.com").
-// 			SetPassword("Password123$").
-// 			SetIsAdmin(isAdmin).
-// 			SetIsRoot(isRoot).
-// 			Save(context.Background())
-// 		require.NoError(t, err)
-// 	}
-// 	mustCreate(true, false) // 成功ケース用ユーザ
+func TestHS256Verifier_VerifyAndExtractSubject(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	verifier := jwti.NewHS256Verifier(secret)
+	rsaPriv, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
 
-// 	ur := usermock.NewMockRepository(t)
+	tests := []struct {
+		name     string
+		rawToken string
+		wantSub  string
+		wantErr  error // ← 文字列ではなくエラー型で
+	}{
+		{
+			name:     "success_valid_HS256",
+			rawToken: makeHS256Token(t, "42", time.Hour, []byte(secret)),
+			wantSub:  "42",
+		},
+		{
+			name:     "invalid_signature_wrong_secret",
+			rawToken: makeHS256Token(t, "42", time.Hour, []byte("wrong")),
+			wantErr:  jwti.ErrTokenInvalid,
+		},
+		{
+			name:     "expired_token",
+			rawToken: makeHS256Token(t, "42", -1*time.Hour, []byte(secret)),
+			wantErr:  jwti.ErrTokenInvalid,
+		},
+		{
+			name:     "malformed_token_string",
+			rawToken: "abc.def.ghi",
+			wantErr:  jwti.ErrTokenInvalid,
+		},
+		{
+			name:     "unexpected_signing_method_RS256",
+			rawToken: makeRS256Token(t, "42", time.Hour, rsaPriv),
+			wantErr:  jwti.ErrTokenInvalid,
+		},
+		{
+			name:     "claims_invalid_empty_user_id",
+			rawToken: makeHS256Token(t, "", time.Hour, []byte(secret)),
+			wantErr:  jwti.ErrClaimsInvalid,
+		},
+	}
 
-// 	validator := jwti.NewJWTValidator(secret, test.RealEntClient{Client: ec}, ur)
-// 	ctx := context.Background()
-
-// 	tests := []struct {
-// 		name   string
-// 		token  string
-// 		expect contextutil.UserRoles
-// 		errSub string
-// 	}{
-// 		{
-// 			name:   "success",
-// 			token:  makeToken(t, "1", time.Hour, []byte(secret)),
-// 			expect: contextutil.UserRoles{UserID: 1, IsAdmin: true, IsRoot: false},
-// 		},
-// 		{
-// 			name:   "signature invalid",
-// 			token:  makeToken(t, "1", time.Hour, []byte("wrong")),
-// 			errSub: "token_invalid",
-// 		},
-// 		{
-// 			name:   "expired",
-// 			token:  makeToken(t, "1", -time.Hour, []byte(secret)),
-// 			errSub: "token_invalid parse_error",
-// 		},
-// 		{
-// 			name:   "claims invalid",
-// 			token:  "abc.def.ghi",
-// 			errSub: "token_invalid",
-// 		},
-// 		{
-// 			name:   "user_not_found", // User 99 を作らない
-// 			token:  makeToken(t, "99", time.Hour, []byte(secret)),
-// 			errSub: "user_not_found",
-// 		},
-// 	}
-
-// 	for _, tc := range tests {
-// 		t.Run(tc.name, func(t *testing.T) {
-// 			got, err := validator.Validate(ctx, tc.token)
-
-// 			if tc.errSub != "" {
-// 				require.ErrorContains(t, err, tc.errSub)
-// 				return
-// 			}
-// 			require.NoError(t, err)
-// 			require.Equal(t, tc.expect, got)
-// 		})
-// 	}
-// }
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			sub, err := verifier.VerifyAndExtractSubject(ctx, tc.rawToken)
+			if tc.wantErr != nil {
+				require.ErrorIs(t, err, tc.wantErr)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tc.wantSub, sub)
+		})
+	}
+}

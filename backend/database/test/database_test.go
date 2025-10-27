@@ -6,7 +6,6 @@ import (
 	"word_app/backend/database"
 
 	_ "github.com/lib/pq"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +22,6 @@ func TestInitEntClient(t *testing.T) {
 
 	// クライアント取得
 	client := database.GetEntClient()
-	logrus.Info(client)
 
 	// nil でないことを確認
 	assert.NotNil(t, client, "Ent client should be initialized")

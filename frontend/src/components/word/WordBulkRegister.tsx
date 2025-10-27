@@ -41,7 +41,6 @@ const WordBulkRegister: React.FC = () => {
       const { data } = await axiosInstance.post('/words/bulk_tokenize', {
         text,
       })
-      console.log(data)
       const cands = (data.candidates || []) as string[]
       const notExists = (data.not_exists || []) as string[]
       const regs = (data.registered || []) as string[]
@@ -55,8 +54,8 @@ const WordBulkRegister: React.FC = () => {
       }
       setNotExistWords(notExists)
       setRegisteredWords(regs)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      console.log(e)
       const errorMsg = e?.response?.data?.error || '抽出に失敗しました'
       setMsg(errorMsg)
       if (e?.response?.status === 429) {
@@ -77,7 +76,6 @@ const WordBulkRegister: React.FC = () => {
       const { data } = await axiosInstance.post('/words/bulk_register', {
         words: selected,
       })
-      console.log(data)
       let resMsg = ''
       if (data.success && data.failed) {
         resMsg = `結果： ${data.success.length} 件登録 / 失敗 ${data.failed.length} 件`
@@ -97,8 +95,8 @@ const WordBulkRegister: React.FC = () => {
           ),
         )
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      console.log(e)
       const errorMsg = e?.response?.data?.error || '登録に失敗しました'
       setRegistedMsg(errorMsg)
       if (e?.response?.status === 429) {

@@ -103,8 +103,8 @@ func (_c *MockRepository_CreateIfNotExists_Call) RunAndReturn(run func(ctx conte
 }
 
 // IncBulkOr429 provides a mock function for the type MockRepository
-func (_mock *MockRepository) IncBulkOr429(ctx context.Context, userID int, now time.Time) (*domain.DailyUsageUpdateResult, error) {
-	ret := _mock.Called(ctx, userID, now)
+func (_mock *MockRepository) IncBulkOr429(ctx context.Context, userID int, now time.Time, dailyCap int) (*domain.DailyUsageUpdateResult, error) {
+	ret := _mock.Called(ctx, userID, now, dailyCap)
 
 	if len(ret) == 0 {
 		panic("no return value specified for IncBulkOr429")
@@ -112,18 +112,18 @@ func (_mock *MockRepository) IncBulkOr429(ctx context.Context, userID int, now t
 
 	var r0 *domain.DailyUsageUpdateResult
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, int, time.Time) (*domain.DailyUsageUpdateResult, error)); ok {
-		return returnFunc(ctx, userID, now)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int, time.Time, int) (*domain.DailyUsageUpdateResult, error)); ok {
+		return returnFunc(ctx, userID, now, dailyCap)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, int, time.Time) *domain.DailyUsageUpdateResult); ok {
-		r0 = returnFunc(ctx, userID, now)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int, time.Time, int) *domain.DailyUsageUpdateResult); ok {
+		r0 = returnFunc(ctx, userID, now, dailyCap)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*domain.DailyUsageUpdateResult)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, int, time.Time) error); ok {
-		r1 = returnFunc(ctx, userID, now)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, int, time.Time, int) error); ok {
+		r1 = returnFunc(ctx, userID, now, dailyCap)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -139,11 +139,12 @@ type MockRepository_IncBulkOr429_Call struct {
 //   - ctx context.Context
 //   - userID int
 //   - now time.Time
-func (_e *MockRepository_Expecter) IncBulkOr429(ctx interface{}, userID interface{}, now interface{}) *MockRepository_IncBulkOr429_Call {
-	return &MockRepository_IncBulkOr429_Call{Call: _e.mock.On("IncBulkOr429", ctx, userID, now)}
+//   - dailyCap int
+func (_e *MockRepository_Expecter) IncBulkOr429(ctx interface{}, userID interface{}, now interface{}, dailyCap interface{}) *MockRepository_IncBulkOr429_Call {
+	return &MockRepository_IncBulkOr429_Call{Call: _e.mock.On("IncBulkOr429", ctx, userID, now, dailyCap)}
 }
 
-func (_c *MockRepository_IncBulkOr429_Call) Run(run func(ctx context.Context, userID int, now time.Time)) *MockRepository_IncBulkOr429_Call {
+func (_c *MockRepository_IncBulkOr429_Call) Run(run func(ctx context.Context, userID int, now time.Time, dailyCap int)) *MockRepository_IncBulkOr429_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -157,10 +158,15 @@ func (_c *MockRepository_IncBulkOr429_Call) Run(run func(ctx context.Context, us
 		if args[2] != nil {
 			arg2 = args[2].(time.Time)
 		}
+		var arg3 int
+		if args[3] != nil {
+			arg3 = args[3].(int)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
@@ -171,14 +177,14 @@ func (_c *MockRepository_IncBulkOr429_Call) Return(dailyUsageUpdateResult *domai
 	return _c
 }
 
-func (_c *MockRepository_IncBulkOr429_Call) RunAndReturn(run func(ctx context.Context, userID int, now time.Time) (*domain.DailyUsageUpdateResult, error)) *MockRepository_IncBulkOr429_Call {
+func (_c *MockRepository_IncBulkOr429_Call) RunAndReturn(run func(ctx context.Context, userID int, now time.Time, dailyCap int) (*domain.DailyUsageUpdateResult, error)) *MockRepository_IncBulkOr429_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // IncQuizOr429 provides a mock function for the type MockRepository
-func (_mock *MockRepository) IncQuizOr429(ctx context.Context, userID int, now time.Time) (*domain.DailyUsageUpdateResult, error) {
-	ret := _mock.Called(ctx, userID, now)
+func (_mock *MockRepository) IncQuizOr429(ctx context.Context, userID int, now time.Time, dailyCap int) (*domain.DailyUsageUpdateResult, error) {
+	ret := _mock.Called(ctx, userID, now, dailyCap)
 
 	if len(ret) == 0 {
 		panic("no return value specified for IncQuizOr429")
@@ -186,18 +192,18 @@ func (_mock *MockRepository) IncQuizOr429(ctx context.Context, userID int, now t
 
 	var r0 *domain.DailyUsageUpdateResult
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, int, time.Time) (*domain.DailyUsageUpdateResult, error)); ok {
-		return returnFunc(ctx, userID, now)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int, time.Time, int) (*domain.DailyUsageUpdateResult, error)); ok {
+		return returnFunc(ctx, userID, now, dailyCap)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, int, time.Time) *domain.DailyUsageUpdateResult); ok {
-		r0 = returnFunc(ctx, userID, now)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int, time.Time, int) *domain.DailyUsageUpdateResult); ok {
+		r0 = returnFunc(ctx, userID, now, dailyCap)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*domain.DailyUsageUpdateResult)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, int, time.Time) error); ok {
-		r1 = returnFunc(ctx, userID, now)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, int, time.Time, int) error); ok {
+		r1 = returnFunc(ctx, userID, now, dailyCap)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -213,11 +219,12 @@ type MockRepository_IncQuizOr429_Call struct {
 //   - ctx context.Context
 //   - userID int
 //   - now time.Time
-func (_e *MockRepository_Expecter) IncQuizOr429(ctx interface{}, userID interface{}, now interface{}) *MockRepository_IncQuizOr429_Call {
-	return &MockRepository_IncQuizOr429_Call{Call: _e.mock.On("IncQuizOr429", ctx, userID, now)}
+//   - dailyCap int
+func (_e *MockRepository_Expecter) IncQuizOr429(ctx interface{}, userID interface{}, now interface{}, dailyCap interface{}) *MockRepository_IncQuizOr429_Call {
+	return &MockRepository_IncQuizOr429_Call{Call: _e.mock.On("IncQuizOr429", ctx, userID, now, dailyCap)}
 }
 
-func (_c *MockRepository_IncQuizOr429_Call) Run(run func(ctx context.Context, userID int, now time.Time)) *MockRepository_IncQuizOr429_Call {
+func (_c *MockRepository_IncQuizOr429_Call) Run(run func(ctx context.Context, userID int, now time.Time, dailyCap int)) *MockRepository_IncQuizOr429_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -231,10 +238,15 @@ func (_c *MockRepository_IncQuizOr429_Call) Run(run func(ctx context.Context, us
 		if args[2] != nil {
 			arg2 = args[2].(time.Time)
 		}
+		var arg3 int
+		if args[3] != nil {
+			arg3 = args[3].(int)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
@@ -245,7 +257,7 @@ func (_c *MockRepository_IncQuizOr429_Call) Return(dailyUsageUpdateResult *domai
 	return _c
 }
 
-func (_c *MockRepository_IncQuizOr429_Call) RunAndReturn(run func(ctx context.Context, userID int, now time.Time) (*domain.DailyUsageUpdateResult, error)) *MockRepository_IncQuizOr429_Call {
+func (_c *MockRepository_IncQuizOr429_Call) RunAndReturn(run func(ctx context.Context, userID int, now time.Time, dailyCap int) (*domain.DailyUsageUpdateResult, error)) *MockRepository_IncQuizOr429_Call {
 	_c.Call.Return(run)
 	return _c
 }

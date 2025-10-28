@@ -2,6 +2,7 @@
 package jwt
 
 import (
+	"context"
 	"net/http"
 
 	"word_app/backend/src/models"
@@ -56,3 +57,43 @@ type HTTPError struct {
 }
 
 func (e *HTTPError) Error() string { return e.Msg }
+
+type principalKey struct{}
+
+// WithPrincipal adds Principal to standard context.Context.
+// This allows service/usecase layers to access Principal without gin.Context.
+func WithPrincipal(ctx context.Context, p models.Principal) context.Context {
+	return context.WithValue(ctx, principalKey{}, p)
+}
+
+// GetPrincipalFromContext extracts Principal from standard context.Context.
+// Returns the Principal and true if found, otherwise returns zero value and false.
+func GetPrincipalFromContext(ctx context.Context) (models.Principal, bool) {
+	v := ctx.Value(principalKey{})
+	if v == nil {
+		return models.Principal{}, false
+	}
+	p, ok := v.(models.Principal)
+	return p, ok
+}
+
+// IsTestUser checks if the current user is a test user based on context.
+// Returns true if user is a test user, false otherwise.
+// Returns false if Principal is not found in context (assume not test user for safety).
+func IsTestUser(ctx context.Context) bool {
+	p, ok := GetPrincipalFromContext(ctx)
+	if !ok {
+		return false
+	}
+	return p.IsTest
+}
+
+// // WithPrincipalFromGin extracts Principal from gin.Context and embeds it into standard context.Context.
+// // This is a convenience function for handlers to pass Principal to service/usecase layers.
+// func WithPrincipalFromGin(c *gin.Context, ctx context.Context) context.Context {
+// 	p, ok := GetPrincipal(c)
+// 	if !ok {
+// 		return ctx
+// 	}
+// 	return WithPrincipal(ctx, p)
+// }

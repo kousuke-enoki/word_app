@@ -3,6 +3,7 @@ package quiz
 import (
 	"net/http"
 
+	"word_app/backend/src/handlers/httperr"
 	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/models"
 
@@ -22,8 +23,7 @@ func (h *Handler) CreateHandler() gin.HandlerFunc {
 
 		response, err := h.quizService.CreateQuiz(ctx, userID, req)
 		if err != nil {
-			logrus.Errorf("Failed to create quiz: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create quiz"})
+			httperr.Write(c, err) // apperrorをそのまま返す（429も含む）
 			return
 		}
 

@@ -3,6 +3,7 @@ package userdailyusage
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"word_app/backend/src/domain"
@@ -53,9 +54,15 @@ func (r *EntUserDailyUsageRepo) incWithKind(ctx context.Context, userID int, now
 
 	var res domain.DailyUsageUpdateResult
 	// 注意：ent.Client.DB() は *sql.DB を返す前提（プロジェクトのセットアップに依存）
-	if err := r.sql.
+	err := r.sql.
 		QueryRowContext(ctx, q, userID, today, dailyCap).
-		Scan(&res.QuizCount, &res.BulkCount, &res.LastResetDate); err != nil {
+		Scan(&res.QuizCount, &res.BulkCount, &res.LastResetDate)
+	if err != nil {
+		// SQLのWHERE句で更新されなかった場合（上限到達）は sql.ErrNoRows が返る
+		// これを429エラーに変換
+		if err == sql.ErrNoRows {
+			return nil, apperror.TooManyRequestsf("daily quota exceeded", nil)
+		}
 		return nil, err
 	}
 

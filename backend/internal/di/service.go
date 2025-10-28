@@ -20,7 +20,7 @@ type Services struct {
 func NewServices(config *config.Config, uc *UseCases, client interfaces.ClientInterface, r *Repos) *Services {
 	return &Services{
 		Word: wordSvc.NewWordService(client, r.User,
-			&config.Limits),
+			&config.Limits, r.Tx),
 		Quiz:   quizSvc.NewService(client, r.UserDailyUsage, clock.SystemClock{}, &config.Limits),
 		Result: resultSvc.NewService(client),
 	}

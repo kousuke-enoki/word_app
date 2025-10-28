@@ -15,6 +15,7 @@ import (
 
 func (h *BulkHandler) TokenizeHandler() gin.HandlerFunc {
 	return jwt.WithUser(func(c *gin.Context, userID int) {
+		ctx := c.Request.Context()
 		// 入口で50KB超を即413
 		lr := io.LimitedReader{R: c.Request.Body, N: int64(h.limits.BulkMaxBytes) + 1}
 		body, err := io.ReadAll(&lr)
@@ -23,7 +24,7 @@ func (h *BulkHandler) TokenizeHandler() gin.HandlerFunc {
 			return
 		}
 		if len(body) > h.limits.BulkMaxBytes {
-			c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "text too large (limit 50KB)"})
+			httperr.Write(c, apperror.TooLargeRequestsf("text too large (limit 50KB)", nil))
 			return
 		}
 		var req models.BulkTokenizeRequest
@@ -32,7 +33,7 @@ func (h *BulkHandler) TokenizeHandler() gin.HandlerFunc {
 			return
 		}
 
-		cands, regs, notExist, err := h.tokenizeUsecase.Execute(c, userID, req.Text)
+		cands, regs, notExist, err := h.tokenizeUsecase.Execute(ctx, userID, req.Text)
 		if err != nil {
 			httperr.Write(c, err) // apperrorをそのまま返す（429も含む）
 			return

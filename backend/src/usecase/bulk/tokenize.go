@@ -11,6 +11,7 @@ import (
 	"word_app/backend/src/infrastructure/repository/registeredword"
 	udurepo "word_app/backend/src/infrastructure/repository/userdailyusage"
 	"word_app/backend/src/infrastructure/repository/word"
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/usecase/clock"
 )
 
@@ -68,8 +69,17 @@ func (uc *tokenizeUsecase) Execute(
 		cap = 5
 	}
 
+	// テストユーザーのみ制限を適用
+	p, ok := jwt.GetPrincipalFromContext(ctx)
+	isTest := ok && p.IsTest
+	effectiveCap := cap
+	if !isTest {
+		// テストユーザーでない場合は制限なし（十分に大きな値を設定）
+		effectiveCap = 999999
+	}
+
 	// 0) 日次クォータ消費（原子的に +1、上限なら 429 相当エラーを返す）
-	if _, err := uc.userDailyUsageRepo.IncBulkOr429(ctx, userID, uc.clock.Now(), cap); err != nil {
+	if _, err := uc.userDailyUsageRepo.IncBulkOr429(ctx, userID, uc.clock.Now(), effectiveCap); err != nil {
 		// ucerr.TooManyRequests を返す
 		return nil, nil, nil, err
 	}

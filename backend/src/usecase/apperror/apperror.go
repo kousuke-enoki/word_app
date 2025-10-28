@@ -19,6 +19,7 @@ const (
 	Invalid           Kind = "INVALID"
 	InvalidCredential Kind = "INVALID_CREDENTIAL"
 	TooManyRequests   Kind = "TOO_MANY_REQUESTS"
+	TooLargeRequests  Kind = "TOO_LARGE_REQUESTS"
 	BadRequest        Kind = "BAD_REQUEST"
 )
 
@@ -57,6 +58,7 @@ func Invalidf(msg string, err error) *Error           { return New(Invalid, msg,
 func InvalidCredentialf(msg string, err error) *Error { return New(InvalidCredential, msg, err) }
 func Internalf(msg string, err error) *Error          { return New(Internal, msg, err) }
 func TooManyRequestsf(msg string, err error) *Error   { return New(TooManyRequests, msg, err) }
+func TooLargeRequestsf(msg string, err error) *Error  { return New(TooLargeRequests, msg, err) }
 func BadRequestf(msg string, err error) *Error        { return New(BadRequest, msg, err) }
 
 // ユーティリティ

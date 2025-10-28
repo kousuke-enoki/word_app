@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -136,7 +135,6 @@ func TestGetRootSettingHandler(t *testing.T) {
 			if w.Code == http.StatusOK {
 				var got settingUc.OutputGetRootConfig
 				_ = json.Unmarshal(w.Body.Bytes(), &got)
-				logrus.Info("got:", got)
 				assert.Equal(t, successCfg.EditingPermission, got.Config.EditingPermission)
 			}
 			mockUc.AssertExpectations(t)

@@ -12,6 +12,7 @@ import (
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/word"
 	"word_app/backend/ent/wordinfo"
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/models"
 	"word_app/backend/src/usecase/shared/ucerr"
 
@@ -43,7 +44,15 @@ func (s *ServiceImpl) CreateQuiz(
 	// ② Tx で Quiz 作成ユースケース実行
 	err = s.withTx(ctx, func(tx *ent.Tx) error {
 		// クイズ回数カウントと上限を超えているか判定
-		if _, err := s.userDailyUsageRepo.IncQuizOr429(ctx, userID, s.clock.Now(), cap); err != nil {
+		// テストユーザーのみ制限を適用
+		p, ok := jwt.GetPrincipalFromContext(ctx)
+		isTest := ok && p.IsTest
+		effectiveCap := cap
+		if !isTest {
+			// テストユーザーでない場合は制限なし（十分に大きな値を設定）
+			effectiveCap = 999999
+		}
+		if _, err := s.userDailyUsageRepo.IncQuizOr429(ctx, userID, s.clock.Now(), effectiveCap); err != nil {
 			return err // クイズ回数上限を超えていたらTooManyRequests(429) が返る
 		}
 

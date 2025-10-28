@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 
+	"word_app/backend/src/handlers/httperr"
 	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/models"
 
@@ -25,7 +26,7 @@ func (h *Handler) RegisterHandler() gin.HandlerFunc {
 		// サービス層からデータを取得
 		response, err := h.wordService.RegisterWords(ctx, req)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			httperr.Write(c, err) // apperrorをそのまま返す
 			return
 		}
 

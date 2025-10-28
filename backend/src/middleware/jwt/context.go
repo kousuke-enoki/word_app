@@ -87,13 +87,3 @@ func IsTestUser(ctx context.Context) bool {
 	}
 	return p.IsTest
 }
-
-// // WithPrincipalFromGin extracts Principal from gin.Context and embeds it into standard context.Context.
-// // This is a convenience function for handlers to pass Principal to service/usecase layers.
-// func WithPrincipalFromGin(c *gin.Context, ctx context.Context) context.Context {
-// 	p, ok := GetPrincipal(c)
-// 	if !ok {
-// 		return ctx
-// 	}
-// 	return WithPrincipal(ctx, p)
-// }

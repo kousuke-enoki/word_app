@@ -73,9 +73,14 @@ const WordList: React.FC = () => {
       setSuccessMessage(
         `${updated.name} を${updated.isRegistered ? '登録しました' : '登録解除しました'}。`,
       )
-      setTimeout(() => setSuccessMessage(''), 3000)
-    } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
       console.error('Error registering word:', e)
+      if (e?.response?.status === 429) {
+        setSuccessMessage('単語の登録数上限に達しました')
+      } else {
+        setSuccessMessage('単語登録に失敗しました')
+      }
     }
   }
 

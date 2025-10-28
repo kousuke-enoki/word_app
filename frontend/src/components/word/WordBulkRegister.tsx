@@ -59,7 +59,7 @@ const WordBulkRegister: React.FC = () => {
       const errorMsg = e?.response?.data?.error || '抽出に失敗しました'
       setMsg(errorMsg)
       if (e?.response?.status === 429) {
-        setMsg('1日のリクエスト上限に達しました')
+        setMsg('複数単語登録のリクエスト制限に達しました')
       }
     } finally {
       setLoading(false)
@@ -100,7 +100,7 @@ const WordBulkRegister: React.FC = () => {
       const errorMsg = e?.response?.data?.error || '登録に失敗しました'
       setRegistedMsg(errorMsg)
       if (e?.response?.status === 429) {
-        setRegistedMsg('1日のリクエスト上限に達しました')
+        setRegistedMsg('複数単語登録のリクエスト制限に達しました')
       }
     } finally {
       setLoading(false)

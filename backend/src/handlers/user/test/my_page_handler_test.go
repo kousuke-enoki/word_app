@@ -47,8 +47,7 @@ func TestMyPageHandler(t *testing.T) {
 
 		c.Request = httptest.NewRequest(http.MethodGet, "/mypage", nil)
 		// コンテキストにユーザーIDを設定
-		var uid int
-		uid = 1
+		uid := 1
 		p := models.Principal{
 			UserID:  uid,
 			IsAdmin: false,
@@ -92,8 +91,7 @@ func TestMyPageHandler(t *testing.T) {
 		c, _ := gin.CreateTestContext(recorder)
 
 		c.Request = httptest.NewRequest(http.MethodGet, "/mypage", nil)
-		var uid int
-		uid = 123
+		uid := 123
 		p := models.Principal{
 			UserID:  uid,
 			IsAdmin: false,

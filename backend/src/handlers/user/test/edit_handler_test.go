@@ -35,8 +35,7 @@ func newEditRouter(uc *user_mocks.MockUsecase, rls *roles) *gin.Engine {
 
 	if rls != nil {
 		r.Use(func(c *gin.Context) {
-			var uid int
-			uid = rls.UserID
+			uid := rls.UserID
 			p := models.Principal{
 				UserID:  uid,
 				IsAdmin: rls.IsAdmin,

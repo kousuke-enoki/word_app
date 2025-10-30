@@ -28,10 +28,10 @@ func (s *ServiceImpl) RegisterWords(ctx context.Context, req *models.RegisterWor
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = done(false) }()
+	committed := false
+	defer func() { _ = done(committed) }()
 
 	// --- 1) ユーザーの存在 + ロック（同一ユーザー操作を直列化）---
-	// ent v0.14: Modify で ForUpdate()
 	err = s.userRepo.LockByID(txCtx, req.UserID)
 	if err != nil {
 		return nil, err
@@ -71,6 +71,7 @@ func (s *ServiceImpl) RegisterWords(ctx context.Context, req *models.RegisterWor
 				Save(txCtx); err != nil {
 				return nil, errors.New("failed to create RegisteredWord")
 			}
+			committed = true
 			return &models.RegisterWordResponse{
 				Name:              w.Name,
 				IsRegistered:      true,
@@ -81,6 +82,7 @@ func (s *ServiceImpl) RegisterWords(ctx context.Context, req *models.RegisterWor
 		if _, err := rw.Update().SetIsActive(true).Save(txCtx); err != nil {
 			return nil, errors.New("failed to update RegisteredWord")
 		}
+		committed = true
 		return &models.RegisterWordResponse{
 			Name:              w.Name,
 			IsRegistered:      true,
@@ -93,6 +95,7 @@ func (s *ServiceImpl) RegisterWords(ctx context.Context, req *models.RegisterWor
 	if _, err := rw.Update().SetIsActive(false).Save(txCtx); err != nil {
 		return nil, errors.New("failed to update RegisteredWord")
 	}
+	committed = true
 	return &models.RegisterWordResponse{
 		Name:              w.Name,
 		IsRegistered:      false,

@@ -3,6 +3,8 @@ package userdailyusage
 import (
 	"context"
 	"time"
+
+	"entgo.io/ent/dialect/sql" // OnConflict用
 )
 
 // CreateIfNotExists は、ユーザーのデイリー使用行を存在しなければ作成します。
@@ -21,10 +23,10 @@ func (r *EntUserDailyUsageRepo) CreateIfNotExists(ctx context.Context, userID in
 		// 明示的に初期化（デフォルト値でもよいが可読性のためセット）
 		SetQuizCount(0).
 		SetBulkCount(0).
-		// OnConflict(
-		// 	sql.ConflictColumns(userdailyusage.FieldUserID),
-		// ).
-		// DoNothing().
+		OnConflict(
+			sql.ConflictColumns("user_id"), // または: userdailyusage.FieldUserID
+		).
+		DoNothing().
 		Exec(ctx) // ← Save ではなく Exec
 
 	return err

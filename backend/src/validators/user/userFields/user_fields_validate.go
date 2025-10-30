@@ -10,8 +10,8 @@ import (
 // Name: 長さは3〜20文字かチェック。
 func ValidateUserName(name string) []models.FieldError {
 	var fieldErrors []models.FieldError
-	if len(name) < 3 || len(name) > 20 {
-		fieldErrors = append(fieldErrors, models.FieldError{Field: "name", Message: "name must be between 3 and 20 characters"})
+	if len(name) < 3 || len(name) > 40 {
+		fieldErrors = append(fieldErrors, models.FieldError{Field: "name", Message: "name must be between 3 and 40 characters"})
 	}
 	return fieldErrors
 }

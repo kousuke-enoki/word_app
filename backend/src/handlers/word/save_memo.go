@@ -2,11 +2,11 @@ package word
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"io"
 	"net/http"
 
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/models"
 	"word_app/backend/src/validators/word"
 
@@ -15,9 +15,9 @@ import (
 )
 
 func (h *Handler) SaveMemoHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ctx := context.Background()
-		req, err := h.parseSaveMemoRequest(c)
+	return jwt.WithUser(func(c *gin.Context, userID int) {
+		ctx := c.Request.Context()
+		req, err := h.parseSaveMemoRequest(c, userID)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -37,10 +37,10 @@ func (h *Handler) SaveMemoHandler() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, response)
-	}
+	})
 }
 
-func (h *Handler) parseSaveMemoRequest(c *gin.Context) (*models.SaveMemoRequest, error) {
+func (h *Handler) parseSaveMemoRequest(c *gin.Context, userID int) (*models.SaveMemoRequest, error) {
 	// リクエストボディが空の場合をチェック
 	if c.Request.Body == nil {
 		return nil, errors.New("request body is missing")
@@ -61,20 +61,8 @@ func (h *Handler) parseSaveMemoRequest(c *gin.Context) (*models.SaveMemoRequest,
 		return nil, errors.New("invalid JSON format: " + err.Error())
 	}
 
-	// 必要に応じて追加処理（例: ユーザーIDをコンテキストから取得）
-	userID, exists := c.Get("userID")
-	if !exists {
-		return nil, errors.New("unauthorized: userID not found in context")
-	}
-
-	// userIDの型チェック
-	userIDInt, ok := userID.(int)
-	if !ok {
-		return nil, errors.New("invalid userID type")
-	}
-
 	// コンテキストから取得したuserIDをリクエストに設定
-	req.UserID = userIDInt
+	req.UserID = userID
 	logrus.Infof("Final parsed request with userID: %+v", req)
 
 	return &models.SaveMemoRequest{

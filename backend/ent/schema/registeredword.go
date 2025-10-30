@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // RegisteredWord holds the schema definition for the RegisteredWord entity.
@@ -62,12 +64,19 @@ func (RegisteredWord) Edges() []ent.Edge {
 			Ref("registered_words").
 			Unique().
 			Field("user_id").
-			Required(),
+			Required().
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
 		edge.From("word", Word.Type).
 			Ref("registered_words").
 			Unique().
 			Field("word_id").
 			Required(),
 		edge.To("quiz_questions", QuizQuestion.Type),
+	}
+}
+
+func (RegisteredWord) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("user_id", "word_id").Unique(),
 	}
 }

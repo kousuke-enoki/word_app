@@ -33,6 +33,21 @@ func (uc *UserUsecase) Delete(ctx context.Context, in DeleteUserInput) error {
 		return err
 	}
 
+	// 削除対象(target) が Testユーザーなら物理削除（CASCADE 任せ）
+	if target.IsTest {
+		_, err := uc.userRepo.DeleteIfTest(txCtx, target.ID)
+		if err != nil {
+			return err
+		}
+
+		commit = true
+		if err := done(commit); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	// 削除対象(target)が 通常ユーザー：従来どおり論理削除
 	// 3) 関連も含め論理削除（同一Tx内・任意の時刻を統一）
 	now := time.Now()
 

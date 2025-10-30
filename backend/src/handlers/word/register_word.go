@@ -2,11 +2,12 @@ package word
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"io"
 	"net/http"
 
+	"word_app/backend/src/handlers/httperr"
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/models"
 
 	"github.com/gin-gonic/gin"
@@ -14,9 +15,9 @@ import (
 )
 
 func (h *Handler) RegisterHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ctx := context.Background()
-		req, err := h.parseRequest(c)
+	return jwt.WithUser(func(c *gin.Context, userID int) {
+		ctx := c.Request.Context()
+		req, err := h.parseRequest(c, userID)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -25,15 +26,15 @@ func (h *Handler) RegisterHandler() gin.HandlerFunc {
 		// サービス層からデータを取得
 		response, err := h.wordService.RegisterWords(ctx, req)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			httperr.Write(c, err) // apperrorをそのまま返す
 			return
 		}
 
 		c.JSON(http.StatusOK, response)
-	}
+	})
 }
 
-func (h *Handler) parseRequest(c *gin.Context) (*models.RegisterWordRequest, error) {
+func (h *Handler) parseRequest(c *gin.Context, userID int) (*models.RegisterWordRequest, error) {
 	// リクエストボディが空の場合をチェック
 	if c.Request.Body == nil {
 		return nil, errors.New("request body is missing")
@@ -54,20 +55,8 @@ func (h *Handler) parseRequest(c *gin.Context) (*models.RegisterWordRequest, err
 		return nil, errors.New("invalid JSON format: " + err.Error())
 	}
 
-	// ユーザーIDをコンテキストから取得
-	userID, exists := c.Get("userID")
-	if !exists {
-		return nil, errors.New("unauthorized: userID not found in context")
-	}
-
-	// userIDの型チェック
-	userIDInt, ok := userID.(int)
-	if !ok {
-		return nil, errors.New("invalid userID type")
-	}
-
 	// コンテキストから取得したuserIDをリクエストに設定
-	req.UserID = userIDInt
+	req.UserID = userID
 	logrus.Infof("Final parsed request with userID: %+v", req)
 
 	return &req, nil

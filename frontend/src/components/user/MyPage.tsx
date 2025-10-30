@@ -11,6 +11,7 @@ import PageTitle from '../common/PageTitle'
 const MyPage: React.FC = () => {
   const [message] = useState(() => localStorage.getItem('logoutMessage') || '')
   const [user, setUser] = useState<User | null>(null)
+  const [signingOut, setSigningOut] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -30,11 +31,55 @@ const MyPage: React.FC = () => {
 
   const today = new Date().toLocaleDateString()
 
-  const onSignOut = () => {
+  const signOutLocally = (msg: string) => {
     localStorage.removeItem('token')
-    localStorage.setItem('logoutMessage', 'ログアウトしました')
+    localStorage.setItem('logoutMessage', msg)
     setUser(null)
     navigate('/')
+  }
+
+  // 通常サインアウト
+  const onSignOut = () => {
+    if (signingOut) return
+    signOutLocally('ログアウトしました')
+  }
+
+  // テストユーザー専用：確認→削除API→トークン破棄
+  const onTestLogout = async () => {
+    if (signingOut) return
+    const ok = window.confirm(
+      'テストユーザーはアカウントごと削除されます。よろしいですか？',
+    )
+    if (!ok) return
+    setSigningOut(true)
+    try {
+      await axiosInstance.post('/users/auth/test-logout')
+      // 成功でも失敗でもローカルは破棄&遷移
+      signOutLocally(
+        'テストユーザーを削除しました。ご利用ありがとうございました。',
+      )
+    } catch {
+      // 失敗しても冪等：トークン破棄してトップへ
+      signOutLocally('削除に失敗しましたが、サインアウトしました')
+    } finally {
+      setSigningOut(false)
+    }
+  }
+
+  const renderSignOutButton = () => {
+    if (!user) return null
+    if (user.isTest) {
+      return (
+        <Button onClick={onTestLogout} disabled={signingOut}>
+          {signingOut ? '処理中…' : 'テストユーザー削除（サインアウト）'}
+        </Button>
+      )
+    }
+    return (
+      <Button onClick={onSignOut} disabled={signingOut}>
+        {signingOut ? 'サインアウト中…' : 'サインアウト'}
+      </Button>
+    )
   }
 
   return (
@@ -55,6 +100,8 @@ const MyPage: React.FC = () => {
             <Badge>⭐ Root</Badge>
           ) : user?.isAdmin ? (
             <Badge>🔧 Admin</Badge>
+          ) : user?.isTest ? (
+            <Badge>👾 Test</Badge>
           ) : (
             <Badge>👤 User</Badge>
           )}
@@ -68,9 +115,7 @@ const MyPage: React.FC = () => {
               <p className="text-sm opacity-70">ようこそ</p>
               <p className="text-lg font-semibold">{user.name} さん</p>
             </div>
-            <div className="mt-3 sm:mt-0">
-              <Button onClick={onSignOut}>サインアウト</Button>
-            </div>
+            <div className="mt-3 sm:mt-0">{renderSignOutButton()}</div>
           </div>
         ) : (
           <p>ユーザー情報がありません。</p>

@@ -19,8 +19,9 @@ import (
 // UserConfigUpdate is the builder for updating UserConfig entities.
 type UserConfigUpdate struct {
 	config
-	hooks    []Hook
-	mutation *UserConfigMutation
+	hooks     []Hook
+	mutation  *UserConfigMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the UserConfigUpdate builder.
@@ -133,6 +134,12 @@ func (ucu *UserConfigUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (ucu *UserConfigUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *UserConfigUpdate {
+	ucu.modifiers = append(ucu.modifiers, modifiers...)
+	return ucu
+}
+
 func (ucu *UserConfigUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := ucu.check(); err != nil {
 		return n, err
@@ -183,6 +190,7 @@ func (ucu *UserConfigUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(ucu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, ucu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{userconfig.Label}
@@ -198,9 +206,10 @@ func (ucu *UserConfigUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // UserConfigUpdateOne is the builder for updating a single UserConfig entity.
 type UserConfigUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *UserConfigMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *UserConfigMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetUserID sets the "user_id" field.
@@ -320,6 +329,12 @@ func (ucuo *UserConfigUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (ucuo *UserConfigUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *UserConfigUpdateOne {
+	ucuo.modifiers = append(ucuo.modifiers, modifiers...)
+	return ucuo
+}
+
 func (ucuo *UserConfigUpdateOne) sqlSave(ctx context.Context) (_node *UserConfig, err error) {
 	if err := ucuo.check(); err != nil {
 		return _node, err
@@ -387,6 +402,7 @@ func (ucuo *UserConfigUpdateOne) sqlSave(ctx context.Context) (_node *UserConfig
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(ucuo.modifiers...)
 	_node = &UserConfig{config: ucuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

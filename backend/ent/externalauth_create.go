@@ -23,6 +23,12 @@ type ExternalAuthCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetUserID sets the "user_id" field.
+func (eac *ExternalAuthCreate) SetUserID(i int) *ExternalAuthCreate {
+	eac.mutation.SetUserID(i)
+	return eac
+}
+
 // SetProvider sets the "provider" field.
 func (eac *ExternalAuthCreate) SetProvider(s string) *ExternalAuthCreate {
 	eac.mutation.SetProvider(s)
@@ -46,12 +52,6 @@ func (eac *ExternalAuthCreate) SetNillableDeletedAt(t *time.Time) *ExternalAuthC
 	if t != nil {
 		eac.SetDeletedAt(*t)
 	}
-	return eac
-}
-
-// SetUserID sets the "user" edge to the User entity by ID.
-func (eac *ExternalAuthCreate) SetUserID(id int) *ExternalAuthCreate {
-	eac.mutation.SetUserID(id)
 	return eac
 }
 
@@ -94,6 +94,14 @@ func (eac *ExternalAuthCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (eac *ExternalAuthCreate) check() error {
+	if _, ok := eac.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "ExternalAuth.user_id"`)}
+	}
+	if v, ok := eac.mutation.UserID(); ok {
+		if err := externalauth.UserIDValidator(v); err != nil {
+			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "ExternalAuth.user_id": %w`, err)}
+		}
+	}
 	if _, ok := eac.mutation.Provider(); !ok {
 		return &ValidationError{Name: "provider", err: errors.New(`ent: missing required field "ExternalAuth.provider"`)}
 	}
@@ -166,7 +174,7 @@ func (eac *ExternalAuthCreate) createSpec() (*ExternalAuth, *sqlgraph.CreateSpec
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_external_auths = &nodes[0]
+		_node.UserID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -176,7 +184,7 @@ func (eac *ExternalAuthCreate) createSpec() (*ExternalAuth, *sqlgraph.CreateSpec
 // of the `INSERT` statement. For example:
 //
 //	client.ExternalAuth.Create().
-//		SetProvider(v).
+//		SetUserID(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -185,7 +193,7 @@ func (eac *ExternalAuthCreate) createSpec() (*ExternalAuth, *sqlgraph.CreateSpec
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ExternalAuthUpsert) {
-//			SetProvider(v+v).
+//			SetUserID(v+v).
 //		}).
 //		Exec(ctx)
 func (eac *ExternalAuthCreate) OnConflict(opts ...sql.ConflictOption) *ExternalAuthUpsertOne {
@@ -220,6 +228,18 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetUserID sets the "user_id" field.
+func (u *ExternalAuthUpsert) SetUserID(v int) *ExternalAuthUpsert {
+	u.Set(externalauth.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *ExternalAuthUpsert) UpdateUserID() *ExternalAuthUpsert {
+	u.SetExcluded(externalauth.FieldUserID)
+	return u
+}
 
 // SetProvider sets the "provider" field.
 func (u *ExternalAuthUpsert) SetProvider(v string) *ExternalAuthUpsert {
@@ -301,6 +321,20 @@ func (u *ExternalAuthUpsertOne) Update(set func(*ExternalAuthUpsert)) *ExternalA
 		set(&ExternalAuthUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *ExternalAuthUpsertOne) SetUserID(v int) *ExternalAuthUpsertOne {
+	return u.Update(func(s *ExternalAuthUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *ExternalAuthUpsertOne) UpdateUserID() *ExternalAuthUpsertOne {
+	return u.Update(func(s *ExternalAuthUpsert) {
+		s.UpdateUserID()
+	})
 }
 
 // SetProvider sets the "provider" field.
@@ -486,7 +520,7 @@ func (eacb *ExternalAuthCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.ExternalAuthUpsert) {
-//			SetProvider(v+v).
+//			SetUserID(v+v).
 //		}).
 //		Exec(ctx)
 func (eacb *ExternalAuthCreateBulk) OnConflict(opts ...sql.ConflictOption) *ExternalAuthUpsertBulk {
@@ -553,6 +587,20 @@ func (u *ExternalAuthUpsertBulk) Update(set func(*ExternalAuthUpsert)) *External
 		set(&ExternalAuthUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *ExternalAuthUpsertBulk) SetUserID(v int) *ExternalAuthUpsertBulk {
+	return u.Update(func(s *ExternalAuthUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *ExternalAuthUpsertBulk) UpdateUserID() *ExternalAuthUpsertBulk {
+	return u.Update(func(s *ExternalAuthUpsert) {
+		s.UpdateUserID()
+	})
 }
 
 // SetProvider sets the "provider" field.

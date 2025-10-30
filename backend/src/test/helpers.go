@@ -19,4 +19,5 @@ func (r RealEntClient) JapaneseMean() *ent.JapaneseMeanClient     { return r.Cli
 func (r RealEntClient) Quiz() *ent.QuizClient                     { return r.Client.Quiz }
 func (r RealEntClient) QuizQuestion() *ent.QuizQuestionClient     { return r.Client.QuizQuestion }
 func (r RealEntClient) ExternalAuth() *ent.ExternalAuthClient     { return r.Client.ExternalAuth }
+func (r RealEntClient) UserDailyUsage() *ent.UserDailyUsageClient { return r.Client.UserDailyUsage }
 func (r RealEntClient) EntClient() *ent.Client                    { return r.Client }

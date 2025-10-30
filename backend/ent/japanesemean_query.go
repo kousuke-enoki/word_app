@@ -27,6 +27,7 @@ type JapaneseMeanQuery struct {
 	predicates        []predicate.JapaneseMean
 	withWordInfo      *WordInfoQuery
 	withQuizQuestions *QuizQuestionQuery
+	modifiers         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -302,8 +303,9 @@ func (jmq *JapaneseMeanQuery) Clone() *JapaneseMeanQuery {
 		withWordInfo:      jmq.withWordInfo.Clone(),
 		withQuizQuestions: jmq.withQuizQuestions.Clone(),
 		// clone intermediate query.
-		sql:  jmq.sql.Clone(),
-		path: jmq.path,
+		sql:       jmq.sql.Clone(),
+		path:      jmq.path,
+		modifiers: append([]func(*sql.Selector){}, jmq.modifiers...),
 	}
 }
 
@@ -421,6 +423,9 @@ func (jmq *JapaneseMeanQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(jmq.modifiers) > 0 {
+		_spec.Modifiers = jmq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -509,6 +514,9 @@ func (jmq *JapaneseMeanQuery) loadQuizQuestions(ctx context.Context, query *Quiz
 
 func (jmq *JapaneseMeanQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := jmq.querySpec()
+	if len(jmq.modifiers) > 0 {
+		_spec.Modifiers = jmq.modifiers
+	}
 	_spec.Node.Columns = jmq.ctx.Fields
 	if len(jmq.ctx.Fields) > 0 {
 		_spec.Unique = jmq.ctx.Unique != nil && *jmq.ctx.Unique
@@ -574,6 +582,9 @@ func (jmq *JapaneseMeanQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if jmq.ctx.Unique != nil && *jmq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range jmq.modifiers {
+		m(selector)
+	}
 	for _, p := range jmq.predicates {
 		p(selector)
 	}
@@ -589,6 +600,12 @@ func (jmq *JapaneseMeanQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (jmq *JapaneseMeanQuery) Modify(modifiers ...func(s *sql.Selector)) *JapaneseMeanSelect {
+	jmq.modifiers = append(jmq.modifiers, modifiers...)
+	return jmq.Select()
 }
 
 // JapaneseMeanGroupBy is the group-by builder for JapaneseMean entities.
@@ -679,4 +696,10 @@ func (jms *JapaneseMeanSelect) sqlScan(ctx context.Context, root *JapaneseMeanQu
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (jms *JapaneseMeanSelect) Modify(modifiers ...func(s *sql.Selector)) *JapaneseMeanSelect {
+	jms.modifiers = append(jms.modifiers, modifiers...)
+	return jms
 }

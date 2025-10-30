@@ -22,6 +22,7 @@ type RootConfigQuery struct {
 	order      []rootconfig.OrderOption
 	inters     []Interceptor
 	predicates []predicate.RootConfig
+	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -251,8 +252,9 @@ func (rcq *RootConfigQuery) Clone() *RootConfigQuery {
 		inters:     append([]Interceptor{}, rcq.inters...),
 		predicates: append([]predicate.RootConfig{}, rcq.predicates...),
 		// clone intermediate query.
-		sql:  rcq.sql.Clone(),
-		path: rcq.path,
+		sql:       rcq.sql.Clone(),
+		path:      rcq.path,
+		modifiers: append([]func(*sql.Selector){}, rcq.modifiers...),
 	}
 }
 
@@ -343,6 +345,9 @@ func (rcq *RootConfigQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
 	}
+	if len(rcq.modifiers) > 0 {
+		_spec.Modifiers = rcq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -357,6 +362,9 @@ func (rcq *RootConfigQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 
 func (rcq *RootConfigQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := rcq.querySpec()
+	if len(rcq.modifiers) > 0 {
+		_spec.Modifiers = rcq.modifiers
+	}
 	_spec.Node.Columns = rcq.ctx.Fields
 	if len(rcq.ctx.Fields) > 0 {
 		_spec.Unique = rcq.ctx.Unique != nil && *rcq.ctx.Unique
@@ -419,6 +427,9 @@ func (rcq *RootConfigQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if rcq.ctx.Unique != nil && *rcq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range rcq.modifiers {
+		m(selector)
+	}
 	for _, p := range rcq.predicates {
 		p(selector)
 	}
@@ -434,6 +445,12 @@ func (rcq *RootConfigQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (rcq *RootConfigQuery) Modify(modifiers ...func(s *sql.Selector)) *RootConfigSelect {
+	rcq.modifiers = append(rcq.modifiers, modifiers...)
+	return rcq.Select()
 }
 
 // RootConfigGroupBy is the group-by builder for RootConfig entities.
@@ -524,4 +541,10 @@ func (rcs *RootConfigSelect) sqlScan(ctx context.Context, root *RootConfigQuery,
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (rcs *RootConfigSelect) Modify(modifiers ...func(s *sql.Selector)) *RootConfigSelect {
+	rcs.modifiers = append(rcs.modifiers, modifiers...)
+	return rcs
 }

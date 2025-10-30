@@ -3,34 +3,25 @@ package quiz
 import (
 	"net/http"
 
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/models"
-	"word_app/backend/src/utils/contextutil"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 func (h *Handler) GetHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// ユーザーIDをコンテキストから取得
-		userID, err := contextutil.MustUserID(c)
-		if err != nil {
-			logrus.Error(err)
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-			return
-		}
-
+	return jwt.WithUser(func(c *gin.Context, userID int) {
+		ctx := c.Request.Context()
 		// --- query パラメータをパース ---
 		var req models.GetQuizRequest
-		logrus.Debug(req)
 
 		// --- サービス呼び出し ---
-		q, err := h.quizService.GetNextOrResume(c.Request.Context(), userID, &req)
+		q, err := h.quizService.GetNextOrResume(ctx, userID, &req)
 		if err != nil && q == nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}
 
 		c.JSON(http.StatusOK, q)
-	}
+	})
 }

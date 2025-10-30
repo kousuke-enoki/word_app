@@ -7,7 +7,6 @@ package user
 import (
 	"context"
 	"time"
-
 	"word_app/backend/src/domain"
 	"word_app/backend/src/domain/repository"
 
@@ -105,6 +104,138 @@ func (_c *MockRepository_Create_Call) Return(user *domain.User, err error) *Mock
 }
 
 func (_c *MockRepository_Create_Call) RunAndReturn(run func(ctx context.Context, u *domain.User) (*domain.User, error)) *MockRepository_Create_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteIfTest provides a mock function for the type MockRepository
+func (_mock *MockRepository) DeleteIfTest(ctx context.Context, id int) (bool, error) {
+	ret := _mock.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteIfTest")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) (bool, error)); ok {
+		return returnFunc(ctx, id)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) bool); ok {
+		r0 = returnFunc(ctx, id)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = returnFunc(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRepository_DeleteIfTest_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteIfTest'
+type MockRepository_DeleteIfTest_Call struct {
+	*mock.Call
+}
+
+// DeleteIfTest is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id int
+func (_e *MockRepository_Expecter) DeleteIfTest(ctx interface{}, id interface{}) *MockRepository_DeleteIfTest_Call {
+	return &MockRepository_DeleteIfTest_Call{Call: _e.mock.On("DeleteIfTest", ctx, id)}
+}
+
+func (_c *MockRepository_DeleteIfTest_Call) Run(run func(ctx context.Context, id int)) *MockRepository_DeleteIfTest_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 int
+		if args[1] != nil {
+			arg1 = args[1].(int)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepository_DeleteIfTest_Call) Return(deleted bool, err error) *MockRepository_DeleteIfTest_Call {
+	_c.Call.Return(deleted, err)
+	return _c
+}
+
+func (_c *MockRepository_DeleteIfTest_Call) RunAndReturn(run func(ctx context.Context, id int) (bool, error)) *MockRepository_DeleteIfTest_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Exists provides a mock function for the type MockRepository
+func (_mock *MockRepository) Exists(ctx context.Context, id int) (bool, error) {
+	ret := _mock.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Exists")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) (bool, error)); ok {
+		return returnFunc(ctx, id)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) bool); ok {
+		r0 = returnFunc(ctx, id)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = returnFunc(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRepository_Exists_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Exists'
+type MockRepository_Exists_Call struct {
+	*mock.Call
+}
+
+// Exists is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id int
+func (_e *MockRepository_Expecter) Exists(ctx interface{}, id interface{}) *MockRepository_Exists_Call {
+	return &MockRepository_Exists_Call{Call: _e.mock.On("Exists", ctx, id)}
+}
+
+func (_c *MockRepository_Exists_Call) Run(run func(ctx context.Context, id int)) *MockRepository_Exists_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 int
+		if args[1] != nil {
+			arg1 = args[1].(int)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepository_Exists_Call) Return(b bool, err error) *MockRepository_Exists_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockRepository_Exists_Call) RunAndReturn(run func(ctx context.Context, id int) (bool, error)) *MockRepository_Exists_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -521,6 +652,72 @@ func (_c *MockRepository_IsRoot_Call) RunAndReturn(run func(ctx context.Context,
 	return _c
 }
 
+// IsTest provides a mock function for the type MockRepository
+func (_mock *MockRepository) IsTest(ctx context.Context, id int) (bool, error) {
+	ret := _mock.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsTest")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) (bool, error)); ok {
+		return returnFunc(ctx, id)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) bool); ok {
+		r0 = returnFunc(ctx, id)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = returnFunc(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRepository_IsTest_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsTest'
+type MockRepository_IsTest_Call struct {
+	*mock.Call
+}
+
+// IsTest is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id int
+func (_e *MockRepository_Expecter) IsTest(ctx interface{}, id interface{}) *MockRepository_IsTest_Call {
+	return &MockRepository_IsTest_Call{Call: _e.mock.On("IsTest", ctx, id)}
+}
+
+func (_c *MockRepository_IsTest_Call) Run(run func(ctx context.Context, id int)) *MockRepository_IsTest_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 int
+		if args[1] != nil {
+			arg1 = args[1].(int)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepository_IsTest_Call) Return(b bool, err error) *MockRepository_IsTest_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockRepository_IsTest_Call) RunAndReturn(run func(ctx context.Context, id int) (bool, error)) *MockRepository_IsTest_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListUsers provides a mock function for the type MockRepository
 func (_mock *MockRepository) ListUsers(ctx context.Context, f repository.UserListFilter) (*repository.UserListResult, error) {
 	ret := _mock.Called(ctx, f)
@@ -585,6 +782,63 @@ func (_c *MockRepository_ListUsers_Call) Return(userListResult *repository.UserL
 }
 
 func (_c *MockRepository_ListUsers_Call) RunAndReturn(run func(ctx context.Context, f repository.UserListFilter) (*repository.UserListResult, error)) *MockRepository_ListUsers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// LockByID provides a mock function for the type MockRepository
+func (_mock *MockRepository) LockByID(ctx context.Context, userID int) error {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for LockByID")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) error); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRepository_LockByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LockByID'
+type MockRepository_LockByID_Call struct {
+	*mock.Call
+}
+
+// LockByID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID int
+func (_e *MockRepository_Expecter) LockByID(ctx interface{}, userID interface{}) *MockRepository_LockByID_Call {
+	return &MockRepository_LockByID_Call{Call: _e.mock.On("LockByID", ctx, userID)}
+}
+
+func (_c *MockRepository_LockByID_Call) Run(run func(ctx context.Context, userID int)) *MockRepository_LockByID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 int
+		if args[1] != nil {
+			arg1 = args[1].(int)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepository_LockByID_Call) Return(err error) *MockRepository_LockByID_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRepository_LockByID_Call) RunAndReturn(run func(ctx context.Context, userID int) error) *MockRepository_LockByID_Call {
 	_c.Call.Return(run)
 	return _c
 }

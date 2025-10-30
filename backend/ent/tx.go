@@ -32,6 +32,8 @@ type Tx struct {
 	User *UserClient
 	// UserConfig is the client for interacting with the UserConfig builders.
 	UserConfig *UserConfigClient
+	// UserDailyUsage is the client for interacting with the UserDailyUsage builders.
+	UserDailyUsage *UserDailyUsageClient
 	// Word is the client for interacting with the Word builders.
 	Word *WordClient
 	// WordInfo is the client for interacting with the WordInfo builders.
@@ -176,6 +178,7 @@ func (tx *Tx) init() {
 	tx.RootConfig = NewRootConfigClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserConfig = NewUserConfigClient(tx.config)
+	tx.UserDailyUsage = NewUserDailyUsageClient(tx.config)
 	tx.Word = NewWordClient(tx.config)
 	tx.WordInfo = NewWordInfoClient(tx.config)
 }

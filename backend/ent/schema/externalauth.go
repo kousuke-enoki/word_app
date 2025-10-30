@@ -4,6 +4,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -15,6 +16,8 @@ type ExternalAuth struct {
 
 func (ExternalAuth) Fields() []ent.Field {
 	return []ent.Field{
+		field.Int("user_id").
+			Positive(),
 		field.String("provider").
 			NotEmpty(), // "line" など
 		field.String("provider_user_id").
@@ -29,8 +32,10 @@ func (ExternalAuth) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("user", User.Type).
 			Ref("external_auths").
+			Field("user_id").
 			Unique().
-			Required(),
+			Required().
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
 	}
 }
 

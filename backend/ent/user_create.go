@@ -12,6 +12,7 @@ import (
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
+	"word_app/backend/ent/userdailyusage"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -167,14 +168,14 @@ func (uc *UserCreate) AddRegisteredWords(r ...*RegisteredWord) *UserCreate {
 	return uc.AddRegisteredWordIDs(ids...)
 }
 
-// AddQuizIDs adds the "quizs" edge to the Quiz entity by IDs.
+// AddQuizIDs adds the "quizzes" edge to the Quiz entity by IDs.
 func (uc *UserCreate) AddQuizIDs(ids ...int) *UserCreate {
 	uc.mutation.AddQuizIDs(ids...)
 	return uc
 }
 
-// AddQuizs adds the "quizs" edges to the Quiz entity.
-func (uc *UserCreate) AddQuizs(q ...*Quiz) *UserCreate {
+// AddQuizzes adds the "quizzes" edges to the Quiz entity.
+func (uc *UserCreate) AddQuizzes(q ...*Quiz) *UserCreate {
 	ids := make([]int, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
@@ -214,6 +215,25 @@ func (uc *UserCreate) AddExternalAuths(e ...*ExternalAuth) *UserCreate {
 		ids[i] = e[i].ID
 	}
 	return uc.AddExternalAuthIDs(ids...)
+}
+
+// SetUserDailyUsageID sets the "user_daily_usage" edge to the UserDailyUsage entity by ID.
+func (uc *UserCreate) SetUserDailyUsageID(id int) *UserCreate {
+	uc.mutation.SetUserDailyUsageID(id)
+	return uc
+}
+
+// SetNillableUserDailyUsageID sets the "user_daily_usage" edge to the UserDailyUsage entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableUserDailyUsageID(id *int) *UserCreate {
+	if id != nil {
+		uc = uc.SetUserDailyUsageID(*id)
+	}
+	return uc
+}
+
+// SetUserDailyUsage sets the "user_daily_usage" edge to the UserDailyUsage entity.
+func (uc *UserCreate) SetUserDailyUsage(u *UserDailyUsage) *UserCreate {
+	return uc.SetUserDailyUsageID(u.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -386,12 +406,12 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.mutation.QuizsIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.QuizzesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.QuizsTable,
-			Columns: []string{user.QuizsColumn},
+			Table:   user.QuizzesTable,
+			Columns: []string{user.QuizzesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeInt),
@@ -427,6 +447,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(externalauth.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.UserDailyUsageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.UserDailyUsageTable,
+			Columns: []string{user.UserDailyUsageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userdailyusage.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

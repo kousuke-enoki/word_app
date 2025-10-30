@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"word_app/backend/src/handlers/auth"
+	"word_app/backend/src/handlers/bulk"
 	"word_app/backend/src/handlers/setting"
 	"word_app/backend/src/handlers/user"
 	"word_app/backend/src/interfaces/http/quiz"
@@ -19,6 +20,7 @@ import (
 type Implementation struct {
 	JwtMiddleware  jwt.Middleware
 	AuthHandler    auth.Handler
+	BulkHandler    bulk.Handler
 	UserHandler    user.Handler
 	SettingHandler setting.Handler
 	WordHandler    word.Handler
@@ -29,6 +31,7 @@ type Implementation struct {
 func NewRouter(
 	jwtMiddleware jwt.Middleware,
 	authHandler auth.Handler,
+	bulkHandler bulk.Handler,
 	userHandler user.Handler,
 	settingHandler setting.Handler,
 	wordHandler word.Handler,
@@ -38,6 +41,7 @@ func NewRouter(
 	return &Implementation{
 		JwtMiddleware:  jwtMiddleware,
 		AuthHandler:    authHandler,
+		BulkHandler:    bulkHandler,
 		UserHandler:    userHandler,
 		SettingHandler: settingHandler,
 		WordHandler:    wordHandler,
@@ -61,6 +65,7 @@ func (r *Implementation) MountRoutes(router *gin.Engine) {
 		userRoutes.GET("/auth/line/login", r.AuthHandler.LineLogin())
 		userRoutes.GET("/auth/line/callback", r.AuthHandler.LineCallback())
 		userRoutes.POST("/auth/line/complete", r.AuthHandler.LineComplete())
+		userRoutes.POST("/auth/test-login", r.AuthHandler.TestLoginHandler())
 	}
 
 	SettingRoutes := router.Group("/setting")
@@ -69,9 +74,9 @@ func (r *Implementation) MountRoutes(router *gin.Engine) {
 	}
 
 	protectedRoutes := router.Group("/")
-	protectedRoutes.Use(r.JwtMiddleware.AuthMiddleware())
+	protectedRoutes.Use(r.JwtMiddleware.AuthenticateMiddleware())
 	{
-		protectedRoutes.GET("/auth/check", r.JwtMiddleware.JwtCheckMiddleware())
+		protectedRoutes.GET("/auth/check", r.AuthHandler.AuthMeHandler())
 
 		protectedRoutes.GET("/users/my_page", r.UserHandler.MyPageHandler())
 		protectedRoutes.GET("/users", r.UserHandler.ListHandler())
@@ -79,10 +84,13 @@ func (r *Implementation) MountRoutes(router *gin.Engine) {
 		protectedRoutes.GET("/users/:id", r.UserHandler.ShowHandler())
 		protectedRoutes.PUT("/users/:id", r.UserHandler.EditHandler())
 		protectedRoutes.DELETE("/users/:id", r.UserHandler.DeleteHandler())
+		protectedRoutes.POST("/users/auth/test-logout", r.AuthHandler.TestLogoutHandler())
+
 		protectedRoutes.GET("/setting/user_config", r.SettingHandler.GetUserConfigHandler())
 		protectedRoutes.POST("/setting/user_config", r.SettingHandler.SaveUserConfigHandler())
 		protectedRoutes.GET("/setting/root_config", r.SettingHandler.GetRootConfigHandler())
 		protectedRoutes.POST("/setting/root_config", r.SettingHandler.SaveRootConfigHandler())
+
 		protectedRoutes.GET("/words", r.WordHandler.ListHandler())
 		protectedRoutes.GET("/words/:id", r.WordHandler.ShowHandler())
 		protectedRoutes.POST("/words/register", r.WordHandler.RegisterHandler())
@@ -91,8 +99,8 @@ func (r *Implementation) MountRoutes(router *gin.Engine) {
 		protectedRoutes.POST("/words/new", r.WordHandler.CreateHandler())
 		protectedRoutes.PUT("/words/:id", r.WordHandler.UpdateHandler())
 		protectedRoutes.DELETE("/words/:id", r.WordHandler.DeleteHandler())
-		protectedRoutes.POST("/words/bulk_tokenize", r.WordHandler.BulkTokenizeHandler())
-		protectedRoutes.POST("/words/bulk_register", r.WordHandler.BulkRegisterHandler())
+		protectedRoutes.POST("/words/bulk_tokenize", r.BulkHandler.TokenizeHandler())
+		protectedRoutes.POST("/words/bulk_register", r.BulkHandler.RegisterHandler())
 
 		protectedRoutes.POST("/quizzes/new", r.QuizHandler.CreateHandler())
 		protectedRoutes.POST("/quizzes/answers/:id", r.QuizHandler.PostAnswerAndRouteHandler())

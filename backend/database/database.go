@@ -23,7 +23,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var entClient *ent.Client
+var (
+	entClient *ent.Client
+	sqlDB     *sql.DB
+)
 
 // rds用オブジェクト
 type rdsSecret struct {
@@ -76,6 +79,7 @@ func initEntClientWithContext(ctx context.Context) error {
 	// ent のドライバに載せ替えて Client を作成
 	drv := entsql.OpenDB(dialect.Postgres, db)
 	c := ent.NewClient(ent.Driver(drv))
+	sqlDB = db
 	entClient = c
 	logrus.WithFields(logrus.Fields{
 		"host": cfg.Host, "port": cfg.Port, "db": cfg.Name, "user": cfg.User,
@@ -176,4 +180,22 @@ func GetEntClient() *ent.Client {
 
 func SetEntClient(c *ent.Client) {
 	entClient = c
+}
+
+func GetSQLDB() *sql.DB {
+	return sqlDB
+}
+
+func Close() error {
+	var err1, err2 error
+	if entClient != nil {
+		err1 = entClient.Close()
+	}
+	if sqlDB != nil {
+		err2 = sqlDB.Close()
+	}
+	if err1 != nil {
+		return err1
+	}
+	return err2
 }

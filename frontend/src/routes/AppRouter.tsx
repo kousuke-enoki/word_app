@@ -26,6 +26,7 @@ import WordEdit from '../components/word/WordEdit'
 import WordList from '../components/word/WordList'
 import WordNew from '../components/word/WordNew'
 import WordShow from '../components/word/WordShow'
+import LegalPage from '../pages/legal/LegalPage'
 import PrivateRoute from './PrivateRoute'
 import PublicRoute from './PublicRoute'
 
@@ -74,6 +75,12 @@ const AppRouter: React.FC = () => {
                 </PublicRoute>
               }
             />
+
+            {/* ログイン関係なくアクセス可 */}
+            <Route path="/terms" element={<LegalPage slug="terms" />} />
+            <Route path="/credits" element={<LegalPage slug="credits" />} />
+            <Route path="/cookies" element={<LegalPage slug="cookies" />} />
+            <Route path="/privacy" element={<LegalPage slug="privacy" />} />
 
             {/* ログイン済みのみアクセス可 */}
             <Route

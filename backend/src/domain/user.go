@@ -22,28 +22,34 @@ type User struct {
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	DeletedAt *time.Time
 }
 
 func NewUser(name string, email, rawPass *string) (*User, error) {
-	var emailPtr *string
+	u := &User{
+		Name:    name,
+		IsAdmin: false, IsRoot: false, IsTest: false,
+	}
 	if email != nil { // Ent も Nillable にした前提
-		email := *email   // string 取り出し
-		emailPtr = &email // ポインタ化（そのまま u.Email でも良い）
+		email := *email  // string 取り出し
+		u.Email = &email // ポインタ化（そのまま u.Email でも良い）
+	}
+	if rawPass == nil {
+		// パスワード無しユーザー（外部認証 or テストユーザー）
+		u.Password = ""
+		return u, nil
 	}
 	var passPtr *string
-	if rawPass != nil { // Ent も Nillable にした前提
-		rawPass := *rawPass // string 取り出し
-		passPtr = &rawPass  // ポインタ化（そのまま u.Email でも良い）
-	}
+	pass := *rawPass // string 取り出し
+	passPtr = &pass  // ポインタ化（そのまま u.Email でも良い）
 	hash, err := hashPassword(passPtr)
 	if err != nil {
 		return nil, err
 	}
-	return &User{
-		Email:    emailPtr,
-		Name:     name,
-		Password: hash,
-	}, nil
+	u.Password = hash
+	u.HasPassword = rawPass != nil
+	u.HasLine = false // 後で紐付けるまで false
+	return u, nil
 }
 
 func hashPassword(pass *string) (string, error) {

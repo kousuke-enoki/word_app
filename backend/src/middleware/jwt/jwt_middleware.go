@@ -1,22 +1,22 @@
 package jwt
 
 import (
-	"word_app/backend/src/infrastructure/jwt"
+	"word_app/backend/src/usecase/jwt"
 
 	"github.com/gin-gonic/gin"
 )
 
 type JwtMiddleware struct {
-	tokenValidator jwt.TokenValidator
+	JwtUsecase jwt.Authenticator
 }
 
-func NewMiddleware(tokenValidator jwt.TokenValidator) *JwtMiddleware {
+func NewMiddleware(JwtUsecase jwt.Authenticator) *JwtMiddleware {
 	return &JwtMiddleware{
-		tokenValidator: tokenValidator,
+		JwtUsecase: JwtUsecase,
 	}
 }
 
 type Middleware interface {
-	AuthMiddleware() gin.HandlerFunc
-	JwtCheckMiddleware() gin.HandlerFunc
+	AuthenticateMiddleware() gin.HandlerFunc
+	// JwtCheckMiddleware() gin.HandlerFunc
 }

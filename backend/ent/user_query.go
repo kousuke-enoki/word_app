@@ -13,6 +13,7 @@ import (
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
+	"word_app/backend/ent/userdailyusage"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -28,9 +29,11 @@ type UserQuery struct {
 	inters              []Interceptor
 	predicates          []predicate.User
 	withRegisteredWords *RegisteredWordQuery
-	withQuizs           *QuizQuery
+	withQuizzes         *QuizQuery
 	withUserConfig      *UserConfigQuery
 	withExternalAuths   *ExternalAuthQuery
+	withUserDailyUsage  *UserDailyUsageQuery
+	modifiers           []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -89,8 +92,8 @@ func (uq *UserQuery) QueryRegisteredWords() *RegisteredWordQuery {
 	return query
 }
 
-// QueryQuizs chains the current query on the "quizs" edge.
-func (uq *UserQuery) QueryQuizs() *QuizQuery {
+// QueryQuizzes chains the current query on the "quizzes" edge.
+func (uq *UserQuery) QueryQuizzes() *QuizQuery {
 	query := (&QuizClient{config: uq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
@@ -103,7 +106,7 @@ func (uq *UserQuery) QueryQuizs() *QuizQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(quiz.Table, quiz.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.QuizsTable, user.QuizsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.QuizzesTable, user.QuizzesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -148,6 +151,28 @@ func (uq *UserQuery) QueryExternalAuths() *ExternalAuthQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(externalauth.Table, externalauth.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.ExternalAuthsTable, user.ExternalAuthsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUserDailyUsage chains the current query on the "user_daily_usage" edge.
+func (uq *UserQuery) QueryUserDailyUsage() *UserDailyUsageQuery {
+	query := (&UserDailyUsageClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(userdailyusage.Table, userdailyusage.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.UserDailyUsageTable, user.UserDailyUsageColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -348,12 +373,14 @@ func (uq *UserQuery) Clone() *UserQuery {
 		inters:              append([]Interceptor{}, uq.inters...),
 		predicates:          append([]predicate.User{}, uq.predicates...),
 		withRegisteredWords: uq.withRegisteredWords.Clone(),
-		withQuizs:           uq.withQuizs.Clone(),
+		withQuizzes:         uq.withQuizzes.Clone(),
 		withUserConfig:      uq.withUserConfig.Clone(),
 		withExternalAuths:   uq.withExternalAuths.Clone(),
+		withUserDailyUsage:  uq.withUserDailyUsage.Clone(),
 		// clone intermediate query.
-		sql:  uq.sql.Clone(),
-		path: uq.path,
+		sql:       uq.sql.Clone(),
+		path:      uq.path,
+		modifiers: append([]func(*sql.Selector){}, uq.modifiers...),
 	}
 }
 
@@ -368,14 +395,14 @@ func (uq *UserQuery) WithRegisteredWords(opts ...func(*RegisteredWordQuery)) *Us
 	return uq
 }
 
-// WithQuizs tells the query-builder to eager-load the nodes that are connected to
-// the "quizs" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithQuizs(opts ...func(*QuizQuery)) *UserQuery {
+// WithQuizzes tells the query-builder to eager-load the nodes that are connected to
+// the "quizzes" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithQuizzes(opts ...func(*QuizQuery)) *UserQuery {
 	query := (&QuizClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withQuizs = query
+	uq.withQuizzes = query
 	return uq
 }
 
@@ -398,6 +425,17 @@ func (uq *UserQuery) WithExternalAuths(opts ...func(*ExternalAuthQuery)) *UserQu
 		opt(query)
 	}
 	uq.withExternalAuths = query
+	return uq
+}
+
+// WithUserDailyUsage tells the query-builder to eager-load the nodes that are connected to
+// the "user_daily_usage" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithUserDailyUsage(opts ...func(*UserDailyUsageQuery)) *UserQuery {
+	query := (&UserDailyUsageClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withUserDailyUsage = query
 	return uq
 }
 
@@ -479,11 +517,12 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			uq.withRegisteredWords != nil,
-			uq.withQuizs != nil,
+			uq.withQuizzes != nil,
 			uq.withUserConfig != nil,
 			uq.withExternalAuths != nil,
+			uq.withUserDailyUsage != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -494,6 +533,9 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
+	}
+	if len(uq.modifiers) > 0 {
+		_spec.Modifiers = uq.modifiers
 	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
@@ -511,10 +553,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
-	if query := uq.withQuizs; query != nil {
-		if err := uq.loadQuizs(ctx, query, nodes,
-			func(n *User) { n.Edges.Quizs = []*Quiz{} },
-			func(n *User, e *Quiz) { n.Edges.Quizs = append(n.Edges.Quizs, e) }); err != nil {
+	if query := uq.withQuizzes; query != nil {
+		if err := uq.loadQuizzes(ctx, query, nodes,
+			func(n *User) { n.Edges.Quizzes = []*Quiz{} },
+			func(n *User, e *Quiz) { n.Edges.Quizzes = append(n.Edges.Quizzes, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -528,6 +570,12 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadExternalAuths(ctx, query, nodes,
 			func(n *User) { n.Edges.ExternalAuths = []*ExternalAuth{} },
 			func(n *User, e *ExternalAuth) { n.Edges.ExternalAuths = append(n.Edges.ExternalAuths, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withUserDailyUsage; query != nil {
+		if err := uq.loadUserDailyUsage(ctx, query, nodes, nil,
+			func(n *User, e *UserDailyUsage) { n.Edges.UserDailyUsage = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -564,7 +612,7 @@ func (uq *UserQuery) loadRegisteredWords(ctx context.Context, query *RegisteredW
 	}
 	return nil
 }
-func (uq *UserQuery) loadQuizs(ctx context.Context, query *QuizQuery, nodes []*User, init func(*User), assign func(*User, *Quiz)) error {
+func (uq *UserQuery) loadQuizzes(ctx context.Context, query *QuizQuery, nodes []*User, init func(*User), assign func(*User, *Quiz)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*User)
 	for i := range nodes {
@@ -578,7 +626,7 @@ func (uq *UserQuery) loadQuizs(ctx context.Context, query *QuizQuery, nodes []*U
 		query.ctx.AppendFieldOnce(quiz.FieldUserID)
 	}
 	query.Where(predicate.Quiz(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.QuizsColumn), fks...))
+		s.Where(sql.InValues(s.C(user.QuizzesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -631,7 +679,9 @@ func (uq *UserQuery) loadExternalAuths(ctx context.Context, query *ExternalAuthQ
 			init(nodes[i])
 		}
 	}
-	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(externalauth.FieldUserID)
+	}
 	query.Where(predicate.ExternalAuth(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.ExternalAuthsColumn), fks...))
 	}))
@@ -640,13 +690,37 @@ func (uq *UserQuery) loadExternalAuths(ctx context.Context, query *ExternalAuthQ
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_external_auths
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_external_auths" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		fk := n.UserID
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "user_external_auths" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadUserDailyUsage(ctx context.Context, query *UserDailyUsageQuery, nodes []*User, init func(*User), assign func(*User, *UserDailyUsage)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(userdailyusage.FieldUserID)
+	}
+	query.Where(predicate.UserDailyUsage(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.UserDailyUsageColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -655,6 +729,9 @@ func (uq *UserQuery) loadExternalAuths(ctx context.Context, query *ExternalAuthQ
 
 func (uq *UserQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := uq.querySpec()
+	if len(uq.modifiers) > 0 {
+		_spec.Modifiers = uq.modifiers
+	}
 	_spec.Node.Columns = uq.ctx.Fields
 	if len(uq.ctx.Fields) > 0 {
 		_spec.Unique = uq.ctx.Unique != nil && *uq.ctx.Unique
@@ -717,6 +794,9 @@ func (uq *UserQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if uq.ctx.Unique != nil && *uq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range uq.modifiers {
+		m(selector)
+	}
 	for _, p := range uq.predicates {
 		p(selector)
 	}
@@ -732,6 +812,12 @@ func (uq *UserQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (uq *UserQuery) Modify(modifiers ...func(s *sql.Selector)) *UserSelect {
+	uq.modifiers = append(uq.modifiers, modifiers...)
+	return uq.Select()
 }
 
 // UserGroupBy is the group-by builder for User entities.
@@ -822,4 +908,10 @@ func (us *UserSelect) sqlScan(ctx context.Context, root *UserQuery, v any) error
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (us *UserSelect) Modify(modifiers ...func(s *sql.Selector)) *UserSelect {
+	us.modifiers = append(us.modifiers, modifiers...)
+	return us
 }

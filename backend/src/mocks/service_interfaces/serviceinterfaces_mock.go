@@ -6,7 +6,6 @@ package serviceinterfaces
 
 import (
 	"context"
-
 	"word_app/backend/ent"
 
 	mock "github.com/stretchr/testify/mock"
@@ -511,6 +510,52 @@ func (_c *MockEntClientInterface_UserConfig_Call) Return(userConfigClient *ent.U
 }
 
 func (_c *MockEntClientInterface_UserConfig_Call) RunAndReturn(run func() *ent.UserConfigClient) *MockEntClientInterface_UserConfig_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UserDailyUsage provides a mock function for the type MockEntClientInterface
+func (_mock *MockEntClientInterface) UserDailyUsage() *ent.UserDailyUsageClient {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserDailyUsage")
+	}
+
+	var r0 *ent.UserDailyUsageClient
+	if returnFunc, ok := ret.Get(0).(func() *ent.UserDailyUsageClient); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ent.UserDailyUsageClient)
+		}
+	}
+	return r0
+}
+
+// MockEntClientInterface_UserDailyUsage_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UserDailyUsage'
+type MockEntClientInterface_UserDailyUsage_Call struct {
+	*mock.Call
+}
+
+// UserDailyUsage is a helper method to define mock.On call
+func (_e *MockEntClientInterface_Expecter) UserDailyUsage() *MockEntClientInterface_UserDailyUsage_Call {
+	return &MockEntClientInterface_UserDailyUsage_Call{Call: _e.mock.On("UserDailyUsage")}
+}
+
+func (_c *MockEntClientInterface_UserDailyUsage_Call) Run(run func()) *MockEntClientInterface_UserDailyUsage_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockEntClientInterface_UserDailyUsage_Call) Return(userDailyUsageClient *ent.UserDailyUsageClient) *MockEntClientInterface_UserDailyUsage_Call {
+	_c.Call.Return(userDailyUsageClient)
+	return _c
+}
+
+func (_c *MockEntClientInterface_UserDailyUsage_Call) RunAndReturn(run func() *ent.UserDailyUsageClient) *MockEntClientInterface_UserDailyUsage_Call {
 	_c.Call.Return(run)
 	return _c
 }

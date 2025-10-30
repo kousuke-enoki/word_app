@@ -21,8 +21,9 @@ import (
 // RegisteredWordUpdate is the builder for updating RegisteredWord entities.
 type RegisteredWordUpdate struct {
 	config
-	hooks    []Hook
-	mutation *RegisteredWordMutation
+	hooks     []Hook
+	mutation  *RegisteredWordMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the RegisteredWordUpdate builder.
@@ -322,6 +323,12 @@ func (rwu *RegisteredWordUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (rwu *RegisteredWordUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *RegisteredWordUpdate {
+	rwu.modifiers = append(rwu.modifiers, modifiers...)
+	return rwu
+}
+
 func (rwu *RegisteredWordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := rwu.check(); err != nil {
 		return n, err
@@ -476,6 +483,7 @@ func (rwu *RegisteredWordUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(rwu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, rwu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{registeredword.Label}
@@ -491,9 +499,10 @@ func (rwu *RegisteredWordUpdate) sqlSave(ctx context.Context) (n int, err error)
 // RegisteredWordUpdateOne is the builder for updating a single RegisteredWord entity.
 type RegisteredWordUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *RegisteredWordMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *RegisteredWordMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetUserID sets the "user_id" field.
@@ -800,6 +809,12 @@ func (rwuo *RegisteredWordUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (rwuo *RegisteredWordUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *RegisteredWordUpdateOne {
+	rwuo.modifiers = append(rwuo.modifiers, modifiers...)
+	return rwuo
+}
+
 func (rwuo *RegisteredWordUpdateOne) sqlSave(ctx context.Context) (_node *RegisteredWord, err error) {
 	if err := rwuo.check(); err != nil {
 		return _node, err
@@ -971,6 +986,7 @@ func (rwuo *RegisteredWordUpdateOne) sqlSave(ctx context.Context) (_node *Regist
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(rwuo.modifiers...)
 	_node = &RegisteredWord{config: rwuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

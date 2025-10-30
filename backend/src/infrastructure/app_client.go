@@ -3,6 +3,7 @@ package infrastructure
 
 import (
 	"context"
+	"database/sql"
 
 	"word_app/backend/ent"
 	"word_app/backend/src/domain"
@@ -10,7 +11,6 @@ import (
 	"word_app/backend/src/models"
 	settingUc "word_app/backend/src/usecase/setting"
 	user_usecase "word_app/backend/src/usecase/user"
-	"word_app/backend/src/utils/contextutil"
 )
 
 // entの型からはmockeryでモックを作れないので、
@@ -20,6 +20,11 @@ import (
 
 type appClient struct {
 	entClient *ent.Client
+}
+
+// DB implements interfaces.ClientInterface.
+func (c *appClient) DB() *sql.DB {
+	panic("unimplemented")
 }
 
 // GetDetailByID implements interfaces.ClientInterface.
@@ -111,11 +116,6 @@ func (c *appClient) GetAuthConfig(_ context.Context) (*settingUc.AuthConfigDTO, 
 
 // GetAuthConfig implements interfaces.ClientInterface.
 func (c *appClient) GetAuthConfigs(_ context.Context) (*models.AuthSettingResponse, error) {
-	panic("unimplemented")
-}
-
-// GetResultSummaries implements interfaces.ClientInterface.
-func (c *appClient) Validate(_ context.Context, tokenStr string) (contextutil.UserRoles, error) {
 	panic("unimplemented")
 }
 
@@ -275,4 +275,9 @@ func (c *appClient) QuizQuestion() *ent.QuizQuestionClient {
 // ExternalAuth は ExternalAuth を返します。
 func (c *appClient) ExternalAuth() *ent.ExternalAuthClient {
 	return c.entClient.ExternalAuth
+}
+
+// UserDailyUsage implements interfaces.ClientInterface.
+func (c *appClient) UserDailyUsage() *ent.UserDailyUsageClient {
+	return c.entClient.UserDailyUsage
 }

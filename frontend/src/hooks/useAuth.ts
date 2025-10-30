@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 import axiosInstance from '../axiosConfig'
 
-type UserRole = 'guest' | 'general' | 'admin' | 'root'
+type UserRole = 'guest' | 'general' | 'admin' | 'root' | 'test'
 
 export const useAuth = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
@@ -24,23 +24,29 @@ export const useAuth = () => {
         .get('/auth/check')
         .then((response) => {
           const user = response.data.user
-          const isLogin = response.data.isLogin
-          if (isLogin && user.id) {
+
+          if (user.id) {
             setIsLoggedIn(true)
+            setUserRole('general')
             if (user.isAdmin) {
               setUserRole('admin')
             }
             if (user.isRoot) {
               setUserRole('root')
             }
+            if (user.isTest) {
+              setUserRole('test')
+            }
           } else {
             setIsLoggedIn(false)
             setUserRole('guest')
+            localStorage.removeItem('token')
           }
         })
         .catch(() => {
           setIsLoggedIn(false)
           setUserRole('guest')
+          localStorage.removeItem('token')
         })
         .finally(() => {
           setIsLoading(false)

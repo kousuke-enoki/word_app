@@ -8,6 +8,7 @@ import (
 	"time"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
+	"word_app/backend/ent/userdailyusage"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -47,15 +48,17 @@ type User struct {
 type UserEdges struct {
 	// RegisteredWords holds the value of the registered_words edge.
 	RegisteredWords []*RegisteredWord `json:"registered_words,omitempty"`
-	// Quizs holds the value of the quizs edge.
-	Quizs []*Quiz `json:"quizs,omitempty"`
+	// Quizzes holds the value of the quizzes edge.
+	Quizzes []*Quiz `json:"quizzes,omitempty"`
 	// UserConfig holds the value of the user_config edge.
 	UserConfig *UserConfig `json:"user_config,omitempty"`
 	// ExternalAuths holds the value of the external_auths edge.
 	ExternalAuths []*ExternalAuth `json:"external_auths,omitempty"`
+	// UserDailyUsage holds the value of the user_daily_usage edge.
+	UserDailyUsage *UserDailyUsage `json:"user_daily_usage,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // RegisteredWordsOrErr returns the RegisteredWords value or an error if the edge
@@ -67,13 +70,13 @@ func (e UserEdges) RegisteredWordsOrErr() ([]*RegisteredWord, error) {
 	return nil, &NotLoadedError{edge: "registered_words"}
 }
 
-// QuizsOrErr returns the Quizs value or an error if the edge
+// QuizzesOrErr returns the Quizzes value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) QuizsOrErr() ([]*Quiz, error) {
+func (e UserEdges) QuizzesOrErr() ([]*Quiz, error) {
 	if e.loadedTypes[1] {
-		return e.Quizs, nil
+		return e.Quizzes, nil
 	}
-	return nil, &NotLoadedError{edge: "quizs"}
+	return nil, &NotLoadedError{edge: "quizzes"}
 }
 
 // UserConfigOrErr returns the UserConfig value or an error if the edge
@@ -94,6 +97,17 @@ func (e UserEdges) ExternalAuthsOrErr() ([]*ExternalAuth, error) {
 		return e.ExternalAuths, nil
 	}
 	return nil, &NotLoadedError{edge: "external_auths"}
+}
+
+// UserDailyUsageOrErr returns the UserDailyUsage value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) UserDailyUsageOrErr() (*UserDailyUsage, error) {
+	if e.UserDailyUsage != nil {
+		return e.UserDailyUsage, nil
+	} else if e.loadedTypes[4] {
+		return nil, &NotFoundError{label: userdailyusage.Label}
+	}
+	return nil, &NotLoadedError{edge: "user_daily_usage"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -205,9 +219,9 @@ func (u *User) QueryRegisteredWords() *RegisteredWordQuery {
 	return NewUserClient(u.config).QueryRegisteredWords(u)
 }
 
-// QueryQuizs queries the "quizs" edge of the User entity.
-func (u *User) QueryQuizs() *QuizQuery {
-	return NewUserClient(u.config).QueryQuizs(u)
+// QueryQuizzes queries the "quizzes" edge of the User entity.
+func (u *User) QueryQuizzes() *QuizQuery {
+	return NewUserClient(u.config).QueryQuizzes(u)
 }
 
 // QueryUserConfig queries the "user_config" edge of the User entity.
@@ -218,6 +232,11 @@ func (u *User) QueryUserConfig() *UserConfigQuery {
 // QueryExternalAuths queries the "external_auths" edge of the User entity.
 func (u *User) QueryExternalAuths() *ExternalAuthQuery {
 	return NewUserClient(u.config).QueryExternalAuths(u)
+}
+
+// QueryUserDailyUsage queries the "user_daily_usage" edge of the User entity.
+func (u *User) QueryUserDailyUsage() *UserDailyUsageQuery {
+	return NewUserClient(u.config).QueryUserDailyUsage(u)
 }
 
 // Update returns a builder for updating this User.

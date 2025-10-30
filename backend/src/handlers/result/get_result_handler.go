@@ -4,20 +4,14 @@ import (
 	"net/http"
 	"strconv"
 
-	"word_app/backend/src/utils/contextutil"
+	"word_app/backend/src/middleware/jwt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 func (h *Handler) GetHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		userID, err := contextutil.MustUserID(c)
-		if err != nil {
-			logrus.Error(err)
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-			return
-		}
+	return jwt.WithUser(func(c *gin.Context, userID int) {
+		ctx := c.Request.Context()
 
 		noStr := c.Param("quizNo")
 		quizNo, err := strconv.Atoi(noStr)
@@ -25,14 +19,12 @@ func (h *Handler) GetHandler() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid quizNo"})
 			return
 		}
-		logrus.Debug(quizNo)
 
-		res, err := h.resultService.GetByQuizNo(c.Request.Context(), userID, quizNo)
+		res, err := h.resultService.GetByQuizNo(ctx, userID, quizNo)
 		if err != nil {
-			logrus.Error(err)
 			c.JSON(http.StatusNotFound, gin.H{"error": "result not found"})
 			return
 		}
 		c.JSON(http.StatusOK, res)
-	}
+	})
 }

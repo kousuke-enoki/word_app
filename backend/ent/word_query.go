@@ -29,6 +29,7 @@ type WordQuery struct {
 	withWordInfos       *WordInfoQuery
 	withRegisteredWords *RegisteredWordQuery
 	withQuizQuestions   *QuizQuestionQuery
+	modifiers           []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -327,8 +328,9 @@ func (wq *WordQuery) Clone() *WordQuery {
 		withRegisteredWords: wq.withRegisteredWords.Clone(),
 		withQuizQuestions:   wq.withQuizQuestions.Clone(),
 		// clone intermediate query.
-		sql:  wq.sql.Clone(),
-		path: wq.path,
+		sql:       wq.sql.Clone(),
+		path:      wq.path,
+		modifiers: append([]func(*sql.Selector){}, wq.modifiers...),
 	}
 }
 
@@ -458,6 +460,9 @@ func (wq *WordQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Word, e
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(wq.modifiers) > 0 {
+		_spec.Modifiers = wq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -585,6 +590,9 @@ func (wq *WordQuery) loadQuizQuestions(ctx context.Context, query *QuizQuestionQ
 
 func (wq *WordQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := wq.querySpec()
+	if len(wq.modifiers) > 0 {
+		_spec.Modifiers = wq.modifiers
+	}
 	_spec.Node.Columns = wq.ctx.Fields
 	if len(wq.ctx.Fields) > 0 {
 		_spec.Unique = wq.ctx.Unique != nil && *wq.ctx.Unique
@@ -647,6 +655,9 @@ func (wq *WordQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if wq.ctx.Unique != nil && *wq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range wq.modifiers {
+		m(selector)
+	}
 	for _, p := range wq.predicates {
 		p(selector)
 	}
@@ -662,6 +673,12 @@ func (wq *WordQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (wq *WordQuery) Modify(modifiers ...func(s *sql.Selector)) *WordSelect {
+	wq.modifiers = append(wq.modifiers, modifiers...)
+	return wq.Select()
 }
 
 // WordGroupBy is the group-by builder for Word entities.
@@ -752,4 +769,10 @@ func (ws *WordSelect) sqlScan(ctx context.Context, root *WordQuery, v any) error
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (ws *WordSelect) Modify(modifiers ...func(s *sql.Selector)) *WordSelect {
+	ws.modifiers = append(ws.modifiers, modifiers...)
+	return ws
 }

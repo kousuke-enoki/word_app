@@ -29,6 +29,7 @@ type QuizQuestionQuery struct {
 	withWord         *WordQuery
 	withJapaneseMean *JapaneseMeanQuery
 	withFKs          bool
+	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -327,8 +328,9 @@ func (qqq *QuizQuestionQuery) Clone() *QuizQuestionQuery {
 		withWord:         qqq.withWord.Clone(),
 		withJapaneseMean: qqq.withJapaneseMean.Clone(),
 		// clone intermediate query.
-		sql:  qqq.sql.Clone(),
-		path: qqq.path,
+		sql:       qqq.sql.Clone(),
+		path:      qqq.path,
+		modifiers: append([]func(*sql.Selector){}, qqq.modifiers...),
 	}
 }
 
@@ -462,6 +464,9 @@ func (qqq *QuizQuestionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(qqq.modifiers) > 0 {
+		_spec.Modifiers = qqq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -582,6 +587,9 @@ func (qqq *QuizQuestionQuery) loadJapaneseMean(ctx context.Context, query *Japan
 
 func (qqq *QuizQuestionQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := qqq.querySpec()
+	if len(qqq.modifiers) > 0 {
+		_spec.Modifiers = qqq.modifiers
+	}
 	_spec.Node.Columns = qqq.ctx.Fields
 	if len(qqq.ctx.Fields) > 0 {
 		_spec.Unique = qqq.ctx.Unique != nil && *qqq.ctx.Unique
@@ -653,6 +661,9 @@ func (qqq *QuizQuestionQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if qqq.ctx.Unique != nil && *qqq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range qqq.modifiers {
+		m(selector)
+	}
 	for _, p := range qqq.predicates {
 		p(selector)
 	}
@@ -668,6 +679,12 @@ func (qqq *QuizQuestionQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (qqq *QuizQuestionQuery) Modify(modifiers ...func(s *sql.Selector)) *QuizQuestionSelect {
+	qqq.modifiers = append(qqq.modifiers, modifiers...)
+	return qqq.Select()
 }
 
 // QuizQuestionGroupBy is the group-by builder for QuizQuestion entities.
@@ -758,4 +775,10 @@ func (qqs *QuizQuestionSelect) sqlScan(ctx context.Context, root *QuizQuestionQu
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (qqs *QuizQuestionSelect) Modify(modifiers ...func(s *sql.Selector)) *QuizQuestionSelect {
+	qqs.modifiers = append(qqs.modifiers, modifiers...)
+	return qqs
 }

@@ -18,6 +18,6 @@ func (h *AuthHandler) TestLogoutHandler() gin.HandlerFunc {
 		}
 
 		// 204で十分（本文なし）。クライアント側はトークン破棄＆トップ遷移。
-		c.Status(http.StatusNoContent)
+		c.AbortWithStatus(http.StatusNoContent)
 	})
 }

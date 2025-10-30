@@ -18,7 +18,7 @@ func (h *BulkHandler) RegisterHandler() gin.HandlerFunc {
 			httperr.Write(c, apperror.BadRequestf("invalid json", err))
 			return
 		}
-		res, err := h.registerUsecase.Register(c, userID, req.Words)
+		res, err := h.registerUsecase.Register(c.Request.Context(), userID, req.Words)
 		if err != nil {
 			httperr.Write(c, err) // apperrorをそのまま返す
 			return

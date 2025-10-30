@@ -36,6 +36,9 @@ export const useAuth = () => {
             if (user.isTest) {
               setUserRole('test')
             }
+            if (userRole == 'guest') {
+              setUserRole('general')
+            }
           } else {
             setIsLoggedIn(false)
             setUserRole('guest')

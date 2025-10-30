@@ -103,7 +103,7 @@ func (r *EntUserDailyUsageRepo) incWithKind(ctx context.Context, userID int, now
 func quizAddSql() string {
 	return `
 		INSERT INTO user_daily_usages (user_id, last_reset_date, quiz_count, bulk_count, updated_at)
-		VALUES ($1, $2, 1, 0, NOW())
+		VALUES ($1, $2, 1, 0, CURRENT_TIMESTAMP)
 		ON CONFLICT (user_id)
 		DO UPDATE SET
 			quiz_count = CASE
@@ -118,7 +118,7 @@ func quizAddSql() string {
 				WHEN user_daily_usages.last_reset_date < $2 THEN $2
 				ELSE user_daily_usages.last_reset_date
 			END,
-			updated_at = NOW()
+			updated_at = CURRENT_TIMESTAMP
 		WHERE user_daily_usages.last_reset_date < $2
 		   OR user_daily_usages.quiz_count < $3
 		RETURNING quiz_count, bulk_count, last_reset_date;
@@ -128,7 +128,7 @@ func quizAddSql() string {
 func bulkAddSql() string {
 	return `
 		INSERT INTO user_daily_usages (user_id, last_reset_date, quiz_count, bulk_count, updated_at)
-		VALUES ($1, $2, 0, 1, NOW())
+		VALUES ($1, $2, 0, 1, CURRENT_TIMESTAMP)
 		ON CONFLICT (user_id)
 		DO UPDATE	SET
 			bulk_count = CASE
@@ -143,7 +143,7 @@ func bulkAddSql() string {
 				WHEN user_daily_usages.last_reset_date < $2 THEN $2
 				ELSE user_daily_usages.last_reset_date
 			END,
-			updated_at = NOW()
+			updated_at = CURRENT_TIMESTAMP
 		WHERE user_daily_usages.last_reset_date < $2
 			OR user_daily_usages.bulk_count < $3
 		RETURNING quiz_count, bulk_count, last_reset_date;

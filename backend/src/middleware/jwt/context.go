@@ -58,18 +58,18 @@ type HTTPError struct {
 
 func (e *HTTPError) Error() string { return e.Msg }
 
-type principalKey struct{}
+type PrincipalKey struct{}
 
 // WithPrincipal adds Principal to standard context.Context.
 // This allows service/usecase layers to access Principal without gin.Context.
 func WithPrincipal(ctx context.Context, p models.Principal) context.Context {
-	return context.WithValue(ctx, principalKey{}, p)
+	return context.WithValue(ctx, PrincipalKey{}, p)
 }
 
 // GetPrincipalFromContext extracts Principal from standard context.Context.
 // Returns the Principal and true if found, otherwise returns zero value and false.
 func GetPrincipalFromContext(ctx context.Context) (models.Principal, bool) {
-	v := ctx.Value(principalKey{})
+	v := ctx.Value(PrincipalKey{})
 	if v == nil {
 		return models.Principal{}, false
 	}

@@ -27,6 +27,7 @@ export const useAuth = () => {
 
           if (user.id) {
             setIsLoggedIn(true)
+            setUserRole('general')
             if (user.isAdmin) {
               setUserRole('admin')
             }
@@ -35,9 +36,6 @@ export const useAuth = () => {
             }
             if (user.isTest) {
               setUserRole('test')
-            }
-            if (userRole == 'guest') {
-              setUserRole('general')
             }
           } else {
             setIsLoggedIn(false)

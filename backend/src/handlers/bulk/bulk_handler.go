@@ -25,11 +25,6 @@ func NewHandler(
 	}
 }
 
-// type Service interface {
-// 	BulkTokenize(ctx context.Context, userID int, text string) ([]string, []string, []string, error)
-// 	BulkRegister(ctx context.Context, userID int, words []string) (*models.BulkRegisterResponse, error)
-// }
-
 type Handler interface {
 	TokenizeHandler() gin.HandlerFunc
 	RegisterHandler() gin.HandlerFunc

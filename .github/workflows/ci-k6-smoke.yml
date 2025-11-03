@@ -1,0 +1,68 @@
+name: k6 Smoke (PR)
+
+on:
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  k6_smoke_local:
+    name: A-layer smoke against local backend
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: appdb
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Go backend を起動（どちらかを選択）
+      # A) 生起動（依存が少ないなら）
+      - name: Start backend (dev)
+        working-directory: ./backend
+        run: |
+          go mod download
+          nohup go run ./cmd/server/main.go > server.log 2>&1 &
+          # ヘルス待ち
+          for i in {1..30}; do
+            curl -sf http://localhost:8080/health && break
+            sleep 2
+          done
+
+      # # B) Docker Compose（手元と同じにしたい場合）
+      # - name: Compose up
+      #   run: |
+      #     docker compose up -d db backend
+      #     for i in {1..30}; do
+      #       curl -sf http://localhost:8080/health && break
+      #       sleep 2
+      #     done
+
+      - uses: grafana/setup-k6-action@v1
+
+      - name: Run smoke (A-layer)
+        env:
+          BASE_URL: http://localhost:8080
+          ALLOW_WRITE: 'false'
+        run: |
+          npm --prefix bench ci
+          k6 run --summary-export=bench/k6/out/smoke_pr.json bench/k6/smoke/smoke_all.js
+
+      - name: Upload k6 results
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-smoke-pr
+          path: |
+            bench/k6/out/smoke_pr.json
+          retention-days: 7

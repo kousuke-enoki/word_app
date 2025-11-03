@@ -1,0 +1,11 @@
+{
+  "name": "word_app-bench",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "k6:c:cold": "k6 run --summary-export=k6/out/cold_warm.json k6/c/cold_warm.js",
+    "k6:c:rate": "k6 run --summary-export=k6/out/rate_limit.json k6/c/rate_limit.js",
+    "k6:c:db:before": "k6 run --summary-export=k6/out/db_before.json k6/c/db_before_after.js",
+    "k6:c:db:after": "k6 run --summary-export=k6/out/db_after.json k6/c/db_before_after.js"
+  }
+}

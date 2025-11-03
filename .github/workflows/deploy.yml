@@ -2,11 +2,11 @@ name: CDK deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
-      - "backend/**"
-      - "infra/**"
-      - ".github/workflows/**"
+      - 'backend/**'
+      - 'infra/**'
+      - '.github/workflows/**'
 
 concurrency:
   group: cdk-deploy-${{ github.ref_name }}
@@ -25,7 +25,7 @@ jobs:
         with:
           aws-region: ap-northeast-1
           # role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/<GITHUB_OIDC_ROLE>
-          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - uses: aws-actions/amazon-ecr-login@v2
@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: { contents: read, id-token: write }
     env:
-      CDK_APP: "npx ts-node infra/bin/myapp.ts"
+      CDK_APP: 'npx ts-node infra/bin/myapp.ts'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -63,7 +63,7 @@ jobs:
         with:
           aws-region: ap-northeast-1
           # role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/<GITHUB_OIDC_ROLE>
-          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: CDK Deploy (pin digest)
@@ -71,3 +71,49 @@ jobs:
           npx cdk deploy --app "$CDK_APP" --all \
             -c imageDigest=${{ needs.build_push.outputs.image_digest }} \
             --require-approval never
+
+  post_k6_staging:
+    name: Post-deploy k6 (A + light B)
+    needs: cdk_deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: grafana/setup-k6-action@v1
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+
+      - name: Install bench tool deps
+        run: npm --prefix bench ci
+
+      - name: Warm-up staging (optional but recommended)
+        env:
+          BASE_URL: ${{ secrets.STG_BASE_URL }}
+        run: |
+          for i in {1..5}; do curl -sf "$BASE_URL/health" || true; sleep 1; done
+
+      - name: Run A-layer smoke on staging
+        env:
+          BASE_URL: ${{ secrets.STG_BASE_URL }}
+          ALLOW_WRITE: 'false'
+        run: |
+          k6 run --summary-export=bench/k6/out/smoke_stg.json bench/k6/smoke/smoke_all.js
+
+      - name: Run B-layer (search only, PR profile)
+        env:
+          BASE_URL: ${{ secrets.STG_BASE_URL }}
+          PROFILE: pr
+        run: |
+          k6 run --summary-export=bench/k6/out/b_search_stg.json bench/k6/b/search_words.js
+
+      - name: Make charts (optional)
+        run: |
+          node bench/tools/mkcharts.js bench/k6/out/b_search_stg.json bench/k6/out/search_rps_p95.html || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-staging-post-deploy
+          path: |
+            bench/k6/out/**
+          retention-days: 7

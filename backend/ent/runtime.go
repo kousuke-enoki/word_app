@@ -215,6 +215,10 @@ func init() {
 	rootconfigDescIsLineAuthentication := rootconfigFields[3].Descriptor()
 	// rootconfig.DefaultIsLineAuthentication holds the default value on creation for the is_line_authentication field.
 	rootconfig.DefaultIsLineAuthentication = rootconfigDescIsLineAuthentication.Default.(bool)
+	// rootconfigDescUpdatedAt is the schema descriptor for updated_at field.
+	rootconfigDescUpdatedAt := rootconfigFields[4].Descriptor()
+	// rootconfig.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	rootconfig.DefaultUpdatedAt = rootconfigDescUpdatedAt.Default.(time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescEmail is the schema descriptor for email field.

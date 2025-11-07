@@ -3,6 +3,7 @@
 package rootconfig
 
 import (
+	"time"
 	"word_app/backend/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
@@ -71,6 +72,11 @@ func IsEmailAuthenticationCheck(v bool) predicate.RootConfig {
 // IsLineAuthentication applies equality check predicate on the "is_line_authentication" field. It's identical to IsLineAuthenticationEQ.
 func IsLineAuthentication(v bool) predicate.RootConfig {
 	return predicate.RootConfig(sql.FieldEQ(FieldIsLineAuthentication, v))
+}
+
+// UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
+func UpdatedAt(v time.Time) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
 // EditingPermissionEQ applies the EQ predicate on the "editing_permission" field.
@@ -166,6 +172,46 @@ func IsLineAuthenticationEQ(v bool) predicate.RootConfig {
 // IsLineAuthenticationNEQ applies the NEQ predicate on the "is_line_authentication" field.
 func IsLineAuthenticationNEQ(v bool) predicate.RootConfig {
 	return predicate.RootConfig(sql.FieldNEQ(FieldIsLineAuthentication, v))
+}
+
+// UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
+func UpdatedAtEQ(v time.Time) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
+func UpdatedAtNEQ(v time.Time) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldNEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtIn applies the In predicate on the "updated_at" field.
+func UpdatedAtIn(vs ...time.Time) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
+func UpdatedAtNotIn(vs ...time.Time) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldNotIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtGT applies the GT predicate on the "updated_at" field.
+func UpdatedAtGT(v time.Time) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldGT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
+func UpdatedAtGTE(v time.Time) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldGTE(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLT applies the LT predicate on the "updated_at" field.
+func UpdatedAtLT(v time.Time) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldLT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
+func UpdatedAtLTE(v time.Time) predicate.RootConfig {
+	return predicate.RootConfig(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
 // And groups predicates with the AND operator between them.

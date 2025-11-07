@@ -168,6 +168,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			rootconfig.FieldIsTestUserMode:             {Type: field.TypeBool, Column: rootconfig.FieldIsTestUserMode},
 			rootconfig.FieldIsEmailAuthenticationCheck: {Type: field.TypeBool, Column: rootconfig.FieldIsEmailAuthenticationCheck},
 			rootconfig.FieldIsLineAuthentication:       {Type: field.TypeBool, Column: rootconfig.FieldIsLineAuthentication},
+			rootconfig.FieldUpdatedAt:                  {Type: field.TypeTime, Column: rootconfig.FieldUpdatedAt},
 		},
 	}
 	graph.Nodes[7] = &sqlgraph.Node{
@@ -1283,6 +1284,11 @@ func (f *RootConfigFilter) WhereIsEmailAuthenticationCheck(p entql.BoolP) {
 // WhereIsLineAuthentication applies the entql bool predicate on the is_line_authentication field.
 func (f *RootConfigFilter) WhereIsLineAuthentication(p entql.BoolP) {
 	f.Where(p.Field(rootconfig.FieldIsLineAuthentication))
+}
+
+// WhereUpdatedAt applies the entql time.Time predicate on the updated_at field.
+func (f *RootConfigFilter) WhereUpdatedAt(p entql.TimeP) {
+	f.Where(p.Field(rootconfig.FieldUpdatedAt))
 }
 
 // addPredicate implements the predicateAdder interface.

@@ -226,6 +226,7 @@ var (
 		{Name: "is_test_user_mode", Type: field.TypeBool, Default: false},
 		{Name: "is_email_authentication_check", Type: field.TypeBool, Default: false},
 		{Name: "is_line_authentication", Type: field.TypeBool, Default: false},
+		{Name: "updated_at", Type: field.TypeTime},
 	}
 	// RootConfigsTable holds the schema information for the "root_configs" table.
 	RootConfigsTable = &schema.Table{

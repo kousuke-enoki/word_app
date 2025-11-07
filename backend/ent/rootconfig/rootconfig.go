@@ -3,6 +3,8 @@
 package rootconfig
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -19,6 +21,8 @@ const (
 	FieldIsEmailAuthenticationCheck = "is_email_authentication_check"
 	// FieldIsLineAuthentication holds the string denoting the is_line_authentication field in the database.
 	FieldIsLineAuthentication = "is_line_authentication"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
+	FieldUpdatedAt = "updated_at"
 	// Table holds the table name of the rootconfig in the database.
 	Table = "root_configs"
 )
@@ -30,6 +34,7 @@ var Columns = []string{
 	FieldIsTestUserMode,
 	FieldIsEmailAuthenticationCheck,
 	FieldIsLineAuthentication,
+	FieldUpdatedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -53,6 +58,8 @@ var (
 	DefaultIsEmailAuthenticationCheck bool
 	// DefaultIsLineAuthentication holds the default value on creation for the "is_line_authentication" field.
 	DefaultIsLineAuthentication bool
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt time.Time
 )
 
 // OrderOption defines the ordering options for the RootConfig queries.
@@ -81,4 +88,9 @@ func ByIsEmailAuthenticationCheck(opts ...sql.OrderTermOption) OrderOption {
 // ByIsLineAuthentication orders the results by the is_line_authentication field.
 func ByIsLineAuthentication(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsLineAuthentication, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }

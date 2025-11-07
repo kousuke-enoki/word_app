@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/ui'
 import { useTheme } from '@/contexts/themeContext'
 import { testLogin } from '@/features/auth/testLogin'
-import { useTestUserMode } from '@/features/setting/isTestUserMode'
+import { useTestUserMode } from '@/features/setting/useTestUserMode'
 
 type QuickLink = { title: string; desc: string; to: string; emoji: string }
 

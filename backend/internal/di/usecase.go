@@ -5,6 +5,7 @@ import (
 	"word_app/backend/config"
 	"word_app/backend/src/infrastructure/auth/line"
 	"word_app/backend/src/infrastructure/jwt"
+	"word_app/backend/src/infrastructure/ratelimit"
 	authUc "word_app/backend/src/usecase/auth"
 	bulkUc "word_app/backend/src/usecase/bulk"
 	"word_app/backend/src/usecase/clock"
@@ -31,19 +32,23 @@ func NewUseCases(config *config.Config, r *Repos) (*UseCases, error) {
 	// JWTSecret は環境変数から取得することを想定
 	jwtGen := jwt.NewMyJWTGenerator(config.JWT.Secret)
 	tempJwt := tempjwt.New(config.JWT.TempSecret)
-
+	rl, err := ratelimit.NewRateLimiterFromEnv()
+	if err != nil {
+		return nil, err
+	}
 	// -------- Setting -----------
 	// 各種設定ユースケースの初期化
-	authCfgUc := settingUc.NewAuthConfig(r.RootSetting)
+	// authCfgUc := settingUc.NewAuthConfig(r.RootSetting)
 	getRootUc := settingUc.NewGetRootConfig(r.User, r.RootSetting)
+	getRuntimeConfigUc := settingUc.NewRuntimeConfig(r.RootSetting, clock.SystemClock{})
 	getUserUc := settingUc.NewGetUserConfig(r.UserSetting)
 	updateRootUc := settingUc.NewUpdateRootConfig(r.RootSetting, r.User)
 	updateUserUc := settingUc.NewUpdateUserConfig(r.Tx, r.UserSetting)
-	settingFacade := settingUc.NewSettingFacade(authCfgUc, getRootUc, getUserUc, updateRootUc, updateUserUc)
+	settingFacade := settingUc.NewSettingFacade(getRootUc, getRuntimeConfigUc, getUserUc, updateRootUc, updateUserUc)
 
 	return &UseCases{
 		Auth: authUc.NewUsecase(r.Tx, lineProv, r.User, r.UserSetting,
-			r.Auth, jwtGen, tempJwt, r.RootSetting, r.UserDailyUsage, clock.SystemClock{}),
+			r.Auth, jwtGen, tempJwt, r.RootSetting, r.UserDailyUsage, clock.SystemClock{}, rl),
 
 		BulkToken:    bulkUc.NewTokenizeUsecase(r.WordRead, r.RegisteredWordRead, r.UserDailyUsage, clock.SystemClock{}, &config.Limits),
 		BulkRegister: bulkUc.NewRegisterUsecase(r.WordRead, r.RegisteredWordRead, r.RegisteredWordWrite, r.Tx, r.User, &config.Limits),

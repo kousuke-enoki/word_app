@@ -58,6 +58,9 @@ func (r *Implementation) MountRoutes(router *gin.Engine) {
 		c.JSON(http.StatusOK, gin.H{"status": "healthy"})
 	})
 
+	// 公開API
+	router.GET("/public/runtime-config", r.SettingHandler.GetRuntimeConfigHandler())
+
 	userRoutes := router.Group("/users")
 	{
 		userRoutes.POST("/sign_up", r.UserHandler.SignUpHandler())
@@ -68,10 +71,10 @@ func (r *Implementation) MountRoutes(router *gin.Engine) {
 		userRoutes.POST("/auth/test-login", r.AuthHandler.TestLoginHandler())
 	}
 
-	SettingRoutes := router.Group("/setting")
-	{
-		SettingRoutes.GET("/auth", r.SettingHandler.GetAuthConfigHandler())
-	}
+	// SettingRoutes := router.Group("/setting")
+	// {
+	// 	SettingRoutes.GET("/runtime-config", r.SettingHandler.GetRuntimeConfigHandler())
+	// }
 
 	protectedRoutes := router.Group("/")
 	protectedRoutes.Use(r.JwtMiddleware.AuthenticateMiddleware())

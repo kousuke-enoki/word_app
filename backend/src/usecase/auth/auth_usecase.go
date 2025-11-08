@@ -5,6 +5,7 @@ import (
 
 	"word_app/backend/src/infrastructure/auth/line"
 	"word_app/backend/src/infrastructure/jwt"
+	ratelimiter "word_app/backend/src/infrastructure/ratelimit"
 	auth_repo "word_app/backend/src/infrastructure/repository/auth"
 	setting_repo "word_app/backend/src/infrastructure/repository/setting"
 	tx_repo "word_app/backend/src/infrastructure/repository/tx"
@@ -24,6 +25,7 @@ type AuthUsecase struct {
 	rootSettingRepo    setting_repo.RootConfigRepository
 	userDailyUsageRepo userDailyUsageRepo.Repository
 	clock              clock.Clock
+	rateLimiter        ratelimiter.RateLimiter
 }
 
 func NewUsecase(
@@ -37,6 +39,7 @@ func NewUsecase(
 	rootSettingRepo setting_repo.RootConfigRepository,
 	userDailyUsageRepo userDailyUsageRepo.Repository,
 	clock clock.Clock,
+	rateLimiter ratelimiter.RateLimiter,
 ) *AuthUsecase {
 	return &AuthUsecase{
 		txm:                txm,
@@ -49,6 +52,7 @@ func NewUsecase(
 		rootSettingRepo:    rootSettingRepo,
 		userDailyUsageRepo: userDailyUsageRepo,
 		clock:              clock,
+		rateLimiter:        rateLimiter,
 	}
 }
 
@@ -56,7 +60,10 @@ type Usecase interface {
 	StartLogin(ctx context.Context, state, nonce string) string
 	HandleCallback(ctx context.Context, code string) (*CallbackResult, error)
 	CompleteSignUp(ctx context.Context, tempToken string, pass *string) (string, error)
-	TestLogin(ctx context.Context) (*TestLoginOutput, error)
+	TestLoginWithRateLimit(
+		ctx context.Context,
+		ip, uaHash, route, jump string,
+	) (*TestLoginOutput, []byte, int, error)
 	TestLogout(ctx context.Context, actorID int) error
 }
 

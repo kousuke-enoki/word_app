@@ -1,31 +1,25 @@
 package settinguc
 
-import (
-	"context"
+// type AuthConfigDTO struct {
+// 	IsLineAuth bool `json:"is_line_auth"`
+// }
 
-	settingport "word_app/backend/src/infrastructure/repository/setting"
-)
+// type AuthConfigInteractor struct {
+// 	repo settingport.RootConfigRepository
+// }
 
-type AuthConfigDTO struct {
-	IsLineAuth bool `json:"is_line_auth"`
-}
+// type GetAuthConfig interface {
+// 	Execute(ctx context.Context) (*AuthConfigDTO, error)
+// }
 
-type AuthConfigInteractor struct {
-	repo settingport.RootConfigRepository
-}
+// func NewAuthConfig(r settingport.RootConfigRepository) *AuthConfigInteractor {
+// 	return &AuthConfigInteractor{repo: r}
+// }
 
-type GetAuthConfig interface {
-	Execute(ctx context.Context) (*AuthConfigDTO, error)
-}
-
-func NewAuthConfig(r settingport.RootConfigRepository) *AuthConfigInteractor {
-	return &AuthConfigInteractor{repo: r}
-}
-
-func (u *AuthConfigInteractor) Execute(ctx context.Context) (*AuthConfigDTO, error) {
-	cfg, err := u.repo.Get(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return &AuthConfigDTO{IsLineAuth: cfg.IsLineAuthentication}, nil
-}
+// func (u *AuthConfigInteractor) Execute(ctx context.Context) (*AuthConfigDTO, error) {
+// 	cfg, err := u.repo.Get(ctx)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &AuthConfigDTO{IsLineAuth: cfg.IsLineAuthentication}, nil
+// }

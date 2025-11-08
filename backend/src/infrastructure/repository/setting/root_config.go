@@ -36,6 +36,7 @@ func (r *EntRootConfigRepo) Get(ctx context.Context) (*domain.RootConfig, error)
 		IsTestUserMode:             rc.IsTestUserMode,
 		IsEmailAuthenticationCheck: rc.IsEmailAuthenticationCheck,
 		IsLineAuthentication:       rc.IsLineAuthentication,
+		UpdatedAt:                  rc.UpdatedAt,
 	}, nil
 }
 
@@ -72,5 +73,6 @@ func entToDomain(rc *ent.RootConfig) *domain.RootConfig {
 		IsTestUserMode:             rc.IsTestUserMode,
 		IsEmailAuthenticationCheck: rc.IsEmailAuthenticationCheck,
 		IsLineAuthentication:       rc.IsLineAuthentication,
+		UpdatedAt:                  rc.UpdatedAt,
 	}
 }

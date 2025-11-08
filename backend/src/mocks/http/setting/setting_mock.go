@@ -36,52 +36,6 @@ func (_m *MockHandler) EXPECT() *MockHandler_Expecter {
 	return &MockHandler_Expecter{mock: &_m.Mock}
 }
 
-// GetAuthConfigHandler provides a mock function for the type MockHandler
-func (_mock *MockHandler) GetAuthConfigHandler() gin.HandlerFunc {
-	ret := _mock.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetAuthConfigHandler")
-	}
-
-	var r0 gin.HandlerFunc
-	if returnFunc, ok := ret.Get(0).(func() gin.HandlerFunc); ok {
-		r0 = returnFunc()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(gin.HandlerFunc)
-		}
-	}
-	return r0
-}
-
-// MockHandler_GetAuthConfigHandler_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAuthConfigHandler'
-type MockHandler_GetAuthConfigHandler_Call struct {
-	*mock.Call
-}
-
-// GetAuthConfigHandler is a helper method to define mock.On call
-func (_e *MockHandler_Expecter) GetAuthConfigHandler() *MockHandler_GetAuthConfigHandler_Call {
-	return &MockHandler_GetAuthConfigHandler_Call{Call: _e.mock.On("GetAuthConfigHandler")}
-}
-
-func (_c *MockHandler_GetAuthConfigHandler_Call) Run(run func()) *MockHandler_GetAuthConfigHandler_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *MockHandler_GetAuthConfigHandler_Call) Return(handlerFunc gin.HandlerFunc) *MockHandler_GetAuthConfigHandler_Call {
-	_c.Call.Return(handlerFunc)
-	return _c
-}
-
-func (_c *MockHandler_GetAuthConfigHandler_Call) RunAndReturn(run func() gin.HandlerFunc) *MockHandler_GetAuthConfigHandler_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetRootConfigHandler provides a mock function for the type MockHandler
 func (_mock *MockHandler) GetRootConfigHandler() gin.HandlerFunc {
 	ret := _mock.Called()
@@ -124,6 +78,52 @@ func (_c *MockHandler_GetRootConfigHandler_Call) Return(handlerFunc gin.HandlerF
 }
 
 func (_c *MockHandler_GetRootConfigHandler_Call) RunAndReturn(run func() gin.HandlerFunc) *MockHandler_GetRootConfigHandler_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetRuntimeConfigHandler provides a mock function for the type MockHandler
+func (_mock *MockHandler) GetRuntimeConfigHandler() gin.HandlerFunc {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetRuntimeConfigHandler")
+	}
+
+	var r0 gin.HandlerFunc
+	if returnFunc, ok := ret.Get(0).(func() gin.HandlerFunc); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(gin.HandlerFunc)
+		}
+	}
+	return r0
+}
+
+// MockHandler_GetRuntimeConfigHandler_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRuntimeConfigHandler'
+type MockHandler_GetRuntimeConfigHandler_Call struct {
+	*mock.Call
+}
+
+// GetRuntimeConfigHandler is a helper method to define mock.On call
+func (_e *MockHandler_Expecter) GetRuntimeConfigHandler() *MockHandler_GetRuntimeConfigHandler_Call {
+	return &MockHandler_GetRuntimeConfigHandler_Call{Call: _e.mock.On("GetRuntimeConfigHandler")}
+}
+
+func (_c *MockHandler_GetRuntimeConfigHandler_Call) Run(run func()) *MockHandler_GetRuntimeConfigHandler_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockHandler_GetRuntimeConfigHandler_Call) Return(handlerFunc gin.HandlerFunc) *MockHandler_GetRuntimeConfigHandler_Call {
+	_c.Call.Return(handlerFunc)
+	return _c
+}
+
+func (_c *MockHandler_GetRuntimeConfigHandler_Call) RunAndReturn(run func() gin.HandlerFunc) *MockHandler_GetRuntimeConfigHandler_Call {
 	_c.Call.Return(run)
 	return _c
 }

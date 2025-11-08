@@ -6,6 +6,7 @@ package auth
 
 import (
 	"context"
+
 	"word_app/backend/src/usecase/auth"
 
 	mock "github.com/stretchr/testify/mock"
@@ -241,64 +242,102 @@ func (_c *MockUsecase_StartLogin_Call) RunAndReturn(run func(ctx context.Context
 	return _c
 }
 
-// TestLogin provides a mock function for the type MockUsecase
-func (_mock *MockUsecase) TestLogin(ctx context.Context) (*auth.TestLoginOutput, error) {
-	ret := _mock.Called(ctx)
+// TestLoginWithRateLimit provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) TestLoginWithRateLimit(ctx context.Context, ip string, uaHash string, route string, jump string) (*auth.TestLoginOutput, []byte, int, error) {
+	ret := _mock.Called(ctx, ip, uaHash, route, jump)
 
 	if len(ret) == 0 {
-		panic("no return value specified for TestLogin")
+		panic("no return value specified for TestLoginWithRateLimit")
 	}
 
 	var r0 *auth.TestLoginOutput
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) (*auth.TestLoginOutput, error)); ok {
-		return returnFunc(ctx)
+	var r1 []byte
+	var r2 int
+	var r3 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) (*auth.TestLoginOutput, []byte, int, error)); ok {
+		return returnFunc(ctx, ip, uaHash, route, jump)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) *auth.TestLoginOutput); ok {
-		r0 = returnFunc(ctx)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) *auth.TestLoginOutput); ok {
+		r0 = returnFunc(ctx, ip, uaHash, route, jump)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*auth.TestLoginOutput)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = returnFunc(ctx)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string, string) []byte); ok {
+		r1 = returnFunc(ctx, ip, uaHash, route, jump)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]byte)
+		}
 	}
-	return r0, r1
+	if returnFunc, ok := ret.Get(2).(func(context.Context, string, string, string, string) int); ok {
+		r2 = returnFunc(ctx, ip, uaHash, route, jump)
+	} else {
+		r2 = ret.Get(2).(int)
+	}
+	if returnFunc, ok := ret.Get(3).(func(context.Context, string, string, string, string) error); ok {
+		r3 = returnFunc(ctx, ip, uaHash, route, jump)
+	} else {
+		r3 = ret.Error(3)
+	}
+	return r0, r1, r2, r3
 }
 
-// MockUsecase_TestLogin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TestLogin'
-type MockUsecase_TestLogin_Call struct {
+// MockUsecase_TestLoginWithRateLimit_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TestLoginWithRateLimit'
+type MockUsecase_TestLoginWithRateLimit_Call struct {
 	*mock.Call
 }
 
-// TestLogin is a helper method to define mock.On call
+// TestLoginWithRateLimit is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *MockUsecase_Expecter) TestLogin(ctx interface{}) *MockUsecase_TestLogin_Call {
-	return &MockUsecase_TestLogin_Call{Call: _e.mock.On("TestLogin", ctx)}
+//   - ip string
+//   - uaHash string
+//   - route string
+//   - jump string
+func (_e *MockUsecase_Expecter) TestLoginWithRateLimit(ctx interface{}, ip interface{}, uaHash interface{}, route interface{}, jump interface{}) *MockUsecase_TestLoginWithRateLimit_Call {
+	return &MockUsecase_TestLoginWithRateLimit_Call{Call: _e.mock.On("TestLoginWithRateLimit", ctx, ip, uaHash, route, jump)}
 }
 
-func (_c *MockUsecase_TestLogin_Call) Run(run func(ctx context.Context)) *MockUsecase_TestLogin_Call {
+func (_c *MockUsecase_TestLoginWithRateLimit_Call) Run(run func(ctx context.Context, ip string, uaHash string, route string, jump string)) *MockUsecase_TestLoginWithRateLimit_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 string
+		if args[4] != nil {
+			arg4 = args[4].(string)
+		}
 		run(
 			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
 		)
 	})
 	return _c
 }
 
-func (_c *MockUsecase_TestLogin_Call) Return(testLoginOutput *auth.TestLoginOutput, err error) *MockUsecase_TestLogin_Call {
-	_c.Call.Return(testLoginOutput, err)
+func (_c *MockUsecase_TestLoginWithRateLimit_Call) Return(testLoginOutput *auth.TestLoginOutput, bytes []byte, n int, err error) *MockUsecase_TestLoginWithRateLimit_Call {
+	_c.Call.Return(testLoginOutput, bytes, n, err)
 	return _c
 }
 
-func (_c *MockUsecase_TestLogin_Call) RunAndReturn(run func(ctx context.Context) (*auth.TestLoginOutput, error)) *MockUsecase_TestLogin_Call {
+func (_c *MockUsecase_TestLoginWithRateLimit_Call) RunAndReturn(run func(ctx context.Context, ip string, uaHash string, route string, jump string) (*auth.TestLoginOutput, []byte, int, error)) *MockUsecase_TestLoginWithRateLimit_Call {
 	_c.Call.Return(run)
 	return _c
 }

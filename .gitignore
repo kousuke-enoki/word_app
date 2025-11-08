@@ -38,6 +38,7 @@ frontend/.vercel
 
 env.json
 
+.env
 
 # k6 big logs
 bench/k6/out/*_timeseries.json

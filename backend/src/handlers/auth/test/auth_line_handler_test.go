@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"word_app/backend/config"
 	auth_handler "word_app/backend/src/handlers/auth"
 	jwt_mock "word_app/backend/src/mocks/infrastructure/jwt"
 	auth_mock "word_app/backend/src/mocks/usecase/auth"
@@ -38,9 +39,9 @@ func TestAuthLineHandler(t *testing.T) {
 					On("StartLogin", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("string")).
 					Return(tt.redirectURL)
 
+				config := &config.Config{}
 				mockJWTGen := new(jwt_mock.MockJWTGenerator)
-				h := auth_handler.NewHandler(mockUC, mockJWTGen)
-
+				h := auth_handler.NewHandler(mockUC, mockJWTGen, config)
 				w := httptest.NewRecorder()
 				c, _ := gin.CreateTestContext(w)
 				req := httptest.NewRequest(http.MethodGet, "/line/login", nil)
@@ -96,7 +97,8 @@ func TestAuthLineHandler(t *testing.T) {
 					Return(tt.mockReturn, tt.mockErr)
 				mockJWTGenerator := new(jwt_mock.MockJWTGenerator)
 
-				userHandler := auth_handler.NewHandler(mockUC, mockJWTGenerator)
+				config := &config.Config{}
+				userHandler := auth_handler.NewHandler(mockUC, mockJWTGenerator, config)
 				// h := &auth.Handler{Usecase: mockUC, jwtGenerator: mockJWTGenerator}
 
 				//  := &auth.Handler{Usecase: mockUC}
@@ -172,7 +174,8 @@ func TestAuthLineHandler(t *testing.T) {
 				}
 				mockJWTGenerator := new(jwt_mock.MockJWTGenerator)
 
-				userHandler := auth_handler.NewHandler(mockUC, mockJWTGenerator)
+				config := &config.Config{}
+				userHandler := auth_handler.NewHandler(mockUC, mockJWTGenerator, config)
 				// h := &auth.Handler{Usecase: mockUC}
 
 				w := httptest.NewRecorder()

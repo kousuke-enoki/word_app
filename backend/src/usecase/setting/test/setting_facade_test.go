@@ -20,44 +20,45 @@ var (
 	errFoo  = errors.New("boom")
 	rootCfg = &domain.RootConfig{ID: 1, EditingPermission: "admin"}
 	userCfg = &domain.UserConfig{ID: 1, UserID: 99, IsDarkMode: true}
-	rootOut = &settingUc.OutputGetRootConfig{Config: rootCfg}
 	userOut = &settingUc.OutputGetUserConfig{Config: userCfg}
-	authDTO = &settingUc.AuthConfigDTO{IsLineAuth: true}
+	authDTO = &settingUc.RuntimeConfigDTO{IsLineAuthentication: true}
 )
 
 /* -------------------------------------------------------------------------- */
-/*                                GetAuth                                     */
+/*                                GetRuntimeConfig                                     */
 /* -------------------------------------------------------------------------- */
 
-func TestSettingFacade_GetAuth(t *testing.T) {
+func TestSettingFacade_GetRuntimeConfig(t *testing.T) {
 	// success
 	{
-		a := mockSetting.NewMockGetAuthConfig(t)
+		a := mockSetting.NewMockGetRuntimeConfig(t)
 		a.On("Execute", ctx).Return(authDTO, nil)
-		f := settingUc.NewSettingFacade(a,
+		f := settingUc.NewSettingFacade(
 			mockSetting.NewMockGetRootConfig(t),
+			a,
 			mockSetting.NewMockGetUserConfig(t),
 			mockSetting.NewMockUpdateRootConfig(t),
 			mockSetting.NewMockUpdateUserConfig(t),
 		)
-		got, err := f.GetAuth(ctx)
+		got, err := f.GetRuntimeConfig(ctx)
 		assert.NoError(t, err)
-		assert.Equal(t, true, got.IsLineAuth)
+		assert.Equal(t, true, got.IsLineAuthentication)
 		a.AssertExpectations(t)
 	}
 
 	// error
 	{
-		a := mockSetting.NewMockGetAuthConfig(t)
-		a.On("Execute", ctx).Return((*settingUc.AuthConfigDTO)(nil), errFoo)
+		a := mockSetting.NewMockGetRuntimeConfig(t)
+		a.On("Execute", ctx).Return((*settingUc.RuntimeConfigDTO)(nil), errFoo)
 
-		f := settingUc.NewSettingFacade(a,
+		f := settingUc.NewSettingFacade(
 			mockSetting.NewMockGetRootConfig(t),
+			a,
 			mockSetting.NewMockGetUserConfig(t),
 			mockSetting.NewMockUpdateRootConfig(t),
 			mockSetting.NewMockUpdateUserConfig(t),
 		)
-		_, err := f.GetAuth(ctx)
+		_, err := f.GetRuntimeConfig(ctx)
 		assert.ErrorIs(t, err, errFoo)
 		a.AssertExpectations(t)
 	}
@@ -68,48 +69,6 @@ func TestSettingFacade_GetAuth(t *testing.T) {
 /* -------------------------------------------------------------------------- */
 
 func TestSettingFacade_GetRoot(t *testing.T) {
-	in := settingUc.InputGetRootConfig{UserID: 99}
-
-	// success
-	{
-		gr := mockSetting.NewMockGetRootConfig(t)
-		gr.On("Execute", ctx, in).Return(rootOut, nil)
-
-		f := settingUc.NewSettingFacade(
-			mockSetting.NewMockGetAuthConfig(t),
-			gr,
-			mockSetting.NewMockGetUserConfig(t),
-			mockSetting.NewMockUpdateRootConfig(t),
-			mockSetting.NewMockUpdateUserConfig(t),
-		)
-		out, err := f.GetRoot(ctx, in)
-		assert.NoError(t, err)
-		assert.Equal(t, "admin", out.Config.EditingPermission)
-		gr.AssertExpectations(t)
-	}
-
-	// error
-	{
-		gr := mockSetting.NewMockGetRootConfig(t)
-		gr.On("Execute", ctx, in).Return((*settingUc.OutputGetRootConfig)(nil), errFoo)
-		f := settingUc.NewSettingFacade(
-			mockSetting.NewMockGetAuthConfig(t),
-			gr,
-			mockSetting.NewMockGetUserConfig(t),
-			mockSetting.NewMockUpdateRootConfig(t),
-			mockSetting.NewMockUpdateUserConfig(t),
-		)
-		_, err := f.GetRoot(ctx, in)
-		assert.ErrorIs(t, err, errFoo)
-		gr.AssertExpectations(t)
-	}
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                GetUser                                     */
-/* -------------------------------------------------------------------------- */
-
-func TestSettingFacade_GetUser(t *testing.T) {
 	in := settingUc.InputGetUserConfig{UserID: 99}
 
 	// success
@@ -117,8 +76,8 @@ func TestSettingFacade_GetUser(t *testing.T) {
 		gu := mockSetting.NewMockGetUserConfig(t)
 		gu.On("Execute", ctx, in).Return(userOut, nil)
 		f := settingUc.NewSettingFacade(
-			mockSetting.NewMockGetAuthConfig(t),
 			mockSetting.NewMockGetRootConfig(t),
+			mockSetting.NewMockGetRuntimeConfig(t),
 			gu,
 			mockSetting.NewMockUpdateRootConfig(t),
 			mockSetting.NewMockUpdateUserConfig(t),
@@ -134,8 +93,8 @@ func TestSettingFacade_GetUser(t *testing.T) {
 		gu := mockSetting.NewMockGetUserConfig(t)
 		gu.On("Execute", ctx, in).Return((*settingUc.OutputGetUserConfig)(nil), errFoo)
 		f := settingUc.NewSettingFacade(
-			mockSetting.NewMockGetAuthConfig(t),
 			mockSetting.NewMockGetRootConfig(t),
+			mockSetting.NewMockGetRuntimeConfig(t),
 			gu,
 			mockSetting.NewMockUpdateRootConfig(t),
 			mockSetting.NewMockUpdateUserConfig(t),
@@ -158,8 +117,8 @@ func TestSettingFacade_UpdateRoot(t *testing.T) {
 		ur := mockSetting.NewMockUpdateRootConfig(t)
 		ur.On("Execute", ctx, in).Return(rootCfg, nil)
 		f := settingUc.NewSettingFacade(
-			mockSetting.NewMockGetAuthConfig(t),
 			mockSetting.NewMockGetRootConfig(t),
+			mockSetting.NewMockGetRuntimeConfig(t),
 			mockSetting.NewMockGetUserConfig(t),
 			ur,
 			mockSetting.NewMockUpdateUserConfig(t),
@@ -175,8 +134,8 @@ func TestSettingFacade_UpdateRoot(t *testing.T) {
 		ur := mockSetting.NewMockUpdateRootConfig(t)
 		ur.On("Execute", ctx, in).Return((*domain.RootConfig)(nil), errFoo)
 		f := settingUc.NewSettingFacade(
-			mockSetting.NewMockGetAuthConfig(t),
 			mockSetting.NewMockGetRootConfig(t),
+			mockSetting.NewMockGetRuntimeConfig(t),
 			mockSetting.NewMockGetUserConfig(t),
 			ur,
 			mockSetting.NewMockUpdateUserConfig(t),
@@ -199,8 +158,8 @@ func TestSettingFacade_UpdateUser(t *testing.T) {
 		uu := mockSetting.NewMockUpdateUserConfig(t)
 		uu.On("Execute", ctx, in).Return(userCfg, nil)
 		f := settingUc.NewSettingFacade(
-			mockSetting.NewMockGetAuthConfig(t),
 			mockSetting.NewMockGetRootConfig(t),
+			mockSetting.NewMockGetRuntimeConfig(t),
 			mockSetting.NewMockGetUserConfig(t),
 			mockSetting.NewMockUpdateRootConfig(t),
 			uu,
@@ -216,8 +175,8 @@ func TestSettingFacade_UpdateUser(t *testing.T) {
 		uu := mockSetting.NewMockUpdateUserConfig(t)
 		uu.On("Execute", ctx, in).Return((*domain.UserConfig)(nil), errFoo)
 		f := settingUc.NewSettingFacade(
-			mockSetting.NewMockGetAuthConfig(t),
 			mockSetting.NewMockGetRootConfig(t),
+			mockSetting.NewMockGetRuntimeConfig(t),
 			mockSetting.NewMockGetUserConfig(t),
 			mockSetting.NewMockUpdateRootConfig(t),
 			uu,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -11,15 +12,20 @@ import (
 	"word_app/backend/src/domain"
 	settingUc "word_app/backend/src/usecase/setting"
 
-	// mockery 生成先を合わせてください
 	mockRepo "word_app/backend/src/mocks/infrastructure/repository/setting"
+	clock "word_app/backend/src/usecase/clock"
 )
 
-func TestAuthConfigInteractor_Execute(t *testing.T) {
+func TestGetRuntimeConfigInteractor_Execute(t *testing.T) {
 	type want struct {
-		isLineAuth bool
-		err        bool
+		isTestUserMode       bool
+		isLineAuthentication bool
+		version              string
+		err                  bool
 	}
+
+	// 固定の時刻を使用
+	fixedTime := time.Date(2025, 11, 21, 3, 27, 24, 0, time.UTC)
 
 	tests := []struct {
 		name     string
@@ -29,13 +35,13 @@ func TestAuthConfigInteractor_Execute(t *testing.T) {
 	}{
 		{
 			name:     "Line 認証 ON → true",
-			mockCfg:  &domain.RootConfig{IsLineAuthentication: true},
-			expected: want{isLineAuth: true, err: false},
+			mockCfg:  &domain.RootConfig{IsLineAuthentication: true, UpdatedAt: fixedTime},
+			expected: want{isTestUserMode: false, isLineAuthentication: true, version: fixedTime.Format(time.DateTime), err: false},
 		},
 		{
 			name:     "Line 認証 OFF → false",
-			mockCfg:  &domain.RootConfig{IsLineAuthentication: false},
-			expected: want{isLineAuth: false, err: false},
+			mockCfg:  &domain.RootConfig{IsLineAuthentication: false, UpdatedAt: fixedTime},
+			expected: want{isTestUserMode: false, isLineAuthentication: false, version: fixedTime.Format(time.DateTime), err: false},
 		},
 		{
 			name:     "repo.Get エラー → そのまま返す",
@@ -52,15 +58,17 @@ func TestAuthConfigInteractor_Execute(t *testing.T) {
 				On("Get", mock.Anything).
 				Return(tt.mockCfg, tt.mockErr)
 
-			uc := settingUc.NewAuthConfig(repo)
-			dto, err := uc.Execute(context.Background())
+			uc := settingUc.NewRuntimeConfig(repo, clock.SystemClock{})
+			config, err := uc.Execute(context.Background())
 
 			if tt.expected.err {
 				assert.Error(t, err)
 				return
 			}
 			assert.NoError(t, err)
-			assert.Equal(t, tt.expected.isLineAuth, dto.IsLineAuth)
+			assert.Equal(t, tt.expected.isLineAuthentication, config.IsLineAuthentication)
+			assert.Equal(t, tt.expected.version, config.Version)
+			assert.Equal(t, tt.expected.isTestUserMode, config.IsTestUserMode)
 			repo.AssertExpectations(t)
 		})
 	}

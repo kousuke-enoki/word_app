@@ -8,6 +8,7 @@ import (
 
 	linemock "word_app/backend/src/mocks/infrastructure/auth/line"
 	jwtmock "word_app/backend/src/mocks/infrastructure/jwt"
+	ratelimitmock "word_app/backend/src/mocks/infrastructure/ratelimit"
 	authmock "word_app/backend/src/mocks/infrastructure/repository/auth"
 	settingmock "word_app/backend/src/mocks/infrastructure/repository/setting"
 	txmock "word_app/backend/src/mocks/infrastructure/repository/tx"
@@ -19,8 +20,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func makeAuthUCForTestLogout(t *testing.T, tm *txmock.MockManager, provider *linemock.MockProvider, userRepo *usermock.MockRepository, settingRepo *settingmock.MockUserConfigRepository, extAuthRepo *authmock.MockExternalAuthRepository, jwtGen *jwtmock.MockJWTGenerator, tempJwtGen *jwtmock.MockTempTokenGenerator, rootSettingRepo *settingmock.MockRootConfigRepository, userDailyUsageRepo *udumock.MockRepository, clock clock.Clock) *auth.AuthUsecase {
-	return auth.NewUsecase(tm, provider, userRepo, settingRepo, extAuthRepo, jwtGen, tempJwtGen, rootSettingRepo, userDailyUsageRepo, clock)
+func makeAuthUCForTestLogout(t *testing.T, tm *txmock.MockManager, provider *linemock.MockProvider, userRepo *usermock.MockRepository, settingRepo *settingmock.MockUserConfigRepository, extAuthRepo *authmock.MockExternalAuthRepository, jwtGen *jwtmock.MockJWTGenerator, tempJwtGen *jwtmock.MockTempTokenGenerator, rootSettingRepo *settingmock.MockRootConfigRepository, userDailyUsageRepo *udumock.MockRepository, clock clock.Clock, rateLimiter *ratelimitmock.MockRateLimiter) *auth.AuthUsecase {
+	return auth.NewUsecase(tm, provider, userRepo, settingRepo, extAuthRepo, jwtGen, tempJwtGen, rootSettingRepo, userDailyUsageRepo, clock, rateLimiter)
 }
 
 func TestAuthUsecase_TestLogout(t *testing.T) {
@@ -37,8 +38,9 @@ func TestAuthUsecase_TestLogout(t *testing.T) {
 		rootSettingRepo := settingmock.NewMockRootConfigRepository(t)
 		userDailyUsageRepo := udumock.NewMockRepository(t)
 		clock := &mockClock{now: time.Now()}
+		rateLimiter := ratelimitmock.NewMockRateLimiter(t)
 
-		uc := makeAuthUCForTestLogout(t, tm, provider, userRepo, settingRepo, extAuthRepo, jwtGen, tempJwtGen, rootSettingRepo, userDailyUsageRepo, clock)
+		uc := makeAuthUCForTestLogout(t, tm, provider, userRepo, settingRepo, extAuthRepo, jwtGen, tempJwtGen, rootSettingRepo, userDailyUsageRepo, clock, rateLimiter)
 
 		tm.On("Begin", ctx).Return(ctx, func(bool) error { return nil }, nil)
 		userRepo.On("DeleteIfTest", ctx, 123).Return(true, nil)
@@ -60,8 +62,9 @@ func TestAuthUsecase_TestLogout(t *testing.T) {
 		rootSettingRepo := settingmock.NewMockRootConfigRepository(t)
 		userDailyUsageRepo := udumock.NewMockRepository(t)
 		clock := &mockClock{now: time.Now()}
+		rateLimiter := ratelimitmock.NewMockRateLimiter(t)
 
-		uc := makeAuthUCForTestLogout(t, tm, provider, userRepo, settingRepo, extAuthRepo, jwtGen, tempJwtGen, rootSettingRepo, userDailyUsageRepo, clock)
+		uc := makeAuthUCForTestLogout(t, tm, provider, userRepo, settingRepo, extAuthRepo, jwtGen, tempJwtGen, rootSettingRepo, userDailyUsageRepo, clock, rateLimiter)
 
 		tm.On("Begin", ctx).Return(ctx, func(bool) error { return nil }, nil)
 		userRepo.On("DeleteIfTest", ctx, 999).Return(false, nil)
@@ -84,8 +87,9 @@ func TestAuthUsecase_TestLogout(t *testing.T) {
 		rootSettingRepo := settingmock.NewMockRootConfigRepository(t)
 		userDailyUsageRepo := udumock.NewMockRepository(t)
 		clock := &mockClock{now: time.Now()}
+		rateLimiter := ratelimitmock.NewMockRateLimiter(t)
 
-		uc := makeAuthUCForTestLogout(t, tm, provider, userRepo, settingRepo, extAuthRepo, jwtGen, tempJwtGen, rootSettingRepo, userDailyUsageRepo, clock)
+		uc := makeAuthUCForTestLogout(t, tm, provider, userRepo, settingRepo, extAuthRepo, jwtGen, tempJwtGen, rootSettingRepo, userDailyUsageRepo, clock, rateLimiter)
 
 		tm.On("Begin", ctx).Return(ctx, func(bool) error { return nil }, nil)
 		userRepo.On("DeleteIfTest", ctx, 456).Return(false, nil)
@@ -110,8 +114,9 @@ func TestAuthUsecase_TestLogout(t *testing.T) {
 		rootSettingRepo := settingmock.NewMockRootConfigRepository(t)
 		userDailyUsageRepo := udumock.NewMockRepository(t)
 		clock := &mockClock{now: time.Now()}
+		rateLimiter := ratelimitmock.NewMockRateLimiter(t)
 
-		uc := makeAuthUCForTestLogout(t, tm, provider, userRepo, settingRepo, extAuthRepo, jwtGen, tempJwtGen, rootSettingRepo, userDailyUsageRepo, clock)
+		uc := makeAuthUCForTestLogout(t, tm, provider, userRepo, settingRepo, extAuthRepo, jwtGen, tempJwtGen, rootSettingRepo, userDailyUsageRepo, clock, rateLimiter)
 
 		tm.On("Begin", ctx).Return(nil, nil, errors.New("tx error"))
 
@@ -132,8 +137,9 @@ func TestAuthUsecase_TestLogout(t *testing.T) {
 		rootSettingRepo := settingmock.NewMockRootConfigRepository(t)
 		userDailyUsageRepo := udumock.NewMockRepository(t)
 		clock := &mockClock{now: time.Now()}
+		rateLimiter := ratelimitmock.NewMockRateLimiter(t)
 
-		uc := makeAuthUCForTestLogout(t, tm, provider, userRepo, settingRepo, extAuthRepo, jwtGen, tempJwtGen, rootSettingRepo, userDailyUsageRepo, clock)
+		uc := makeAuthUCForTestLogout(t, tm, provider, userRepo, settingRepo, extAuthRepo, jwtGen, tempJwtGen, rootSettingRepo, userDailyUsageRepo, clock, rateLimiter)
 
 		tm.On("Begin", ctx).Return(ctx, func(bool) error { return nil }, nil)
 		userRepo.On("DeleteIfTest", ctx, 123).Return(false, errors.New("db error"))
@@ -155,8 +161,9 @@ func TestAuthUsecase_TestLogout(t *testing.T) {
 		rootSettingRepo := settingmock.NewMockRootConfigRepository(t)
 		userDailyUsageRepo := udumock.NewMockRepository(t)
 		clock := &mockClock{now: time.Now()}
+		rateLimiter := ratelimitmock.NewMockRateLimiter(t)
 
-		uc := makeAuthUCForTestLogout(t, tm, provider, userRepo, settingRepo, extAuthRepo, jwtGen, tempJwtGen, rootSettingRepo, userDailyUsageRepo, clock)
+		uc := makeAuthUCForTestLogout(t, tm, provider, userRepo, settingRepo, extAuthRepo, jwtGen, tempJwtGen, rootSettingRepo, userDailyUsageRepo, clock, rateLimiter)
 
 		tm.On("Begin", ctx).Return(ctx, func(bool) error { return nil }, nil)
 		userRepo.On("DeleteIfTest", ctx, 123).Return(false, nil)
@@ -179,8 +186,9 @@ func TestAuthUsecase_TestLogout(t *testing.T) {
 		rootSettingRepo := settingmock.NewMockRootConfigRepository(t)
 		userDailyUsageRepo := udumock.NewMockRepository(t)
 		clock := &mockClock{now: time.Now()}
+		rateLimiter := ratelimitmock.NewMockRateLimiter(t)
 
-		uc := makeAuthUCForTestLogout(t, tm, provider, userRepo, settingRepo, extAuthRepo, jwtGen, tempJwtGen, rootSettingRepo, userDailyUsageRepo, clock)
+		uc := makeAuthUCForTestLogout(t, tm, provider, userRepo, settingRepo, extAuthRepo, jwtGen, tempJwtGen, rootSettingRepo, userDailyUsageRepo, clock, rateLimiter)
 
 		tm.On("Begin", ctx).Return(ctx, func(bool) error { return nil }, nil)
 		userRepo.On("DeleteIfTest", ctx, 789).Return(false, nil)
@@ -204,8 +212,9 @@ func TestAuthUsecase_TestLogout(t *testing.T) {
 		rootSettingRepo := settingmock.NewMockRootConfigRepository(t)
 		userDailyUsageRepo := udumock.NewMockRepository(t)
 		clock := &mockClock{now: time.Now()}
+		rateLimiter := ratelimitmock.NewMockRateLimiter(t)
 
-		uc := makeAuthUCForTestLogout(t, tm, provider, userRepo, settingRepo, extAuthRepo, jwtGen, tempJwtGen, rootSettingRepo, userDailyUsageRepo, clock)
+		uc := makeAuthUCForTestLogout(t, tm, provider, userRepo, settingRepo, extAuthRepo, jwtGen, tempJwtGen, rootSettingRepo, userDailyUsageRepo, clock, rateLimiter)
 
 		tm.On("Begin", ctx).Return(ctx, func(bool) error { return nil }, nil)
 		userRepo.On("DeleteIfTest", ctx, 321).Return(false, nil)

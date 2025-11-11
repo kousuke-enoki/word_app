@@ -43,7 +43,8 @@ func (m *MemoryLimiter) CheckRateLimit(ctx context.Context, ip, uaHash, route st
 	}
 	v.count++
 
-	if v.count > MaxRequests {
+	// 5回目で上限に達する
+	if v.count >= MaxRequests {
 		return &RateLimitResult{
 			Allowed:      v.last != nil, // last があれば Allowed として返させる仕様に合わせる
 			LastPayload:  v.last,

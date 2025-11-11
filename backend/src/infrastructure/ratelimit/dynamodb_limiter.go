@@ -16,10 +16,27 @@ import (
 
 const (
 	RateLimitTableName = "rate_limits"
-	WindowSeconds      = 60  // 1分
-	MaxRequests        = 5   // 1分以内の上限
-	TTLSeconds         = 120 // TTLは2分
 )
+
+var (
+	// 環境変数から読み込む（デフォルト値付き）
+	WindowSeconds = getEnvInt("RATE_LIMIT_WINDOW_SEC", 60)      // 1分
+	MaxRequests   = getEnvInt("RATE_LIMIT_MAX_REQUESTS", 5)     // 1分以内の上限
+	TTLSeconds    = getEnvInt("RATE_LIMIT_TTL_SEC", 120)        // TTLは2分（ウィンドウ + 余裕）
+)
+
+// getEnvInt は環境変数を整数として取得（デフォルト値付き）
+func getEnvInt(key string, defaultValue int) int {
+	v := os.Getenv(key)
+	if v == "" {
+		return defaultValue
+	}
+	i, err := strconv.Atoi(v)
+	if err != nil {
+		return defaultValue
+	}
+	return i
+}
 
 type DynamoDBLimiter struct {
 	client    *dynamodb.Client

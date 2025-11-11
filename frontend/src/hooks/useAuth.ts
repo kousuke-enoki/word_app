@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import axiosInstance from '../axiosConfig'
+import { clearTestLoginCache } from '../features/auth/testLogin'
 
 type UserRole = 'guest' | 'general' | 'admin' | 'root' | 'test'
 
@@ -41,12 +42,14 @@ export const useAuth = () => {
             setIsLoggedIn(false)
             setUserRole('guest')
             localStorage.removeItem('token')
+            clearTestLoginCache() // テストログインキャッシュもクリア
           }
         })
         .catch(() => {
           setIsLoggedIn(false)
           setUserRole('guest')
           localStorage.removeItem('token')
+          clearTestLoginCache() // テストログインキャッシュもクリア
         })
         .finally(() => {
           setIsLoading(false)

@@ -3,6 +3,7 @@ package ratelimit
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -20,9 +21,9 @@ const (
 
 var (
 	// 環境変数から読み込む（デフォルト値付き）
-	WindowSeconds = getEnvInt("RATE_LIMIT_WINDOW_SEC", 60)      // 1分
-	MaxRequests   = getEnvInt("RATE_LIMIT_MAX_REQUESTS", 5)     // 1分以内の上限
-	TTLSeconds    = getEnvInt("RATE_LIMIT_TTL_SEC", 120)        // TTLは2分（ウィンドウ + 余裕）
+	WindowSeconds = getEnvInt("RATE_LIMIT_WINDOW_SEC", 60)  // 1分
+	MaxRequests   = getEnvInt("RATE_LIMIT_MAX_REQUESTS", 1) // 1分以内の上限（既定: 1回）
+	TTLSeconds    = getEnvInt("RATE_LIMIT_TTL_SEC", 120)    // TTLは2分（ウィンドウ + 余裕）
 )
 
 // getEnvInt は環境変数を整数として取得（デフォルト値付き）
@@ -71,6 +72,17 @@ func NewDynamoDBLimiter(tableName string) (*DynamoDBLimiter, error) {
 }
 
 // --- helpers ---
+
+// buildRateLimitKey は要件仕様に従ったキーを構築
+// PK: "RL#" + route + "#" + ip + "#" + uaHash
+// SK: window_start (ISO-8601形式)
+func buildRateLimitKey(ip, uaHash, route, windowStartRFC string) map[string]types.AttributeValue {
+	pk := fmt.Sprintf("RL#%s#%s#%s", route, ip, uaHash)
+	return map[string]types.AttributeValue{
+		"pk": &types.AttributeValueMemberS{Value: pk},
+		"sk": &types.AttributeValueMemberS{Value: windowStartRFC},
+	}
+}
 
 func attrNum(av types.AttributeValue) (int, bool) {
 	n, ok := av.(*types.AttributeValueMemberN)
@@ -200,15 +212,12 @@ func (r *DynamoDBLimiter) CheckRateLimit(
 	now := time.Now().UTC()
 	windowStart := now.Truncate(time.Duration(WindowSeconds) * time.Second)
 	windowStartRFC := windowStart.Format(time.RFC3339)
-	ttl := now.Add(time.Duration(TTLSeconds) * time.Second).Unix()
 
-	pk := fmt.Sprintf("ip#%s", ip)
-	sk := fmt.Sprintf("route#%s#ua#%s", route, uaHash)
+	// TTL計算: window_start + window + 余裕バッファ(5秒)
+	ttl := windowStart.Add(time.Duration(WindowSeconds)*time.Second + 5*time.Second).Unix()
 
-	key := map[string]types.AttributeValue{
-		"pk": &types.AttributeValueMemberS{Value: pk},
-		"sk": &types.AttributeValueMemberS{Value: sk},
-	}
+	// 要件仕様のキー設計を使用: PK="RL#route#ip#uaHash", SK=window_start
+	key := buildRateLimitKey(ip, uaHash, route, windowStartRFC)
 
 	// 現在のカウントとウィンドウ状態を取得
 	currentCount, needsReset, item, err := r.getCurrentCountAndWindow(ctx, key, windowStartRFC)
@@ -218,16 +227,21 @@ func (r *DynamoDBLimiter) CheckRateLimit(
 
 	// 上限チェック
 	if currentCount >= MaxRequests {
-		// キャッシュされたレスポンスを確認
-		if result, found := getCachedResponse(item, windowStartRFC, currentCount, windowStart); found {
-			return result, nil
-		}
-
-		// キャッシュなし → 429
+		// RetryAfter時間を計算
 		remaining := WindowSeconds - int(now.Sub(windowStart).Seconds())
 		if remaining <= 0 {
 			remaining = WindowSeconds
 		}
+
+		// キャッシュされたレスポンスを確認
+		if result, found := getCachedResponse(item, windowStartRFC, currentCount, windowStart); found {
+			// レート制限超過時なので、Allowedをfalseにし、RetryAfterを設定
+			result.Allowed = false
+			result.RetryAfter = remaining
+			return result, nil
+		}
+
+		// キャッシュなし → 429
 		return &RateLimitResult{
 			Allowed:      false,
 			RetryAfter:   remaining,
@@ -263,18 +277,18 @@ func (r *DynamoDBLimiter) SaveLastResult(
 	payload []byte,
 ) error {
 	now := time.Now().UTC()
-	windowStart := now.Truncate(time.Duration(WindowSeconds) * time.Second).Format(time.RFC3339)
-	ttl := now.Add(time.Duration(TTLSeconds) * time.Second).Unix()
+	windowStart := now.Truncate(time.Duration(WindowSeconds) * time.Second)
+	windowStartRFC := windowStart.Format(time.RFC3339)
 
-	pk := fmt.Sprintf("ip#%s", ip)
-	sk := fmt.Sprintf("route#%s#ua#%s", route, uaHash)
+	// TTL計算: window_start + window + 余裕バッファ(5秒)
+	ttl := windowStart.Add(time.Duration(WindowSeconds)*time.Second + 5*time.Second).Unix()
+
+	// 要件仕様のキー設計を使用: PK="RL#route#ip#uaHash", SK=window_start
+	key := buildRateLimitKey(ip, uaHash, route, windowStartRFC)
 
 	_, err := r.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
-		TableName: aws.String(r.tableName),
-		Key: map[string]types.AttributeValue{
-			"pk": &types.AttributeValueMemberS{Value: pk},
-			"sk": &types.AttributeValueMemberS{Value: sk},
-		},
+		TableName:        aws.String(r.tableName),
+		Key:              key,
 		UpdateExpression: aws.String("SET #lr=:lr, #ws=:ws, #t=:ttl"),
 		ExpressionAttributeNames: map[string]string{
 			"#lr": "last_result",
@@ -283,9 +297,78 @@ func (r *DynamoDBLimiter) SaveLastResult(
 		},
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":lr":  &types.AttributeValueMemberS{Value: string(payload)},
-			":ws":  &types.AttributeValueMemberS{Value: windowStart},
+			":ws":  &types.AttributeValueMemberS{Value: windowStartRFC},
 			":ttl": &types.AttributeValueMemberN{Value: fmt.Sprintf("%d", ttl)},
 		},
 	})
 	return err
+}
+
+// ClearCacheForUser は指定されたユーザーIDに関連するキャッシュを削除する
+// last_resultのJSONからuser_idを抽出し、一致するキャッシュを削除
+func (r *DynamoDBLimiter) ClearCacheForUser(ctx context.Context, userID int) error {
+	// DynamoDBのすべてのアイテムをスキャンし、last_resultに指定されたuser_idを含むものを削除
+	// 注意: 全スキャンは効率が悪いが、テストユーザー削除は頻繁でないため許容
+	// 将来的にはGSIでuser_idで検索できるようにすると効率的
+
+	// Scanで全アイテムを取得
+	paginator := dynamodb.NewScanPaginator(r.client, &dynamodb.ScanInput{
+		TableName:      aws.String(r.tableName),
+		ConsistentRead: aws.Bool(true),
+	})
+
+	var itemsToUpdate []map[string]types.AttributeValue
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to scan cache items: %w", err)
+		}
+
+		// 各アイテムのlast_resultをチェック
+		for _, item := range output.Items {
+			lr, ok := item["last_result"].(*types.AttributeValueMemberS)
+			if !ok || lr.Value == "" {
+				continue
+			}
+
+			// JSONからuser_idを抽出
+			var result struct {
+				UserID int `json:"user_id"`
+			}
+			if err := json.Unmarshal([]byte(lr.Value), &result); err != nil {
+				// JSONパースエラーは無視（古い形式の可能性）
+				continue
+			}
+
+			// user_idが一致する場合は更新対象に追加
+			if result.UserID == userID {
+				// キーを構築（PKとSKのみ）
+				key := map[string]types.AttributeValue{
+					"pk": item["pk"],
+					"sk": item["sk"],
+				}
+				itemsToUpdate = append(itemsToUpdate, key)
+			}
+		}
+	}
+
+	// last_resultだけを削除（countは維持する）
+	for _, key := range itemsToUpdate {
+		_, err := r.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+			TableName:        aws.String(r.tableName),
+			Key:              key,
+			UpdateExpression: aws.String("REMOVE #lr"), // last_resultだけを削除
+			ExpressionAttributeNames: map[string]string{
+				"#lr": "last_result",
+			},
+		})
+		if err != nil {
+			// ログは出すが、一部失敗しても続行
+			// 本番環境では構造化ログを使用
+			continue
+		}
+	}
+
+	return nil
 }

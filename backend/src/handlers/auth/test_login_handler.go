@@ -49,6 +49,11 @@ func (h *AuthHandler) TestLoginHandler() gin.HandlerFunc {
 			return
 		}
 		if lastPayload != nil {
+			// レート制限超過時のキャッシュレスポンスの場合、Retry-Afterヘッダーを設定
+			if retryAfter > 0 {
+				c.Header("Retry-After", strconv.Itoa(retryAfter))
+				c.Header("X-Rate-Limit-Exceeded", "true") // レート制限超過フラグ
+			}
 			c.Data(http.StatusOK, "application/json", lastPayload)
 			return
 		}

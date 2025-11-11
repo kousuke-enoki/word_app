@@ -58,7 +58,8 @@ func (uc *AuthUsecase) TestLoginWithRateLimit(
 	if !chk.Allowed {
 		if chk.LastPayload != nil {
 			// 超過でもラスト結果があれば 200 を返す設計
-			return nil, chk.LastPayload, 0, nil
+			// ただし、RetryAfterも返して、フロントエンドで判定できるようにする
+			return nil, chk.LastPayload, chk.RetryAfter, nil
 		}
 		return nil, nil, chk.RetryAfter, ucerr.TooManyRequests("rate limited")
 	}

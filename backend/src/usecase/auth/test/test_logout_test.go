@@ -44,6 +44,7 @@ func TestAuthUsecase_TestLogout(t *testing.T) {
 
 		tm.On("Begin", ctx).Return(ctx, func(bool) error { return nil }, nil)
 		userRepo.On("DeleteIfTest", ctx, 123).Return(true, nil)
+		rateLimiter.On("ClearCacheForUser", ctx, 123).Return(nil)
 
 		err := uc.TestLogout(ctx, 123)
 

@@ -11,6 +11,12 @@ vi.mock('@/contexts/themeContext', () => ({
   useTheme: () => ({ setTheme: setThemeMock }),
 }))
 
+/* useTestUserMode をモック */
+const useTestUserModeMock = vi.fn(() => true)
+vi.mock('@/features/setting/useTestUserMode', () => ({
+  useTestUserMode: () => useTestUserModeMock(),
+}))
+
 /* 外部 UI を薄くモック（レンダリング安定化） */
 vi.mock('@/components/ui/PageShell', () => ({
   PageShell: ({ children }: { children: React.ReactNode }) => (
@@ -38,6 +44,7 @@ vi.mock('@/components/ui/ui', () => ({
 beforeEach(() => {
   localStorage.clear()
   vi.clearAllMocks()
+  useTestUserModeMock.mockReturnValue(true) // デフォルトでテストモード有効
 })
 
 const renderHome = () =>

@@ -51,7 +51,10 @@ func InitLogger() {
 	switch strings.ToLower(opt.Format) {
 	case "json":
 		logrus.SetFormatter(&logrus.JSONFormatter{
-			TimestampFormat: time.RFC3339Nano,
+			TimestampFormat:  time.RFC3339Nano,
+			DisableTimestamp: false, // timeフィールドは出力されるが、アクセスログではtsを使用
+			// 注意: アクセスログではtsフィールドを手動で追加しているため、
+			// timeとtsの両方が出力されるが、tsを優先して使用する
 		})
 	default:
 		logrus.SetFormatter(&logrus.TextFormatter{

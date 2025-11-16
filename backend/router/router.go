@@ -2,7 +2,6 @@ package router
 
 import (
 	"net/http"
-	"time"
 
 	"word_app/backend/src/handlers/auth"
 	"word_app/backend/src/handlers/bulk"
@@ -14,7 +13,6 @@ import (
 	"word_app/backend/src/middleware/jwt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 type Implementation struct {
@@ -52,7 +50,8 @@ func NewRouter(
 
 // ルートを取り付ける関数
 func (r *Implementation) MountRoutes(router *gin.Engine) {
-	router.Use(requestLoggerMiddleware())
+	// アクセスログは main.go の setupRouter() で設定済み
+	// 重複ロガー requestLoggerMiddleware() は削除
 
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "healthy"})
@@ -114,28 +113,5 @@ func (r *Implementation) MountRoutes(router *gin.Engine) {
 	}
 }
 
-// リクエストの詳細をログに出力するミドルウェア
-func requestLoggerMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		start := time.Now()
-
-		// リクエスト処理前
-		logrus.WithFields(logrus.Fields{
-			"method": c.Request.Method,
-			"path":   c.Request.URL.Path,
-			"query":  c.Request.URL.RawQuery,
-			"ip":     c.ClientIP(),
-		}).Info("Incoming request")
-
-		c.Next()
-
-		// リクエスト処理後
-		duration := time.Since(start)
-		logrus.WithFields(logrus.Fields{
-			"method":   c.Request.Method,
-			"path":     c.Request.URL.Path,
-			"status":   c.Writer.Status(),
-			"duration": duration,
-		}).Info("Request completed")
-	}
-}
+// 注意: requestLoggerMiddleware() は削除されました。
+// アクセスログは internal/middleware/accesslog.go の AccessLog ミドルウェアに統一されています。

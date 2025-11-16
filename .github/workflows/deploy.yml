@@ -4,9 +4,9 @@ on:
   push:
     branches: [main]
     paths:
-      - 'backend/**'
-      - 'infra/**'
-      - '.github/workflows/**'
+      - "backend/**"
+      - "infra/**"
+      - ".github/workflows/**"
 
 concurrency:
   group: cdk-deploy-${{ github.ref_name }}
@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: { contents: read, id-token: write }
     env:
-      CDK_APP: 'npx ts-node infra/bin/myapp.ts'
+      CDK_APP: "npx ts-node infra/bin/myapp.ts"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -95,9 +95,10 @@ jobs:
       - name: Run A-layer smoke on staging
         env:
           BASE_URL: ${{ secrets.STG_BASE_URL }}
-          ALLOW_WRITE: 'false'
+          ALLOW_WRITE: "false"
         run: |
-          k6 run --summary-export=bench/k6/out/smoke_stg.json bench/k6/smoke/smoke_all.js
+          mkdir -p bench/k6/out
+          export=bench/k6/out/smoke_stg.json bench/k6/a/smoke_all.js
 
       - name: Run B-layer (search only, PR profile)
         env:

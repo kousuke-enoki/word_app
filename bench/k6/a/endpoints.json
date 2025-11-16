@@ -1,0 +1,158 @@
+{
+  "open": [
+    {
+      "name": "health",
+      "method": "GET",
+      "path": "/health"
+    },
+    {
+      "name": "test-login",
+      "method": "POST",
+      "path": "/users/auth/test-login",
+      "body": {}
+    }
+  ],
+  "protected": [
+    {
+      "name": "auth-check",
+      "method": "GET",
+      "path": "/auth/check"
+    },
+    {
+      "name": "users-me",
+      "method": "GET",
+      "path": "/users/me"
+    },
+    {
+      "name": "users-my-page",
+      "method": "GET",
+      "path": "/users/my_page"
+    },
+    {
+      "name": "setting-user-config-get",
+      "method": "GET",
+      "path": "/setting/user_config"
+    },
+    {
+      "name": "words-list",
+      "method": "GET",
+      "path": "/words?sortBy=name"
+    },
+    {
+      "name": "quizzes-get",
+      "method": "GET",
+      "path": "/quizzes"
+    },
+    {
+      "name": "results-get",
+      "method": "GET",
+      "path": "/results"
+    },
+    {
+      "name": "setting-user-config-post",
+      "method": "POST",
+      "path": "/setting/user_config",
+      "body": {},
+      "write": true
+    },
+    {
+      "name": "setting-root-config-post",
+      "method": "POST",
+      "path": "/setting/root_config",
+      "body": {},
+      "write": true
+    },
+    {
+      "name": "words-register",
+      "method": "POST",
+      "path": "/words/register",
+      "body": {
+        "word_id": 1
+      },
+      "write": true
+    },
+    {
+      "name": "words-memo",
+      "method": "POST",
+      "path": "/words/memo",
+      "body": {
+        "word_id": 1,
+        "memo": "test memo"
+      },
+      "write": true
+    },
+    {
+      "name": "words-new",
+      "method": "POST",
+      "path": "/words/new",
+      "body": {
+        "name": "test-word",
+        "wordInfos": []
+      },
+      "write": true
+    },
+    {
+      "name": "words-update",
+      "method": "PUT",
+      "path": "/words/1",
+      "body": {
+        "name": "test-word-updated",
+        "wordInfos": []
+      },
+      "write": true
+    },
+    {
+      "name": "words-delete",
+      "method": "DELETE",
+      "path": "/words/1",
+      "write": true
+    },
+    {
+      "name": "words-bulk-tokenize",
+      "method": "POST",
+      "path": "/words/bulk_tokenize",
+      "body": {
+        "text": "テスト文章"
+      },
+      "write": true
+    },
+    {
+      "name": "words-bulk-register",
+      "method": "POST",
+      "path": "/words/bulk_register",
+      "body": {
+        "words": []
+      },
+      "write": true
+    },
+    {
+      "name": "quizzes-new",
+      "method": "POST",
+      "path": "/quizzes/new",
+      "body": {
+        "questionCount": 10,
+        "isSaveResult": false,
+        "isRegisteredWords": 0,
+        "correctRate": 1,
+        "attentionLevelList": [],
+        "partsOfSpeeches": [1],
+        "isIdioms": 0,
+        "isSpecialCharacters": 0
+      },
+      "write": true
+    },
+    {
+      "name": "users-update",
+      "method": "PUT",
+      "path": "/users/1",
+      "body": {},
+      "write": true
+    },
+    {
+      "name": "users-delete",
+      "method": "DELETE",
+      "path": "/users/1",
+      "write": true
+    }
+  ]
+}

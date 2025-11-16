@@ -3,6 +3,7 @@ package seeder
 import (
 	"context"
 	"log"
+	"os"
 
 	"word_app/backend/ent"
 	"word_app/backend/ent/partofspeech"
@@ -64,12 +65,33 @@ func SeedRootConfig(ctx context.Context, client interfaces.ClientInterface) {
 		log.Fatalf("failed to query rootConfig: %v", err)
 	}
 	if !exists {
+		// CI環境やローカル環境ではテストユーザーモードを有効化
+		// 環境変数で制御可能（デフォルトはfalse）
+		isTestMode := os.Getenv("ENABLE_TEST_USER_MODE") == "true"
 		_, err = entClient.RootConfig.Create().
+			SetIsTestUserMode(isTestMode).
 			Save(ctx)
 		if err != nil {
 			log.Fatalf("failed to create root config: %v", err)
 		}
-		log.Println("Root config seeded")
+		log.Printf("Root config seeded (IsTestUserMode: %v)", isTestMode)
+	} else {
+		// 既存のRootConfigがある場合、CI環境ではテストユーザーモードを有効化
+		if os.Getenv("ENABLE_TEST_USER_MODE") == "true" {
+			rc, err := entClient.RootConfig.Query().Where(rootconfig.ID(1)).Only(ctx)
+			if err != nil {
+				log.Fatalf("failed to query rootConfig: %v", err)
+			}
+			if !rc.IsTestUserMode {
+				_, err = entClient.RootConfig.UpdateOne(rc).
+					SetIsTestUserMode(true).
+					Save(ctx)
+				if err != nil {
+					log.Fatalf("failed to update root config: %v", err)
+				}
+				log.Println("Root config updated: IsTestUserMode enabled")
+			}
+		}
 	}
 }
 

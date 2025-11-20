@@ -113,8 +113,8 @@ npm --prefix bench run k6:c:cold
 
 # rate-limit
 
-BASE_URL=http://localhost:8080 \
-npm --prefix bench run k6:c:rate
+<!-- BASE_URL=http://localhost:8080 \
+npm --prefix bench run k6:c:rate -->
 
 # DB before/after（ラベルは --summary-export ファイル名で区別する運用でも OK）
 

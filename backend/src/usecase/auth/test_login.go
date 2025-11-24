@@ -65,7 +65,7 @@ func (uc *AuthUsecase) TestLoginWithRateLimit(
 	}
 	// 許可だが、近傍に成功レスポンスがあればそれを返す
 	if chk.LastPayload != nil {
-		return nil, chk.LastPayload, 0, nil
+		return nil, chk.LastPayload, chk.RetryAfter, nil
 	}
 
 	// 2) ユーザー作成（Tx内）

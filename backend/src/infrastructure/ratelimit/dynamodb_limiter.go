@@ -108,7 +108,13 @@ func (r *DynamoDBLimiter) getCurrentCountAndWindow(
 		ConsistentRead: aws.Bool(true),
 	})
 
-	if gerr != nil || gi.Item == nil {
+	// DynamoDBのエラーは即座に返す（fail-closed）
+	if gerr != nil {
+		return 0, false, nil, fmt.Errorf("failed to get rate limit item: %w", gerr)
+	}
+
+	// レコードが存在しない場合は正常なケース（初回リクエストなど）
+	if gi.Item == nil {
 		return 0, true, nil, nil
 	}
 

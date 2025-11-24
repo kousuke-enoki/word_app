@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 	"word_app/backend/ent/rootconfig"
 
 	"entgo.io/ent"
@@ -24,7 +25,9 @@ type RootConfig struct {
 	IsEmailAuthenticationCheck bool `json:"is_email_authentication_check,omitempty"`
 	// IsLineAuthentication holds the value of the "is_line_authentication" field.
 	IsLineAuthentication bool `json:"is_line_authentication,omitempty"`
-	selectValues         sql.SelectValues
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt    time.Time `json:"updated_at,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -38,6 +41,8 @@ func (*RootConfig) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case rootconfig.FieldEditingPermission:
 			values[i] = new(sql.NullString)
+		case rootconfig.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -82,6 +87,12 @@ func (rc *RootConfig) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_line_authentication", values[i])
 			} else if value.Valid {
 				rc.IsLineAuthentication = value.Bool
+			}
+		case rootconfig.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				rc.UpdatedAt = value.Time
 			}
 		default:
 			rc.selectValues.Set(columns[i], values[i])
@@ -130,6 +141,9 @@ func (rc *RootConfig) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_line_authentication=")
 	builder.WriteString(fmt.Sprintf("%v", rc.IsLineAuthentication))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(rc.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

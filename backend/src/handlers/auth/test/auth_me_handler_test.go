@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"word_app/backend/config"
 	auth_handler "word_app/backend/src/handlers/auth"
 	jwt_mock "word_app/backend/src/mocks/infrastructure/jwt"
 	auth_mock "word_app/backend/src/mocks/usecase/auth"
@@ -22,7 +23,8 @@ func TestAuthMeHandler_AllPaths(t *testing.T) {
 
 		mockUC := new(auth_mock.MockUsecase)
 		mockJWTGen := new(jwt_mock.MockJWTGenerator)
-		h := auth_handler.NewHandler(mockUC, mockJWTGen)
+		config := &config.Config{}
+		h := auth_handler.NewHandler(mockUC, mockJWTGen, config)
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -51,7 +53,8 @@ func TestAuthMeHandler_AllPaths(t *testing.T) {
 
 		mockUC := new(auth_mock.MockUsecase)
 		mockJWTGen := new(jwt_mock.MockJWTGenerator)
-		h := auth_handler.NewHandler(mockUC, mockJWTGen)
+		config := &config.Config{}
+		h := auth_handler.NewHandler(mockUC, mockJWTGen, config)
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -80,7 +83,8 @@ func TestAuthMeHandler_AllPaths(t *testing.T) {
 
 		mockUC := new(auth_mock.MockUsecase)
 		mockJWTGen := new(jwt_mock.MockJWTGenerator)
-		h := auth_handler.NewHandler(mockUC, mockJWTGen)
+		config := &config.Config{}
+		h := auth_handler.NewHandler(mockUC, mockJWTGen, config)
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -109,7 +113,8 @@ func TestAuthMeHandler_AllPaths(t *testing.T) {
 
 		mockUC := new(auth_mock.MockUsecase)
 		mockJWTGen := new(jwt_mock.MockJWTGenerator)
-		h := auth_handler.NewHandler(mockUC, mockJWTGen)
+		config := &config.Config{}
+		h := auth_handler.NewHandler(mockUC, mockJWTGen, config)
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -138,7 +143,8 @@ func TestAuthMeHandler_AllPaths(t *testing.T) {
 
 		mockUC := new(auth_mock.MockUsecase)
 		mockJWTGen := new(jwt_mock.MockJWTGenerator)
-		h := auth_handler.NewHandler(mockUC, mockJWTGen)
+		config := &config.Config{}
+		h := auth_handler.NewHandler(mockUC, mockJWTGen, config)
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -159,7 +165,8 @@ func TestAuthMeHandler_AllPaths(t *testing.T) {
 
 		mockUC := new(auth_mock.MockUsecase)
 		mockJWTGen := new(jwt_mock.MockJWTGenerator)
-		h := auth_handler.NewHandler(mockUC, mockJWTGen)
+		config := &config.Config{}
+		h := auth_handler.NewHandler(mockUC, mockJWTGen, config)
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)

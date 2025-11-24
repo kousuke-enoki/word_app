@@ -1,41 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Input } from '@headlessui/react'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import axiosInstance from '@/axiosConfig'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/ui'
-
-type SettingResponse = { is_line_auth: boolean }
+import { useRuntimeConfig } from '@/contexts/runtimeConfig/useRuntimeConfig'
 
 const SignIn: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [lineAuthEnabled, setLineAuthEnabled] = useState(false)
-  const [loadingSetting, setLoadingSetting] = useState(true)
+  const { config: runtimeConfig, isLoading: loadingSetting } =
+    useRuntimeConfig()
+  const lineAuthEnabled = runtimeConfig.is_line_authentication
   const navigate = useNavigate()
-
-  // LINE 認証の有効/無効を取得
-  useEffect(() => {
-    let mounted = true
-    ;(async () => {
-      try {
-        const { data } =
-          await axiosInstance.get<SettingResponse>('/setting/auth')
-        if (mounted) setLineAuthEnabled(!!data.is_line_auth)
-      } catch {
-        // 設定取得失敗時はボタン非表示のまま
-      } finally {
-        if (mounted) setLoadingSetting(false)
-      }
-    })()
-    return () => {
-      mounted = false
-    }
-  }, [])
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -135,42 +116,49 @@ const SignIn: React.FC = () => {
         )}
 
         {/* LINE ログイン（設定が有効時のみ） */}
-        {!loadingSetting && lineAuthEnabled && (
-          <button
-            type="button"
-            onClick={handleLineLogin}
-            className="
-              inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5
-              text-sm font-medium text-white
-              ring-2 ring-transparent focus:outline-none focus:ring-2 focus:ring-[#06C755]
-              transition
-            "
-            style={{
-              backgroundColor: '#06C755', // LINE ブランドカラー
-            }}
-            aria-label="LINEでログイン"
-          >
-            {/* LINE ロゴ（SVG） */}
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 36 36"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
+        {loadingSetting ? (
+          <div className="flex items-center justify-center gap-2 rounded-xl bg-gray-200 px-4 py-2.5 text-sm opacity-50">
+            <div className="h-5 w-5 animate-pulse rounded bg-gray-300" />
+            <span className="text-gray-500">読み込み中...</span>
+          </div>
+        ) : (
+          lineAuthEnabled && (
+            <button
+              type="button"
+              onClick={handleLineLogin}
+              className="
+                inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5
+                text-sm font-medium text-white
+                ring-2 ring-transparent focus:outline-none focus:ring-2 focus:ring-[#06C755]
+                transition
+              "
+              style={{
+                backgroundColor: '#06C755', // LINE ブランドカラー
+              }}
+              aria-label="LINEでログイン"
             >
-              <rect width="36" height="36" rx="8" fill="white" />
-              <path
-                d="M18.03 7C12.02 7 7.14 10.99 7.14 15.93c0 3.27 2.2 6.11 5.46 7.57-.17.62-.61 2.2-.7 2.54-.11.43.16.43.33.31.14-.1 2.23-1.52 3.13-2.13.88.13 1.79.2 2.77.2 6.01 0 10.89-3.98 10.89-8.92S24.04 7 18.03 7Z"
-                fill="#06C755"
-              />
-              <path
-                d="M12.5 14.3h1.6v5.2h-1.6v-5.2Zm3.05 0h1.6v3.4h2.1v1.8h-3.7v-5.2Zm6.29 0h1.6v5.2h-1.6v-5.2Zm-3.15 0h1.6v5.2h-1.6v-5.2Z"
-                fill="white"
-              />
-            </svg>
-            LINEでログイン
-          </button>
+              {/* LINE ロゴ（SVG） */}
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 36 36"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <rect width="36" height="36" rx="8" fill="white" />
+                <path
+                  d="M18.03 7C12.02 7 7.14 10.99 7.14 15.93c0 3.27 2.2 6.11 5.46 7.57-.17.62-.61 2.2-.7 2.54-.11.43.16.43.33.31.14-.1 2.23-1.52 3.13-2.13.88.13 1.79.2 2.77.2 6.01 0 10.89-3.98 10.89-8.92S24.04 7 18.03 7Z"
+                  fill="#06C755"
+                />
+                <path
+                  d="M12.5 14.3h1.6v5.2h-1.6v-5.2Zm3.05 0h1.6v3.4h2.1v1.8h-3.7v-5.2Zm6.29 0h1.6v5.2h-1.6v-5.2Zm-3.15 0h1.6v5.2h-1.6v-5.2Z"
+                  fill="white"
+                />
+              </svg>
+              LINEでログイン
+            </button>
+          )
         )}
         {/* {!loadingSetting && !lineAuthEnabled && (
           <div className="text-center text-xs opacity-60">

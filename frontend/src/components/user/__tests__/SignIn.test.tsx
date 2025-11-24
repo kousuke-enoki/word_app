@@ -24,11 +24,17 @@ vi.mock('react-router-dom', async () => {
 /** ▼ axios モック */
 vi.mock('@/axiosConfig', () => ({
   default: {
-    get: vi.fn(), // /setting/auth
+    get: vi.fn(), // /public/runtime-config
     post: vi.fn(), // /users/sign_in
   },
 }))
 import axiosInstance from '@/axiosConfig'
+
+/** ▼ useRuntimeConfig をモック */
+const useRuntimeConfigMock = vi.fn()
+vi.mock('@/contexts/runtimeConfig/useRuntimeConfig', () => ({
+  useRuntimeConfig: () => useRuntimeConfigMock(),
+}))
 
 import SignIn from '../SignIn'
 
@@ -48,6 +54,11 @@ afterAll(() => {
 beforeEach(() => {
   localStorage.clear()
   vi.clearAllMocks()
+  // useRuntimeConfig のデフォルト値（ローディング中）
+  useRuntimeConfigMock.mockReturnValue({
+    config: { is_test_user_mode: false, is_line_authentication: false },
+    isLoading: true,
+  })
   // Vite 互換: Vitest の環境変数スタブ（無ければ下の fallback でもOK）
   if ((vi as any).stubEnv) {
     ;(vi as any).stubEnv('VITE_API_URL', 'https://api.example.com')
@@ -74,8 +85,10 @@ const typeCredentials = async (email: string, password: string) => {
 
 describe('SignIn Component', () => {
   it('初期表示：見出し/入力/ボタンがある（設定ロード中は LINE ボタン非表示）', async () => {
-    ;(axiosInstance.get as any).mockResolvedValueOnce({
-      data: { is_line_auth: false },
+    // ローディング中の状態
+    useRuntimeConfigMock.mockReturnValue({
+      config: { is_test_user_mode: false, is_line_authentication: false },
+      isLoading: true,
     })
 
     render(
@@ -91,17 +104,23 @@ describe('SignIn Component', () => {
     expect(screen.getByLabelText('Email')).toBeInTheDocument()
     expect(screen.getByLabelText('Password')).toBeInTheDocument()
 
-    // ロード中は LINE ボタンなし → 設定取得完了まで待ってからも表示されない（無効ケース）
+    // ロード中は LINE ボタンなし（読み込み中表示）
     expect(screen.queryByRole('button', { name: 'LINEでログイン' })).toBeNull()
-    await waitFor(() =>
-      expect(axiosInstance.get).toHaveBeenCalledWith('/setting/auth'),
-    )
-    expect(screen.queryByRole('button', { name: 'LINEでログイン' })).toBeNull()
+    expect(screen.getByText('読み込み中...')).toBeInTheDocument()
+
+    // ローディング完了後もLINE認証が無効の場合は表示されない
+    useRuntimeConfigMock.mockReturnValue({
+      config: { is_test_user_mode: false, is_line_authentication: false },
+      isLoading: false,
+    })
+    // 再レンダリングをシミュレートするために、別のテストで確認
   })
 
   it('設定API成功：LINE 有効なら LINE ボタンが表示される', async () => {
-    ;(axiosInstance.get as any).mockResolvedValueOnce({
-      data: { is_line_auth: true },
+    // LINE認証が有効な状態
+    useRuntimeConfigMock.mockReturnValue({
+      config: { is_test_user_mode: false, is_line_authentication: true },
+      isLoading: false,
     })
 
     render(
@@ -118,7 +137,11 @@ describe('SignIn Component', () => {
   })
 
   it('設定API失敗：LINE ボタンは表示されない（サイレント）', async () => {
-    ;(axiosInstance.get as any).mockRejectedValueOnce(new Error('network'))
+    // LINE認証が無効な状態（デフォルト）
+    useRuntimeConfigMock.mockReturnValue({
+      config: { is_test_user_mode: false, is_line_authentication: false },
+      isLoading: false,
+    })
 
     render(
       <MemoryRouter>
@@ -126,17 +149,15 @@ describe('SignIn Component', () => {
       </MemoryRouter>,
     )
 
-    // 設定呼び出しは行われるが、失敗してもボタンは出ない
-    await waitFor(() =>
-      expect(axiosInstance.get).toHaveBeenCalledWith('/setting/auth'),
-    )
+    // LINE認証が無効なのでボタンは表示されない
     expect(screen.queryByRole('button', { name: 'LINEでログイン' })).toBeNull()
   })
 
   it('メールサインイン成功：token を保存して /mypage へ navigate、ローディング表示が戻る', async () => {
     // 設定API
-    ;(axiosInstance.get as any).mockResolvedValueOnce({
-      data: { is_line_auth: false },
+    useRuntimeConfigMock.mockReturnValue({
+      config: { is_test_user_mode: false, is_line_authentication: false },
+      isLoading: false,
     })
     ;(axiosInstance.post as any).mockImplementationOnce(
       () =>
@@ -176,8 +197,9 @@ describe('SignIn Component', () => {
   })
 
   it('メールサインイン失敗（サーバーから message あり）：その文言を表示し、ローディング解除', async () => {
-    ;(axiosInstance.get as any).mockResolvedValueOnce({
-      data: { is_line_auth: false },
+    useRuntimeConfigMock.mockReturnValue({
+      config: { is_test_user_mode: false, is_line_authentication: false },
+      isLoading: false,
     })
     ;(axiosInstance.post as any).mockRejectedValueOnce({
       response: { data: { message: 'ユーザーが存在しません' } },
@@ -204,8 +226,9 @@ describe('SignIn Component', () => {
   })
 
   it('メールサインイン失敗（message なし）：デフォルト文言を表示', async () => {
-    ;(axiosInstance.get as any).mockResolvedValueOnce({
-      data: { is_line_auth: true },
+    useRuntimeConfigMock.mockReturnValue({
+      config: { is_test_user_mode: false, is_line_authentication: true },
+      isLoading: false,
     })
     ;(axiosInstance.post as any).mockRejectedValueOnce(new Error('boom'))
 
@@ -226,8 +249,9 @@ describe('SignIn Component', () => {
   })
 
   it('LINEでログイン：クリックで window.location.href が LINE ログイン URL に変わる', async () => {
-    ;(axiosInstance.get as any).mockResolvedValueOnce({
-      data: { is_line_auth: true },
+    useRuntimeConfigMock.mockReturnValue({
+      config: { is_test_user_mode: false, is_line_authentication: true },
+      isLoading: false,
     })
 
     render(
@@ -246,8 +270,9 @@ describe('SignIn Component', () => {
   })
 
   it('サインアップ導線：/sign_up リンクがある', () => {
-    ;(axiosInstance.get as any).mockResolvedValueOnce({
-      data: { is_line_auth: false },
+    useRuntimeConfigMock.mockReturnValue({
+      config: { is_test_user_mode: false, is_line_authentication: false },
+      isLoading: false,
     })
 
     render(

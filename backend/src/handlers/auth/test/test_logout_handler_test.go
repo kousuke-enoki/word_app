@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"word_app/backend/config"
 	auth_handler "word_app/backend/src/handlers/auth"
 	jwt_mock "word_app/backend/src/mocks/infrastructure/jwt"
 	auth_mock "word_app/backend/src/mocks/usecase/auth"
@@ -22,7 +23,8 @@ func TestTestLogoutHandler_AllPaths(t *testing.T) {
 
 		mockUC := new(auth_mock.MockUsecase)
 		mockJWTGen := new(jwt_mock.MockJWTGenerator)
-		h := auth_handler.NewHandler(mockUC, mockJWTGen)
+		config := &config.Config{}
+		h := auth_handler.NewHandler(mockUC, mockJWTGen, config)
 
 		mockUC.On("TestLogout", mock.Anything, 1).Return(nil)
 
@@ -47,7 +49,8 @@ func TestTestLogoutHandler_AllPaths(t *testing.T) {
 
 		mockUC := new(auth_mock.MockUsecase)
 		mockJWTGen := new(jwt_mock.MockJWTGenerator)
-		h := auth_handler.NewHandler(mockUC, mockJWTGen)
+		config := &config.Config{}
+		h := auth_handler.NewHandler(mockUC, mockJWTGen, config)
 
 		mockUC.On("TestLogout", mock.Anything, 999).Return(nil)
 
@@ -72,7 +75,8 @@ func TestTestLogoutHandler_AllPaths(t *testing.T) {
 
 		mockUC := new(auth_mock.MockUsecase)
 		mockJWTGen := new(jwt_mock.MockJWTGenerator)
-		h := auth_handler.NewHandler(mockUC, mockJWTGen)
+		config := &config.Config{}
+		h := auth_handler.NewHandler(mockUC, mockJWTGen, config)
 
 		mockUC.On("TestLogout", mock.Anything, 1).
 			Return(apperror.Forbiddenf("only test user can be deleted via test-logout", nil))
@@ -98,7 +102,8 @@ func TestTestLogoutHandler_AllPaths(t *testing.T) {
 
 		mockUC := new(auth_mock.MockUsecase)
 		mockJWTGen := new(jwt_mock.MockJWTGenerator)
-		h := auth_handler.NewHandler(mockUC, mockJWTGen)
+		config := &config.Config{}
+		h := auth_handler.NewHandler(mockUC, mockJWTGen, config)
 
 		mockUC.On("TestLogout", mock.Anything, 1).
 			Return(apperror.Internalf("database error", nil))
@@ -124,7 +129,8 @@ func TestTestLogoutHandler_AllPaths(t *testing.T) {
 
 		mockUC := new(auth_mock.MockUsecase)
 		mockJWTGen := new(jwt_mock.MockJWTGenerator)
-		h := auth_handler.NewHandler(mockUC, mockJWTGen)
+		config := &config.Config{}
+		h := auth_handler.NewHandler(mockUC, mockJWTGen, config)
 
 		mockUC.On("TestLogout", mock.Anything, 1).
 			Return(apperror.NotFoundf("user not found", nil))
@@ -150,7 +156,8 @@ func TestTestLogoutHandler_AllPaths(t *testing.T) {
 
 		mockUC := new(auth_mock.MockUsecase)
 		mockJWTGen := new(jwt_mock.MockJWTGenerator)
-		h := auth_handler.NewHandler(mockUC, mockJWTGen)
+		config := &config.Config{}
+		h := auth_handler.NewHandler(mockUC, mockJWTGen, config)
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -171,7 +178,8 @@ func TestTestLogoutHandler_AllPaths(t *testing.T) {
 
 		mockUC := new(auth_mock.MockUsecase)
 		mockJWTGen := new(jwt_mock.MockJWTGenerator)
-		h := auth_handler.NewHandler(mockUC, mockJWTGen)
+		config := &config.Config{}
+		h := auth_handler.NewHandler(mockUC, mockJWTGen, config)
 
 		mockUC.On("TestLogout", mock.Anything, 5).Return(nil)
 

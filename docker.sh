@@ -42,11 +42,11 @@ fi
 # -------------------------------------------------
 case "$CMD" in
   up)
-    docker compose --env-file "$ENV_FILE" up db backend frontend
+    docker compose --env-file "$ENV_FILE" up localstack localstack-init db backend frontend
     ;;
 
   up_d)
-    docker compose --env-file "$ENV_FILE" up -d db backend frontend
+    docker compose --env-file "$ENV_FILE" up -d localstack localstack-init db backend frontend
     ;;
 
   down)

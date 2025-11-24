@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import axiosInstance from '@/axiosConfig'
 import { Badge, Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/ui'
+import { clearTestLoginCache } from '@/features/auth/testLogin'
 
 import { User } from '../../types/userTypes'
 import PageTitle from '../common/PageTitle'
@@ -33,6 +34,7 @@ const MyPage: React.FC = () => {
 
   const signOutLocally = (msg: string) => {
     localStorage.removeItem('token')
+    clearTestLoginCache() // テストログインキャッシュもクリア
     localStorage.setItem('logoutMessage', msg)
     setUser(null)
     navigate('/')

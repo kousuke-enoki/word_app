@@ -22,5 +22,5 @@ type Handler interface {
 	SaveUserConfigHandler() gin.HandlerFunc
 	GetRootConfigHandler() gin.HandlerFunc
 	SaveRootConfigHandler() gin.HandlerFunc
-	GetAuthConfigHandler() gin.HandlerFunc
+	GetRuntimeConfigHandler() gin.HandlerFunc
 }

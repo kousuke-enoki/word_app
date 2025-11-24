@@ -4,8 +4,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/ui'
 import { useTheme } from '@/contexts/themeContext'
-import { testLogin } from '@/features/auth/testLogin'
-import { useTestUserMode } from '@/features/setting/isTestUserMode'
+import { testLogin, TestLoginCooldownError } from '@/features/auth/testLogin'
+import { useTestUserMode } from '@/features/setting/useTestUserMode'
 
 type QuickLink = { title: string; desc: string; to: string; emoji: string }
 
@@ -60,26 +60,53 @@ const Home: React.FC = () => {
   const doTestLoginThen = async (to: string) => {
     if (testing) return
     setUiError('')
+    setMessage('') // メッセージをクリア
     try {
       setTesting(true)
       startCooldown()
       // ログイン済みなら再発行しない
       if (!isAuthed) {
-        await testLogin() // 1分以内の連打は同じ結果を返す
+        try {
+          await testLogin() // 1分以内の連打は同じ結果を返す（キャッシュから）
+        } catch (e: unknown) {
+          // TestLoginCooldownError の場合、キャッシュされたレスポンスがあればそれを使う
+          if (e instanceof TestLoginCooldownError && e.cachedResponse) {
+            // キャッシュされたレスポンスを使用（再表示）
+            // tokenは既に保存されているので、そのまま遷移
+            const sec = Math.ceil(e.remainingMs / 1000)
+            setMessage(
+              `テストログインは1分に最大1回。直近の結果を表示中（あと ${sec} 秒で新規実行可能）`,
+            )
+            navigate(to)
+            return
+          } else if (e instanceof TestLoginCooldownError) {
+            // キャッシュがない場合はエラー表示
+            const sec = Math.ceil(e.remainingMs / 1000)
+            setUiError(`テストログインは ${sec} 秒後に再度お試しください。`)
+            return // 遷移しない
+          } else {
+            // その他のエラーはそのまま再スロー
+            throw e
+          }
+        }
       }
       navigate(to)
     } catch (e: unknown) {
-      if (
-        typeof e === 'object' &&
-        e !== null &&
-        'remainingMs' in e &&
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        typeof (e as any).remainingMs === 'number'
-      ) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const sec = Math.ceil((e as any).remainingMs / 1000)
-        setUiError(`テストログインは ${sec} 秒後に再度お試しください。`)
+      // TestLoginCooldownErrorの再処理
+      if (e instanceof TestLoginCooldownError) {
+        if (e.cachedResponse) {
+          const sec = Math.ceil(e.remainingMs / 1000)
+          setMessage(
+            `テストログインは1分に最大1回。直近の結果を表示中（あと ${sec} 秒で新規実行可能）`,
+          )
+          navigate(to)
+          return
+        } else {
+          const sec = Math.ceil(e.remainingMs / 1000)
+          setUiError(`テストログインは ${sec} 秒後に再度お試しください。`)
+        }
       } else {
+        // その他のエラー（ネットワークエラーなど）
         setUiError(
           'テストログインに失敗しました。時間をおいて再度お試しください。',
         )

@@ -25,11 +25,19 @@ services:
     environment:
       DB_DSN: postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable
       APP_ENV: development
+      RATE_LIMIT_BACKEND: dynamodb
+      RATE_LIMIT_TABLE: rate_limits
+      AWS_ENDPOINT_URL: http://localstack:4566
+      AWS_REGION: ap-northeast-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
     ports:
       - "${APP_PORT}:8080"
     depends_on:
       db:
         condition: service_healthy
+      localstack-init:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
@@ -52,6 +60,39 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
 
+  localstack:
+    image: localstack/localstack:latest
+    ports: ["4566:4566"]
+    environment:
+      - SERVICES=dynamodb
+      - DEBUG=1
+      - DATA_DIR=/var/lib/localstack
+    volumes:
+      - "localstack_data:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  localstack-init:
+    image: amazon/aws-cli:latest
+    depends_on:
+      localstack:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: ap-northeast-1
+      LOCALSTACK_ENDPOINT: http://localstack:4566
+      AWS_REGION: ap-northeast-1
+      TABLE_NAME: rate_limits
+    volumes:
+      - ./scripts/init_localstack.sh:/init_localstack.sh:ro
+    entrypoint: ["/bin/sh"]
+    command: ["/init_localstack.sh"]
+
   frontend:
     build:
       context: ./frontend
@@ -67,3 +108,4 @@ services:
 
 volumes:
   db_data:
+  localstack_data:

@@ -1,4 +1,10 @@
-import { Duration, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
+import {
+  Duration,
+  RemovalPolicy,
+  Stack,
+  StackProps,
+  CfnOutput,
+} from "aws-cdk-lib";
 import * as apigw from "aws-cdk-lib/aws-apigateway";
 import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
@@ -104,8 +110,8 @@ export class AppStack extends Stack {
         APP_SECRET_ARN: appSecret.secretArn,
         CORS_ORIGIN: "https://word-app-opal.vercel.app",
         // 起動時の重さ回避
-        RUN_MIGRATION: "true",
-        RUN_SEEDER: "true",
+        RUN_MIGRATION: "false",
+        RUN_SEEDER: "false",
         RUN_SEEDER_FOR_WORDS: "false",
         APP_BOOTSTRAP_MODE: "FULL",
         // ↓再デプロイの「差分」が毎回出るので、
@@ -248,5 +254,12 @@ export class AppStack extends Stack {
     // アラーム通知（任意: SNSトピックが必要な場合は作成）
     // const alarmTopic = new sns.Topic(this, "AlarmTopic");
     // errorAlarm.addAlarmAction(new cloudwatch_actions.SnsAction(alarmTopic));
+
+    // API Gateway URL を Output として出力
+    new CfnOutput(this, "ApiUrl", {
+      value: api.url,
+      description: "API Gateway URL",
+      exportName: `${this.stackName}-ApiUrl`,
+    });
   }
 }

@@ -86,68 +86,63 @@ jobs:
       - name: Install bench tool deps
         run: npm --prefix bench ci
 
-      - name: Warm-up staging (wait for readiness)
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ap-northeast-1
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Probe: show BASE_URL and resolve CFN Api URL
+        id: probe
         env:
           BASE_URL: ${{ secrets.STG_BASE_URL }}
         run: |
           set -eu
-          if [ -z "${BASE_URL:-}" ]; then
-            echo "::error::BASE_URL is empty. Set secrets.STG_BASE_URL"
+          echo "BASE_URL from secrets: ${BASE_URL:-<empty>}"
+          CFN_URL=$(aws cloudformation describe-stacks \
+            --stack-name AppStack \
+            --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue | [0]" \
+            --output text 2>/dev/null || echo "")
+          echo "CFN_URL from CloudFormation: ${CFN_URL:-<empty>}"
+          # どちらを使うか決定（STG_BASE_URL 未設定/誤設定の保険）
+          USE_URL="${BASE_URL:-$CFN_URL}"
+          if [ -z "$USE_URL" ]; then
+            echo "::error::Both BASE_URL and CFN_URL are empty"
             exit 1
           fi
+          echo "use_url=$USE_URL" >> $GITHUB_OUTPUT
+          echo "Using URL: $USE_URL"
 
-          echo "Waiting for API to be ready..."
-          MAX_ATTEMPTS=30
-          ATTEMPT=0
+      - name: Warm-up & echo headers
+        env:
+          USE_URL: ${{ steps.probe.outputs.use_url }}
+        run: |
+          set -eu
+          test -n "$USE_URL"
+          echo "=== GET $USE_URL/health ==="
+          curl -sv "$USE_URL/health" 2>&1 || true
+          echo ""
+          echo "=== POST $USE_URL/users/auth/test-login ==="
+          curl -sv -X POST \
+            -H "content-type: application/json" \
+            "$USE_URL/users/auth/test-login" \
+            -d '{}' 2>&1 || true
 
-          # Health check
-          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-            if curl -sf "$BASE_URL/health" > /dev/null 2>&1; then
-              echo "Health check passed"
-              break
-            fi
-            ATTEMPT=$((ATTEMPT + 1))
-            echo "Attempt $ATTEMPT/$MAX_ATTEMPTS: Health check failed, retrying in 2s..."
-            sleep 2
-          done
-
-          if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
-            echo "::error::Health check failed after $MAX_ATTEMPTS attempts"
-            exit 1
-          fi
-
-          # Test login endpoint readiness (502以外が返ればOK)
-          ATTEMPT=0
-          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE_URL/users/auth/test-login" \
-              -H "Content-Type: application/json" \
-              -d '{}' || echo "000")
-            
-            if [ "$HTTP_CODE" != "502" ] && [ "$HTTP_CODE" != "000" ]; then
-              echo "Login endpoint responded with $HTTP_CODE (ready)"
-              break
-            fi
-            ATTEMPT=$((ATTEMPT + 1))
-            echo "Attempt $ATTEMPT/$MAX_ATTEMPTS: Login endpoint returned $HTTP_CODE, retrying in 2s..."
-            sleep 2
-          done
-
-          if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
-            echo "::error::Login endpoint not ready after $MAX_ATTEMPTS attempts"
-            exit 1
-          fi
-
-          echo "API is ready for testing"
+      - name: Warm-up staging (optional but recommended)
+        env:
+          USE_URL: ${{ steps.probe.outputs.use_url }}
+        run: |
+          for i in {1..5}; do curl -sf "$USE_URL/health" || true; sleep 1; done
 
       - name: Run A-layer smoke on staging
         env:
-          BASE_URL: ${{ secrets.STG_BASE_URL }}
+          BASE_URL: ${{ steps.probe.outputs.use_url }}
           ALLOW_WRITE: "false"
         run: |
           set -eu
           mkdir -p bench/k6/out
           if [ -z "${BASE_URL:-}" ]; then
-            echo "::error::BASE_URL is empty. Set secrets.STG_BASE_URL"
+            echo "::error::BASE_URL is empty"
             exit 1
           fi
           test -f bench/k6/a/smoke_all.js || { echo "::error::k6 script not found: bench/k6/a/smoke_all.js"; exit 1; }
@@ -155,12 +150,12 @@ jobs:
 
       - name: Run B-layer (search only, PR profile)
         env:
-          BASE_URL: ${{ secrets.STG_BASE_URL }}
+          BASE_URL: ${{ steps.probe.outputs.use_url }}
           PROFILE: pr
         run: |
           set -eu
           if [ -z "${BASE_URL:-}" ]; then
-            echo "::error::BASE_URL is empty. Set secrets.STG_BASE_URL"
+            echo "::error::BASE_URL is empty"
             exit 1
           fi
           test -f bench/k6/b/search_words.js || { echo "::error::k6 script not found: bench/k6/b/search_words.js"; exit 1; }

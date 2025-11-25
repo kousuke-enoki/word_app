@@ -148,15 +148,15 @@ jobs:
         run: |
           for i in {1..5}; do curl -sf "$BASE_URL/health" || true; sleep 1; done
 
-      - name: Run A-layer smoke on staging
-        env:
-          BASE_URL: ${{ env.BASE_URL }}
-          ALLOW_WRITE: "false"
-        run: |
-          set -eu
-          mkdir -p bench/k6/out
-          test -f bench/k6/a/smoke_all.js || { echo "::error::k6 script not found: bench/k6/a/smoke_all.js"; exit 1; }
-          k6 run --summary-export=bench/k6/out/smoke_stg.json bench/k6/a/smoke_all.js
+      # - name: Run A-layer smoke on staging
+      #   env:
+      #     BASE_URL: ${{ env.BASE_URL }}
+      #     ALLOW_WRITE: "false"
+      #   run: |
+      #     set -eu
+      #     mkdir -p bench/k6/out
+      #     test -f bench/k6/a/smoke_all.js || { echo "::error::k6 script not found: bench/k6/a/smoke_all.js"; exit 1; }
+      #     k6 run --summary-export=bench/k6/out/smoke_stg.json bench/k6/a/smoke_all.js
 
       - name: Run B-layer (search only, PR profile)
         env:

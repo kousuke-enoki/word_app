@@ -1,0 +1,74 @@
+graph TB
+    subgraph "Client Layer"
+        Browser[Browser React]
+        Vercel[Vercel Static]
+    end
+    
+    subgraph "API Gateway"
+        APIGW[Amazon API Gateway]
+    end
+    
+    subgraph "Lambda Function"
+        subgraph "Presentation Layer"
+            Handlers[Handlers<br/>- Auth<br/>- Bulk<br/>- Setting<br/>- User<br/>- Word<br/>- Quiz<br/>- Result]
+        end
+        
+        subgraph "Application Layer"
+            UseCases[UseCase Layer<br/>✅ Auth<br/>✅ Bulk<br/>✅ Setting<br/>✅ User<br/>✅ JWT<br/><br/>🔄 Word<br/>🔄 Quiz<br/>🔄 Result]
+        end
+        
+        subgraph "Domain Layer"
+            Domain[Domain Entities<br/>- User<br/>- RootConfig<br/>- UserConfig<br/>- ExternalAuth]
+            RepoInterface[Repository Interfaces]
+        end
+        
+        subgraph "Infrastructure Layer"
+            RepoImpl[Repository Implementations<br/>- UserRepo<br/>- WordRepo<br/>- SettingRepo<br/>- AuthRepo]
+            JWT[JWT Generator/Verifier]
+            RateLimit[Rate Limiter]
+            LineAuth[LINE Auth Provider]
+        end
+    end
+    
+    subgraph "Data Layer"
+        PostgreSQL[(PostgreSQL<br/>Aurora Serverless v2)]
+        S3[(S3<br/>Dictionary JSON)]
+    end
+    
+    subgraph "Observability"
+        Logs[JSON Logs<br/>Request-ID]
+        K6[k6 Load Test]
+    end
+    
+    Browser -->|HTTPS| Vercel
+    Browser -->|HTTPS JWT| APIGW
+    Vercel -->|Static Assets| Browser
+    APIGW -->|Invoke| Handlers
+    
+    Handlers -->|Depend on| UseCases
+    Handlers -.->|Legacy| Services[Service Layer<br/>Word/Quiz/Result]
+    
+    UseCases -->|Use| Domain
+    UseCases -->|Use| RepoInterface
+    UseCases -->|Use| JWT
+    UseCases -->|Use| RateLimit
+    UseCases -->|Use| LineAuth
+    
+    RepoInterface -.->|Implemented by| RepoImpl
+    RepoImpl -->|SQL| PostgreSQL
+    RepoImpl -->|Read| S3
+    
+    Services -->|Use| RepoImpl
+    
+    Handlers -->|Log| Logs
+    UseCases -->|Log| Logs
+    RepoImpl -->|Log| Logs
+    
+    K6 -->|Test| APIGW
+    
+    style UseCases fill:#90EE90
+    style Services fill:#FFD700
+    style Domain fill:#87CEEB
+    style RepoInterface fill:#87CEEB
+    style RepoImpl fill:#DDA0DD
+

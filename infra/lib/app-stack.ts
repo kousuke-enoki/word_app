@@ -180,26 +180,10 @@ export class AppStack extends Stack {
     fn.addEnvironment("LIMIT_BULK_REGISTER_MAX_ITEMS", "51200");
 
     // API Gateway の作成（スロットリング設定付き）
+    // 注意: CORSはGin側（バックエンド）で処理するため、API Gateway側では設定しない
     const api = new apigw.RestApi(this, "Api", {
       restApiName: `${this.stackName}-api`,
       description: "API for word app",
-      // CORS設定を追加（プリフライトリクエストをAPI Gateway側で処理）
-      defaultCorsPreflightOptions: {
-        allowOrigins: ["https://word-app-opal.vercel.app"],
-        allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allowHeaders: [
-          "Content-Type",
-          "X-Amz-Date",
-          "Authorization",
-          "X-Api-Key",
-          "X-Amz-Security-Token",
-          "X-Requested-With",
-          "Origin",
-          "Accept",
-        ],
-        allowCredentials: true,
-        maxAge: Duration.hours(12),
-      },
       deployOptions: {
         stageName: "prod",
         throttlingRateLimit: 50,

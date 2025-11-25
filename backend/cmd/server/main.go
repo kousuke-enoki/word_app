@@ -235,15 +235,23 @@ func setupRouter(client interfaces.ClientInterface, runner sqlexec.Runner, corsO
 	}
 
 	cfg := cors.Config{
-		AllowOrigins:     allowed,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}
-	// 2) もし *.vercel.app を許可したい場合（合わせ技OK）
+	// 2) 環境変数で指定されたオリジンと *.vercel.app の両方を許可
+	// AllowOriginFunc が設定されている場合、AllowOrigins は無視されるため、
+	// AllowOriginFunc 内で両方をチェックする
 	cfg.AllowOriginFunc = func(origin string) bool {
+		// 環境変数で指定されたオリジンをチェック
+		for _, o := range allowed {
+			if origin == o {
+				return true
+			}
+		}
+		// *.vercel.app で終わるオリジンも許可
 		return strings.HasSuffix(origin, ".vercel.app")
 	}
 

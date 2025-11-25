@@ -6,9 +6,8 @@ package settinguc
 
 import (
 	"context"
-
 	"word_app/backend/src/domain"
-	settinguc "word_app/backend/src/usecase/setting"
+	"word_app/backend/src/usecase/setting"
 
 	mock "github.com/stretchr/testify/mock"
 )

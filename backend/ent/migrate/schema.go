@@ -15,7 +15,7 @@ var (
 		{Name: "provider", Type: field.TypeString},
 		{Name: "provider_user_id", Type: field.TypeString},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "user_external_auths", Type: field.TypeInt},
+		{Name: "user_id", Type: field.TypeInt},
 	}
 	// ExternalAuthsTable holds the schema information for the "external_auths" table.
 	ExternalAuthsTable = &schema.Table{
@@ -27,7 +27,7 @@ var (
 				Symbol:     "external_auths_users_external_auths",
 				Columns:    []*schema.Column{ExternalAuthsColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -37,7 +37,7 @@ var (
 				Columns: []*schema.Column{ExternalAuthsColumns[1], ExternalAuthsColumns[2]},
 			},
 			{
-				Name:    "externalauth_provider_user_external_auths",
+				Name:    "externalauth_provider_user_id",
 				Unique:  true,
 				Columns: []*schema.Column{ExternalAuthsColumns[1], ExternalAuthsColumns[4]},
 			},
@@ -111,10 +111,20 @@ var (
 		PrimaryKey: []*schema.Column{QuizsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "quizs_users_quizs",
+				Symbol:     "quizs_users_quizzes",
 				Columns:    []*schema.Column{QuizsColumns[15]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "quiz_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{QuizsColumns[15]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "is_running = TRUE",
+				},
 			},
 		},
 	}
@@ -152,7 +162,7 @@ var (
 				Symbol:     "quiz_questions_quizs_quiz_questions",
 				Columns:    []*schema.Column{QuizQuestionsColumns[12]},
 				RefColumns: []*schema.Column{QuizsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "quiz_questions_registered_words_quiz_questions",
@@ -192,13 +202,20 @@ var (
 				Symbol:     "registered_words_users_registered_words",
 				Columns:    []*schema.Column{RegisteredWordsColumns[9]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "registered_words_words_registered_words",
 				Columns:    []*schema.Column{RegisteredWordsColumns[10]},
 				RefColumns: []*schema.Column{WordsColumns[0]},
 				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "registeredword_user_id_word_id",
+				Unique:  true,
+				Columns: []*schema.Column{RegisteredWordsColumns[9], RegisteredWordsColumns[10]},
 			},
 		},
 	}
@@ -262,7 +279,37 @@ var (
 				Symbol:     "user_configs_users_user_config",
 				Columns:    []*schema.Column{UserConfigsColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// UserDailyUsagesColumns holds the columns for the "user_daily_usages" table.
+	UserDailyUsagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "last_reset_date", Type: field.TypeTime},
+		{Name: "quiz_count", Type: field.TypeInt, Default: 0},
+		{Name: "bulk_count", Type: field.TypeInt, Default: 0},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt, Unique: true},
+	}
+	// UserDailyUsagesTable holds the schema information for the "user_daily_usages" table.
+	UserDailyUsagesTable = &schema.Table{
+		Name:       "user_daily_usages",
+		Columns:    UserDailyUsagesColumns,
+		PrimaryKey: []*schema.Column{UserDailyUsagesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_daily_usages_users_user_daily_usage",
+				Columns:    []*schema.Column{UserDailyUsagesColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "userdailyusage_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{UserDailyUsagesColumns[5]},
 			},
 		},
 	}
@@ -322,6 +369,7 @@ var (
 		RootConfigsTable,
 		UsersTable,
 		UserConfigsTable,
+		UserDailyUsagesTable,
 		WordsTable,
 		WordInfosTable,
 	}
@@ -338,6 +386,7 @@ func init() {
 	RegisteredWordsTable.ForeignKeys[0].RefTable = UsersTable
 	RegisteredWordsTable.ForeignKeys[1].RefTable = WordsTable
 	UserConfigsTable.ForeignKeys[0].RefTable = UsersTable
+	UserDailyUsagesTable.ForeignKeys[0].RefTable = UsersTable
 	WordInfosTable.ForeignKeys[0].RefTable = PartOfSpeechesTable
 	WordInfosTable.ForeignKeys[1].RefTable = WordsTable
 }

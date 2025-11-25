@@ -36,12 +36,12 @@ func (_m *MockMiddleware) EXPECT() *MockMiddleware_Expecter {
 	return &MockMiddleware_Expecter{mock: &_m.Mock}
 }
 
-// AuthMiddleware provides a mock function for the type MockMiddleware
-func (_mock *MockMiddleware) AuthMiddleware() gin.HandlerFunc {
+// AuthenticateMiddleware provides a mock function for the type MockMiddleware
+func (_mock *MockMiddleware) AuthenticateMiddleware() gin.HandlerFunc {
 	ret := _mock.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for AuthMiddleware")
+		panic("no return value specified for AuthenticateMiddleware")
 	}
 
 	var r0 gin.HandlerFunc
@@ -55,75 +55,29 @@ func (_mock *MockMiddleware) AuthMiddleware() gin.HandlerFunc {
 	return r0
 }
 
-// MockMiddleware_AuthMiddleware_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AuthMiddleware'
-type MockMiddleware_AuthMiddleware_Call struct {
+// MockMiddleware_AuthenticateMiddleware_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AuthenticateMiddleware'
+type MockMiddleware_AuthenticateMiddleware_Call struct {
 	*mock.Call
 }
 
-// AuthMiddleware is a helper method to define mock.On call
-func (_e *MockMiddleware_Expecter) AuthMiddleware() *MockMiddleware_AuthMiddleware_Call {
-	return &MockMiddleware_AuthMiddleware_Call{Call: _e.mock.On("AuthMiddleware")}
+// AuthenticateMiddleware is a helper method to define mock.On call
+func (_e *MockMiddleware_Expecter) AuthenticateMiddleware() *MockMiddleware_AuthenticateMiddleware_Call {
+	return &MockMiddleware_AuthenticateMiddleware_Call{Call: _e.mock.On("AuthenticateMiddleware")}
 }
 
-func (_c *MockMiddleware_AuthMiddleware_Call) Run(run func()) *MockMiddleware_AuthMiddleware_Call {
+func (_c *MockMiddleware_AuthenticateMiddleware_Call) Run(run func()) *MockMiddleware_AuthenticateMiddleware_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run()
 	})
 	return _c
 }
 
-func (_c *MockMiddleware_AuthMiddleware_Call) Return(handlerFunc gin.HandlerFunc) *MockMiddleware_AuthMiddleware_Call {
+func (_c *MockMiddleware_AuthenticateMiddleware_Call) Return(handlerFunc gin.HandlerFunc) *MockMiddleware_AuthenticateMiddleware_Call {
 	_c.Call.Return(handlerFunc)
 	return _c
 }
 
-func (_c *MockMiddleware_AuthMiddleware_Call) RunAndReturn(run func() gin.HandlerFunc) *MockMiddleware_AuthMiddleware_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// JwtCheckMiddleware provides a mock function for the type MockMiddleware
-func (_mock *MockMiddleware) JwtCheckMiddleware() gin.HandlerFunc {
-	ret := _mock.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for JwtCheckMiddleware")
-	}
-
-	var r0 gin.HandlerFunc
-	if returnFunc, ok := ret.Get(0).(func() gin.HandlerFunc); ok {
-		r0 = returnFunc()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(gin.HandlerFunc)
-		}
-	}
-	return r0
-}
-
-// MockMiddleware_JwtCheckMiddleware_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'JwtCheckMiddleware'
-type MockMiddleware_JwtCheckMiddleware_Call struct {
-	*mock.Call
-}
-
-// JwtCheckMiddleware is a helper method to define mock.On call
-func (_e *MockMiddleware_Expecter) JwtCheckMiddleware() *MockMiddleware_JwtCheckMiddleware_Call {
-	return &MockMiddleware_JwtCheckMiddleware_Call{Call: _e.mock.On("JwtCheckMiddleware")}
-}
-
-func (_c *MockMiddleware_JwtCheckMiddleware_Call) Run(run func()) *MockMiddleware_JwtCheckMiddleware_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *MockMiddleware_JwtCheckMiddleware_Call) Return(handlerFunc gin.HandlerFunc) *MockMiddleware_JwtCheckMiddleware_Call {
-	_c.Call.Return(handlerFunc)
-	return _c
-}
-
-func (_c *MockMiddleware_JwtCheckMiddleware_Call) RunAndReturn(run func() gin.HandlerFunc) *MockMiddleware_JwtCheckMiddleware_Call {
+func (_c *MockMiddleware_AuthenticateMiddleware_Call) RunAndReturn(run func() gin.HandlerFunc) *MockMiddleware_AuthenticateMiddleware_Call {
 	_c.Call.Return(run)
 	return _c
 }

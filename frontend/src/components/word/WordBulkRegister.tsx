@@ -34,6 +34,9 @@ const WordBulkRegister: React.FC = () => {
     if (!text.trim()) return
     setLoading(true)
     setMsg('')
+    setTokens([])
+    setNotExistWords([])
+    setRegisteredWords([])
     try {
       const { data } = await axiosInstance.post('/words/bulk_tokenize', {
         text,
@@ -51,8 +54,13 @@ const WordBulkRegister: React.FC = () => {
       }
       setNotExistWords(notExists)
       setRegisteredWords(regs)
-    } catch {
-      setMsg('抽出に失敗しました')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      const errorMsg = e?.response?.data?.error || '抽出に失敗しました'
+      setMsg(errorMsg)
+      if (e?.response?.status === 429) {
+        setMsg('複数単語登録のリクエスト制限に達しました')
+      }
     } finally {
       setLoading(false)
     }
@@ -69,16 +77,45 @@ const WordBulkRegister: React.FC = () => {
         words: selected,
       })
       let resMsg = ''
-      if (data.success && data.failed) {
-        resMsg = `結果： ${data.success.length} 件登録 / 失敗 ${data.failed.length} 件`
-      } else if (data.success) {
-        resMsg = `結果： ${data.success.length} 件登録`
-      } else if (data.failed) {
-        resMsg = `結果： ${data.failed.length} 件失敗`
+
+      // 追加表示部分ここから
+      let successMsg = ''
+      let failedMsg = ''
+      if (Array.isArray(data.success) && data.success.length) {
+        successMsg =
+          `✅ 登録成功（${data.success.length}件）：\n` +
+          (data.success as string[]).map((w: string) => `・${w}`).join('\n')
       }
+      if (Array.isArray(data.failed) && data.failed.length) {
+        failedMsg =
+          `\n❌ 登録失敗（${data.failed.length}件）:\n` +
+          data.failed
+            .map(
+              (f: { word: string; reason: string }) =>
+                `・${f.word}（${f.reason}）`,
+            )
+            .join('\n')
+      }
+      resMsg = successMsg + failedMsg
+      if (!resMsg) resMsg = '登録結果がありませんでした。'
       setRegistedMsg(resMsg)
-    } catch {
-      setRegistedMsg('登録に失敗しました')
+
+      // 登録成功した単語をチェック解除
+      if (data.success && data.success.length > 0) {
+        const successSet = new Set(data.success)
+        setTokens((prev) =>
+          prev.map((t) =>
+            successSet.has(t.word) ? { ...t, checked: false } : t,
+          ),
+        )
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      const errorMsg = e?.response?.data?.error || '登録に失敗しました'
+      setRegistedMsg(errorMsg)
+      if (e?.response?.status === 429) {
+        setRegistedMsg('複数単語登録のリクエスト制限に達しました')
+      }
     } finally {
       setLoading(false)
     }
@@ -215,7 +252,7 @@ const WordBulkRegister: React.FC = () => {
           </div>
 
           {registedMsg && (
-            <div className="mt-4 rounded-lg border-l-4 border-[var(--success_pop_bc)] bg-[var(--container_bg)] px-3 py-2 text-sm">
+            <div className="mt-4 rounded-lg border-l-4 border-[var(--success_pop_bc)] bg-[var(--container_bg)] px-3 py-2 text-sm whitespace-pre-line">
               {registedMsg}
             </div>
           )}

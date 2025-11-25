@@ -6,9 +6,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
-
 	"word_app/backend/src/domain"
 	"word_app/backend/src/domain/repository"
 	authmock "word_app/backend/src/mocks/infrastructure/repository/auth"
@@ -17,6 +14,9 @@ import (
 	usermock "word_app/backend/src/mocks/infrastructure/repository/user"
 	"word_app/backend/src/models"
 	uc "word_app/backend/src/usecase/user"
+
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func makeUC_List(t *testing.T, ur *usermock.MockRepository) *uc.UserUsecase {

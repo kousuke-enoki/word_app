@@ -14,6 +14,7 @@ import (
 	"word_app/backend/ent/schema"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
+	"word_app/backend/ent/userdailyusage"
 	"word_app/backend/ent/word"
 	"word_app/backend/ent/wordinfo"
 )
@@ -24,12 +25,16 @@ import (
 func init() {
 	externalauthFields := schema.ExternalAuth{}.Fields()
 	_ = externalauthFields
+	// externalauthDescUserID is the schema descriptor for user_id field.
+	externalauthDescUserID := externalauthFields[0].Descriptor()
+	// externalauth.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	externalauth.UserIDValidator = externalauthDescUserID.Validators[0].(func(int) error)
 	// externalauthDescProvider is the schema descriptor for provider field.
-	externalauthDescProvider := externalauthFields[0].Descriptor()
+	externalauthDescProvider := externalauthFields[1].Descriptor()
 	// externalauth.ProviderValidator is a validator for the "provider" field. It is called by the builders before save.
 	externalauth.ProviderValidator = externalauthDescProvider.Validators[0].(func(string) error)
 	// externalauthDescProviderUserID is the schema descriptor for provider_user_id field.
-	externalauthDescProviderUserID := externalauthFields[1].Descriptor()
+	externalauthDescProviderUserID := externalauthFields[2].Descriptor()
 	// externalauth.ProviderUserIDValidator is a validator for the "provider_user_id" field. It is called by the builders before save.
 	externalauth.ProviderUserIDValidator = externalauthDescProviderUserID.Validators[0].(func(string) error)
 	japanesemeanFields := schema.JapaneseMean{}.Fields()
@@ -268,6 +273,26 @@ func init() {
 	userconfigDescIsDarkMode := userconfigFields[1].Descriptor()
 	// userconfig.DefaultIsDarkMode holds the default value on creation for the is_dark_mode field.
 	userconfig.DefaultIsDarkMode = userconfigDescIsDarkMode.Default.(bool)
+	userdailyusageFields := schema.UserDailyUsage{}.Fields()
+	_ = userdailyusageFields
+	// userdailyusageDescUserID is the schema descriptor for user_id field.
+	userdailyusageDescUserID := userdailyusageFields[0].Descriptor()
+	// userdailyusage.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	userdailyusage.UserIDValidator = userdailyusageDescUserID.Validators[0].(func(int) error)
+	// userdailyusageDescQuizCount is the schema descriptor for quiz_count field.
+	userdailyusageDescQuizCount := userdailyusageFields[2].Descriptor()
+	// userdailyusage.DefaultQuizCount holds the default value on creation for the quiz_count field.
+	userdailyusage.DefaultQuizCount = userdailyusageDescQuizCount.Default.(int)
+	// userdailyusageDescBulkCount is the schema descriptor for bulk_count field.
+	userdailyusageDescBulkCount := userdailyusageFields[3].Descriptor()
+	// userdailyusage.DefaultBulkCount holds the default value on creation for the bulk_count field.
+	userdailyusage.DefaultBulkCount = userdailyusageDescBulkCount.Default.(int)
+	// userdailyusageDescUpdatedAt is the schema descriptor for updated_at field.
+	userdailyusageDescUpdatedAt := userdailyusageFields[4].Descriptor()
+	// userdailyusage.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	userdailyusage.DefaultUpdatedAt = userdailyusageDescUpdatedAt.Default.(func() time.Time)
+	// userdailyusage.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	userdailyusage.UpdateDefaultUpdatedAt = userdailyusageDescUpdatedAt.UpdateDefault.(func() time.Time)
 	wordFields := schema.Word{}.Fields()
 	_ = wordFields
 	// wordDescName is the schema descriptor for name field.

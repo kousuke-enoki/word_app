@@ -60,6 +60,12 @@ func StatusOf(k apperror.Kind) int {
 		return http.StatusConflict
 	case apperror.Validation, apperror.InvalidCredential:
 		return http.StatusBadRequest
+	case apperror.TooManyRequests:
+		return http.StatusTooManyRequests
+	case apperror.TooLargeRequests:
+		return http.StatusRequestEntityTooLarge
+	case apperror.BadRequest:
+		return http.StatusBadRequest
 	default:
 		return http.StatusInternalServerError
 	}

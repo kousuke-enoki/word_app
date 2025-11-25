@@ -21,8 +21,9 @@ import (
 // QuizUpdate is the builder for updating Quiz entities.
 type QuizUpdate struct {
 	config
-	hooks    []Hook
-	mutation *QuizMutation
+	hooks     []Hook
+	mutation  *QuizMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the QuizUpdate builder.
@@ -401,6 +402,12 @@ func (qu *QuizUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (qu *QuizUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *QuizUpdate {
+	qu.modifiers = append(qu.modifiers, modifiers...)
+	return qu
+}
+
 func (qu *QuizUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := qu.check(); err != nil {
 		return n, err
@@ -566,6 +573,7 @@ func (qu *QuizUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(qu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, qu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{quiz.Label}
@@ -581,9 +589,10 @@ func (qu *QuizUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // QuizUpdateOne is the builder for updating a single Quiz entity.
 type QuizUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *QuizMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *QuizMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetUserID sets the "user_id" field.
@@ -969,6 +978,12 @@ func (quo *QuizUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (quo *QuizUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *QuizUpdateOne {
+	quo.modifiers = append(quo.modifiers, modifiers...)
+	return quo
+}
+
 func (quo *QuizUpdateOne) sqlSave(ctx context.Context) (_node *Quiz, err error) {
 	if err := quo.check(); err != nil {
 		return _node, err
@@ -1151,6 +1166,7 @@ func (quo *QuizUpdateOne) sqlSave(ctx context.Context) (_node *Quiz, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(quo.modifiers...)
 	_node = &Quiz{config: quo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

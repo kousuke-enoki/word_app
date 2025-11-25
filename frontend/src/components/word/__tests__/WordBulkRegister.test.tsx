@@ -203,8 +203,10 @@ describe('WordBulkRegister', () => {
       expect(payload.words).toHaveLength(2) // 数も担保
     })
 
-    // 成功メッセージ
-    expect(await screen.findByText('結果： 2 件登録')).toBeInTheDocument()
+    // 成功メッセージ（詳細表示）
+    expect(await screen.findByText(/✅ 登録成功（2件）/)).toBeInTheDocument()
+    expect(screen.getByText('dog')).toBeInTheDocument()
+    expect(screen.getByText('cat')).toBeInTheDocument()
   })
 
   it('登録：failed のみ', async () => {
@@ -214,7 +216,7 @@ describe('WordBulkRegister', () => {
     })
     // 登録
     ;(axiosInstance.post as any).mockResolvedValueOnce({
-      data: { failed: ['one'] },
+      data: { failed: [{ word: 'one', reason: 'duplicate' }] },
     })
 
     renderWithRouter(<WordBulkRegister />)
@@ -225,7 +227,10 @@ describe('WordBulkRegister', () => {
     await userEvent.click(screen.getByText('one'))
     await clickRegister()
 
-    expect(await screen.findByText('結果： 1 件失敗')).toBeInTheDocument()
+    expect(await screen.findByText(/❌ 登録失敗（1件）/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/one.*duplicate|duplicate.*one/),
+    ).toBeInTheDocument()
   })
 
   it('登録：success と failed 混在', async () => {
@@ -235,7 +240,13 @@ describe('WordBulkRegister', () => {
     })
     // 登録
     ;(axiosInstance.post as any).mockResolvedValueOnce({
-      data: { success: ['a'], failed: ['b', 'c'] },
+      data: {
+        success: ['a'],
+        failed: [
+          { word: 'b', reason: 'not_found' },
+          { word: 'c', reason: 'already_exists' },
+        ],
+      },
     })
 
     renderWithRouter(<WordBulkRegister />)
@@ -246,9 +257,14 @@ describe('WordBulkRegister', () => {
     await userEvent.click(screen.getByRole('button', { name: '全選択' }))
     await clickRegister()
 
-    expect(
-      await screen.findByText('結果： 1 件登録 / 失敗 2 件'),
-    ).toBeInTheDocument()
+    // 成功メッセージ（詳細表示）
+    expect(await screen.findByText(/✅ 登録成功（1件）/)).toBeInTheDocument()
+    expect(screen.getByText('a')).toBeInTheDocument()
+
+    // 失敗メッセージ（詳細表示）
+    expect(screen.getByText(/❌ 登録失敗（2件）/)).toBeInTheDocument()
+    expect(screen.getByText('b')).toBeInTheDocument()
+    expect(screen.getByText('c')).toBeInTheDocument()
   })
 
   it('登録失敗：エラーメッセージ', async () => {
@@ -378,6 +394,7 @@ describe('WordBulkRegister', () => {
     await userEvent.click(screen.getByRole('button', { name: 'まとめて登録' }))
     expect(screen.getByRole('button', { name: '登録中…' })).toBeDisabled()
 
-    expect(await screen.findByText('結果： 1 件登録')).toBeInTheDocument()
+    expect(await screen.findByText(/✅ 登録成功（1件）/)).toBeInTheDocument()
+    expect(screen.getByText('a')).toBeInTheDocument()
   })
 })

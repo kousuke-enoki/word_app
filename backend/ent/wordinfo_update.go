@@ -21,8 +21,9 @@ import (
 // WordInfoUpdate is the builder for updating WordInfo entities.
 type WordInfoUpdate struct {
 	config
-	hooks    []Hook
-	mutation *WordInfoMutation
+	hooks     []Hook
+	mutation  *WordInfoMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the WordInfoUpdate builder.
@@ -199,6 +200,12 @@ func (wiu *WordInfoUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (wiu *WordInfoUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *WordInfoUpdate {
+	wiu.modifiers = append(wiu.modifiers, modifiers...)
+	return wiu
+}
+
 func (wiu *WordInfoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := wiu.check(); err != nil {
 		return n, err
@@ -320,6 +327,7 @@ func (wiu *WordInfoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(wiu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, wiu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{wordinfo.Label}
@@ -335,9 +343,10 @@ func (wiu *WordInfoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // WordInfoUpdateOne is the builder for updating a single WordInfo entity.
 type WordInfoUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *WordInfoMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *WordInfoMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetWordID sets the "word_id" field.
@@ -521,6 +530,12 @@ func (wiuo *WordInfoUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (wiuo *WordInfoUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *WordInfoUpdateOne {
+	wiuo.modifiers = append(wiuo.modifiers, modifiers...)
+	return wiuo
+}
+
 func (wiuo *WordInfoUpdateOne) sqlSave(ctx context.Context) (_node *WordInfo, err error) {
 	if err := wiuo.check(); err != nil {
 		return _node, err
@@ -659,6 +674,7 @@ func (wiuo *WordInfoUpdateOne) sqlSave(ctx context.Context) (_node *WordInfo, er
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(wiuo.modifiers...)
 	_node = &WordInfo{config: wiuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

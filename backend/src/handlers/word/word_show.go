@@ -1,11 +1,11 @@
 package word
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"strconv"
 
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/models"
 
 	"github.com/gin-gonic/gin"
@@ -13,10 +13,10 @@ import (
 )
 
 func (h *Handler) ShowHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ctx := context.Background()
+	return jwt.WithUser(func(c *gin.Context, userID int) {
+		ctx := c.Request.Context()
 
-		req, err := h.parseWordShowRequest(c)
+		req, err := h.parseWordShowRequest(c, userID)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -30,32 +30,20 @@ func (h *Handler) ShowHandler() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, response)
-	}
+	})
 }
 
-func (h *Handler) parseWordShowRequest(c *gin.Context) (*models.WordShowRequest, error) {
+func (h *Handler) parseWordShowRequest(c *gin.Context, userID int) (*models.WordShowRequest, error) {
 	// パラメータの取得と検証
 	wordID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return nil, errors.New("invalid word ID")
 	}
 
-	// ユーザーIDをコンテキストから取得
-	userID, exists := c.Get("userID")
-	if !exists {
-		return nil, errors.New("unauthorized: userID not found in context")
-	}
-
-	// userIDの型チェック
-	userIDInt, ok := userID.(int)
-	if !ok {
-		return nil, errors.New("invalid userID type")
-	}
-
 	// リクエストオブジェクトを構築
 	req := &models.WordShowRequest{
 		WordID: wordID,
-		UserID: userIDInt,
+		UserID: userID,
 	}
 
 	logrus.Infof("Final parsed request: %+v", req)

@@ -10,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// wordのRegistrationCount（登録数）を更新し、その値を返す
 func (s *ServiceImpl) RegisteredWordCount(ctx context.Context, req *models.RegisteredWordCountRequest) (*models.RegisteredWordCountResponse, error) {
 
 	// トランザクション開始

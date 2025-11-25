@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	h "word_app/backend/src/handlers/user"
+	"word_app/backend/src/middleware/jwt"
 	user_mocks "word_app/backend/src/mocks/usecase/user"
 	"word_app/backend/src/models"
 	"word_app/backend/src/usecase/apperror"
@@ -34,13 +35,14 @@ func newEditRouter(uc *user_mocks.MockUsecase, rls *roles) *gin.Engine {
 
 	if rls != nil {
 		r.Use(func(c *gin.Context) {
-			// GetUserRoles が内部で参照する想定キー
-			c.Set("userID", rls.UserID)
-
-			// こちらは画面側や別ロジックが参照する可能性に備えて入れておく
-			c.Set("isAdmin", rls.IsAdmin)
-			c.Set("isRoot", rls.IsRoot)
-			c.Set("isTest", rls.IsTest)
+			uid := rls.UserID
+			p := models.Principal{
+				UserID:  uid,
+				IsAdmin: rls.IsAdmin,
+				IsRoot:  rls.IsRoot,
+				IsTest:  rls.IsTest,
+			}
+			jwt.SetPrincipal(c, p)
 			c.Next()
 		})
 	}

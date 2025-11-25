@@ -6,10 +6,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/bcrypt"
-
 	"word_app/backend/src/domain"
 	"word_app/backend/src/domain/repository"
 	authmock "word_app/backend/src/mocks/infrastructure/repository/auth"
@@ -17,6 +13,10 @@ import (
 	txmock "word_app/backend/src/mocks/infrastructure/repository/tx"
 	usermock "word_app/backend/src/mocks/infrastructure/repository/user"
 	uc "word_app/backend/src/usecase/user"
+
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func newUCWithMocks(t *testing.T, ur *usermock.MockRepository, tm *txmock.MockManager) *uc.UserUsecase {

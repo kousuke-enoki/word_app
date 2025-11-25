@@ -13,6 +13,7 @@ import (
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/userconfig"
+	"word_app/backend/ent/userdailyusage"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -22,8 +23,9 @@ import (
 // UserUpdate is the builder for updating User entities.
 type UserUpdate struct {
 	config
-	hooks    []Hook
-	mutation *UserMutation
+	hooks     []Hook
+	mutation  *UserMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -183,14 +185,14 @@ func (uu *UserUpdate) AddRegisteredWords(r ...*RegisteredWord) *UserUpdate {
 	return uu.AddRegisteredWordIDs(ids...)
 }
 
-// AddQuizIDs adds the "quizs" edge to the Quiz entity by IDs.
+// AddQuizIDs adds the "quizzes" edge to the Quiz entity by IDs.
 func (uu *UserUpdate) AddQuizIDs(ids ...int) *UserUpdate {
 	uu.mutation.AddQuizIDs(ids...)
 	return uu
 }
 
-// AddQuizs adds the "quizs" edges to the Quiz entity.
-func (uu *UserUpdate) AddQuizs(q ...*Quiz) *UserUpdate {
+// AddQuizzes adds the "quizzes" edges to the Quiz entity.
+func (uu *UserUpdate) AddQuizzes(q ...*Quiz) *UserUpdate {
 	ids := make([]int, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
@@ -232,6 +234,25 @@ func (uu *UserUpdate) AddExternalAuths(e ...*ExternalAuth) *UserUpdate {
 	return uu.AddExternalAuthIDs(ids...)
 }
 
+// SetUserDailyUsageID sets the "user_daily_usage" edge to the UserDailyUsage entity by ID.
+func (uu *UserUpdate) SetUserDailyUsageID(id int) *UserUpdate {
+	uu.mutation.SetUserDailyUsageID(id)
+	return uu
+}
+
+// SetNillableUserDailyUsageID sets the "user_daily_usage" edge to the UserDailyUsage entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableUserDailyUsageID(id *int) *UserUpdate {
+	if id != nil {
+		uu = uu.SetUserDailyUsageID(*id)
+	}
+	return uu
+}
+
+// SetUserDailyUsage sets the "user_daily_usage" edge to the UserDailyUsage entity.
+func (uu *UserUpdate) SetUserDailyUsage(u *UserDailyUsage) *UserUpdate {
+	return uu.SetUserDailyUsageID(u.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -258,20 +279,20 @@ func (uu *UserUpdate) RemoveRegisteredWords(r ...*RegisteredWord) *UserUpdate {
 	return uu.RemoveRegisteredWordIDs(ids...)
 }
 
-// ClearQuizs clears all "quizs" edges to the Quiz entity.
-func (uu *UserUpdate) ClearQuizs() *UserUpdate {
-	uu.mutation.ClearQuizs()
+// ClearQuizzes clears all "quizzes" edges to the Quiz entity.
+func (uu *UserUpdate) ClearQuizzes() *UserUpdate {
+	uu.mutation.ClearQuizzes()
 	return uu
 }
 
-// RemoveQuizIDs removes the "quizs" edge to Quiz entities by IDs.
+// RemoveQuizIDs removes the "quizzes" edge to Quiz entities by IDs.
 func (uu *UserUpdate) RemoveQuizIDs(ids ...int) *UserUpdate {
 	uu.mutation.RemoveQuizIDs(ids...)
 	return uu
 }
 
-// RemoveQuizs removes "quizs" edges to Quiz entities.
-func (uu *UserUpdate) RemoveQuizs(q ...*Quiz) *UserUpdate {
+// RemoveQuizzes removes "quizzes" edges to Quiz entities.
+func (uu *UserUpdate) RemoveQuizzes(q ...*Quiz) *UserUpdate {
 	ids := make([]int, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
@@ -304,6 +325,12 @@ func (uu *UserUpdate) RemoveExternalAuths(e ...*ExternalAuth) *UserUpdate {
 		ids[i] = e[i].ID
 	}
 	return uu.RemoveExternalAuthIDs(ids...)
+}
+
+// ClearUserDailyUsage clears the "user_daily_usage" edge to the UserDailyUsage entity.
+func (uu *UserUpdate) ClearUserDailyUsage() *UserUpdate {
+	uu.mutation.ClearUserDailyUsage()
+	return uu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -355,6 +382,12 @@ func (uu *UserUpdate) check() error {
 		}
 	}
 	return nil
+}
+
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (uu *UserUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *UserUpdate {
+	uu.modifiers = append(uu.modifiers, modifiers...)
+	return uu
 }
 
 func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
@@ -450,12 +483,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uu.mutation.QuizsCleared() {
+	if uu.mutation.QuizzesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.QuizsTable,
-			Columns: []string{user.QuizsColumn},
+			Table:   user.QuizzesTable,
+			Columns: []string{user.QuizzesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeInt),
@@ -463,12 +496,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedQuizsIDs(); len(nodes) > 0 && !uu.mutation.QuizsCleared() {
+	if nodes := uu.mutation.RemovedQuizzesIDs(); len(nodes) > 0 && !uu.mutation.QuizzesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.QuizsTable,
-			Columns: []string{user.QuizsColumn},
+			Table:   user.QuizzesTable,
+			Columns: []string{user.QuizzesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeInt),
@@ -479,12 +512,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.QuizsIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.QuizzesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.QuizsTable,
-			Columns: []string{user.QuizsColumn},
+			Table:   user.QuizzesTable,
+			Columns: []string{user.QuizzesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeInt),
@@ -569,6 +602,36 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.UserDailyUsageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.UserDailyUsageTable,
+			Columns: []string{user.UserDailyUsageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userdailyusage.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.UserDailyUsageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.UserDailyUsageTable,
+			Columns: []string{user.UserDailyUsageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userdailyusage.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	_spec.AddModifiers(uu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -584,9 +647,10 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // UserUpdateOne is the builder for updating a single User entity.
 type UserUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *UserMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *UserMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetEmail sets the "email" field.
@@ -740,14 +804,14 @@ func (uuo *UserUpdateOne) AddRegisteredWords(r ...*RegisteredWord) *UserUpdateOn
 	return uuo.AddRegisteredWordIDs(ids...)
 }
 
-// AddQuizIDs adds the "quizs" edge to the Quiz entity by IDs.
+// AddQuizIDs adds the "quizzes" edge to the Quiz entity by IDs.
 func (uuo *UserUpdateOne) AddQuizIDs(ids ...int) *UserUpdateOne {
 	uuo.mutation.AddQuizIDs(ids...)
 	return uuo
 }
 
-// AddQuizs adds the "quizs" edges to the Quiz entity.
-func (uuo *UserUpdateOne) AddQuizs(q ...*Quiz) *UserUpdateOne {
+// AddQuizzes adds the "quizzes" edges to the Quiz entity.
+func (uuo *UserUpdateOne) AddQuizzes(q ...*Quiz) *UserUpdateOne {
 	ids := make([]int, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
@@ -789,6 +853,25 @@ func (uuo *UserUpdateOne) AddExternalAuths(e ...*ExternalAuth) *UserUpdateOne {
 	return uuo.AddExternalAuthIDs(ids...)
 }
 
+// SetUserDailyUsageID sets the "user_daily_usage" edge to the UserDailyUsage entity by ID.
+func (uuo *UserUpdateOne) SetUserDailyUsageID(id int) *UserUpdateOne {
+	uuo.mutation.SetUserDailyUsageID(id)
+	return uuo
+}
+
+// SetNillableUserDailyUsageID sets the "user_daily_usage" edge to the UserDailyUsage entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableUserDailyUsageID(id *int) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetUserDailyUsageID(*id)
+	}
+	return uuo
+}
+
+// SetUserDailyUsage sets the "user_daily_usage" edge to the UserDailyUsage entity.
+func (uuo *UserUpdateOne) SetUserDailyUsage(u *UserDailyUsage) *UserUpdateOne {
+	return uuo.SetUserDailyUsageID(u.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -815,20 +898,20 @@ func (uuo *UserUpdateOne) RemoveRegisteredWords(r ...*RegisteredWord) *UserUpdat
 	return uuo.RemoveRegisteredWordIDs(ids...)
 }
 
-// ClearQuizs clears all "quizs" edges to the Quiz entity.
-func (uuo *UserUpdateOne) ClearQuizs() *UserUpdateOne {
-	uuo.mutation.ClearQuizs()
+// ClearQuizzes clears all "quizzes" edges to the Quiz entity.
+func (uuo *UserUpdateOne) ClearQuizzes() *UserUpdateOne {
+	uuo.mutation.ClearQuizzes()
 	return uuo
 }
 
-// RemoveQuizIDs removes the "quizs" edge to Quiz entities by IDs.
+// RemoveQuizIDs removes the "quizzes" edge to Quiz entities by IDs.
 func (uuo *UserUpdateOne) RemoveQuizIDs(ids ...int) *UserUpdateOne {
 	uuo.mutation.RemoveQuizIDs(ids...)
 	return uuo
 }
 
-// RemoveQuizs removes "quizs" edges to Quiz entities.
-func (uuo *UserUpdateOne) RemoveQuizs(q ...*Quiz) *UserUpdateOne {
+// RemoveQuizzes removes "quizzes" edges to Quiz entities.
+func (uuo *UserUpdateOne) RemoveQuizzes(q ...*Quiz) *UserUpdateOne {
 	ids := make([]int, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
@@ -861,6 +944,12 @@ func (uuo *UserUpdateOne) RemoveExternalAuths(e ...*ExternalAuth) *UserUpdateOne
 		ids[i] = e[i].ID
 	}
 	return uuo.RemoveExternalAuthIDs(ids...)
+}
+
+// ClearUserDailyUsage clears the "user_daily_usage" edge to the UserDailyUsage entity.
+func (uuo *UserUpdateOne) ClearUserDailyUsage() *UserUpdateOne {
+	uuo.mutation.ClearUserDailyUsage()
+	return uuo
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -925,6 +1014,12 @@ func (uuo *UserUpdateOne) check() error {
 		}
 	}
 	return nil
+}
+
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (uuo *UserUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *UserUpdateOne {
+	uuo.modifiers = append(uuo.modifiers, modifiers...)
+	return uuo
 }
 
 func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
@@ -1037,12 +1132,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uuo.mutation.QuizsCleared() {
+	if uuo.mutation.QuizzesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.QuizsTable,
-			Columns: []string{user.QuizsColumn},
+			Table:   user.QuizzesTable,
+			Columns: []string{user.QuizzesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeInt),
@@ -1050,12 +1145,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedQuizsIDs(); len(nodes) > 0 && !uuo.mutation.QuizsCleared() {
+	if nodes := uuo.mutation.RemovedQuizzesIDs(); len(nodes) > 0 && !uuo.mutation.QuizzesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.QuizsTable,
-			Columns: []string{user.QuizsColumn},
+			Table:   user.QuizzesTable,
+			Columns: []string{user.QuizzesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeInt),
@@ -1066,12 +1161,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.QuizsIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.QuizzesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.QuizsTable,
-			Columns: []string{user.QuizsColumn},
+			Table:   user.QuizzesTable,
+			Columns: []string{user.QuizzesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeInt),
@@ -1156,6 +1251,36 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uuo.mutation.UserDailyUsageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.UserDailyUsageTable,
+			Columns: []string{user.UserDailyUsageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userdailyusage.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.UserDailyUsageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.UserDailyUsageTable,
+			Columns: []string{user.UserDailyUsageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userdailyusage.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	_spec.AddModifiers(uuo.modifiers...)
 	_node = &User{config: uuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

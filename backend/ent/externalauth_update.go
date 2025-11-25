@@ -19,13 +19,28 @@ import (
 // ExternalAuthUpdate is the builder for updating ExternalAuth entities.
 type ExternalAuthUpdate struct {
 	config
-	hooks    []Hook
-	mutation *ExternalAuthMutation
+	hooks     []Hook
+	mutation  *ExternalAuthMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the ExternalAuthUpdate builder.
 func (eau *ExternalAuthUpdate) Where(ps ...predicate.ExternalAuth) *ExternalAuthUpdate {
 	eau.mutation.Where(ps...)
+	return eau
+}
+
+// SetUserID sets the "user_id" field.
+func (eau *ExternalAuthUpdate) SetUserID(i int) *ExternalAuthUpdate {
+	eau.mutation.SetUserID(i)
+	return eau
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (eau *ExternalAuthUpdate) SetNillableUserID(i *int) *ExternalAuthUpdate {
+	if i != nil {
+		eau.SetUserID(*i)
+	}
 	return eau
 }
 
@@ -77,12 +92,6 @@ func (eau *ExternalAuthUpdate) ClearDeletedAt() *ExternalAuthUpdate {
 	return eau
 }
 
-// SetUserID sets the "user" edge to the User entity by ID.
-func (eau *ExternalAuthUpdate) SetUserID(id int) *ExternalAuthUpdate {
-	eau.mutation.SetUserID(id)
-	return eau
-}
-
 // SetUser sets the "user" edge to the User entity.
 func (eau *ExternalAuthUpdate) SetUser(u *User) *ExternalAuthUpdate {
 	return eau.SetUserID(u.ID)
@@ -128,6 +137,11 @@ func (eau *ExternalAuthUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (eau *ExternalAuthUpdate) check() error {
+	if v, ok := eau.mutation.UserID(); ok {
+		if err := externalauth.UserIDValidator(v); err != nil {
+			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "ExternalAuth.user_id": %w`, err)}
+		}
+	}
 	if v, ok := eau.mutation.Provider(); ok {
 		if err := externalauth.ProviderValidator(v); err != nil {
 			return &ValidationError{Name: "provider", err: fmt.Errorf(`ent: validator failed for field "ExternalAuth.provider": %w`, err)}
@@ -142,6 +156,12 @@ func (eau *ExternalAuthUpdate) check() error {
 		return errors.New(`ent: clearing a required unique edge "ExternalAuth.user"`)
 	}
 	return nil
+}
+
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (eau *ExternalAuthUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ExternalAuthUpdate {
+	eau.modifiers = append(eau.modifiers, modifiers...)
+	return eau
 }
 
 func (eau *ExternalAuthUpdate) sqlSave(ctx context.Context) (n int, err error) {
@@ -197,6 +217,7 @@ func (eau *ExternalAuthUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(eau.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, eau.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{externalauth.Label}
@@ -212,9 +233,24 @@ func (eau *ExternalAuthUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // ExternalAuthUpdateOne is the builder for updating a single ExternalAuth entity.
 type ExternalAuthUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *ExternalAuthMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *ExternalAuthMutation
+	modifiers []func(*sql.UpdateBuilder)
+}
+
+// SetUserID sets the "user_id" field.
+func (eauo *ExternalAuthUpdateOne) SetUserID(i int) *ExternalAuthUpdateOne {
+	eauo.mutation.SetUserID(i)
+	return eauo
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (eauo *ExternalAuthUpdateOne) SetNillableUserID(i *int) *ExternalAuthUpdateOne {
+	if i != nil {
+		eauo.SetUserID(*i)
+	}
+	return eauo
 }
 
 // SetProvider sets the "provider" field.
@@ -262,12 +298,6 @@ func (eauo *ExternalAuthUpdateOne) SetNillableDeletedAt(t *time.Time) *ExternalA
 // ClearDeletedAt clears the value of the "deleted_at" field.
 func (eauo *ExternalAuthUpdateOne) ClearDeletedAt() *ExternalAuthUpdateOne {
 	eauo.mutation.ClearDeletedAt()
-	return eauo
-}
-
-// SetUserID sets the "user" edge to the User entity by ID.
-func (eauo *ExternalAuthUpdateOne) SetUserID(id int) *ExternalAuthUpdateOne {
-	eauo.mutation.SetUserID(id)
 	return eauo
 }
 
@@ -329,6 +359,11 @@ func (eauo *ExternalAuthUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (eauo *ExternalAuthUpdateOne) check() error {
+	if v, ok := eauo.mutation.UserID(); ok {
+		if err := externalauth.UserIDValidator(v); err != nil {
+			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "ExternalAuth.user_id": %w`, err)}
+		}
+	}
 	if v, ok := eauo.mutation.Provider(); ok {
 		if err := externalauth.ProviderValidator(v); err != nil {
 			return &ValidationError{Name: "provider", err: fmt.Errorf(`ent: validator failed for field "ExternalAuth.provider": %w`, err)}
@@ -343,6 +378,12 @@ func (eauo *ExternalAuthUpdateOne) check() error {
 		return errors.New(`ent: clearing a required unique edge "ExternalAuth.user"`)
 	}
 	return nil
+}
+
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (eauo *ExternalAuthUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ExternalAuthUpdateOne {
+	eauo.modifiers = append(eauo.modifiers, modifiers...)
+	return eauo
 }
 
 func (eauo *ExternalAuthUpdateOne) sqlSave(ctx context.Context) (_node *ExternalAuth, err error) {
@@ -415,6 +456,7 @@ func (eauo *ExternalAuthUpdateOne) sqlSave(ctx context.Context) (_node *External
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(eauo.modifiers...)
 	_node = &ExternalAuth{config: eauo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

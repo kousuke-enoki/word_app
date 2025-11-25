@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	h "word_app/backend/src/handlers/user"
+	"word_app/backend/src/middleware/jwt"
 	user_mocks "word_app/backend/src/mocks/usecase/user"
 	"word_app/backend/src/models"
 	"word_app/backend/src/usecase/apperror"
@@ -25,7 +26,22 @@ func newMeRouter(uc *user_mocks.MockUsecase, userID any) *gin.Engine {
 	r := gin.New()
 	if userID != nil {
 		r.Use(func(c *gin.Context) {
-			c.Set("userID", userID)
+			var uid int
+			switch v := userID.(type) {
+			case int:
+				uid = v
+			default:
+				// 型変換できない場合は何もしない
+				c.Next()
+				return
+			}
+			p := models.Principal{
+				UserID:  uid,
+				IsAdmin: false,
+				IsRoot:  true,
+				IsTest:  false,
+			}
+			jwt.SetPrincipal(c, p)
 			c.Next()
 		})
 	}
@@ -40,7 +56,22 @@ func newShowRouter(uc *user_mocks.MockUsecase, userID any) *gin.Engine {
 	r := gin.New()
 	if userID != nil {
 		r.Use(func(c *gin.Context) {
-			c.Set("userID", userID)
+			var uid int
+			switch v := userID.(type) {
+			case int:
+				uid = v
+			default:
+				// 型変換できない場合は何もしない
+				c.Next()
+				return
+			}
+			p := models.Principal{
+				UserID:  uid,
+				IsAdmin: false,
+				IsRoot:  true,
+				IsTest:  false,
+			}
+			jwt.SetPrincipal(c, p)
 			c.Next()
 		})
 	}
@@ -91,7 +122,7 @@ func TestMeHandler_AllPaths(t *testing.T) {
 		w := doGET(r, "/me")
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
-		assert.JSONEq(t, `{"error":"unauthorized: userID not found in context"}`, w.Body.String())
+		assert.JSONEq(t, `{"error":"unauthorized"}`, w.Body.String())
 		uc.AssertNotCalled(t, "GetMyDetail", mock.Anything, mock.Anything)
 	})
 
@@ -146,7 +177,7 @@ func TestShowHandler_AllPaths(t *testing.T) {
 		w := doGET(r, "/users/1")
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
-		assert.JSONEq(t, `{"error":"unauthorized: userID not found in context"}`, w.Body.String())
+		assert.JSONEq(t, `{"error":"unauthorized"}`, w.Body.String())
 		uc.AssertNotCalled(t, "GetDetailByID", mock.Anything, mock.Anything, mock.Anything)
 	})
 

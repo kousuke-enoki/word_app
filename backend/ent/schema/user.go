@@ -48,8 +48,8 @@ func (User) Fields() []ent.Field {
 			Comment("Name of the user.\n If not specified, defaults to \"John Doe\".").
 			NotEmpty().
 			Validate(func(name string) error {
-				if len(name) < 3 || len(name) > 20 {
-					return errors.New("name must be between 3 and 20 characters")
+				if len(name) < 3 || len(name) > 40 {
+					return errors.New("name must be between 3 and 40 characters")
 				}
 				return nil
 			}),
@@ -73,11 +73,18 @@ func (User) Fields() []ent.Field {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("registered_words", RegisteredWord.Type),
-		edge.To("quizs", Quiz.Type),
+		edge.To("registered_words", RegisteredWord.Type).
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
+		edge.To("quizzes", Quiz.Type).
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
 		edge.To("user_config", UserConfig.Type).
-			Unique(),
-		edge.To("external_auths", ExternalAuth.Type),
+			Unique().
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
+		edge.To("external_auths", ExternalAuth.Type).
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
+		edge.To("user_daily_usage", UserDailyUsage.Type).
+			Unique().
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
 	}
 }
 

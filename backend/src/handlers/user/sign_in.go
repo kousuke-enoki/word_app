@@ -1,7 +1,6 @@
 package user
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -17,6 +16,7 @@ import (
 
 func (h *UserHandler) SignInHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx := c.Request.Context()
 		var req models.SignInRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			if fs := handlers.FieldsFromBindError(err); len(fs) > 0 {
@@ -34,7 +34,7 @@ func (h *UserHandler) SignInHandler() gin.HandlerFunc {
 		}
 
 		// ユーザー検索
-		signInUser, err := h.userUsecase.FindByEmail(context.Background(), req.Email)
+		signInUser, err := h.userUsecase.FindByEmail(ctx, req.Email)
 		if err != nil {
 			httperr.Write(c, err)
 			return

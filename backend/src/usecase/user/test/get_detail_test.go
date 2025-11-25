@@ -8,9 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
-
 	"word_app/backend/src/domain"
 	authmock "word_app/backend/src/mocks/infrastructure/repository/auth"
 	settingmock "word_app/backend/src/mocks/infrastructure/repository/setting"
@@ -18,6 +15,9 @@ import (
 	usermock "word_app/backend/src/mocks/infrastructure/repository/user"
 	"word_app/backend/src/models"
 	uc "word_app/backend/src/usecase/user"
+
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func ptr[T any](v T) *T { return &v }

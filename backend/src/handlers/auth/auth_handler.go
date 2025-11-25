@@ -26,4 +26,7 @@ type Handler interface {
 	LineLogin() gin.HandlerFunc
 	LineCallback() gin.HandlerFunc
 	LineComplete() gin.HandlerFunc
+	TestLoginHandler() gin.HandlerFunc
+	TestLogoutHandler() gin.HandlerFunc
+	AuthMeHandler() gin.HandlerFunc
 }

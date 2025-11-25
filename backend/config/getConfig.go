@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awscfg "github.com/aws/aws-sdk-go-v2/config"
@@ -50,6 +51,18 @@ type LineOAuthCfg struct {
 	RedirectURI  string
 }
 
+// リミット設定
+// 登録単語数の上限など
+type LimitsCfg struct {
+	RegisteredWordsPerUser int // 200
+	QuizMaxPerDay          int // 20
+	QuizMaxQuestions       int // 100
+	BulkMaxPerDay          int // 5
+	BulkMaxBytes           int // 51200 (=50KB)
+	BulkTokenizeMaxTokens  int // 200
+	BulkRegisterMaxItems   int // 200
+}
+
 // Config aggregates all sub-config sections used across the application.
 // It is designed to be constructed once in main and passed into modules.
 type Config struct {
@@ -58,6 +71,7 @@ type Config struct {
 	DB     DBCfg
 	Line   LineOAuthCfg
 	Lambda LambdaCfg
+	Limits LimitsCfg
 }
 
 type appSecret struct {
@@ -114,6 +128,21 @@ func NewConfig() *Config {
 		}
 	}
 
+	// registeredWord の登録可能数/ユーザー
+	registeredWordsPerUser := getenvInt("LIMIT_REGISTERED_WORDS_PER_USER", 200)
+	// quiz_create を使用できる回数の上限/日
+	quizMaxPerDay := getenvInt("LIMIT_QUIZ_MAX_PER_DAY", 20)
+	// quiz_create 作成時に一度に作成できる質問数(quiz_questionの上限)
+	quizMaxQuestions := getenvInt("LIMIT_QUIZ_MAX_QUESTIONS", 100)
+	// bulk_tokenize を使用できる回数の上限/日
+	bulkMaxPerDay := getenvInt("LIMIT_BULK_MAX_PER_DAY", 5)
+	// bulk_tokenize で一度に処理できるデータサイズの上限(byte)
+	bulkMaxBytes := getenvInt("LIMIT_BULK_MAX_BYTES", 50*1024) // 51200
+	// bulk_tokenize で一度に処理できるトークン数の上限
+	bulkTokenizeMaxTokens := getenvInt("LIMIT_BULK_TOKENIZE_MAX_TOKENS", 50*1024) // 51200
+	// bulk_register で一度に登録できる単語数の上限
+	bulkRegisterMaxItems := getenvInt("LIMIT_BULK_REGISTER_MAX_ITEMS", 50*1024) // 51200
+
 	// // 4) DB 認証（ユーザー/パス）は Secrets Manager
 	// // var dbUser, dbPass string
 	// if arn := os.Getenv("DB_SECRET_ARN"); arn != "" {
@@ -142,6 +171,15 @@ func NewConfig() *Config {
 			ClientID: lineID, ClientSecret: lineSec, RedirectURI: lineRedirect,
 		},
 		Lambda: LambdaCfg{LambdaRuntime: lambdaRuntime},
+		Limits: LimitsCfg{
+			RegisteredWordsPerUser: registeredWordsPerUser,
+			QuizMaxPerDay:          quizMaxPerDay,
+			QuizMaxQuestions:       quizMaxQuestions,
+			BulkMaxPerDay:          bulkMaxPerDay,
+			BulkMaxBytes:           bulkMaxBytes, // 51200
+			BulkTokenizeMaxTokens:  bulkTokenizeMaxTokens,
+			BulkRegisterMaxItems:   bulkRegisterMaxItems,
+		},
 	}
 }
 
@@ -155,6 +193,63 @@ func getenv(key, def string) string {
 	}
 	return def
 }
+
+func getenvInt(key string, def int) int {
+	v := os.Getenv(key)
+	if v == "" {
+		return def
+	}
+	i, err := strconv.Atoi(v)
+	if err != nil {
+		logrus.Warnf("invalid int for %s=%q, using default=%d", key, v, def)
+		return def
+	}
+	return i
+}
+
+// // "51200" / "50KB" / "1MB" を許容（大文字小文字OK）
+// func getenvSizeBytes(key string, def int) int {
+// 	v := strings.TrimSpace(os.Getenv(key))
+// 	if v == "" {
+// 		return def
+// 	}
+// 	n, ok := parseSizeToBytes(v)
+// 	if !ok {
+// 		logrus.Warnf("invalid size for %s=%q, using default=%d", key, v, def)
+// 		return def
+// 	}
+// 	return n
+// }
+
+// var sizeRe = regexp.MustCompile(`(?i)^\s*(\d+)\s*([km]?b)?\s*$`)
+
+// // 返り値: (bytes, ok)
+// func parseSizeToBytes(s string) (int, bool) {
+// 	m := sizeRe.FindStringSubmatch(s)
+// 	if m == nil {
+// 		// 数値だけの可能性にも対応
+// 		if i, err := strconv.Atoi(s); err == nil {
+// 			return i, true
+// 		}
+// 		return 0, false
+// 	}
+// 	numStr := m[1]
+// 	unit := strings.ToUpper(strings.TrimSpace(m[2])) // "", "KB", "MB", "B"
+// 	n, err := strconv.Atoi(numStr)
+// 	if err != nil || n < 0 {
+// 		return 0, false
+// 	}
+// 	switch unit {
+// 	case "", "B":
+// 		return n, true
+// 	case "KB":
+// 		return n * 1024, true
+// 	case "MB":
+// 		return n * 1024 * 1024, true
+// 	default:
+// 		return 0, false
+// 	}
+// }
 
 func fetchSecretJSON[T any](ctx context.Context, arn string) (T, error) {
 	var zero T

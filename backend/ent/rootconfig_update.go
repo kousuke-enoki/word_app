@@ -17,8 +17,9 @@ import (
 // RootConfigUpdate is the builder for updating RootConfig entities.
 type RootConfigUpdate struct {
 	config
-	hooks    []Hook
-	mutation *RootConfigMutation
+	hooks     []Hook
+	mutation  *RootConfigMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the RootConfigUpdate builder.
@@ -125,6 +126,12 @@ func (rcu *RootConfigUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (rcu *RootConfigUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *RootConfigUpdate {
+	rcu.modifiers = append(rcu.modifiers, modifiers...)
+	return rcu
+}
+
 func (rcu *RootConfigUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := rcu.check(); err != nil {
 		return n, err
@@ -149,6 +156,7 @@ func (rcu *RootConfigUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := rcu.mutation.IsLineAuthentication(); ok {
 		_spec.SetField(rootconfig.FieldIsLineAuthentication, field.TypeBool, value)
 	}
+	_spec.AddModifiers(rcu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, rcu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{rootconfig.Label}
@@ -164,9 +172,10 @@ func (rcu *RootConfigUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // RootConfigUpdateOne is the builder for updating a single RootConfig entity.
 type RootConfigUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *RootConfigMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *RootConfigMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetEditingPermission sets the "editing_permission" field.
@@ -280,6 +289,12 @@ func (rcuo *RootConfigUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (rcuo *RootConfigUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *RootConfigUpdateOne {
+	rcuo.modifiers = append(rcuo.modifiers, modifiers...)
+	return rcuo
+}
+
 func (rcuo *RootConfigUpdateOne) sqlSave(ctx context.Context) (_node *RootConfig, err error) {
 	if err := rcuo.check(); err != nil {
 		return _node, err
@@ -321,6 +336,7 @@ func (rcuo *RootConfigUpdateOne) sqlSave(ctx context.Context) (_node *RootConfig
 	if value, ok := rcuo.mutation.IsLineAuthentication(); ok {
 		_spec.SetField(rootconfig.FieldIsLineAuthentication, field.TypeBool, value)
 	}
+	_spec.AddModifiers(rcuo.modifiers...)
 	_node = &RootConfig{config: rcuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

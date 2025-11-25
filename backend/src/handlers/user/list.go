@@ -1,24 +1,23 @@
 package user
 
 import (
-	"context"
 	"net/http"
 	"strconv"
 
 	"word_app/backend/src/handlers/httperr"
+	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/usecase/apperror"
 	user_usecase "word_app/backend/src/usecase/user"
-	"word_app/backend/src/utils/contextutil"
 	"word_app/backend/src/validators/user"
 
 	"github.com/gin-gonic/gin"
 )
 
 func (h *UserHandler) ListHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ctx := context.Background()
+	return jwt.WithUser(func(c *gin.Context, viewerID int) {
+		ctx := c.Request.Context()
 
-		req, err := h.parseUserListRequest(c)
+		req, err := h.parseUserListRequest(c, viewerID)
 		if err != nil {
 			httperr.Write(c, err)
 			return
@@ -41,10 +40,10 @@ func (h *UserHandler) ListHandler() gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, resp)
-	}
+	})
 }
 
-func (h *UserHandler) parseUserListRequest(c *gin.Context) (*user_usecase.ListUsersInput, error) {
+func (h *UserHandler) parseUserListRequest(c *gin.Context, viewerID int) (*user_usecase.ListUsersInput, error) {
 	// クエリパラメータの取得
 	search := c.Query("search")
 	sortBy := c.DefaultQuery("sortBy", "name")
@@ -58,12 +57,6 @@ func (h *UserHandler) parseUserListRequest(c *gin.Context) (*user_usecase.ListUs
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	if err != nil || limit <= 0 {
 		return nil, apperror.Validationf("invalid 'limit' query parameter: must be a positive integer", err)
-	}
-
-	// ユーザーIDをコンテキストから取得
-	viewerID, err := contextutil.MustUserID(c)
-	if err != nil {
-		return nil, err
 	}
 
 	// リクエストオブジェクトを構築

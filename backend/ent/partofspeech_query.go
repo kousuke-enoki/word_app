@@ -25,6 +25,7 @@ type PartOfSpeechQuery struct {
 	inters        []Interceptor
 	predicates    []predicate.PartOfSpeech
 	withWordInfos *WordInfoQuery
+	modifiers     []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -277,8 +278,9 @@ func (posq *PartOfSpeechQuery) Clone() *PartOfSpeechQuery {
 		predicates:    append([]predicate.PartOfSpeech{}, posq.predicates...),
 		withWordInfos: posq.withWordInfos.Clone(),
 		// clone intermediate query.
-		sql:  posq.sql.Clone(),
-		path: posq.path,
+		sql:       posq.sql.Clone(),
+		path:      posq.path,
+		modifiers: append([]func(*sql.Selector){}, posq.modifiers...),
 	}
 }
 
@@ -384,6 +386,9 @@ func (posq *PartOfSpeechQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(posq.modifiers) > 0 {
+		_spec.Modifiers = posq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -436,6 +441,9 @@ func (posq *PartOfSpeechQuery) loadWordInfos(ctx context.Context, query *WordInf
 
 func (posq *PartOfSpeechQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := posq.querySpec()
+	if len(posq.modifiers) > 0 {
+		_spec.Modifiers = posq.modifiers
+	}
 	_spec.Node.Columns = posq.ctx.Fields
 	if len(posq.ctx.Fields) > 0 {
 		_spec.Unique = posq.ctx.Unique != nil && *posq.ctx.Unique
@@ -498,6 +506,9 @@ func (posq *PartOfSpeechQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if posq.ctx.Unique != nil && *posq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range posq.modifiers {
+		m(selector)
+	}
 	for _, p := range posq.predicates {
 		p(selector)
 	}
@@ -513,6 +524,12 @@ func (posq *PartOfSpeechQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (posq *PartOfSpeechQuery) Modify(modifiers ...func(s *sql.Selector)) *PartOfSpeechSelect {
+	posq.modifiers = append(posq.modifiers, modifiers...)
+	return posq.Select()
 }
 
 // PartOfSpeechGroupBy is the group-by builder for PartOfSpeech entities.
@@ -603,4 +620,10 @@ func (poss *PartOfSpeechSelect) sqlScan(ctx context.Context, root *PartOfSpeechQ
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (poss *PartOfSpeechSelect) Modify(modifiers ...func(s *sql.Selector)) *PartOfSpeechSelect {
+	poss.modifiers = append(poss.modifiers, modifiers...)
+	return poss
 }

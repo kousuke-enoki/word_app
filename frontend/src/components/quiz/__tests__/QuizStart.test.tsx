@@ -4,6 +4,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import React from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import axiosInstance from '@/axiosConfig'
 import type { CreateQuizResponse, QuizSettingsType } from '@/types/quiz'
 
 import QuizStart from '../QuizStart'
@@ -12,7 +13,6 @@ import QuizStart from '../QuizStart'
 vi.mock('@/axiosConfig', () => ({
   default: { post: vi.fn() },
 }))
-import axiosInstance from '@/axiosConfig'
 
 const baseSettings: QuizSettingsType = {
   quizSettingCompleted: true, // QuizStart 側では送らない点も後で検証
@@ -138,7 +138,7 @@ describe('QuizStart', () => {
       />,
     )
 
-    // reject（通信エラー）
+    // reject（通信エラー: response を持たない一般的なエラー）
     def.reject(new Error('boom'))
 
     await waitFor(() =>
@@ -161,11 +161,45 @@ describe('QuizStart', () => {
 
     render(<QuizStart settings={baseSettings} onSuccess={onSuccess} />)
 
+    // reject（通信エラー: response を持たない一般的なエラー）
     def.reject(new Error('boom'))
 
     // onSuccess は呼ばれない
     await waitFor(() => expect(onSuccess).not.toHaveBeenCalled())
     // ローディングが消える
+    await waitFor(() =>
+      expect(screen.queryByText('クイズを生成中です…')).toBeNull(),
+    )
+    spyErr.mockRestore()
+  })
+
+  it('失敗: 429エラー時は専用メッセージが表示される', async () => {
+    const def = deferred<any>()
+    ;(axiosInstance.post as any).mockImplementationOnce(() => def.p)
+
+    const onSuccess = vi.fn()
+    const onFail = vi.fn()
+    const spyErr = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(
+      <QuizStart
+        settings={baseSettings}
+        onSuccess={onSuccess}
+        onFail={onFail}
+      />,
+    )
+
+    // reject（429エラー: response.status を持つ Axios エラー）
+    const axiosError = {
+      response: { status: 429 },
+    }
+    def.reject(axiosError)
+
+    await waitFor(() =>
+      expect(onFail).toHaveBeenCalledWith('クイズ生成上限に達しました'),
+    )
+    expect(onSuccess).not.toHaveBeenCalled()
+
     await waitFor(() =>
       expect(screen.queryByText('クイズを生成中です…')).toBeNull(),
     )

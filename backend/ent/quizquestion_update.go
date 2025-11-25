@@ -23,8 +23,9 @@ import (
 // QuizQuestionUpdate is the builder for updating QuizQuestion entities.
 type QuizQuestionUpdate struct {
 	config
-	hooks    []Hook
-	mutation *QuizQuestionMutation
+	hooks     []Hook
+	mutation  *QuizQuestionMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the QuizQuestionUpdate builder.
@@ -371,6 +372,12 @@ func (qqu *QuizQuestionUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (qqu *QuizQuestionUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *QuizQuestionUpdate {
+	qqu.modifiers = append(qqu.modifiers, modifiers...)
+	return qqu
+}
+
 func (qqu *QuizQuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := qqu.check(); err != nil {
 		return n, err
@@ -532,6 +539,7 @@ func (qqu *QuizQuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(qqu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, qqu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{quizquestion.Label}
@@ -547,9 +555,10 @@ func (qqu *QuizQuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // QuizQuestionUpdateOne is the builder for updating a single QuizQuestion entity.
 type QuizQuestionUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *QuizQuestionMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *QuizQuestionMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetQuizID sets the "quiz_id" field.
@@ -903,6 +912,12 @@ func (qquo *QuizQuestionUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (qquo *QuizQuestionUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *QuizQuestionUpdateOne {
+	qquo.modifiers = append(qquo.modifiers, modifiers...)
+	return qquo
+}
+
 func (qquo *QuizQuestionUpdateOne) sqlSave(ctx context.Context) (_node *QuizQuestion, err error) {
 	if err := qquo.check(); err != nil {
 		return _node, err
@@ -1081,6 +1096,7 @@ func (qquo *QuizQuestionUpdateOne) sqlSave(ctx context.Context) (_node *QuizQues
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(qquo.modifiers...)
 	_node = &QuizQuestion{config: qquo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

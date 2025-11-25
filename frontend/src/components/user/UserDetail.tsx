@@ -119,7 +119,7 @@ const UserDetailPage: React.FC = () => {
               <div>{user.email ?? '未設定'}</div>
             </div>
             <div>
-              <div className="text-sm text-[var(--muted_fg)] mb-1">役割</div>
+              <div className="text-sm text-[var(--muted_fg)] mb-1">種別</div>
               <span className="rounded bg-[var(--badge_bg)] px-2 py-1 text-xs">
                 {roleLabel}
               </span>

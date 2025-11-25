@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
 
 	"word_app/backend/config"
 	"word_app/backend/database"
+	"word_app/backend/ent/migrate"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/word"
 	"word_app/backend/internal/di"
@@ -18,6 +20,7 @@ import (
 	"word_app/backend/seeder"
 	"word_app/backend/src/infrastructure"
 	"word_app/backend/src/interfaces"
+	"word_app/backend/src/interfaces/sqlexec"
 	middleware_logger "word_app/backend/src/middleware/logger"
 	"word_app/backend/src/validators"
 
@@ -94,7 +97,9 @@ func isLambda() bool {
 func mustInitServer(needCleanup bool) (*gin.Engine, string, string, func()) {
 	defer func() {
 		if p := recover(); p != nil {
-			logrus.Fatalf("PANIC caught in main: %v\n", p)
+			buf := make([]byte, 1<<16)
+			n := runtime.Stack(buf, false)
+			logrus.Fatalf("PANIC caught in main: %v\n--- STACK ---\n%s", p, string(buf[:n]))
 		}
 	}()
 
@@ -108,9 +113,11 @@ func mustInitServer(needCleanup bool) (*gin.Engine, string, string, func()) {
 	appEnv, appPort, corsOrigin := config.LoadAppConfig()
 	err := database.InitEntClient()
 	if err != nil {
-		logrus.Error(err)
+		logrus.Fatalf("failed to init ent client: %v", err)
 	}
 	entClient := database.GetEntClient()
+	sqlDB := database.GetSQLDB()
+
 	// cleanup は呼ぶタイミングを呼び出し側に委譲
 	cleanup := func() {}
 	if needCleanup {
@@ -122,6 +129,7 @@ func mustInitServer(needCleanup bool) (*gin.Engine, string, string, func()) {
 	}
 
 	client := infrastructure.NewAppClient(entClient)
+	runner := sqlexec.NewStdSQLRunner(sqlDB)
 
 	runMig := shouldRun("RUN_MIGRATION")
 	runSeed := shouldRun("RUN_SEEDER")
@@ -147,7 +155,7 @@ func mustInitServer(needCleanup bool) (*gin.Engine, string, string, func()) {
 		logrus.Info("Skip seeder on boot")
 	}
 
-	router := setupRouter(client, corsOrigin)
+	router := setupRouter(client, runner, corsOrigin)
 	return router, appPort, appEnv, cleanup
 }
 
@@ -162,7 +170,8 @@ func runMigration(client interfaces.ClientInterface) error {
 	if entClient == nil {
 		return fmt.Errorf("ent.Client is nil")
 	}
-	return entClient.Schema.Create(ctx)
+	// 外部キーも明確に生成するようにする。
+	return entClient.Schema.Create(ctx, migrate.WithForeignKeys(true))
 }
 
 func runSeederIfNeeded(client interfaces.ClientInterface) error {
@@ -203,7 +212,7 @@ func runSeederIfNeeded(client interfaces.ClientInterface) error {
 	return nil
 }
 
-func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engine {
+func setupRouter(client interfaces.ClientInterface, runner sqlexec.Runner, corsOrigin string) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(middleware_logger.RequestLogger())
@@ -234,16 +243,19 @@ func setupRouter(client interfaces.ClientInterface, corsOrigin string) *gin.Engi
 
 	// ルータのセットアップ
 	cfgObj := config.NewConfig() // ← env 読み取りなど 1 箇所に集約
-	repos := di.NewRepositories(client)
+	repos := di.NewRepositories(client, runner)
 	ucs, err := di.NewUseCases(cfgObj, repos)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
-	handlers := di.NewHandlers(cfgObj, ucs, client)
+	services := di.NewServices(cfgObj, ucs, client, repos)
+
+	middlewares := di.NewMiddlewares(ucs)
+	handlers := di.NewHandlers(cfgObj, ucs, client, services)
 
 	routerImpl := routerConfig.NewRouter(
-		handlers.JWTMiD, handlers.Auth, handlers.User,
+		middlewares.Auth, handlers.Auth, handlers.Bulk, handlers.User,
 		handlers.Setting, handlers.Word, handlers.Quiz, handlers.Result)
 	routerImpl.MountRoutes(router)
 	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {

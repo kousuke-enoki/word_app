@@ -33,6 +33,9 @@ type User func(*sql.Selector)
 // UserConfig is the predicate function for userconfig builders.
 type UserConfig func(*sql.Selector)
 
+// UserDailyUsage is the predicate function for userdailyusage builders.
+type UserDailyUsage func(*sql.Selector)
+
 // Word is the predicate function for word builders.
 type Word func(*sql.Selector)
 

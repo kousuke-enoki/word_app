@@ -10,13 +10,14 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
 	"word_app/backend/src/domain"
 	settinghdlr "word_app/backend/src/handlers/setting"
+	"word_app/backend/src/middleware/jwt"
 	mockSettinguc "word_app/backend/src/mocks/usecase/setting"
+	"word_app/backend/src/models"
 	"word_app/backend/src/test"
 	settingUc "word_app/backend/src/usecase/setting"
 )
@@ -118,13 +119,15 @@ func TestGetRootSettingHandler(t *testing.T) {
 			switch {
 			case tt.injectUser:
 				test.InjectUser(c, 99, tt.isRoot)
-				c.Set("isAdmin", false)
-				c.Set("isTest", false)
 			case tt.needUserID:
-				c.Set("userID", 99)
-				c.Set("isRoot", false)
-				c.Set("isAdmin", false)
-				c.Set("isTest", false)
+				// userID only, no roles (IsRoot=false) for testing unauthorized access
+				p := models.Principal{
+					UserID:  99,
+					IsAdmin: false,
+					IsRoot:  false,
+					IsTest:  false,
+				}
+				jwt.SetPrincipal(c, p)
 			}
 
 			h.GetRootConfigHandler()(c)
@@ -132,7 +135,6 @@ func TestGetRootSettingHandler(t *testing.T) {
 			if w.Code == http.StatusOK {
 				var got settingUc.OutputGetRootConfig
 				_ = json.Unmarshal(w.Body.Bytes(), &got)
-				logrus.Info("got:", got)
 				assert.Equal(t, successCfg.EditingPermission, got.Config.EditingPermission)
 			}
 			mockUc.AssertExpectations(t)
@@ -247,10 +249,14 @@ func TestSaveRootSettingHandler(t *testing.T) {
 			case tt.injectUser:
 				test.InjectUser(c, 99, tt.isRoot)
 			case tt.needUserID:
-				c.Set("userID", 99)
-				c.Set("isRoot", false)
-				c.Set("isAdmin", false)
-				c.Set("isTest", false)
+				// userID only, no roles (IsRoot=false) for testing unauthorized access
+				p := models.Principal{
+					UserID:  99,
+					IsAdmin: false,
+					IsRoot:  false,
+					IsTest:  false,
+				}
+				jwt.SetPrincipal(c, p)
 			}
 
 			h.SaveRootConfigHandler()(c)

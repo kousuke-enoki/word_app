@@ -5,15 +5,15 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
-
 	"word_app/backend/src/domain"
 	authmock "word_app/backend/src/mocks/infrastructure/repository/auth"
 	settingmock "word_app/backend/src/mocks/infrastructure/repository/setting"
 	txmock "word_app/backend/src/mocks/infrastructure/repository/tx"
 	usermock "word_app/backend/src/mocks/infrastructure/repository/user"
 	uc "word_app/backend/src/usecase/user"
+
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 // --- helper: tx done() 呼び出しの記録 ---

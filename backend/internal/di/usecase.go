@@ -6,15 +6,21 @@ import (
 	"word_app/backend/src/infrastructure/auth/line"
 	"word_app/backend/src/infrastructure/jwt"
 	authUc "word_app/backend/src/usecase/auth"
+	bulkUc "word_app/backend/src/usecase/bulk"
+	"word_app/backend/src/usecase/clock"
+	jwtUc "word_app/backend/src/usecase/jwt"
 	settingUc "word_app/backend/src/usecase/setting"
 	userUc "word_app/backend/src/usecase/user"
 	"word_app/backend/src/utils/tempjwt"
 )
 
 type UseCases struct {
-	Auth    *authUc.AuthUsecase
-	Setting settingUc.SettingFacade // interface
-	User    *userUc.UserUsecase     // interface
+	Auth         *authUc.AuthUsecase
+	BulkToken    bulkUc.TokenizeUsecase
+	BulkRegister bulkUc.RegisterUsecase
+	Setting      settingUc.SettingFacade // interface
+	User         *userUc.UserUsecase     // interface
+	Jwt          *jwtUc.JwtUsecase       // interface
 }
 
 func NewUseCases(config *config.Config, r *Repos) (*UseCases, error) {
@@ -36,8 +42,14 @@ func NewUseCases(config *config.Config, r *Repos) (*UseCases, error) {
 	settingFacade := settingUc.NewSettingFacade(authCfgUc, getRootUc, getUserUc, updateRootUc, updateUserUc)
 
 	return &UseCases{
-		Auth:    authUc.NewUsecase(r.Tx, lineProv, r.User, r.UserSetting, r.Auth, jwtGen, tempJwt),
+		Auth: authUc.NewUsecase(r.Tx, lineProv, r.User, r.UserSetting,
+			r.Auth, jwtGen, tempJwt, r.RootSetting, r.UserDailyUsage, clock.SystemClock{}),
+
+		BulkToken:    bulkUc.NewTokenizeUsecase(r.WordRead, r.RegisteredWordRead, r.UserDailyUsage, clock.SystemClock{}, &config.Limits),
+		BulkRegister: bulkUc.NewRegisterUsecase(r.WordRead, r.RegisteredWordRead, r.RegisteredWordWrite, r.Tx, r.User, &config.Limits),
+
 		Setting: settingFacade, // まとめ役だけ保持
 		User:    userUc.NewUserUsecase(r.Tx, r.User, r.UserSetting, r.Auth),
+		Jwt:     jwtUc.NewJwtUsecase(jwt.NewHS256Verifier(config.JWT.Secret), r.User),
 	}, nil
 }

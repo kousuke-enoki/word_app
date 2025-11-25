@@ -2,7 +2,6 @@ package user
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -24,6 +23,7 @@ type SignUpUserRequest struct {
 
 func (h *UserHandler) SignUpHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx := c.Request.Context()
 		req, err := h.parseRequest(c)
 		if err != nil {
 			httperr.Write(c, err)
@@ -37,7 +37,7 @@ func (h *UserHandler) SignUpHandler() gin.HandlerFunc {
 		}
 
 		// ユーザー作成 （認可・重複チェック等はUsecase側）
-		user, err := h.userUsecase.SignUp(context.Background(), *req)
+		user, err := h.userUsecase.SignUp(ctx, *req)
 		if err != nil {
 			httperr.Write(c, err)
 			return

@@ -86,11 +86,58 @@ jobs:
       - name: Install bench tool deps
         run: npm --prefix bench ci
 
-      - name: Warm-up staging (optional but recommended)
+      - name: Warm-up staging (wait for readiness)
         env:
           BASE_URL: ${{ secrets.STG_BASE_URL }}
         run: |
-          for i in {1..5}; do curl -sf "$BASE_URL/health" || true; sleep 1; done
+          set -eu
+          if [ -z "${BASE_URL:-}" ]; then
+            echo "::error::BASE_URL is empty. Set secrets.STG_BASE_URL"
+            exit 1
+          fi
+
+          echo "Waiting for API to be ready..."
+          MAX_ATTEMPTS=30
+          ATTEMPT=0
+
+          # Health check
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            if curl -sf "$BASE_URL/health" > /dev/null 2>&1; then
+              echo "Health check passed"
+              break
+            fi
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "Attempt $ATTEMPT/$MAX_ATTEMPTS: Health check failed, retrying in 2s..."
+            sleep 2
+          done
+
+          if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+            echo "::error::Health check failed after $MAX_ATTEMPTS attempts"
+            exit 1
+          fi
+
+          # Test login endpoint readiness (502以外が返ればOK)
+          ATTEMPT=0
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE_URL/users/auth/test-login" \
+              -H "Content-Type: application/json" \
+              -d '{}' || echo "000")
+            
+            if [ "$HTTP_CODE" != "502" ] && [ "$HTTP_CODE" != "000" ]; then
+              echo "Login endpoint responded with $HTTP_CODE (ready)"
+              break
+            fi
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "Attempt $ATTEMPT/$MAX_ATTEMPTS: Login endpoint returned $HTTP_CODE, retrying in 2s..."
+            sleep 2
+          done
+
+          if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+            echo "::error::Login endpoint not ready after $MAX_ATTEMPTS attempts"
+            exit 1
+          fi
+
+          echo "API is ready for testing"
 
       - name: Run A-layer smoke on staging
         env:

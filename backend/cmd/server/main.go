@@ -201,6 +201,11 @@ func runSeederIfNeeded(client interfaces.ClientInterface) error {
 		logrus.Info("Seeder completed.")
 	} else {
 		logrus.Info("Seed data already exists, skipping.")
+		// ENABLE_TEST_USER_MODEがtrueの場合は、RootConfigを更新する
+		if shouldRun("ENABLE_TEST_USER_MODE") {
+			logrus.Info("ENABLE_TEST_USER_MODE is true, updating RootConfig...")
+			seeder.SeedRootConfig(ctx, client)
+		}
 	}
 	if runSeedForWords && !seedWordExists {
 		logrus.Info("Running initial seeder for words...")

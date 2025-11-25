@@ -111,9 +111,10 @@ export class AppStack extends Stack {
         CORS_ORIGIN: "https://word-app-opal.vercel.app",
         // 起動時の重さ回避
         RUN_MIGRATION: "false",
-        RUN_SEEDER: "false",
+        RUN_SEEDER: "true",
         RUN_SEEDER_FOR_WORDS: "false",
         APP_BOOTSTRAP_MODE: "FULL",
+        ENABLE_TEST_USER_MODE: "true",
         // ↓再デプロイの「差分」が毎回出るので、
         // secret managerの変更後確実に再構成される
         DEPLOY_REV: Date.now().toString(),

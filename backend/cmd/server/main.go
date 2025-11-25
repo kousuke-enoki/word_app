@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"runtime"
@@ -12,6 +13,7 @@ import (
 	"word_app/backend/config"
 	"word_app/backend/database"
 	"word_app/backend/ent/migrate"
+	"word_app/backend/ent/rootconfig"
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/word"
 	"word_app/backend/internal/di"
@@ -170,8 +172,166 @@ func runMigration(client interfaces.ClientInterface) error {
 	if entClient == nil {
 		return fmt.Errorf("ent.Client is nil")
 	}
+
+	// 既存テーブルに対してupdated_atカラムのマイグレーションを実行
+	// テーブルが存在しない場合はスキップし、Entのマイグレーションに任せる
+	if err := migrateRootConfigUpdatedAt(ctx); err != nil {
+		return fmt.Errorf("failed to migrate root_configs.updated_at: %w", err)
+	}
+
 	// 外部キーも明確に生成するようにする。
-	return entClient.Schema.Create(ctx, migrate.WithForeignKeys(true))
+	if err := entClient.Schema.Create(ctx, migrate.WithForeignKeys(true)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// migrateRootConfigUpdatedAt は既存のroot_configsテーブルに対してupdated_atカラムを追加・調整します。
+// テーブルが存在しない場合は何もせずにスキップします（Entのマイグレーションで作成されるため）。
+// この関数は既存のデータベースへの後方互換性のためのマイグレーション処理です。
+func migrateRootConfigUpdatedAt(ctx context.Context) error {
+	sqlDB := database.GetSQLDB()
+	if sqlDB == nil {
+		return nil // SQLDBが取得できない場合はスキップ
+	}
+
+	// テーブルの存在確認
+	tableExists, err := checkTableExists(ctx, sqlDB, "root_configs")
+	if err != nil {
+		return fmt.Errorf("failed to check if root_configs table exists: %w", err)
+	}
+
+	if !tableExists {
+		// テーブルが存在しない場合は、Entのマイグレーションに任せる
+		logrus.Info("root_configs table does not exist, skipping updated_at migration (will be handled by Ent migration)")
+		return nil
+	}
+
+	// カラムの存在確認
+	columnExists, err := checkColumnExists(ctx, sqlDB, "root_configs", "updated_at")
+	if err != nil {
+		return fmt.Errorf("failed to check if updated_at column exists: %w", err)
+	}
+
+	if !columnExists {
+		// テーブル存在を再確認（安全性のため）
+		if exists, err := checkTableExists(ctx, sqlDB, "root_configs"); err != nil {
+			return fmt.Errorf("failed to re-verify table existence before adding column: %w", err)
+		} else if !exists {
+			logrus.Warn("root_configs table disappeared during migration, skipping column addition")
+			return nil
+		}
+
+		// カラムが存在しない場合は、NULLを許可して追加（後でEntがNOT NULLに変更する）
+		_, err = sqlDB.ExecContext(ctx, `
+			ALTER TABLE root_configs 
+			ADD COLUMN updated_at TIMESTAMP
+		`)
+		if err != nil {
+			return fmt.Errorf("failed to add updated_at column to root_configs table: %w", err)
+		}
+		logrus.Info("Added updated_at column to root_configs table")
+	}
+
+	// 既存レコードに対してupdated_atを設定（NULLの場合は現在時刻）
+	// テーブル存在を再確認（安全性のため）
+	if exists, err := checkTableExists(ctx, sqlDB, "root_configs"); err != nil {
+		return fmt.Errorf("failed to verify table existence before updating records: %w", err)
+	} else if !exists {
+		logrus.Warn("root_configs table disappeared during migration, skipping record update")
+		return nil
+	}
+
+	_, err = sqlDB.ExecContext(ctx, `
+		UPDATE root_configs 
+		SET updated_at = COALESCE(updated_at, NOW())
+		WHERE updated_at IS NULL
+	`)
+	if err != nil {
+		// テーブルが削除された場合など、他の理由でエラーになる可能性がある
+		return fmt.Errorf("failed to update existing root_configs.updated_at values: %w", err)
+	}
+	logrus.Info("Updated existing root_configs.updated_at values")
+
+	// カラムが存在するが、NOT NULL制約がない場合は、NOT NULL制約を追加
+	// （EntのマイグレーションがNOT NULL制約を追加しようとする前に）
+	// テーブルとカラムの存在を再確認（安全性のため）
+	if exists, err := checkTableExists(ctx, sqlDB, "root_configs"); err != nil {
+		return fmt.Errorf("failed to verify table existence before checking nullability: %w", err)
+	} else if !exists {
+		logrus.Warn("root_configs table disappeared during migration, skipping nullability check")
+		return nil
+	}
+
+	if exists, err := checkColumnExists(ctx, sqlDB, "root_configs", "updated_at"); err != nil {
+		return fmt.Errorf("failed to verify column existence before checking nullability: %w", err)
+	} else if !exists {
+		logrus.Warn("updated_at column disappeared during migration, skipping nullability check")
+		return nil
+	}
+
+	var isNullable string
+	err = sqlDB.QueryRowContext(ctx, `
+		SELECT is_nullable
+		FROM information_schema.columns 
+		WHERE table_schema = 'public'
+		AND table_name = 'root_configs' 
+		AND column_name = 'updated_at'
+	`).Scan(&isNullable)
+	if err != nil {
+		return fmt.Errorf("failed to check updated_at column nullability in root_configs table: %w", err)
+	}
+
+	if isNullable == "YES" {
+		// デフォルト値を設定してからNOT NULL制約を追加
+		_, err = sqlDB.ExecContext(ctx, `
+			ALTER TABLE root_configs 
+			ALTER COLUMN updated_at SET DEFAULT NOW(),
+			ALTER COLUMN updated_at SET NOT NULL
+		`)
+		if err != nil {
+			return fmt.Errorf("failed to set NOT NULL constraint on root_configs.updated_at: %w", err)
+		}
+		logrus.Info("Set NOT NULL constraint on root_configs.updated_at")
+	}
+
+	return nil
+}
+
+// checkTableExists は指定されたテーブルが存在するかどうかを確認します。
+func checkTableExists(ctx context.Context, sqlDB *sql.DB, tableName string) (bool, error) {
+	var exists bool
+	err := sqlDB.QueryRowContext(ctx, `
+		SELECT EXISTS (
+			SELECT 1 
+			FROM information_schema.tables 
+			WHERE table_schema = 'public'
+			AND table_name = $1
+		)
+	`, tableName).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
+// checkColumnExists は指定されたテーブルのカラムが存在するかどうかを確認します。
+func checkColumnExists(ctx context.Context, sqlDB *sql.DB, tableName, columnName string) (bool, error) {
+	var exists bool
+	err := sqlDB.QueryRowContext(ctx, `
+		SELECT EXISTS (
+			SELECT 1 
+			FROM information_schema.columns 
+			WHERE table_schema = 'public'
+			AND table_name = $1
+			AND column_name = $2
+		)
+	`, tableName, columnName).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
 }
 
 func runSeederIfNeeded(client interfaces.ClientInterface) error {
@@ -201,7 +361,26 @@ func runSeederIfNeeded(client interfaces.ClientInterface) error {
 		logrus.Info("Seeder completed.")
 	} else {
 		logrus.Info("Seed data already exists, skipping.")
+		// ENABLE_TEST_USER_MODEがtrueの場合は、RootConfigを更新する
+		if shouldRun("ENABLE_TEST_USER_MODE") {
+			logrus.Info("ENABLE_TEST_USER_MODE is true, updating RootConfig...")
+			seeder.SeedRootConfig(ctx, client)
+		}
 	}
+
+	// RootConfigが存在しない場合は個別にシード
+	rootConfigExists, err := entClient.RootConfig.Query().
+		Where(rootconfig.ID(1)).
+		Exist(ctx)
+	if err != nil {
+		return fmt.Errorf("root config check failed: %w", err)
+	}
+	if !rootConfigExists {
+		logrus.Info("RootConfig not found, seeding...")
+		seeder.SeedRootConfig(ctx, client)
+		logrus.Info("RootConfig seeded.")
+	}
+
 	if runSeedForWords && !seedWordExists {
 		logrus.Info("Running initial seeder for words...")
 		seeder.SeedWords(ctx, client)
@@ -230,15 +409,23 @@ func setupRouter(client interfaces.ClientInterface, runner sqlexec.Runner, corsO
 	}
 
 	cfg := cors.Config{
-		AllowOrigins:     allowed,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}
-	// 2) もし *.vercel.app を許可したい場合（合わせ技OK）
+	// 2) 環境変数で指定されたオリジンと *.vercel.app の両方を許可
+	// AllowOriginFunc が設定されている場合、AllowOrigins は無視されるため、
+	// AllowOriginFunc 内で両方をチェックする
 	cfg.AllowOriginFunc = func(origin string) bool {
+		// 環境変数で指定されたオリジンをチェック
+		for _, o := range allowed {
+			if origin == o {
+				return true
+			}
+		}
+		// *.vercel.app で終わるオリジンも許可
 		return strings.HasSuffix(origin, ".vercel.app")
 	}
 

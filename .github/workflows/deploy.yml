@@ -24,7 +24,6 @@ jobs:
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ap-northeast-1
-          # role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/<GITHUB_OIDC_ROLE>
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
@@ -62,7 +61,6 @@ jobs:
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ap-northeast-1
-          # role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/<GITHUB_OIDC_ROLE>
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
@@ -76,88 +74,116 @@ jobs:
     name: Post-deploy k6 (A + light B)
     needs: cdk_deploy
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      CF_APP_STACK: AppStack  # CDKのアプリ用スタック名（必要に応じて合わせる）
     steps:
       - uses: actions/checkout@v4
       - uses: grafana/setup-k6-action@v1
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
 
-      - name: Install bench tool deps
-        run: npm --prefix bench ci
-
+      # AWS CLI を使って CF 出力を読むために認証（BASE_URL未設定時のフォールバック用）
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ap-northeast-1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Probe: show BASE_URL and resolve CFN Api URL
-        id: probe
-        env:
-          BASE_URL: ${{ secrets.STG_BASE_URL }}
+      - name: Install bench tool deps
+        run: npm --prefix bench ci
+
+      - name: Resolve BASE_URL (secret > CFN Output: ApiUrl)
+        id: resolve_base_url
+        shell: bash
         run: |
           set -eu
-          echo "BASE_URL from secrets: ${BASE_URL:-<empty>}"
-          CFN_URL=$(aws cloudformation describe-stacks \
-            --stack-name AppStack \
-            --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue | [0]" \
-            --output text 2>/dev/null || echo "")
-          echo "CFN_URL from CloudFormation: ${CFN_URL:-<empty>}"
-          # どちらを使うか決定（STG_BASE_URL 未設定/誤設定の保険）
-          USE_URL="${BASE_URL:-$CFN_URL}"
-          if [ -z "$USE_URL" ]; then
-            echo "::error::Both BASE_URL and CFN_URL are empty"
+          if [ -n "${{ secrets.STG_BASE_URL }}" ]; then
+            BASE_URL="${{ secrets.STG_BASE_URL }}"
+          else
+            echo "::notice::secrets.STG_BASE_URL is empty. Trying to resolve from CloudFormation outputs..."
+            BASE_URL="$(aws cloudformation describe-stacks \
+              --stack-name "$CF_APP_STACK" \
+              --query 'Stacks[0].Outputs[?OutputKey==`ApiUrl`].OutputValue' \
+              --output text || true)"
+          fi
+          if [ -z "${BASE_URL}" ] || [ "${BASE_URL}" = "None" ]; then
+            echo "::error::Could not resolve BASE_URL. Set secrets.STG_BASE_URL or add ApiUrl output to $CF_APP_STACK"
             exit 1
           fi
-          echo "use_url=$USE_URL" >> $GITHUB_OUTPUT
-          echo "Using URL: $USE_URL"
+          # 末尾スラッシュ除去
+          BASE_URL="${BASE_URL%/}"
+          echo "BASE_URL=${BASE_URL}" >> $GITHUB_ENV
+          echo "Resolved BASE_URL=${BASE_URL}"
 
-      - name: Warm-up & echo headers
-        env:
-          USE_URL: ${{ steps.probe.outputs.use_url }}
+      - name: Wait for /health (HTTP 200, retry)
+        shell: bash
         run: |
           set -eu
-          test -n "$USE_URL"
-          echo "=== GET $USE_URL/health ==="
-          curl -sv "$USE_URL/health" 2>&1 || true
-          echo ""
-          echo "=== POST $USE_URL/users/auth/test-login ==="
-          curl -sv -X POST \
-            -H "content-type: application/json" \
-            "$USE_URL/users/auth/test-login" \
-            -d '{}' 2>&1 || true
+          url="${BASE_URL}/health"
+          echo "Probing: ${url}"
+          for i in $(seq 1 30); do
+            code=$(curl -sS -o /dev/null -w "%{http_code}" "${url}" || echo "000")
+            echo "Attempt $i: status=${code}"
+            if [ "${code}" = "200" ]; then
+              echo "Health OK"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "::error::/health did not become 200 within timeout"
+          # ダンプ
+          curl -i "${url}" || true
+          exit 1
 
-      - name: Warm-up staging (optional but recommended)
-        env:
-          USE_URL: ${{ steps.probe.outputs.use_url }}
+      - name: Probe /users/auth/test-login (accept 200 or 429)
+        shell: bash
         run: |
-          for i in {1..5}; do curl -sf "$USE_URL/health" || true; sleep 1; done
+          set -eu
+          url="${BASE_URL}/users/auth/test-login"
+          echo "Probing: ${url}"
+          # 直後のコールドスタートやレート制限を許容するため 200 or 429 をOK
+          for i in $(seq 1 10); do
+            code=$(curl -sS -o /tmp/tl.json -w "%{http_code}" -X POST \
+              -H "content-type: application/json" \
+              -d '{}' "${url}" || echo "000")
+            echo "Attempt $i: status=${code}"
+            if [ "${code}" = "200" ] || [ "${code}" = "429" ]; then
+              echo "test-login OK (status=${code})"
+              cat /tmp/tl.json || true
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "::error::test-login stayed non-OK (wanted 200/429)"
+          echo "Last response:"
+          cat /tmp/tl.json || true
+          exit 1
+
+      - name: Warm-up staging (optional)
+        env:
+          BASE_URL: ${{ env.BASE_URL }}
+        run: |
+          for i in {1..5}; do curl -sf "$BASE_URL/health" || true; sleep 1; done
 
       - name: Run A-layer smoke on staging
         env:
-          BASE_URL: ${{ steps.probe.outputs.use_url }}
+          BASE_URL: ${{ env.BASE_URL }}
           ALLOW_WRITE: "false"
         run: |
           set -eu
           mkdir -p bench/k6/out
-          if [ -z "${BASE_URL:-}" ]; then
-            echo "::error::BASE_URL is empty"
-            exit 1
-          fi
           test -f bench/k6/a/smoke_all.js || { echo "::error::k6 script not found: bench/k6/a/smoke_all.js"; exit 1; }
           k6 run --summary-export=bench/k6/out/smoke_stg.json bench/k6/a/smoke_all.js
 
       - name: Run B-layer (search only, PR profile)
         env:
-          BASE_URL: ${{ steps.probe.outputs.use_url }}
+          BASE_URL: ${{ env.BASE_URL }}
           PROFILE: pr
         run: |
           set -eu
-          if [ -z "${BASE_URL:-}" ]; then
-            echo "::error::BASE_URL is empty"
-            exit 1
-          fi
           test -f bench/k6/b/search_words.js || { echo "::error::k6 script not found: bench/k6/b/search_words.js"; exit 1; }
           k6 run --summary-export=bench/k6/out/b_search_stg.json bench/k6/b/search_words.js
 

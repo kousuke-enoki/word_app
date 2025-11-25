@@ -97,14 +97,26 @@ jobs:
           BASE_URL: ${{ secrets.STG_BASE_URL }}
           ALLOW_WRITE: "false"
         run: |
+          set -eu
           mkdir -p bench/k6/out
-          export=bench/k6/out/smoke_stg.json bench/k6/a/smoke_all.js
+          if [ -z "${BASE_URL:-}" ]; then
+            echo "::error::BASE_URL is empty. Set secrets.STG_BASE_URL"
+            exit 1
+          fi
+          test -f bench/k6/a/smoke_all.js || { echo "::error::k6 script not found: bench/k6/a/smoke_all.js"; exit 1; }
+          k6 run --summary-export=bench/k6/out/smoke_stg.json bench/k6/a/smoke_all.js
 
       - name: Run B-layer (search only, PR profile)
         env:
           BASE_URL: ${{ secrets.STG_BASE_URL }}
           PROFILE: pr
         run: |
+          set -eu
+          if [ -z "${BASE_URL:-}" ]; then
+            echo "::error::BASE_URL is empty. Set secrets.STG_BASE_URL"
+            exit 1
+          fi
+          test -f bench/k6/b/search_words.js || { echo "::error::k6 script not found: bench/k6/b/search_words.js"; exit 1; }
           k6 run --summary-export=bench/k6/out/b_search_stg.json bench/k6/b/search_words.js
 
       - name: Make charts (optional)

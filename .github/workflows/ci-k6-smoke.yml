@@ -1,0 +1,163 @@
+name: k6 Smoke (PR)
+
+on:
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  k6_smoke_local:
+    name: A-layer smoke against local backend
+    runs-on: ubuntu-latest
+
+    # ← ここで "実値" を定義（全ステップに効く）
+    env:
+      # データベース接続情報（database.goのloadDbConfigが期待する形式）
+      DB_HOST: localhost
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: password
+      DB_NAME: appdb
+      # アプリケーション設定
+      APP_PORT: "8080"
+      APP_ENV: development
+      # JWT設定（必須）
+      JWT_SECRET: "test-secret-key-for-ci-smoke-tests"
+      # シード処理を有効化（CI環境用）
+      RUN_SEEDER: "true"
+      # テストユーザーモード有効化（CI環境用）
+      ENABLE_TEST_USER_MODE: "true"
+      # ログ設定
+      LOG_STDOUT: "true"
+      LOG_FILE: ""
+      LOG_LEVEL: "debug"
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: appdb
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.x"
+
+      - name: Install psql client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Wait for Postgres (tcp + auth)
+        env: { PGPASSWORD: password }
+        run: |
+          for i in $(seq 1 60); do
+            if psql -h localhost -U postgres -d appdb -c "select 1" >/dev/null 2>&1; then
+              echo "Postgres ready"; break
+            fi
+            echo "waiting postgres... ($i/60)"; sleep 2
+          done
+          psql -h localhost -U postgres -d appdb -c "select version();"
+
+      - name: Start backend (dev)
+        working-directory: ./backend
+        run: |
+          set -euo pipefail
+          go mod download
+
+          # バイナリをビルド（コンパイル時間を分離）
+          echo "=== Building server binary ==="
+          go build -o server ./cmd/server/main.go
+          echo "Build completed"
+
+          # ログファイルを準備
+          touch server.log
+          # ログをリアルタイムで表示（バックグラウンド）
+          tail -F server.log & TAIL_PID=$!
+
+          # サーバーをバックグラウンドで起動
+          # 直接バイナリを実行することで、コンパイル時間を回避
+          ./server > server.log 2>&1 &
+          SERVER_PID=$!
+          echo "Server started with PID: $SERVER_PID"
+
+          # 少し待ってから初期ログを確認
+          sleep 5
+          echo "=== Initial server log (first 50 lines) ==="
+          if [ -f server.log ] && [ -s server.log ]; then
+            head -n 50 server.log
+          else
+            echo "Log file is empty or not readable"
+            echo "=== Checking if process is still running ==="
+            ps -p $SERVER_PID -f 2>/dev/null || echo "Process $SERVER_PID not found"
+          fi
+
+          # ヘルス待機（最大 ~60s）
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8080/health > /dev/null; then
+              echo "Backend healthy"; break
+            fi
+            echo "waiting backend... (attempt $i/30)"
+            # 5回ごとにログと状態を確認
+            if [ $((i % 5)) -eq 0 ]; then
+              echo "=== Recent server log (last 30 lines) ==="
+              if [ -f server.log ] && [ -s server.log ]; then
+                tail -n 30 server.log
+              else
+                echo "Log file is empty"
+              fi
+              echo "=== Process status ==="
+              ps -p $SERVER_PID -f 2>/dev/null || echo "Process $SERVER_PID not found"
+              echo "=== Port status ==="
+              (lsof -i :8080 2>/dev/null || netstat -tlnp 2>/dev/null | grep :8080 || echo "Port 8080 not in use")
+            fi
+            sleep 2
+          done
+
+          if ! curl -sf http://localhost:8080/health > /dev/null; then
+            echo "Backend failed to start"
+            echo "=== Full server log ==="
+            if [ -f server.log ] && [ -s server.log ]; then
+              cat server.log
+            else
+              echo "Log file is empty or not found"
+            fi
+            echo "=== Process status ==="
+            ps -p $SERVER_PID -f 2>/dev/null || echo "Process $SERVER_PID not found"
+            echo "=== All server processes ==="
+            ps aux | grep -E "(server|main)" | grep -v grep || echo "No server processes found"
+            echo "=== Port status ==="
+            (lsof -i :8080 2>/dev/null || netstat -tlnp 2>/dev/null | grep :8080 || echo "Port 8080 not in use")
+            kill $TAIL_PID 2>/dev/null || true
+            kill $SERVER_PID 2>/dev/null || true
+            exit 1
+          fi
+
+          kill $TAIL_PID 2>/dev/null || true
+
+      - uses: grafana/setup-k6-action@v1
+
+      - name: Run smoke (A-layer)
+        env:
+          BASE_URL: http://localhost:8080
+          ALLOW_WRITE: "false"
+        run: |
+          mkdir -p bench/k6/out
+          k6 run --summary-export=bench/k6/out/smoke_pr.json bench/k6/a/smoke_all.js
+
+      - name: Upload k6 results
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-smoke-pr
+          path: bench/k6/out/smoke_pr.json
+          retention-days: 7

@@ -66,12 +66,13 @@ type LimitsCfg struct {
 // Config aggregates all sub-config sections used across the application.
 // It is designed to be constructed once in main and passed into modules.
 type Config struct {
-	App    AppCfg
-	JWT    JWTCfg
-	DB     DBCfg
-	Line   LineOAuthCfg
-	Lambda LambdaCfg
-	Limits LimitsCfg
+	App            AppCfg
+	JWT            JWTCfg
+	DB             DBCfg
+	Line           LineOAuthCfg
+	Lambda         LambdaCfg
+	Limits         LimitsCfg
+	RateLimitTable rateLimitTable
 }
 
 type appSecret struct {
@@ -83,6 +84,10 @@ type appSecret struct {
 
 type LambdaCfg struct {
 	LambdaRuntime string `json:"LambdaRuntime"`
+}
+
+type rateLimitTable struct {
+	RateLimitTableName string `json:"RateLimitTableName"`
 }
 
 // NewConfig reads environment variables, applies sane defaults, and returns
@@ -143,6 +148,7 @@ func NewConfig() *Config {
 	// bulk_register で一度に登録できる単語数の上限
 	bulkRegisterMaxItems := getenvInt("LIMIT_BULK_REGISTER_MAX_ITEMS", 50*1024) // 51200
 
+	rateLimitTableName := getenv("RATE_LIMIT_TABLE", "rate_limits")
 	// // 4) DB 認証（ユーザー/パス）は Secrets Manager
 	// // var dbUser, dbPass string
 	// if arn := os.Getenv("DB_SECRET_ARN"); arn != "" {
@@ -180,6 +186,7 @@ func NewConfig() *Config {
 			BulkTokenizeMaxTokens:  bulkTokenizeMaxTokens,
 			BulkRegisterMaxItems:   bulkRegisterMaxItems,
 		},
+		RateLimitTable: rateLimitTable{RateLimitTableName: rateLimitTableName},
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 	"word_app/backend/ent/rootconfig"
 
 	"entgo.io/ent/dialect/sql"
@@ -77,6 +78,20 @@ func (rcc *RootConfigCreate) SetNillableIsLineAuthentication(b *bool) *RootConfi
 	return rcc
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (rcc *RootConfigCreate) SetUpdatedAt(t time.Time) *RootConfigCreate {
+	rcc.mutation.SetUpdatedAt(t)
+	return rcc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (rcc *RootConfigCreate) SetNillableUpdatedAt(t *time.Time) *RootConfigCreate {
+	if t != nil {
+		rcc.SetUpdatedAt(*t)
+	}
+	return rcc
+}
+
 // Mutation returns the RootConfigMutation object of the builder.
 func (rcc *RootConfigCreate) Mutation() *RootConfigMutation {
 	return rcc.mutation
@@ -128,6 +143,10 @@ func (rcc *RootConfigCreate) defaults() {
 		v := rootconfig.DefaultIsLineAuthentication
 		rcc.mutation.SetIsLineAuthentication(v)
 	}
+	if _, ok := rcc.mutation.UpdatedAt(); !ok {
+		v := rootconfig.DefaultUpdatedAt
+		rcc.mutation.SetUpdatedAt(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -148,6 +167,9 @@ func (rcc *RootConfigCreate) check() error {
 	}
 	if _, ok := rcc.mutation.IsLineAuthentication(); !ok {
 		return &ValidationError{Name: "is_line_authentication", err: errors.New(`ent: missing required field "RootConfig.is_line_authentication"`)}
+	}
+	if _, ok := rcc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "RootConfig.updated_at"`)}
 	}
 	return nil
 }
@@ -191,6 +213,10 @@ func (rcc *RootConfigCreate) createSpec() (*RootConfig, *sqlgraph.CreateSpec) {
 	if value, ok := rcc.mutation.IsLineAuthentication(); ok {
 		_spec.SetField(rootconfig.FieldIsLineAuthentication, field.TypeBool, value)
 		_node.IsLineAuthentication = value
+	}
+	if value, ok := rcc.mutation.UpdatedAt(); ok {
+		_spec.SetField(rootconfig.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	return _node, _spec
 }
@@ -302,6 +328,11 @@ func (u *RootConfigUpsert) UpdateIsLineAuthentication() *RootConfigUpsert {
 //		Exec(ctx)
 func (u *RootConfigUpsertOne) UpdateNewValues() *RootConfigUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.UpdatedAt(); exists {
+			s.SetIgnore(rootconfig.FieldUpdatedAt)
+		}
+	}))
 	return u
 }
 
@@ -562,6 +593,13 @@ type RootConfigUpsertBulk struct {
 //		Exec(ctx)
 func (u *RootConfigUpsertBulk) UpdateNewValues() *RootConfigUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.UpdatedAt(); exists {
+				s.SetIgnore(rootconfig.FieldUpdatedAt)
+			}
+		}
+	}))
 	return u
 }
 

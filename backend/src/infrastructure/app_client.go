@@ -69,8 +69,8 @@ func NewAppClient(entClient *ent.Client) interfaces.ClientInterface {
 	}
 }
 
-// GetAuth implements interfaces.ClientInterface.
-func (c *appClient) GetAuth(_ context.Context) (*settingUc.AuthConfigDTO, error) {
+// GetRuntimeConfig implements interfaces.ClientInterface.
+func (c *appClient) GetRuntimeConfig(_ context.Context) (*settingUc.RuntimeConfigDTO, error) {
 	panic("unimplemented")
 }
 
@@ -106,16 +106,6 @@ func (c *appClient) UpdateRootConfigExecute(_ context.Context, in settingUc.Inpu
 
 // UpdateUserConfigExecute implements interfaces.ClientInterface.
 func (c *appClient) UpdateUserConfigExecute(_ context.Context, in settingUc.InputUpdateUserConfig) (*domain.UserConfig, error) {
-	panic("unimplemented")
-}
-
-// GetAuthConfig implements interfaces.ClientInterface.
-func (c *appClient) GetAuthConfig(_ context.Context) (*settingUc.AuthConfigDTO, error) {
-	panic("unimplemented")
-}
-
-// GetAuthConfig implements interfaces.ClientInterface.
-func (c *appClient) GetAuthConfigs(_ context.Context) (*models.AuthSettingResponse, error) {
 	panic("unimplemented")
 }
 

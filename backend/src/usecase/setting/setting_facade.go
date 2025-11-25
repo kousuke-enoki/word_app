@@ -15,38 +15,45 @@ import (
 // ただし、Facade はあくまでinterfaceであり、
 // 実装は各ユースケースの実装を組み合わせて行う
 type SettingFacade interface {
-	GetAuth(ctx context.Context) (*AuthConfigDTO, error)
+	// GetAuth(ctx context.Context) (*AuthConfigDTO, error)
 	GetRoot(ctx context.Context, in InputGetRootConfig) (*OutputGetRootConfig, error)
+	GetRuntimeConfig(ctx context.Context) (*RuntimeConfigDTO, error)
 	GetUser(ctx context.Context, in InputGetUserConfig) (*OutputGetUserConfig, error)
 	UpdateRoot(ctx context.Context, in InputUpdateRootConfig) (*domain.RootConfig, error)
 	UpdateUser(ctx context.Context, in InputUpdateUserConfig) (*domain.UserConfig, error)
 }
 
 type settingFacade struct {
-	authCfg    GetAuthConfig
-	getRoot    GetRootConfig
-	getUser    GetUserConfig
-	updateRoot UpdateRootConfig
-	updateUser UpdateUserConfig
+	// authCfg          GetAuthConfig
+	getRoot          GetRootConfig
+	getRuntimeConfig GetRuntimeConfig
+	getUser          GetUserConfig
+	updateRoot       UpdateRootConfig
+	updateUser       UpdateUserConfig
 }
 
 func NewSettingFacade(
-	a GetAuthConfig,
+	// a GetAuthConfig,
 	gr GetRootConfig,
+	grc GetRuntimeConfig,
 	gu GetUserConfig,
 	ur UpdateRootConfig,
 	uu UpdateUserConfig,
 ) SettingFacade {
-	return &settingFacade{a, gr, gu, ur, uu}
+	return &settingFacade{gr, grc, gu, ur, uu}
 }
 
 // ↓ 各メソッドは単に委譲
-func (f *settingFacade) GetAuth(ctx context.Context) (*AuthConfigDTO, error) {
-	return f.authCfg.Execute(ctx)
-}
+// func (f *settingFacade) GetAuth(ctx context.Context) (*AuthConfigDTO, error) {
+// 	return f.authCfg.Execute(ctx)
+// }
 
 func (f *settingFacade) GetRoot(ctx context.Context, in InputGetRootConfig) (*OutputGetRootConfig, error) {
 	return f.getRoot.Execute(ctx, in)
+}
+
+func (f *settingFacade) GetRuntimeConfig(ctx context.Context) (*RuntimeConfigDTO, error) {
+	return f.getRuntimeConfig.Execute(ctx)
 }
 
 func (f *settingFacade) GetUser(ctx context.Context, in InputGetUserConfig) (*OutputGetUserConfig, error) {

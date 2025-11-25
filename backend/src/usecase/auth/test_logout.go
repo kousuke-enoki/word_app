@@ -38,7 +38,13 @@ func (uc *AuthUsecase) TestLogout(ctx context.Context, actorID int) error {
 
 	if deleted {
 		commit = true
-		return done(commit)
+		if err := done(commit); err != nil {
+			return err
+		}
+		// ユーザー削除後に、レート制限キャッシュもクリア
+		// トランザクション外で実行（キャッシュは外部サービスなので）
+		_ = uc.rateLimiter.ClearCacheForUser(ctx, actorID)
+		return nil
 	}
 
 	// 削除されなかった理由を区別したい場合のみ判定（不要ならここは省く）

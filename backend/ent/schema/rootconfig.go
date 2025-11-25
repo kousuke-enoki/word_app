@@ -3,6 +3,8 @@
 package schema
 
 import (
+	"time"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 )
@@ -24,6 +26,9 @@ func (RootConfig) Fields() []ent.Field {
 			Default(false),
 		field.Bool("is_line_authentication").
 			Default(false),
+		field.Time("updated_at").
+			Default(time.Now()).
+			Immutable(),
 	}
 }
 

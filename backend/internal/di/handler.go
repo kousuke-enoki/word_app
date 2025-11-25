@@ -31,7 +31,7 @@ func NewHandlers(config *config.Config, uc *UseCases, client interfaces.ClientIn
 	jwtGen := jwt.NewMyJWTGenerator(config.JWT.Secret)
 	// 既存のservice 層は “薄い Facade” として存続させる想定
 	return &Handlers{
-		Auth:    AuthH.NewHandler(uc.Auth, jwtGen),
+		Auth:    AuthH.NewHandler(uc.Auth, jwtGen, config),
 		Bulk:    BulkH.NewHandler(uc.BulkToken, uc.BulkRegister, &config.Limits),
 		Setting: settingH.NewHandler(uc.Setting),
 		User:    userH.NewHandler(uc.User, jwtGen),

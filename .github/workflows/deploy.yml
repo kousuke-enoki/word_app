@@ -101,7 +101,7 @@ jobs:
       - name: Install bench tool deps
         run: npm --prefix bench ci
 
-      - name: Resolve BASE_URL (secret > CFN Output: ApiUrl)
+      - name: Resolve BASE_URL (secret > CFN Output ApiUrl)
         id: resolve_base_url
         shell: bash
         run: |

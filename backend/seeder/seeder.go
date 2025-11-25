@@ -62,7 +62,11 @@ func SeedRootConfig(ctx context.Context, client interfaces.ClientInterface) {
 	entClient := client.EntClient()
 	exists, err := entClient.RootConfig.Query().Where(rootconfig.ID(1)).Exist(ctx)
 	if err != nil {
-		log.Fatalf("failed to query rootConfig: %v", err)
+		// スキーマ不整合などのエラー時は警告を出して続行
+		// Migrationが実行されていない場合などに発生する可能性がある
+		log.Printf("WARNING: failed to query rootConfig: %v", err)
+		log.Printf("WARNING: Skipping RootConfig seed due to error (this may be resolved by running migration)")
+		return
 	}
 	if !exists {
 		// CI環境やローカル環境ではテストユーザーモードを有効化
@@ -72,7 +76,9 @@ func SeedRootConfig(ctx context.Context, client interfaces.ClientInterface) {
 			SetIsTestUserMode(isTestMode).
 			Save(ctx)
 		if err != nil {
-			log.Fatalf("failed to create root config: %v", err)
+			log.Printf("WARNING: failed to create root config: %v", err)
+			log.Printf("WARNING: Skipping RootConfig creation due to error")
+			return
 		}
 		log.Printf("Root config seeded (IsTestUserMode: %v)", isTestMode)
 	} else {
@@ -80,14 +86,18 @@ func SeedRootConfig(ctx context.Context, client interfaces.ClientInterface) {
 		if os.Getenv("ENABLE_TEST_USER_MODE") == "true" {
 			rc, err := entClient.RootConfig.Query().Where(rootconfig.ID(1)).Only(ctx)
 			if err != nil {
-				log.Fatalf("failed to query rootConfig: %v", err)
+				log.Printf("WARNING: failed to query rootConfig: %v", err)
+				log.Printf("WARNING: Skipping RootConfig update due to error")
+				return
 			}
 			if !rc.IsTestUserMode {
 				_, err = entClient.RootConfig.UpdateOne(rc).
 					SetIsTestUserMode(true).
 					Save(ctx)
 				if err != nil {
-					log.Fatalf("failed to update root config: %v", err)
+					log.Printf("WARNING: failed to update root config: %v", err)
+					log.Printf("WARNING: Skipping RootConfig update due to error")
+					return
 				}
 				log.Println("Root config updated: IsTestUserMode enabled")
 			}
@@ -98,8 +108,10 @@ func SeedRootConfig(ctx context.Context, client interfaces.ClientInterface) {
 // SeedPartOfSpeech 品詞データのシード
 func SeedPartOfSpeech(ctx context.Context, client interfaces.ClientInterface) {
 	entClient := client.EntClient()
-	partsOfSpeech := []string{"名詞", "代名詞", "動詞", "形容詞", "副詞",
-		"助動詞", "前置詞", "冠詞", "間投詞", "接続詞", "慣用句", "その他"}
+	partsOfSpeech := []string{
+		"名詞", "代名詞", "動詞", "形容詞", "副詞",
+		"助動詞", "前置詞", "冠詞", "間投詞", "接続詞", "慣用句", "その他",
+	}
 
 	for _, name := range partsOfSpeech {
 		exists, err := entClient.PartOfSpeech.Query().Where(partofspeech.Name(name)).Exist(ctx)

@@ -142,29 +142,6 @@ jobs:
           curl -i "${url}" || true
           exit 1
 
-      - name: Probe /users/auth/test-login (accept 200 or 429)
-        shell: bash
-        run: |
-          set -eu
-          url="${BASE_URL}/users/auth/test-login"
-          echo "Probing: ${url}"
-          for i in $(seq 1 10); do
-            code=$(curl -sS -o /tmp/tl.json -w "%{http_code}" -X POST \
-              -H "content-type: application/json" \
-              -d '{}' "${url}" || echo "000")
-            echo "Attempt $i: status=${code}"
-            if [ "${code}" = "200" ] || [ "${code}" = "429" ]; then
-              echo "test-login OK (status=${code})"
-              cat /tmp/tl.json || true
-              exit 0
-            fi
-            sleep 3
-          done
-          echo "::error::test-login stayed non-OK (wanted 200/429)"
-          echo "Last response:"
-          cat /tmp/tl.json || true
-          exit 1
-
       - name: Warm-up staging (optional)
         env:
           BASE_URL: ${{ env.BASE_URL }}

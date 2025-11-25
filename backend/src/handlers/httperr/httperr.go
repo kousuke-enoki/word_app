@@ -18,6 +18,8 @@ func Write(c *gin.Context, err error) {
 	var ae *apperror.Error
 	if !errors.As(err, &ae) {
 		logx.From(ctx).WithError(err).Error("unhandled error")
+		// gin.Context.Errorsに追加（アクセスログのerror_kind分類用）
+		_ = c.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
@@ -39,6 +41,9 @@ func Write(c *gin.Context, err error) {
 	default:
 		logger.Error("server error")
 	}
+
+	// gin.Context.Errorsに追加（アクセスログのerror_kind分類用）
+	_ = c.Error(ae)
 
 	status := StatusOf(ae.Kind)
 	body := gin.H{"error": ae.Message}

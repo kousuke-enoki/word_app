@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awscfg "github.com/aws/aws-sdk-go-v2/config"
@@ -199,6 +200,42 @@ func getenv(key, def string) string {
 		return v
 	}
 	return def
+}
+
+// Getenv returns the value of an environment variable, or the provided default.
+// This is a public wrapper for the internal getenv function.
+func Getenv(key, def string) string {
+	return getenv(key, def)
+}
+
+// GetenvBool returns the boolean value of an environment variable, or the provided default.
+func GetenvBool(key string, def bool) bool {
+	v := os.Getenv(key)
+	if v == "" {
+		return def
+	}
+	b, _ := strconv.ParseBool(v)
+	return b
+}
+
+// ParseTrustedProxies parses TRUSTED_PROXIES environment variable (comma-separated CIDR).
+// Returns nil if empty (Gin recommended: reject all).
+func ParseTrustedProxies(s string) []string {
+	if s == "" {
+		return nil // Gin推奨のnil（全拒否）
+	}
+	parts := strings.Split(s, ",")
+	result := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			result = append(result, p)
+		}
+	}
+	if len(result) == 0 {
+		return nil
+	}
+	return result
 }
 
 func getenvInt(key string, def int) int {

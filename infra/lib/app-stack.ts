@@ -76,7 +76,8 @@ export class AppStack extends Stack {
       securityGroups: [lambdaSg],
       memorySize: 256,
       timeout: Duration.seconds(30), // ← 少し余裕を持たせる
-      reservedConcurrentExecutions: 10, // 予約同時実行数
+      // reservedConcurrentExecutions: 10, // 予約同時実行数
+      // ↑ アカウント全体の “未予約(Unreserved) 同時実行数” を最低必要値 10 未満に落としてしまったため一旦削除
       logRetention: logs.RetentionDays.THREE_DAYS,
       environment: {
         APP_ENV: "production",
@@ -156,6 +157,20 @@ export class AppStack extends Stack {
     rateLimitsTable.grantReadWriteData(fn);
 
     fn.addEnvironment("RATE_LIMIT_TABLE", rateLimitsTable.tableName);
+    // レート制限バックエンド（DynamoDBを使用）
+    fn.addEnvironment("RATE_LIMIT_BACKEND", "dynamodb");
+    // レート制限設定
+    fn.addEnvironment("RATE_LIMIT_WINDOW_SEC", "60");
+    fn.addEnvironment("RATE_LIMIT_MAX_REQUESTS", "1");
+    fn.addEnvironment("RATE_LIMIT_TTL_SEC", "120");
+    // リミット設定
+    fn.addEnvironment("LIMIT_REGISTERED_WORDS_PER_USER", "200");
+    fn.addEnvironment("LIMIT_QUIZ_MAX_PER_DAY", "20");
+    fn.addEnvironment("LIMIT_QUIZ_MAX_QUESTIONS", "100");
+    fn.addEnvironment("LIMIT_BULK_MAX_PER_DAY", "5");
+    fn.addEnvironment("LIMIT_BULK_MAX_BYTES", "51200");
+    fn.addEnvironment("LIMIT_BULK_TOKENIZE_MAX_TOKENS", "51200");
+    fn.addEnvironment("LIMIT_BULK_REGISTER_MAX_ITEMS", "51200");
 
     // API Gateway の作成（スロットリング設定付き）
     const api = new apigw.RestApi(this, "Api", {

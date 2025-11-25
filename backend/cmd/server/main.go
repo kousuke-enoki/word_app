@@ -15,13 +15,13 @@ import (
 	"word_app/backend/ent/user"
 	"word_app/backend/ent/word"
 	"word_app/backend/internal/di"
+	"word_app/backend/internal/middleware"
 	"word_app/backend/logger"
 	routerConfig "word_app/backend/router"
 	"word_app/backend/seeder"
 	"word_app/backend/src/infrastructure"
 	"word_app/backend/src/interfaces"
 	"word_app/backend/src/interfaces/sqlexec"
-	middleware_logger "word_app/backend/src/middleware/logger"
 	"word_app/backend/src/validators"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -155,7 +155,7 @@ func mustInitServer(needCleanup bool) (*gin.Engine, string, string, func()) {
 		logrus.Info("Skip seeder on boot")
 	}
 
-	router := setupRouter(client, runner, corsOrigin)
+	router := setupRouter(client, runner, corsOrigin, appEnv)
 	return router, appPort, appEnv, cleanup
 }
 
@@ -212,10 +212,13 @@ func runSeederIfNeeded(client interfaces.ClientInterface) error {
 	return nil
 }
 
-func setupRouter(client interfaces.ClientInterface, runner sqlexec.Runner, corsOrigin string) *gin.Engine {
+func setupRouter(client interfaces.ClientInterface, runner sqlexec.Runner, corsOrigin string, appEnv string) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery())
-	router.Use(middleware_logger.RequestLogger())
+
+	// アクセスログミドルウェア（環境変数から設定を読み取り）
+	opts := parseAccessLogOpts()
+	router.Use(middleware.AccessLog(logrus.StandardLogger(), opts))
 
 	// 1) CORS: 環境変数（カンマ区切り）→ スライス
 	allowed := []string{}
@@ -258,7 +261,15 @@ func setupRouter(client interfaces.ClientInterface, runner sqlexec.Runner, corsO
 		middlewares.Auth, handlers.Auth, handlers.Bulk, handlers.User,
 		handlers.Setting, handlers.Word, handlers.Quiz, handlers.Result)
 	routerImpl.MountRoutes(router)
-	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
+
+	// テスト用エンドポイント（開発環境のみ動作）
+	if appEnv == "development" {
+		setupTestEndpoints(router, runner)
+	}
+
+	// Trusted Proxies設定（環境変数から読み取り）
+	trustedProxies := config.ParseTrustedProxies(config.Getenv("TRUSTED_PROXIES", ""))
+	if err := router.SetTrustedProxies(trustedProxies); err != nil {
 		logrus.Fatalf("Failed to set trusted proxies: %v", err)
 	}
 
@@ -272,5 +283,16 @@ func startServer(router *gin.Engine, port, env string) {
 	logrus.Infof("Starting server on port %s in %s environment", port, env)
 	if err := router.Run(":" + port); err != nil {
 		logrus.Fatalf("Failed to start server: %v", err)
+	}
+}
+
+// parseAccessLogOpts reads environment variables and returns AccessLogOpts.
+func parseAccessLogOpts() middleware.AccessLogOpts {
+	healthPath := config.Getenv("LOG_HEALTH_PATH", "/health")
+	excludeHealth := config.GetenvBool("LOG_EXCLUDE_HEALTH", true)
+
+	return middleware.AccessLogOpts{
+		HealthPath:    healthPath,
+		ExcludeHealth: excludeHealth,
 	}
 }

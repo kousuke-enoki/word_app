@@ -77,7 +77,7 @@ jobs:
 
           # バイナリをビルド（コンパイル時間を分離）
           echo "=== Building server binary ==="
-          go build -o server ./cmd/server/main.go
+          go build -o server ./cmd/server
           echo "Build completed"
 
           # ログファイルを準備

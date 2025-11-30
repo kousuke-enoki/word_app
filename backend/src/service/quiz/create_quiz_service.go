@@ -2,9 +2,9 @@ package quiz
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math/rand"
+	"strings"
 
 	"word_app/backend/ent"
 	"word_app/backend/ent/japanesemean"
@@ -12,6 +12,7 @@ import (
 	"word_app/backend/ent/registeredword"
 	"word_app/backend/ent/word"
 	"word_app/backend/ent/wordinfo"
+	"word_app/backend/src/infrastructure/repoerr"
 	"word_app/backend/src/middleware/jwt"
 	"word_app/backend/src/models"
 	"word_app/backend/src/usecase/shared/ucerr"
@@ -91,10 +92,12 @@ func (s *ServiceImpl) fetchCandidates(
 		Limit(req.QuestionCount).
 		All(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("get words: %w", err)
+		// データベースエラーをapperrorにラップ
+		return nil, repoerr.FromEnt(err, "failed to fetch words", "database error")
 	}
 	if len(words) < req.QuestionCount {
-		return nil, errors.New("quiz question is not enough")
+		// apperrorにラップして400エラーとして返す
+		return nil, ucerr.BadRequest("quiz question is not enough")
 	}
 	return words, nil
 }
@@ -111,18 +114,21 @@ func (s *ServiceImpl) ensureQuizRecord(
 		Where(quiz.UserID(userID), quiz.IsRunning(true)).
 		Exist(ctx)
 	if err != nil {
-		return nil, err
+		// データベースエラーをapperrorにラップ
+		return nil, repoerr.FromEnt(err, "failed to check running quiz", "database error")
 	}
 	if exists {
-		return nil, fmt.Errorf("another quiz is running: userID=%d", userID)
+		// apperrorにラップして409エラーとして返す
+		return nil, ucerr.Conflict("another quiz is running")
 	}
 
 	qCount, err := tx.Quiz.Query().Where(quiz.UserID(userID)).Count(ctx)
 	if err != nil {
-		return nil, err
+		// データベースエラーをapperrorにラップ
+		return nil, repoerr.FromEnt(err, "failed to count quizzes", "database error")
 	}
 
-	return tx.Quiz.Create().
+	quiz, err := tx.Quiz.Create().
 		SetUserID(userID).
 		SetQuizNumber(qCount + 1).
 		SetIsRunning(true).
@@ -135,6 +141,16 @@ func (s *ServiceImpl) ensureQuizRecord(
 		SetAttentionLevelList(req.AttentionLevelList).
 		SetChoicesPosIds(req.PartsOfSpeeches).
 		Save(ctx)
+	if err != nil {
+		// 制約エラーの場合は409 Conflictとして返す（レースコンディション対応）
+		// ent.IsConstraintError とエラーメッセージの両方をチェック
+		if ent.IsConstraintError(err) || isQuizUserIDConstraintError(err) {
+			return nil, ucerr.Conflict("another quiz is running")
+		}
+		// その他のデータベースエラーをapperrorにラップ
+		return nil, repoerr.FromEnt(err, "failed to create quiz", "database error")
+	}
+	return quiz, nil
 }
 
 // generateQuestions は「ドメインロジック：誤答抽出＋問題行作成」
@@ -148,7 +164,15 @@ func (s *ServiceImpl) generateQuestions(
 	var first models.NextQuestion
 
 	for i, w := range words {
+		// 配列の存在チェックを追加（パニック防止）
+		if len(w.Edges.WordInfos) == 0 {
+			return first, ucerr.BadRequest("word has no word info")
+		}
 		wi := w.Edges.WordInfos[0]
+
+		if len(wi.Edges.JapaneseMeans) == 0 {
+			return first, ucerr.BadRequest("word info has no japanese means")
+		}
 		correct := wi.Edges.JapaneseMeans[0]
 
 		wrongs, err := tx.JapaneseMean.Query().
@@ -160,10 +184,16 @@ func (s *ServiceImpl) generateQuestions(
 			Limit(3).
 			All(ctx)
 		if err != nil {
-			return first, err
+			// データベースエラーをapperrorにラップ
+			return first, repoerr.FromEnt(err, "failed to fetch wrong answers", "database error")
 		}
 
 		choices := buildChoices(correct, wrongs)
+
+		// 選択肢が2つ未満の場合はエラー（クイズとして不適切）
+		if len(choices) < 2 {
+			return first, ucerr.BadRequest("not enough choices for quiz question")
+		}
 
 		qq, err := tx.QuizQuestion.Create().
 			SetQuizID(qEnt.ID).
@@ -175,7 +205,8 @@ func (s *ServiceImpl) generateQuestions(
 			SetChoicesJpms(choices).
 			Save(ctx)
 		if err != nil {
-			return first, err
+			// データベースエラーをapperrorにラップ
+			return first, repoerr.FromEnt(err, "failed to create quiz question", "database error")
 		}
 
 		if i == 0 {
@@ -242,17 +273,25 @@ func (s *ServiceImpl) withTx(
 ) (err error) {
 	tx, err := s.client.Tx(ctx)
 	if err != nil {
-		return
+		// トランザクション開始エラーをラップ
+		return repoerr.FromEnt(err, "failed to begin transaction", "database error")
 	}
 	defer func() {
 		if p := recover(); p != nil {
 			_ = tx.Rollback()
-			panic(p)
-		}
-		if err != nil {
+			// パニックをエラーに変換
+			if panicErr, ok := p.(error); ok {
+				err = ucerr.Internal("internal error", panicErr)
+			} else {
+				err = ucerr.Internal("internal error", fmt.Errorf("panic: %v", p))
+			}
+		} else if err != nil {
 			_ = tx.Rollback()
 		} else {
-			err = tx.Commit()
+			// コミットエラーをラップ
+			if commitErr := tx.Commit(); commitErr != nil {
+				err = repoerr.FromEnt(commitErr, "failed to commit transaction", "database error")
+			}
 		}
 	}()
 	err = fn(tx)
@@ -265,6 +304,21 @@ func buildChoices(correct *ent.JapaneseMean, wrongs []*ent.JapaneseMean) []model
 		choices = append(choices, models.ChoiceJpm{JapaneseMeanID: jm.ID, Name: jm.Name})
 	}
 	choices = append(choices, models.ChoiceJpm{JapaneseMeanID: correct.ID, Name: correct.Name})
+
+	// 選択肢が2つ未満の場合はエラー（クイズとして不適切）
+	// ただし、ここではnilを返さず、呼び出し側でチェックする
+	// （nilを返すと後続処理でパニックが発生する可能性があるため）
+
 	rand.Shuffle(len(choices), func(i, j int) { choices[i], choices[j] = choices[j], choices[i] })
 	return choices
+}
+
+// isQuizUserIDConstraintError はエラーメッセージから quiz_user_id 制約エラーを判定する
+func isQuizUserIDConstraintError(err error) bool {
+	if err == nil {
+		return false
+	}
+	errMsg := err.Error()
+	return strings.Contains(errMsg, "duplicate key value violates unique constraint") &&
+		strings.Contains(errMsg, "quiz_user_id")
 }

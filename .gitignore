@@ -40,12 +40,5 @@ env.json
 
 .env
 
-# k6 big logs
-bench/k6/out/*_timeseries.json
-bench/k6/out/*.ndjson
-bench/k6/out/*.log
-
-# keep summary and images
-!bench/k6/out/*_summary.json
-!bench/k6/out/*.png
-!bench/k6/out/*.html
+# k6 logs
+bench/k6/out

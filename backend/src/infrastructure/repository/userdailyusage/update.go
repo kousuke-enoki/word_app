@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"word_app/backend/src/domain"
+	"word_app/backend/src/infrastructure/repoerr"
 	"word_app/backend/src/usecase/apperror"
 )
 
@@ -63,7 +64,8 @@ func (r *EntUserDailyUsageRepo) incWithKind(ctx context.Context, userID int, now
 		if err == sql.ErrNoRows {
 			return nil, apperror.TooManyRequestsf("daily quota exceeded", nil)
 		}
-		return nil, err
+		// データベースエラーをラップ
+		return nil, repoerr.FromEnt(err, "failed to update daily usage", "database error")
 	}
 
 	// 上限判定：更新後カウントが cap のままで、今回インクリメントされていないケースを検出するには

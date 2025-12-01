@@ -330,6 +330,13 @@ var (
 		Name:       "words",
 		Columns:    WordsColumns,
 		PrimaryKey: []*schema.Column{WordsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "word_registration_count",
+				Unique:  false,
+				Columns: []*schema.Column{WordsColumns[5]},
+			},
+		},
 	}
 	// WordInfosColumns holds the columns for the "word_infos" table.
 	WordInfosColumns = []*schema.Column{

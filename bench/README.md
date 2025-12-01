@@ -1,5 +1,31 @@
 # 目的について
 
+## ベンチマーク方針（学習用環境としての用途）
+
+### 想定ユーザー数
+
+- 同時アクティブユーザー: 5-10 人
+- ピーク時: 10-20 人
+- 1 ユーザーあたり: 1-2 req/s
+
+### 環境制約
+
+- DB 接続プール: 5 接続（コスト抑制のため）
+- Lambda: 256MB, 30 秒タイムアウト
+- RDS: t4g.micro（最小サイズ）
+
+### ベンチマーク条件
+
+- 層 B (PR): 最大 5 VU, 5 req/s
+- 層 B (Nightly): 最大 10 VU, 10 req/s
+- 層 C: 最大 10 VU, 5-10 req/s
+
+### 目的
+
+- 学習用かつポートフォリオ用途として適切な負荷での動作確認
+- コストを抑えつつ、基本的なパフォーマンスを保証
+- 高負荷テストは実施しない（想定外の負荷のため）
+
 ## 層 A：スモーク（全 API）
 
 目的：網羅＆回帰検知
@@ -12,7 +38,7 @@ CI：PR で毎回
 
 ## 層 B：パフォーマンス 4 本（SLO 厳守）
 
-GET /words?q=（検索：読み多・索引効く）
+GET /words?search=（検索：読み多・索引効く）
 
 POST /quizzes（生成：CPU/DB 負荷）
 
@@ -22,9 +48,9 @@ POST /auth/login（認証：外部 I/O ほぼ無し、基準線）
 
 実行：ステージング中心（ローカルでも確認できるようにする）
 
-PR：VU 10 / 4 分（1→10→0 のステージ）
+PR：最大 5 VU / 約 3 分（20s→1m→1m30s→20s のステージ、5 req/s）
 
-Nightly：VU 30〜50 / 6 分
+Nightly：最大 10 VU / 約 4 分（20s→1m→2m→20s のステージ、10 req/s）
 
 閾値（全シナリオ共通）：
 
@@ -77,6 +103,10 @@ BASE_URL=http://localhost:8080 SMOKE_ENV=local k6 run bench/k6/a/smoke_all.js
 
 # B 各 API 詳細向けの測定
 
+## ローカル環境向け
+
+ローカル環境では既存の処理が使用されます（閾値: p95<200ms）。
+
 BASE_URL=http://localhost:8080 PROFILE=pr TEST_EMAIL=demo@example.com TEST_PASSWORD=Secret-k6 k6 run bench/k6/b/sign_in.js
 
 BASE_URL=http://localhost:8080 PROFILE=pr SEARCH_Q=able SEARCH_SORT=name k6 run bench/k6/b/register_word.js
@@ -85,19 +115,28 @@ BASE_URL=http://localhost:8080 PROFILE=pr k6 run bench/k6/b/quiz_new.js
 
 BASE_URL=http://localhost:8080 PROFILE=pr SEARCH_Q=test SEARCH_SORT=name k6 run bench/k6/b/search_words.js
 
-# B lambda 向け
+## Lambda 環境向け
+
+Lambda 環境では自動検出され、以下の最適化が適用されます：
+
+- ウォームアップフェーズ追加（コールドスタート対策）
+- 閾値緩和（p95<1000ms、コールドスタートとネットワークレイテンシを考慮）
+- setup()でのリトライ処理（タイムアウト対策）
+
+環境検出は `BASE_URL` に `amazonaws.com` が含まれている場合に自動で行われます。
+明示的に指定する場合は `IS_LAMBDA=true` または `IS_LAMBDA=false` を設定してください。
 
 BASE_URL="https://xxxx.execute-api.ap-northeast-1.amazonaws.com/prod" PROFILE=pr \
 TEST_EMAIL=demo@example.com TEST_PASSWORD='K6passw0rd!' \
 k6 run bench/k6/b/sign_in.js
 
-BASE_URL="https://.../prod" PROFILE=pr SEARCH_Q=test SEARCH_SORT=name \
+BASE_URL="https://xxxx.execute-api.ap-northeast-1.amazonaws.com/prod" PROFILE=pr SEARCH_Q=test SEARCH_SORT=name \
 k6 run bench/k6/b/search_words.js
 
-BASE_URL="https://.../prod" PROFILE=pr \
+BASE_URL="https://xxxx.execute-api.ap-northeast-1.amazonaws.com/prod" PROFILE=pr \
 k6 run bench/k6/b/quiz_new.js
 
-BASE_URL="https://.../prod" PROFILE=pr SEARCH_Q=able SEARCH_SORT=name \
+BASE_URL="https://xxxx.execute-api.ap-northeast-1.amazonaws.com/prod" PROFILE=pr SEARCH_Q=able SEARCH_SORT=name \
 k6 run bench/k6/b/register_word.js
 
 # C
@@ -106,23 +145,56 @@ k6 run bench/k6/b/register_word.js
 
 mkdir -p bench/k6/out
 
+## ローカル環境向け
+
+ローカル環境では既存の処理が使用されます（閾値: p95<200ms）。
+
 # cold/warm
 
-BASE_URL=http://localhost:8080 \
-npm --prefix bench run k6:c:cold
+BASE_URL=http://localhost:8080 PROFILE=pr \
+k6 run bench/k6/c/cold_warm.js
 
 # rate-limit
 
-<!-- BASE_URL=http://localhost:8080 \
-npm --prefix bench run k6:c:rate -->
+BASE_URL=http://localhost:8080 \
+k6 run bench/k6/c/rate_limit.js
 
 # DB before/after（ラベルは --summary-export ファイル名で区別する運用でも OK）
 
 BASE_URL=http://localhost:8080 LABEL=before_idx \
-npm --prefix bench run k6:c:db:before
+k6 run bench/k6/c/db_before_after.js
 
 BASE_URL=http://localhost:8080 LABEL=after_idx \
-npm --prefix bench run k6:c:db:after
+k6 run bench/k6/c/db_before_after.js
+
+## Lambda 環境向け
+
+Lambda 環境では自動検出され、以下の最適化が適用されます：
+
+- ウォームアップフェーズ追加（コールドスタート対策）
+- 閾値緩和（p95<1000ms、コールドスタートとネットワークレイテンシを考慮）
+- setupTimeout 延長（120 秒、DynamoDB タイムアウトを考慮）
+
+環境検出は `BASE_URL` に `amazonaws.com` が含まれている場合に自動で行われます。
+明示的に指定する場合は `IS_LAMBDA=true` または `IS_LAMBDA=false` を設定してください。
+
+# cold/warm
+
+BASE_URL="https://xxxx.execute-api.ap-northeast-1.amazonaws.com/prod" PROFILE=pr \
+k6 run bench/k6/c/cold_warm.js
+
+# rate-limit
+
+BASE_URL="https://xxxx.execute-api.ap-northeast-1.amazonaws.com/prod" \
+k6 run bench/k6/c/rate_limit.js
+
+# DB before/after
+
+BASE_URL="https://xxxx.execute-api.ap-northeast-1.amazonaws.com/prod" LABEL=before_idx \
+k6 run bench/k6/c/db_before_after.js
+
+BASE_URL="https://xxxx.execute-api.ap-northeast-1.amazonaws.com/prod" LABEL=after_idx \
+k6 run bench/k6/c/db_before_after.js
 
 # RPS–p95 の時系列グラフを自動生成
 

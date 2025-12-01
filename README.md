@@ -5,6 +5,7 @@
 [![CI](https://img.shields.io/badge/CI-pass-green)](#)
 [![k6 p95](https://img.shields.io/badge/k6-p95%3C200ms-blue)](#)
 [![Coverage](https://img.shields.io/badge/Go%20Coverage-XX%25-informational)](#)
+（順次作成予定）
 
 ## Live Demo
 
@@ -19,6 +20,7 @@
   ![search p95](docs/perf/search_p95.png)
   ![error rate](docs/perf/error_rate.png)
   ![DB Index Before/After](docs/perf/db_index_before_after.png)
+  （グラフなどの表については順次作成予定）
 
 詳細なパフォーマンステスト結果は [docs/perf/README.md](docs/perf/README.md) を参照してください。
 

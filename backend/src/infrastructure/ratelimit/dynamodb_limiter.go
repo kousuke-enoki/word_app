@@ -102,7 +102,12 @@ func (r *DynamoDBLimiter) getCurrentCountAndWindow(
 	key map[string]types.AttributeValue,
 	windowStartRFC string,
 ) (currentCount int, needsReset bool, item map[string]types.AttributeValue, err error) {
-	gi, gerr := r.client.GetItem(ctx, &dynamodb.GetItemInput{
+	// DynamoDB操作にタイムアウトを設定（5秒）
+	// VPC Gateway Endpointを使用しても、ネットワーク問題等に備えて防御的に設定
+	dynamoCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	gi, gerr := r.client.GetItem(dynamoCtx, &dynamodb.GetItemInput{
 		TableName:      aws.String(r.tableName),
 		Key:            key,
 		ConsistentRead: aws.Bool(true),
@@ -168,8 +173,12 @@ func (r *DynamoDBLimiter) incrementOrResetCounter(
 	windowStartRFC string,
 	ttl int64,
 ) (*dynamodb.UpdateItemOutput, error) {
+	// DynamoDB操作にタイムアウトを設定（5秒）
+	dynamoCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	if needsReset {
-		return r.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		return r.client.UpdateItem(dynamoCtx, &dynamodb.UpdateItemInput{
 			TableName:        aws.String(r.tableName),
 			Key:              key,
 			UpdateExpression: aws.String("SET #c = :one, #ws=:ws, #t=:ttl"),
@@ -187,7 +196,7 @@ func (r *DynamoDBLimiter) incrementOrResetCounter(
 		})
 	}
 
-	return r.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+	return r.client.UpdateItem(dynamoCtx, &dynamodb.UpdateItemInput{
 		TableName:           aws.String(r.tableName),
 		Key:                 key,
 		UpdateExpression:    aws.String("SET #c = #c + :inc, #t=:ttl"),
@@ -292,7 +301,11 @@ func (r *DynamoDBLimiter) SaveLastResult(
 	// 要件仕様のキー設計を使用: PK="RL#route#ip#uaHash", SK=window_start
 	key := buildRateLimitKey(ip, uaHash, route, windowStartRFC)
 
-	_, err := r.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+	// DynamoDB操作にタイムアウトを設定（5秒）
+	dynamoCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	_, err := r.client.UpdateItem(dynamoCtx, &dynamodb.UpdateItemInput{
 		TableName:        aws.String(r.tableName),
 		Key:              key,
 		UpdateExpression: aws.String("SET #lr=:lr, #ws=:ws, #t=:ttl"),
@@ -317,6 +330,10 @@ func (r *DynamoDBLimiter) ClearCacheForUser(ctx context.Context, userID int) err
 	// 注意: 全スキャンは効率が悪いが、テストユーザー削除は頻繁でないため許容
 	// 将来的にはGSIでuser_idで検索できるようにすると効率的
 
+	// 関数全体にタイムアウトを設定（Scan操作は時間がかかる可能性があるため10秒）
+	dynamoCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
 	// Scanで全アイテムを取得
 	paginator := dynamodb.NewScanPaginator(r.client, &dynamodb.ScanInput{
 		TableName:      aws.String(r.tableName),
@@ -326,7 +343,7 @@ func (r *DynamoDBLimiter) ClearCacheForUser(ctx context.Context, userID int) err
 	var itemsToUpdate []map[string]types.AttributeValue
 
 	for paginator.HasMorePages() {
-		output, err := paginator.NextPage(ctx)
+		output, err := paginator.NextPage(dynamoCtx)
 		if err != nil {
 			return fmt.Errorf("failed to scan cache items: %w", err)
 		}
@@ -361,7 +378,7 @@ func (r *DynamoDBLimiter) ClearCacheForUser(ctx context.Context, userID int) err
 
 	// last_resultだけを削除（countは維持する）
 	for _, key := range itemsToUpdate {
-		_, err := r.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		_, err := r.client.UpdateItem(dynamoCtx, &dynamodb.UpdateItemInput{
 			TableName:        aws.String(r.tableName),
 			Key:              key,
 			UpdateExpression: aws.String("REMOVE #lr"), // last_resultだけを削除

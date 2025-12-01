@@ -179,11 +179,88 @@ func runMigration(client interfaces.ClientInterface) error {
 		return fmt.Errorf("failed to migrate root_configs.updated_at: %w", err)
 	}
 
+	// Entスキーマに基づくテーブル・インデックスを作成
 	// 外部キーも明確に生成するようにする。
 	if err := entClient.Schema.Create(ctx, migrate.WithForeignKeys(true)); err != nil {
 		return err
 	}
 
+	// PostgreSQL固有のカスタムインデックスを作成
+	if err := createCustomIndexes(ctx); err != nil {
+		return fmt.Errorf("failed to create custom indexes: %w", err)
+	}
+
+	return nil
+}
+
+// createCustomIndexes はPostgreSQL固有のインデックスを作成します。
+// PostgreSQL以外のDB（例: sqlite）の場合は安全にスキップします。
+func createCustomIndexes(ctx context.Context) error {
+	sqlDB := database.GetSQLDB()
+	if sqlDB == nil {
+		logrus.Info("[migrate] SQLDB is nil, skip custom indexes")
+		return nil
+	}
+
+	db := sqlDB
+
+	// pg_trgm拡張を有効化（trigram検索用）
+	// マネージドPostgreSQL環境ではアプリユーザーが拡張を作成できない場合があるため、
+	// 拡張の存在を確認してから処理する
+	var extensionExists bool
+	if err := db.QueryRowContext(ctx, `
+		SELECT EXISTS(
+			SELECT 1 FROM pg_extension WHERE extname = 'pg_trgm'
+		)
+	`).Scan(&extensionExists); err != nil {
+		logrus.Warnf("[migrate] failed to check pg_trgm extension existence: %v", err)
+		// チェックに失敗しても続行（拡張は既に存在している可能性がある）
+		extensionExists = true
+	}
+
+	if !extensionExists {
+		// 拡張が存在しない場合のみ作成を試行
+		if _, err := db.ExecContext(ctx, `CREATE EXTENSION pg_trgm`); err != nil {
+			// 権限エラーの場合は警告のみで継続
+			// 多くのマネージドPostgreSQL環境では管理者が事前に拡張をインストールする運用が一般的
+			if strings.Contains(err.Error(), "permission denied") ||
+				strings.Contains(err.Error(), "must be superuser") ||
+				strings.Contains(err.Error(), "insufficient privilege") {
+				logrus.Warnf("[migrate] insufficient privileges to create pg_trgm extension: %v", err)
+				logrus.Info("[migrate] assuming pg_trgm extension will be created by database administrator")
+				// 権限エラーの場合は続行（拡張は管理者によって作成されることを期待）
+			} else {
+				// その他のエラーは従来通り返す
+				return fmt.Errorf("failed to create pg_trgm extension: %w", err)
+			}
+		} else {
+			logrus.Info("[migrate] pg_trgm extension created successfully")
+		}
+	} else {
+		logrus.Info("[migrate] pg_trgm extension already exists")
+	}
+
+	// Ent管理のB-treeインデックス: registration_count
+	// EntのSchema.Create()は既存テーブルに対して新しいインデックスを自動追加しないため、
+	// 手動で作成する必要がある
+	if _, err := db.ExecContext(ctx, `
+		CREATE INDEX IF NOT EXISTS word_registration_count
+		ON words(registration_count);
+	`); err != nil {
+		return fmt.Errorf("failed to create word_registration_count index: %w", err)
+	}
+
+	// words.name の trigram GIN インデックス
+	// NameContains()によるLIKE検索を高速化するため
+	if _, err := db.ExecContext(ctx, `
+		CREATE INDEX IF NOT EXISTS words_name_trgm_idx
+		ON words
+		USING gin (name gin_trgm_ops);
+	`); err != nil {
+		return fmt.Errorf("failed to create words_name_trgm_idx: %w", err)
+	}
+
+	logrus.Info("[migrate] custom indexes created successfully")
 	return nil
 }
 

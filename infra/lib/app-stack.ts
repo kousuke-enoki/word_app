@@ -1,9 +1,9 @@
 import {
+  CfnOutput,
   Duration,
   RemovalPolicy,
   Stack,
   StackProps,
-  CfnOutput,
 } from "aws-cdk-lib";
 import * as apigw from "aws-cdk-lib/aws-apigateway";
 import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
@@ -166,6 +166,17 @@ export class AppStack extends Stack {
     rateLimitsTable.grantReadWriteData(fn);
 
     fn.addEnvironment("RATE_LIMIT_TABLE", rateLimitsTable.tableName);
+
+    // DynamoDB用のVPC Gateway Endpointを追加（VPC内からのアクセスを高速化・無料）
+    // Gateway Endpointはルートテーブルベースで、VPC内のすべてのルートテーブルに
+    // 自動的にルートを追加します（NAT Gateway経由を回避）
+    new ec2.GatewayVpcEndpoint(this, "DynamoDbEndpoint", {
+      vpc,
+      service: ec2.GatewayVpcEndpointAwsService.DYNAMODB,
+      // Gateway Endpointはルートテーブルに自動的にルートを追加するため、
+      // 明示的なサブネット指定は不要です
+    });
+
     // レート制限バックエンド（DynamoDBを使用）
     fn.addEnvironment("RATE_LIMIT_BACKEND", "dynamodb");
     // レート制限設定

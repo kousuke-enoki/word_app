@@ -265,3 +265,137 @@ export function resetRegisteredWords(baseUrl, token, maxUnregister = 200) {
     console.log(`Reset ${totalUnregistered} registered words`);
   }
 }
+
+/**
+ * Lambda環境かどうかを判定
+ * @param {string} baseUrl - ベースURL
+ * @returns {boolean} Lambda環境の場合true
+ */
+export function isLambdaEnv(baseUrl) {
+  // 環境変数で明示的に指定されている場合
+  if (__ENV.IS_LAMBDA === "true") return true;
+  if (__ENV.IS_LAMBDA === "false") return false;
+
+  // BASE_URLから自動判定
+  return (
+    baseUrl &&
+    (baseUrl.includes("amazonaws.com") ||
+      baseUrl.includes("lambda-url") ||
+      baseUrl.includes("execute-api"))
+  );
+}
+
+/**
+ * Lambda環境向けのステージ設定を返す（ウォームアップフェーズ付き）
+ * @param {string} profile - 'pr' または 'nightly'
+ * @returns {array} ステージ設定の配列
+ */
+export function getLambdaStages(profile) {
+  if (profile === "nightly") {
+    // Lambda向け: ウォームアップを追加
+    return [
+      { duration: "30s", target: 1 }, // コールドスタート対策: 1 VUで30秒ウォームアップ
+      { duration: "20s", target: 3 },
+      { duration: "1m", target: 10 },
+      { duration: "2m", target: 10 },
+      { duration: "20s", target: 0 },
+    ];
+  }
+  // PR プロファイル: Lambda向け: ウォームアップを追加
+  return [
+    { duration: "30s", target: 1 }, // コールドスタート対策: 1 VUで30秒ウォームアップ
+    { duration: "20s", target: 2 },
+    { duration: "1m", target: 5 },
+    { duration: "1m30s", target: 5 },
+    { duration: "20s", target: 0 },
+  ];
+}
+
+/**
+ * Lambda環境向けの閾値設定を返す
+ * @param {string} endpoint - エンドポイント名（例: 'sign_in', 'search'）
+ * @param {object} options - 追加オプション
+ * @param {boolean} options.exclude429 - 429エラーを除外するか（デフォルト: false）
+ * @returns {object} 閾値設定オブジェクト
+ */
+export function getLambdaThresholds(endpoint, options = {}) {
+  const { exclude429 = false } = options;
+
+  // Lambda環境では閾値を緩和（コールドスタートとネットワークレイテンシを考慮）
+  const p95Threshold = 1000; // Lambda: 1秒
+
+  const thresholds = {
+    [`http_req_duration{endpoint:${endpoint}}`]: [`p(95)<${p95Threshold}`],
+  };
+
+  // 429エラーを除外する場合
+  if (exclude429) {
+    thresholds[`http_req_failed{endpoint:${endpoint},status:!429}`] = [
+      "rate<0.01",
+    ];
+  } else {
+    thresholds[`http_req_failed{endpoint:${endpoint}}`] = ["rate<0.01"];
+  }
+
+  return thresholds;
+}
+
+/**
+ * リトライ付きHTTP POSTリクエスト（setup()用、Lambda環境向け）
+ * Lambda環境ではタイムアウトとリトライを考慮
+ * @param {string} url - リクエストURL
+ * @param {string} payload - リクエストボディ（JSON文字列）
+ * @param {object} options - リクエストオプション
+ * @param {number} maxRetries - 最大リトライ回数（デフォルト: 3）
+ * @returns {object} HTTPレスポンス
+ */
+export function httpPostWithRetry(url, payload, options = {}, maxRetries = 3) {
+  const timeout = "30s"; // Lambdaのタイムアウトに合わせる
+
+  let lastError = null;
+  let lastResponse = null;
+
+  for (let i = 0; i < maxRetries; i++) {
+    const r = http.post(url, payload, {
+      ...options,
+      timeout,
+    });
+
+    lastResponse = r;
+
+    // 成功ステータス
+    if (r.status >= 200 && r.status < 300) {
+      return r;
+    }
+
+    // 許容可能なエラー（既存リソースなど）
+    if (r.status === 409 || r.status === 422) {
+      return r;
+    }
+
+    // エラーを記録
+    lastError = {
+      status: r.status,
+      body: String(r.body).slice(0, 200),
+    };
+
+    // 最後の試行でない場合はリトライ
+    if (i < maxRetries - 1) {
+      sleep(2 * (i + 1)); // 指数バックオフ: 2秒, 4秒, 6秒...
+    }
+  }
+
+  // すべてのリトライが失敗した場合でも、409/422の場合は警告のみ（既存リソースの可能性）
+  if (
+    lastResponse &&
+    (lastResponse.status === 409 || lastResponse.status === 422)
+  ) {
+    console.warn(
+      `Request failed but may be acceptable: ${lastError.status} ${lastError.body}`
+    );
+    return lastResponse;
+  }
+
+  // それ以外の場合はエラーを返す（呼び出し側で処理）
+  return lastResponse;
+}

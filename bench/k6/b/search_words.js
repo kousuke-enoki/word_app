@@ -6,12 +6,16 @@ import {
   randomSortBy,
   think,
   withAuth,
+  isLambdaEnv,
+  getLambdaThresholds,
 } from "./helpers_b.js";
 
 const baseUrl = __ENV.BASE_URL;
 const profile = __ENV.PROFILE || "pr";
+const isLambda = isLambdaEnv(baseUrl);
 
 export const options = {
+  setupTimeout: isLambda ? "120s" : "30s", // Lambda環境でのコールドスタートとDynamoDBタイムアウトを考慮して120秒に設定
   scenarios: {
     search_words: {
       executor: "constant-arrival-rate",
@@ -19,15 +23,18 @@ export const options = {
       rate: profile === "nightly" ? 10 : 5, // PR: 5 req/s, Nightly: 10 req/s
       timeUnit: "1s",
       duration: profile === "nightly" ? "3m" : "2m", // PR: 2分, Nightly: 3分
-      preAllocatedVUs: 3,
+      preAllocatedVUs: isLambda ? 1 : 3, // Lambda向け: ウォームアップ用に1 VUを確保
       maxVUs: profile === "nightly" ? 10 : 5,
       gracefulStop: "30s",
     },
   },
-  thresholds: {
-    "http_req_failed{endpoint:search}": ["rate<0.01"],
-    "http_req_duration{endpoint:search}": ["p(95)<200"], // ポートフォリオ用途に適した閾値
-  },
+  thresholds: isLambda
+    ? getLambdaThresholds("search") // Lambda向け: p95<1000ms
+    : {
+        // ローカル: 既存の閾値
+        "http_req_failed{endpoint:search}": ["rate<0.01"],
+        "http_req_duration{endpoint:search}": ["p(95)<200"], // ポートフォリオ用途に適した閾値
+      },
 };
 
 export function setup() {

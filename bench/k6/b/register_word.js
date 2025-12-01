@@ -8,40 +8,49 @@ import {
   resetRegisteredWords,
   think,
   withAuth,
+  isLambdaEnv,
+  getLambdaStages,
+  getLambdaThresholds,
 } from "./helpers_b.js";
 
 const baseUrl = __ENV.BASE_URL;
 const profile = __ENV.PROFILE || "pr";
+const isLambda = isLambdaEnv(baseUrl);
 
 export const options = {
+  setupTimeout: isLambda ? "120s" : "30s", // Lambda環境でのコールドスタートとDynamoDBタイムアウトを考慮して120秒に設定
   scenarios: {
     register_word: {
       executor: "ramping-vus",
       startVUs: 0,
-      stages:
-        profile === "nightly"
-          ? [
-              // ポートフォリオ用途: 最大10 VU
-              { duration: "20s", target: 3 },
-              { duration: "1m", target: 10 },
-              { duration: "2m", target: 10 },
-              { duration: "20s", target: 0 },
-            ]
-          : [
-              // PR: 最大5 VU
-              { duration: "20s", target: 2 },
-              { duration: "1m", target: 5 },
-              { duration: "1m30s", target: 5 },
-              { duration: "20s", target: 0 },
-            ],
+      stages: isLambda
+        ? getLambdaStages(profile) // Lambda向け: ウォームアップ付き
+        : profile === "nightly"
+        ? [
+            // ローカル: ポートフォリオ用途: 最大10 VU
+            { duration: "20s", target: 3 },
+            { duration: "1m", target: 10 },
+            { duration: "2m", target: 10 },
+            { duration: "20s", target: 0 },
+          ]
+        : [
+            // ローカル: PR: 最大5 VU
+            { duration: "20s", target: 2 },
+            { duration: "1m", target: 5 },
+            { duration: "1m30s", target: 5 },
+            { duration: "20s", target: 0 },
+          ],
       gracefulRampDown: "30s",
     },
   },
-  thresholds: {
-    // 429エラーを許容するため、429以外のエラーのみをチェック
-    "http_req_failed{endpoint:register_word,status:!429}": ["rate<0.01"],
-    "http_req_duration{endpoint:register_word}": ["p(95)<200"],
-  },
+  thresholds: isLambda
+    ? getLambdaThresholds("register_word", { exclude429: true }) // Lambda向け: p95<1000ms, 429除外
+    : {
+        // ローカル: 既存の閾値
+        // 429エラーを許容するため、429以外のエラーのみをチェック
+        "http_req_failed{endpoint:register_word,status:!429}": ["rate<0.01"],
+        "http_req_duration{endpoint:register_word}": ["p(95)<200"],
+      },
 };
 
 export function setup() {

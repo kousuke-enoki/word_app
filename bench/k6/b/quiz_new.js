@@ -1,39 +1,51 @@
 import { check, sleep } from "k6";
 import http from "k6/http";
-import { getToken, randomQuizParams, withAuth } from "./helpers_b.js";
+import {
+  getToken,
+  randomQuizParams,
+  withAuth,
+  isLambdaEnv,
+  getLambdaStages,
+  getLambdaThresholds,
+} from "./helpers_b.js";
 
 const baseUrl = __ENV.BASE_URL;
 const profile = __ENV.PROFILE || "pr";
+const isLambda = isLambdaEnv(baseUrl);
 
 export const options = {
   scenarios: {
     quiz_new: {
       executor: "ramping-vus",
       startVUs: 0,
-      stages:
-        profile === "nightly"
-          ? [
-              // ポートフォリオ用途: 最大10 VU（クイズ生成は重い処理のため控えめに）
-              { duration: "20s", target: 3 },
-              { duration: "1m", target: 10 },
-              { duration: "2m", target: 10 },
-              { duration: "20s", target: 0 },
-            ]
-          : [
-              // PR: 最大5 VU
-              { duration: "20s", target: 2 },
-              { duration: "1m", target: 5 },
-              { duration: "1m30s", target: 5 },
-              { duration: "20s", target: 0 },
-            ],
+      stages: isLambda
+        ? getLambdaStages(profile) // Lambda向け: ウォームアップ付き
+        : profile === "nightly"
+        ? [
+            // ローカル: ポートフォリオ用途: 最大10 VU（クイズ生成は重い処理のため控えめに）
+            { duration: "20s", target: 3 },
+            { duration: "1m", target: 10 },
+            { duration: "2m", target: 10 },
+            { duration: "20s", target: 0 },
+          ]
+        : [
+            // ローカル: PR: 最大5 VU
+            { duration: "20s", target: 2 },
+            { duration: "1m", target: 5 },
+            { duration: "1m30s", target: 5 },
+            { duration: "20s", target: 0 },
+          ],
       gracefulRampDown: "30s",
     },
   },
-  thresholds: {
-    // 429エラーはクォータ制限のため許容（テストユーザーの制約）
-    "http_req_failed{endpoint:quiz_new,status:!429}": ["rate<0.01"],
-    "http_req_duration{endpoint:quiz_new}": ["p(95)<200"],
-  },
+  thresholds: isLambda
+    ? getLambdaThresholds("quiz_new", { exclude429: true }) // Lambda向け: p95<1000ms, 429除外
+    : {
+        // ローカル: 既存の閾値
+        // 429エラーはクォータ制限のため許容（テストユーザーの制約）
+        "http_req_failed{endpoint:quiz_new,status:!429}": ["rate<0.01"],
+        "http_req_duration{endpoint:quiz_new}": ["p(95)<200"],
+      },
 };
 
 // setup()を削除 - 各VUごとにトークンを取得するため

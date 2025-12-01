@@ -103,6 +103,10 @@ BASE_URL=http://localhost:8080 SMOKE_ENV=local k6 run bench/k6/a/smoke_all.js
 
 # B 各 API 詳細向けの測定
 
+## ローカル環境向け
+
+ローカル環境では既存の処理が使用されます（閾値: p95<200ms）。
+
 BASE_URL=http://localhost:8080 PROFILE=pr TEST_EMAIL=demo@example.com TEST_PASSWORD=Secret-k6 k6 run bench/k6/b/sign_in.js
 
 BASE_URL=http://localhost:8080 PROFILE=pr SEARCH_Q=able SEARCH_SORT=name k6 run bench/k6/b/register_word.js
@@ -111,19 +115,28 @@ BASE_URL=http://localhost:8080 PROFILE=pr k6 run bench/k6/b/quiz_new.js
 
 BASE_URL=http://localhost:8080 PROFILE=pr SEARCH_Q=test SEARCH_SORT=name k6 run bench/k6/b/search_words.js
 
-# B lambda 向け
+## Lambda 環境向け
+
+Lambda 環境では自動検出され、以下の最適化が適用されます：
+
+- ウォームアップフェーズ追加（コールドスタート対策）
+- 閾値緩和（p95<1000ms、コールドスタートとネットワークレイテンシを考慮）
+- setup()でのリトライ処理（タイムアウト対策）
+
+環境検出は `BASE_URL` に `amazonaws.com` が含まれている場合に自動で行われます。
+明示的に指定する場合は `IS_LAMBDA=true` または `IS_LAMBDA=false` を設定してください。
 
 BASE_URL="https://xxxx.execute-api.ap-northeast-1.amazonaws.com/prod" PROFILE=pr \
 TEST_EMAIL=demo@example.com TEST_PASSWORD='K6passw0rd!' \
 k6 run bench/k6/b/sign_in.js
 
-BASE_URL="https://.../prod" PROFILE=pr SEARCH_Q=test SEARCH_SORT=name \
+BASE_URL="https://xxxx.execute-api.ap-northeast-1.amazonaws.com/prod" PROFILE=pr SEARCH_Q=test SEARCH_SORT=name \
 k6 run bench/k6/b/search_words.js
 
-BASE_URL="https://.../prod" PROFILE=pr \
+BASE_URL="https://xxxx.execute-api.ap-northeast-1.amazonaws.com/prod" PROFILE=pr \
 k6 run bench/k6/b/quiz_new.js
 
-BASE_URL="https://.../prod" PROFILE=pr SEARCH_Q=able SEARCH_SORT=name \
+BASE_URL="https://xxxx.execute-api.ap-northeast-1.amazonaws.com/prod" PROFILE=pr SEARCH_Q=able SEARCH_SORT=name \
 k6 run bench/k6/b/register_word.js
 
 # C

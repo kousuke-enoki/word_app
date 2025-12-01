@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // Word holds the schema definition for the Word entity.
@@ -56,5 +57,14 @@ func (Word) Edges() []ent.Edge {
 		edge.To("word_infos", WordInfo.Type),
 		edge.To("registered_words", RegisteredWord.Type),
 		edge.To("quiz_questions", QuizQuestion.Type),
+	}
+}
+
+// Indexes of the Word.
+// Ent管理のB-treeインデックス: registration_countにインデックスを追加
+// (sortBy=registrationCountでのソートを高速化)
+func (Word) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("registration_count"),
 	}
 }

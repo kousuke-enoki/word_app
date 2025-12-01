@@ -145,23 +145,56 @@ k6 run bench/k6/b/register_word.js
 
 mkdir -p bench/k6/out
 
+## ローカル環境向け
+
+ローカル環境では既存の処理が使用されます（閾値: p95<200ms）。
+
 # cold/warm
 
-BASE_URL=http://localhost:8080 \
-npm --prefix bench run k6:c:cold
+BASE_URL=http://localhost:8080 PROFILE=pr \
+k6 run bench/k6/c/cold_warm.js
 
 # rate-limit
 
-<!-- BASE_URL=http://localhost:8080 \
-npm --prefix bench run k6:c:rate -->
+BASE_URL=http://localhost:8080 \
+k6 run bench/k6/c/rate_limit.js
 
 # DB before/after（ラベルは --summary-export ファイル名で区別する運用でも OK）
 
 BASE_URL=http://localhost:8080 LABEL=before_idx \
-npm --prefix bench run k6:c:db:before
+k6 run bench/k6/c/db_before_after.js
 
 BASE_URL=http://localhost:8080 LABEL=after_idx \
-npm --prefix bench run k6:c:db:after
+k6 run bench/k6/c/db_before_after.js
+
+## Lambda 環境向け
+
+Lambda 環境では自動検出され、以下の最適化が適用されます：
+
+- ウォームアップフェーズ追加（コールドスタート対策）
+- 閾値緩和（p95<1000ms、コールドスタートとネットワークレイテンシを考慮）
+- setupTimeout 延長（120 秒、DynamoDB タイムアウトを考慮）
+
+環境検出は `BASE_URL` に `amazonaws.com` が含まれている場合に自動で行われます。
+明示的に指定する場合は `IS_LAMBDA=true` または `IS_LAMBDA=false` を設定してください。
+
+# cold/warm
+
+BASE_URL="https://xxxx.execute-api.ap-northeast-1.amazonaws.com/prod" PROFILE=pr \
+k6 run bench/k6/c/cold_warm.js
+
+# rate-limit
+
+BASE_URL="https://xxxx.execute-api.ap-northeast-1.amazonaws.com/prod" \
+k6 run bench/k6/c/rate_limit.js
+
+# DB before/after
+
+BASE_URL="https://xxxx.execute-api.ap-northeast-1.amazonaws.com/prod" LABEL=before_idx \
+k6 run bench/k6/c/db_before_after.js
+
+BASE_URL="https://xxxx.execute-api.ap-northeast-1.amazonaws.com/prod" LABEL=after_idx \
+k6 run bench/k6/c/db_before_after.js
 
 # RPS–p95 の時系列グラフを自動生成
 

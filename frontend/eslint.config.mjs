@@ -10,7 +10,7 @@ import prettier from 'eslint-config-prettier'
 // Flat Config では「上から順にマージ」される。
 // 旧 .eslintrc の "extends" 相当は、ここで配列として“並べる”こと。
 export default tseslint.config(
-  { ignores: ['dist'] },
+  { ignores: ['dist', 'vite.config.ts', 'vitest.config.ts'] },
   // 旧: extends: [js.configs.recommended, ...tseslint.configs.recommended, prettier]
   js.configs.recommended,
   ...tseslint.configs.recommended,

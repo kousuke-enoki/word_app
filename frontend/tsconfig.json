@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "types": ["vitest/globals", "@testing-library/jest-dom", "node"],
+    "types": ["node"],
     "target": "es5",
     "lib": ["ES2022", "DOM"],
     "allowJs": true,
@@ -21,7 +21,6 @@
       "@/*": ["src/*"]
     }
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/__tests__/**/*"]
 }

@@ -5,13 +5,19 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
-    environment: 'jsdom', // ← これで document/Window を注入
-    globals: true, // beforeAll/vi 等をグローバルで使う
-    setupFiles: ['./src/__tests__/setupTests.ts'], // ← 1 行で閉じる！パスも正しく
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/__tests__/setupTests.ts'],
+    css: true,
+    // tsconfig: './tsconfig.test.json',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      reportsDirectory: './coverage',
+    },
   },
   resolve: {
     alias: {
-      // Vite の @ を共有
       '@': path.resolve(__dirname, './src'),
     },
   },

@@ -29,5 +29,13 @@ vi.stubGlobal('alert', vi.fn())
 // })
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+// 各ケースで server.use(...) を呼べば一時的にハンドラ差し替えが可能。
+// 例:
+//   server.use(
+//     rest.get('http://localhost:8080/public/runtime-config', (_, res, ctx) =>
+//       res(ctx.status(500)),
+//     ),
+//   )
+// afterEach で resetHandlers() が走るため、上記の差し替えはテスト単位でリセットされる。
 afterEach(() => server.resetHandlers())
 afterAll(() => server.close())

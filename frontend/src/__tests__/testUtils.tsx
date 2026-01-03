@@ -1,8 +1,8 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { QueryClientConfig } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, type RenderOptions } from '@testing-library/react'
-import React from 'react'
 import type { i18n as I18nInstance } from 'i18next'
+import React from 'react'
 import { I18nextProvider } from 'react-i18next'
 import {
   MemoryRouter,
@@ -53,7 +53,8 @@ export const renderWithClient = (
   ui: React.ReactElement,
   options: RenderWithClientOptions = {},
 ) => {
-  const client = options.queryClient ?? createTestQueryClient(options.queryClientConfig)
+  const client =
+    options.queryClient ?? createTestQueryClient(options.queryClientConfig)
 
   const routes = options.router?.routes ?? [{ path: '*', element: ui }]
 

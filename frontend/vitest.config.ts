@@ -9,7 +9,6 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/__tests__/setupTests.ts'],
     css: true,
-    // tsconfig: './tsconfig.test.json',
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],

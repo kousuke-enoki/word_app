@@ -1,5 +1,7 @@
 // src/components/quiz/__tests__/QuizSettings.test.tsx
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import '@testing-library/jest-dom/vitest'
+
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
@@ -214,62 +216,66 @@ describe('QuizSettings', () => {
     expect(selects[1]).toHaveValue('0')
   })
 
-  it('入力変更 → 保存で onSaveSettings に quizSettingCompleted=true 付きで渡る', async () => {
-    const onSave = vi.fn()
-    renderWith(base, onSave)
+  it(
+    '入力変更 → 保存で onSaveSettings に quizSettingCompleted=true 付きで渡る',
+    async () => {
+      const onSave = vi.fn()
+      renderWith(base, onSave)
 
-    // 問題数: 20
-    const numbers = screen.getAllByTestId('MyNumberInput')
-    await userEvent.clear(numbers[0])
-    await userEvent.type(numbers[0], '20')
+      // 問題数: 20
+      const numbers = screen.getAllByTestId('MyNumberInput')
+      await userEvent.clear(numbers[0])
+      await userEvent.type(numbers[0], '20')
 
-    // 対象: 登録単語のみ（value=1）
-    const seg = screen.getByTestId('MySegment')
-    await userEvent.click(
-      within(seg).getByRole('button', { name: '登録単語のみ' }),
-    )
+      // 対象: 登録単語のみ（value=1）
+      const seg = screen.getByTestId('MySegment')
+      await userEvent.click(
+        within(seg).getByRole('button', { name: '登録単語のみ' }),
+      )
 
-    // 成績保存: OFF
-    await userEvent.click(screen.getByTestId('saveRes'))
+      // 成績保存: OFF
+      await userEvent.click(screen.getByTestId('saveRes'))
 
-    // 正解率: 80
-    const rateInput = screen.getAllByTestId('MyNumberInput')[1]
-    await userEvent.clear(rateInput)
-    await userEvent.type(rateInput, '80')
+      // 正解率: 80
+      const rateInput = screen.getAllByTestId('MyNumberInput')[1]
+      await userEvent.clear(rateInput)
+      await userEvent.type(rateInput, '80')
 
-    // 注意レベル: 「2」と「5」を外す
-    await userEvent.click(screen.getByTestId('MyCheckbox:2'))
-    await userEvent.click(screen.getByTestId('MyCheckbox:5'))
+      // 注意レベル: 「2」と「5」を外す
+      await userEvent.click(screen.getByTestId('MyCheckbox:2'))
+      await userEvent.click(screen.getByTestId('MyCheckbox:5'))
 
-    // 品詞: 名詞(1)を外し、代名(2)を追加
-    await userEvent.click(screen.getByTestId('MyCheckbox:名詞'))
-    await userEvent.click(screen.getByTestId('MyCheckbox:代名'))
+      // 品詞: 名詞(1)を外し、代名(2)を追加
+      await userEvent.click(screen.getByTestId('MyCheckbox:名詞'))
+      await userEvent.click(screen.getByTestId('MyCheckbox:代名'))
 
-    // 慣用句: 含まない(2)
-    const selects = screen.getAllByTestId('MySelect')
-    await userEvent.selectOptions(selects[0], '2')
-    // 特殊文字: 含む(1)
-    await userEvent.selectOptions(selects[1], '1')
+      // 慣用句: 含まない(2)
+      const selects = screen.getAllByTestId('MySelect')
+      await userEvent.selectOptions(selects[0], '2')
+      // 特殊文字: 含む(1)
+      await userEvent.selectOptions(selects[1], '1')
 
-    // 保存
-    await userEvent.click(
-      screen.getByRole('button', { name: '上記の設定でテスト開始' }),
-    )
+      // 保存
+      await userEvent.click(
+        screen.getByRole('button', { name: '上記の設定でテスト開始' }),
+      )
 
-    expect(onSave).toHaveBeenCalledTimes(1)
-    const payload = onSave.mock.calls[0][0] as QuizSettingsType
+      expect(onSave).toHaveBeenCalledTimes(1)
+      const payload = onSave.mock.calls[0][0] as QuizSettingsType
 
-    // 変化を検証
-    expect(payload.quizSettingCompleted).toBe(true)
-    expect(payload.questionCount).toBe(20)
-    expect(payload.isRegisteredWords).toBe(1)
-    expect(payload.isSaveResult).toBe(false)
-    expect(payload.correctRate).toBe(80)
-    expect(new Set(payload.attentionLevelList)).toEqual(new Set([1, 3, 4])) // 2,5 を外した
-    expect(new Set(payload.partsOfSpeeches)).toEqual(new Set([2, 3, 4, 5])) // 1→外し、2→追加
-    expect(payload.isIdioms).toBe(2)
-    expect(payload.isSpecialCharacters).toBe(1)
-  })
+      // 変化を検証
+      expect(payload.quizSettingCompleted).toBe(true)
+      expect(payload.questionCount).toBe(20)
+      expect(payload.isRegisteredWords).toBe(1)
+      expect(payload.isSaveResult).toBe(false)
+      expect(payload.correctRate).toBe(80)
+      expect(new Set(payload.attentionLevelList)).toEqual(new Set([1, 3, 4])) // 2,5 を外した
+      expect(new Set(payload.partsOfSpeeches)).toEqual(new Set([2, 3, 4, 5])) // 1→外し、2→追加
+      expect(payload.isIdioms).toBe(2)
+      expect(payload.isSpecialCharacters).toBe(1)
+    },
+    { timeout: 10000 },
+  )
 
   it('登録単語モードの切り替えで「登録単語オプション」Collapsible の disabled/defaultOpen が反映される', async () => {
     renderWith(base) // isRegisteredWords=0

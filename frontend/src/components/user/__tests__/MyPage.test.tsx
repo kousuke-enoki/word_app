@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 const navigateMock = vi.fn()
 
 /** 必ず「他の import より前」で行う **/
@@ -9,20 +8,13 @@ vi.mock('react-router-dom', async () => {
 })
 
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { rest } from 'msw'
+import React from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-/* -------------------- モック -------------------- */
-// axiosInstance.get を好きなレスポンスに差し替えられるようにする
-vi.mock('@/axiosConfig', () => ({
-  default: {
-    get: vi.fn(),
-  },
-}))
-
-import userEvent from '@testing-library/user-event'
-
-import axiosInstance from '@/axiosConfig'
+import { server } from '@/__tests__/mswServer'
 
 import MyPage from '../MyPage'
 
@@ -39,11 +31,17 @@ const textEq = (expected: string) => (_: string, el?: Element | null) =>
 /* -------------------- テスト本体 -------------------- */
 describe('MyPage Component', () => {
   it('通常ユーザーの場合、ユーザー名だけが表示される', async () => {
-    ;(axiosInstance.get as any).mockResolvedValueOnce({
-      data: {
-        user: { id: 1, name: 'Test User', isAdmin: false, isRoot: false },
-      },
-    })
+    localStorage.setItem('token', 'test-token')
+    server.use(
+      rest.get('http://localhost:8080/users/my_page', (req, res, ctx) => {
+        return res(
+          ctx.status(200),
+          ctx.json({
+            user: { id: 1, name: 'Test User', isAdmin: false, isRoot: false },
+          }),
+        )
+      }),
+    )
 
     render(
       <MemoryRouter>
@@ -63,9 +61,17 @@ describe('MyPage Component', () => {
   })
 
   it('管理ユーザーには Admin バッジと「単語登録」カードリンクが表示', async () => {
-    ;(axiosInstance.get as any).mockResolvedValueOnce({
-      data: { user: { id: 2, name: 'Admin', isAdmin: true, isRoot: false } },
-    })
+    localStorage.setItem('token', 'admin-token')
+    server.use(
+      rest.get('http://localhost:8080/users/my_page', (req, res, ctx) => {
+        return res(
+          ctx.status(200),
+          ctx.json({
+            user: { id: 2, name: 'Admin', isAdmin: true, isRoot: false },
+          }),
+        )
+      }),
+    )
 
     render(
       <MemoryRouter>
@@ -84,31 +90,18 @@ describe('MyPage Component', () => {
     expect(adminLink).toHaveAttribute('href', '/words/new')
   })
 
-  it('管理ユーザーには Admin バッジと「単語登録」カードリンクが表示', async () => {
-    ;(axiosInstance.get as any).mockResolvedValueOnce({
-      data: { user: { id: 2, name: 'Admin', isAdmin: true, isRoot: false } },
-    })
-
-    render(
-      <MemoryRouter>
-        <MyPage />
-      </MemoryRouter>,
-    )
-
-    await screen.findByText(textEq('Adminさん'))
-
-    // バッジの確認（絵文字+ラベル）
-    expect(screen.getByText(/🔧\s*Admin/)).toBeInTheDocument()
-
-    // カードリンクの確認（部分一致）
-    const adminLink = screen.getByRole('link', { name: /単語登録/ })
-    expect(adminLink).toHaveAttribute('href', '/words/new')
-  })
-
   it('root ユーザーには Root バッジと「管理設定」カードリンクが表示', async () => {
-    ;(axiosInstance.get as any).mockResolvedValueOnce({
-      data: { user: { id: 3, name: 'Root', isAdmin: false, isRoot: true } },
-    })
+    localStorage.setItem('token', 'root-token')
+    server.use(
+      rest.get('http://localhost:8080/users/my_page', (req, res, ctx) => {
+        return res(
+          ctx.status(200),
+          ctx.json({
+            user: { id: 3, name: 'Root', isAdmin: false, isRoot: true },
+          }),
+        )
+      }),
+    )
 
     render(
       <MemoryRouter>
@@ -124,8 +117,17 @@ describe('MyPage Component', () => {
   })
 
   it('認証エラー時に token を削除し 2 秒後にトップへリダイレクト', async () => {
-    ;(axiosInstance.get as any).mockRejectedValueOnce(new Error('401'))
     localStorage.setItem('token', 'expired-token')
+    server.use(
+      rest.get('http://localhost:8080/users/my_page', (req, res, ctx) => {
+        return res(
+          ctx.status(401),
+          ctx.json({
+            message: 'ログインしてください',
+          }),
+        )
+      }),
+    )
 
     render(
       <MemoryRouter>
@@ -137,10 +139,17 @@ describe('MyPage Component', () => {
     expect(localStorage.getItem('logoutMessage')).toBe('ログインしてください')
   })
   it('サインアウトで token が消え、トップへ navigate', async () => {
-    ;(axiosInstance.get as any).mockResolvedValueOnce({
-      data: { user: { id: 1, name: 'Test', isAdmin: false, isRoot: false } },
-    })
     localStorage.setItem('token', 'dummy')
+    server.use(
+      rest.get('http://localhost:8080/users/my_page', (req, res, ctx) => {
+        return res(
+          ctx.status(200),
+          ctx.json({
+            user: { id: 1, name: 'Test', isAdmin: false, isRoot: false },
+          }),
+        )
+      }),
+    )
 
     render(
       <MemoryRouter>

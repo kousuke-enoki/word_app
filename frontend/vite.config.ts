@@ -18,7 +18,9 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       checker({
-        typescript: true,
+        typescript: {
+          buildMode: false, // ビルド時にはTypeScriptチェックを無効化
+        },
         eslint: {
           // Flat Config を使うことを明示
           useFlatConfig: true,

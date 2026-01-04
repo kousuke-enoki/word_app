@@ -3,9 +3,9 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { queryClient, renderWithClient } from '@/__tests__/testUtils'
+import { renderWithClient } from '@/__tests__/testUtils'
 
 import WordEdit from '../WordEdit'
 
@@ -55,10 +55,6 @@ vi.mock('react-router-dom', async () => {
 
 beforeEach(() => {
   vi.resetAllMocks() // 実装も含めて完全リセット
-})
-
-afterEach(() => {
-  queryClient.clear()
 })
 
 /* ヘルパー：描画 */

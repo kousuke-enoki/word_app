@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { queryClient, renderWithClient } from '@/__tests__/testUtils'
+import { renderWithClient } from '@/__tests__/testUtils'
 
 import WordNew from '../WordNew'
 
@@ -40,21 +39,22 @@ beforeEach(() => {
   vi.spyOn(window, 'alert').mockImplementation(() => {})
 })
 afterEach(() => {
-  queryClient.clear()
   vi.restoreAllMocks()
 })
+
+const renderWordNew = () =>
+  renderWithClient(<WordNew />, {
+    router: {
+      initialEntries: ['/words/new'],
+      routes: [{ path: '/words/new', element: <WordNew /> }],
+    },
+  })
 
 /* ---------------- テスト本体 ----------------------- */
 describe('WordNew Component', () => {
   /* 1) 初期描画 */
   it('フォームは空で表示される', () => {
-    renderWithClient(
-      <MemoryRouter initialEntries={['/words/new']}>
-        <Routes>
-          <Route path="/words/new" element={<WordNew />} />
-        </Routes>
-      </MemoryRouter>,
-    )
+    renderWordNew()
 
     // 見出し
     expect(
@@ -76,13 +76,7 @@ describe('WordNew Component', () => {
 
   /* 2) バリデーション */
   it('無効な入力は送信されずエラーを表示', async () => {
-    renderWithClient(
-      <MemoryRouter initialEntries={['/words/new']}>
-        <Routes>
-          <Route path="/words/new" element={<WordNew />} />
-        </Routes>
-      </MemoryRouter>,
-    )
+    renderWordNew()
 
     // 数字を入力 → ハンドラで拒否され、値は '' のまま
     const nameInput = screen.getByPlaceholderText('example') as HTMLInputElement
@@ -108,13 +102,7 @@ describe('WordNew Component', () => {
       data: { id: 99, name: 'apple' },
     })
 
-    renderWithClient(
-      <MemoryRouter initialEntries={['/words/new']}>
-        <Routes>
-          <Route path="/words/new" element={<WordNew />} />
-        </Routes>
-      </MemoryRouter>,
-    )
+    renderWordNew()
 
     // --- フォーム入力 ---
     await userEvent.type(screen.getByPlaceholderText('example'), 'apple')
@@ -143,13 +131,7 @@ describe('WordNew Component', () => {
   it('API 失敗時はエラーメッセージを表示', async () => {
     ;(axiosInstance.post as any).mockRejectedValueOnce(new Error('500'))
 
-    renderWithClient(
-      <MemoryRouter initialEntries={['/words/new']}>
-        <Routes>
-          <Route path="/words/new" element={<WordNew />} />
-        </Routes>
-      </MemoryRouter>,
-    )
+    renderWordNew()
 
     await userEvent.type(screen.getByPlaceholderText('example'), 'apple')
     await userEvent.selectOptions(screen.getByRole('combobox'), '1')

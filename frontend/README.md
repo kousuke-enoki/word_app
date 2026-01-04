@@ -48,3 +48,22 @@ export default tseslint.config({
   },
 })
 ```
+
+## Integration tests
+
+- Run all integration suites with `pnpm vitest run "**/*.integration.test.tsx"`. To focus on one scenario, point to a specific file such as `pnpm vitest run src/routes/__tests__/auth.integration.test.tsx`.
+- Name integration specs with the `*.integration.test.tsx` suffix. Place them close to the feature they cover (ideally next to the component/page).
+- Tests share the MSW server defined in `src/__tests__/mswServer.ts`. Override handlers inside a test with `server.use(...)` as needed, for example:
+
+```ts
+import { rest } from 'msw'
+import { server } from '../mswServer'
+
+server.use(
+  rest.get('http://localhost:8080/public/runtime-config', (_, res, ctx) =>
+    res(ctx.status(500)),
+  ),
+)
+```
+
+`server.resetHandlers()` runs after each test (via `src/__tests__/setupTests.ts`), so reapply overrides in every test case that needs them.

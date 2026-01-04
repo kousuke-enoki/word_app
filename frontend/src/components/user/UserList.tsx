@@ -36,6 +36,8 @@ const UserList: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1)
   const [limit, setLimit] = useState(10)
   const [isInitialized, setIsInitialized] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   // フラッシュメッセージ
   const [flash, setFlash] = useState<{
@@ -62,11 +64,24 @@ const UserList: React.FC = () => {
   }, [location.state])
 
   const fetchUsers = useCallback(async () => {
-    const { data } = await axiosInstance.get<UserListResponse>('/users', {
-      params: { search, sortBy, order, page, limit },
-    })
-    setUsers(data.users)
-    setTotalPages(data.totalPages)
+    setLoading(true)
+    setError(null)
+    try {
+      const { data } = await axiosInstance.get<UserListResponse>('/users', {
+        params: { search, sortBy, order, page, limit },
+      })
+      setUsers(data.users)
+      setTotalPages(data.totalPages)
+    } catch (e) {
+      console.error('Failed to fetch users:', e)
+      setUsers([])
+      setTotalPages(1)
+      const message = 'ユーザー取得に失敗しました。'
+      setError(message)
+      setFlash({ type: 'error', text: message })
+    } finally {
+      setLoading(false)
+    }
   }, [search, sortBy, order, page, limit])
 
   useEffect(() => {
@@ -74,7 +89,7 @@ const UserList: React.FC = () => {
     fetchUsers().catch(() =>
       setFlash({ type: 'error', text: 'ユーザー取得に失敗しました。' }),
     )
-  }, [isInitialized, fetchUsers])
+  }, [isInitialized, fetchUsers, search, sortBy, order, page, limit])
 
   const roleLabel = (u: UserDetail) =>
     u.isRoot ? 'Root' : u.isAdmin ? 'Admin' : u.isTest ? 'Test' : 'User'
@@ -152,116 +167,141 @@ const UserList: React.FC = () => {
       <Card className="p-4">
         {Toolbar}
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="bg-[var(--thbc)] text-left">
-                {[
-                  '名前',
-                  'メール',
-                  '役割',
-                  'LINE連携',
-                  'PW設定',
-                  '編集',
-                  '削除',
-                  '作成日時',
-                  '更新日時',
-                ].map((th) => (
-                  <th
-                    key={th}
-                    className="border-b border-[var(--thbd)] px-3 py-2 text-[var(--fg)]"
-                  >
-                    {th}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id} className="even:bg-[var(--table_tr_e)]">
-                  <td className="px-3 py-2">{u.name}</td>
-                  <td className="px-3 py-2">{u.email ?? '-'}</td>
-                  <td className="px-3 py-2">
-                    <span
-                      className={`rounded px-2 py-1 text-xs ${roleBadgeTone(u)}`}
-                    >
-                      {roleLabel(u)}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2">
-                    {u.isLine ? (
-                      <span className="rounded bg-[var(--ok_bg)] px-2 py-1 text-xs text-[var(--ok_fg)]">
-                        連携済
-                      </span>
-                    ) : (
-                      <span className="rounded bg-[var(--muted_bg)] px-2 py-1 text-xs text-[var(--muted_fg)]">
-                        未連携
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2">
-                    {u.isSettedPassword ? (
-                      <span className="rounded bg-[var(--ok_bg)] px-2 py-1 text-xs text-[var(--ok_fg)]">
-                        設定済
-                      </span>
-                    ) : (
-                      <span className="rounded bg-[var(--warn_bg)] px-2 py-1 text-xs text-[var(--warn_fg)]">
-                        未設定
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2">
-                    <Button
-                      onClick={() => {
-                        setTarget(u)
-                        setEditOpen(true)
-                      }}
-                    >
-                      編集
-                    </Button>
-                  </td>
-                  <td className="px-3 py-2">
-                    <Button
-                      variant="outline"
-                      disabled={u.isRoot}
-                      onClick={() => {
-                        setTarget(u)
-                        setDeleteOpen(true)
-                      }}
-                    >
-                      削除
-                    </Button>
-                  </td>
-                  <td className="px-3 py-2">{fmt(u.createdAt)}</td>
-                  <td className="px-3 py-2">{fmt(u.updatedAt)}</td>
-                </tr>
-              ))}
-              {users.length === 0 && (
-                <tr>
-                  <td
-                    className="px-3 py-6 text-center text-[var(--muted_fg)]"
-                    colSpan={7}
-                  >
-                    該当するユーザーが見つかりませんでした
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        {error && !loading && (
+          <div className="mb-3 rounded-xl border border-[var(--warn_bd)] bg-[var(--warn_bg)] px-3 py-2 text-sm text-[var(--warn_fg)]">
+            {error}
+          </div>
+        )}
 
-        <Pagination
-          className="mt-4"
-          page={page}
-          totalPages={totalPages}
-          onPageChange={(p) => setPage(p)}
-          pageSize={limit}
-          onPageSizeChange={(n) => {
-            setPage(1)
-            setLimit(n)
-          }}
-          pageSizeOptions={[10, 20, 30, 50]}
-        />
+        {loading ? (
+          <div
+            data-testid="users-loading"
+            role="status"
+            aria-label="ユーザー読込中"
+            className="space-y-3"
+          >
+            {[...Array(3)].map((_, idx) => (
+              <div key={idx} className="flex items-center gap-3">
+                <div className="h-4 w-48 rounded bg-[var(--skeleton)]" />
+                <div className="h-4 w-32 rounded bg-[var(--skeleton)]" />
+                <div className="h-4 w-24 rounded bg-[var(--skeleton)]" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="bg-[var(--thbc)] text-left">
+                    {[
+                      '名前',
+                      'メール',
+                      '役割',
+                      'LINE連携',
+                      'PW設定',
+                      '編集',
+                      '削除',
+                      '作成日時',
+                      '更新日時',
+                    ].map((th) => (
+                      <th
+                        key={th}
+                        className="border-b border-[var(--thbd)] px-3 py-2 text-[var(--fg)]"
+                      >
+                        {th}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((u) => (
+                    <tr key={u.id} className="even:bg-[var(--table_tr_e)]">
+                      <td className="px-3 py-2">{u.name}</td>
+                      <td className="px-3 py-2">{u.email ?? '-'}</td>
+                      <td className="px-3 py-2">
+                        <span
+                          className={`rounded px-2 py-1 text-xs ${roleBadgeTone(u)}`}
+                        >
+                          {roleLabel(u)}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2">
+                        {u.isLine ? (
+                          <span className="rounded bg-[var(--ok_bg)] px-2 py-1 text-xs text-[var(--ok_fg)]">
+                            連携済
+                          </span>
+                        ) : (
+                          <span className="rounded bg-[var(--muted_bg)] px-2 py-1 text-xs text-[var(--muted_fg)]">
+                            未連携
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
+                        {u.isSettedPassword ? (
+                          <span className="rounded bg-[var(--ok_bg)] px-2 py-1 text-xs text-[var(--ok_fg)]">
+                            設定済
+                          </span>
+                        ) : (
+                          <span className="rounded bg-[var(--warn_bg)] px-2 py-1 text-xs text-[var(--warn_fg)]">
+                            未設定
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
+                        <Button
+                          onClick={() => {
+                            setTarget(u)
+                            setEditOpen(true)
+                          }}
+                        >
+                          編集
+                        </Button>
+                      </td>
+                      <td className="px-3 py-2">
+                        <Button
+                          variant="outline"
+                          disabled={u.isRoot}
+                          onClick={() => {
+                            setTarget(u)
+                            setDeleteOpen(true)
+                          }}
+                        >
+                          削除
+                        </Button>
+                      </td>
+                      <td className="px-3 py-2">{fmt(u.createdAt)}</td>
+                      <td className="px-3 py-2">{fmt(u.updatedAt)}</td>
+                    </tr>
+                  ))}
+                  {users.length === 0 && !error && (
+                    <tr>
+                      <td
+                        className="px-3 py-6 text-center text-[var(--muted_fg)]"
+                        colSpan={9}
+                      >
+                        該当するユーザーが見つかりませんでした
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <Pagination
+              className="mt-4"
+              page={page}
+              totalPages={totalPages}
+              onPageChange={(p) => setPage(p)}
+              pageSize={limit}
+              onPageSizeChange={(n) => {
+                setPage(1)
+                setLimit(n)
+              }}
+              pageSizeOptions={[10, 20, 30, 50]}
+            />
+          </>
+        )}
       </Card>
 
       <Card className="mt1 p-2">

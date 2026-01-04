@@ -36,6 +36,7 @@ const Pagination: React.FC<PaginationProps> = ({
   const SelectNode =
     onPageSizeChange != null && typeof pageSize === 'number' ? (
       <select
+        data-testid="pagination-page-size"
         className={`border border-[var(--input_bd)] bg-[var(--select)] text-[var(--select_c)] ${selSize}`}
         value={pageSize}
         onChange={(e) => onPageSizeChange(Number(e.target.value))}

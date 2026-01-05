@@ -1,11 +1,8 @@
 // eslint-disable-next-line simple-import-sort/imports
 import { test as base, expect } from '@playwright/test'
 
-import {
-  applyDefaultApiMocks,
-  AuthScenario,
-  overrideAuthOnPage,
-} from './mocks/routeMocks.ts'
+// AuthScenario 型を直接定義（routeMocks.ts からの型インポートを削除）
+type AuthScenario = 'authorized' | 'unauthorized' | 'forbidden'
 
 type Fixtures = {
   useAuthMock: (scenario?: AuthScenario) => Promise<void>
@@ -13,6 +10,7 @@ type Fixtures = {
 
 export const test = base.extend<Fixtures>({
   page: async ({ page }, use) => {
+    const { applyDefaultApiMocks } = await import('../mocks/routeMocks.ts')
     await applyDefaultApiMocks(page)
     // eslint-disable-next-line react-hooks/rules-of-hooks
     await use(page)
@@ -20,6 +18,7 @@ export const test = base.extend<Fixtures>({
   useAuthMock: async ({ page }, use) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     await use(async (scenario = 'authorized') => {
+      const { overrideAuthOnPage } = await import('../mocks/routeMocks.ts')
       await overrideAuthOnPage(page, scenario)
     })
   },

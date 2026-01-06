@@ -42,6 +42,45 @@ const defaultUser = {
   isTest: false,
 }
 
+const sampleUsers = [
+  {
+    id: 1,
+    name: 'Root User',
+    email: 'root@example.com',
+    isAdmin: true,
+    isRoot: true,
+    isTest: false,
+    isLine: false,
+    isSettedPassword: true,
+    createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: '2024-01-05T00:00:00.000Z',
+  },
+  {
+    id: 2,
+    name: 'Admin User',
+    email: 'admin@example.com',
+    isAdmin: true,
+    isRoot: false,
+    isTest: false,
+    isLine: false,
+    isSettedPassword: true,
+    createdAt: '2024-02-01T00:00:00.000Z',
+    updatedAt: '2024-02-05T00:00:00.000Z',
+  },
+  {
+    id: 3,
+    name: 'General User',
+    email: 'user@example.com',
+    isAdmin: false,
+    isRoot: false,
+    isTest: false,
+    isLine: true,
+    isSettedPassword: false,
+    createdAt: '2024-03-01T00:00:00.000Z',
+    updatedAt: '2024-03-05T00:00:00.000Z',
+  },
+]
+
 const sampleWords = [
   {
     id: 1,
@@ -238,6 +277,23 @@ export const buildMockDefinitions = (
   options?: MockOptions,
 ): MockDefinition[] => {
   const authHandlers = buildAuthHandlers(options?.auth)
+  const userHandlers: MockDefinition[] = [
+    {
+      method: 'GET',
+      path: '/users',
+      resolver: async ({ searchParams }) => {
+        const keyword = (searchParams.get('search') ?? '').toLowerCase()
+        const filtered = keyword
+          ? sampleUsers.filter(
+              (u) =>
+                u.name.toLowerCase().includes(keyword) ||
+                (u.email ?? '').toLowerCase().includes(keyword),
+            )
+          : sampleUsers
+        return { status: 200, body: { users: filtered, totalPages: 1 } }
+      },
+    },
+  ]
   const runtimeHandlers: MockDefinition[] = [
     {
       method: 'GET',
@@ -397,7 +453,13 @@ export const buildMockDefinitions = (
     },
   ]
 
-  return [...runtimeHandlers, ...authHandlers, ...quizHandlers, ...wordHandlers]
+  return [
+    ...runtimeHandlers,
+    ...authHandlers,
+    ...userHandlers,
+    ...quizHandlers,
+    ...wordHandlers,
+  ]
 }
 
 const createRestHandler = (def: MockDefinition): RestHandler => {

@@ -101,3 +101,142 @@ jobs:
       - name: Build (Vite)
         working-directory: ./frontend
         run: npm run build
+
+  # ---------- E2E Tests ----------
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: appdb
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      # データベース接続情報
+      DB_HOST: localhost
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: password
+      DB_NAME: appdb
+      # アプリケーション設定
+      APP_PORT: "8080"
+      APP_ENV: development
+      # JWT設定
+      JWT_SECRET: "test-secret-key-for-e2e-tests"
+      # テストユーザーモード有効化
+      ENABLE_TEST_USER_MODE: "true"
+      # ログ設定
+      LOG_STDOUT: "true"
+      LOG_FILE: ""
+      LOG_LEVEL: "debug"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Goのセットアップ（バックエンドサーバー用）
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      # Node.jsのセットアップ（フロントエンド用）
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: "./frontend/package-lock.json"
+
+      # PostgreSQLクライアントのインストール
+      - name: Install psql client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      # データベースの準備待機
+      - name: Wait for Postgres
+        env: { PGPASSWORD: password }
+        run: |
+          for i in $(seq 1 60); do
+            if psql -h localhost -U postgres -d appdb -c "select 1" >/dev/null 2>&1; then
+              echo "Postgres ready"; break
+            fi
+            echo "waiting postgres... ($i/60)"; sleep 2
+          done
+
+      # バックエンドの依存関係をダウンロード
+      - name: Download Go dependencies
+        working-directory: ./backend
+        run: |
+          go mod download
+
+      # バックエンドサーバーの起動
+      - name: Start backend server
+        working-directory: ./backend
+        run: |
+          set -euo pipefail
+          # バイナリをビルド
+          go build -o server ./cmd/server
+          
+          # サーバーをバックグラウンドで起動
+          ./server > server.log 2>&1 &
+          SERVER_PID=$!
+          echo "SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
+          echo "Server started with PID: $SERVER_PID"
+          
+          # ヘルスチェック待機
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8080/health > /dev/null; then
+              echo "Backend healthy"; break
+            fi
+            echo "waiting backend... (attempt $i/30)"
+            sleep 2
+          done
+          
+          if ! curl -sf http://localhost:8080/health > /dev/null; then
+            echo "Backend failed to start"
+            cat server.log || true
+            exit 1
+          fi
+
+      # フロントエンドの依存関係をインストール
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      # Playwrightブラウザのインストール
+      - name: Install Playwright browsers
+        working-directory: ./frontend
+        run: npx playwright install chromium
+
+      # E2Eテストの実行
+      - name: Run E2E tests
+        working-directory: ./frontend
+        run: npm run e2e
+        env:
+          CI: true
+
+      # テスト結果のアップロード（オプション）
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 7
+
+      # バックエンドサーバーの停止（クリーンアップ）
+      - name: Stop backend server
+        if: always()
+        run: |
+          if [ -n "$SERVER_PID" ]; then
+            kill $SERVER_PID 2>/dev/null || true
+          fi

@@ -1,0 +1,42 @@
+# 依存関係（コンテナ内でインストールするため除外）
+node_modules
+npm-debug.log
+yarn-error.log
+
+# ビルド成果物
+dist
+build
+coverage
+
+# 開発ツール
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# 環境変数ファイル
+.env
+.env.local
+.env.*.local
+
+# Git関連
+.git
+.gitignore
+.gitattributes
+
+# テスト関連（コンテナ内で実行する場合は必要だが、ビルドコンテキストには不要）
+# tests/e2e/.auth など一時ファイルがあれば
+
+# ログファイル
+*.log
+logs
+
+# OS関連
+.DS_Store
+Thumbs.db
+
+# その他
+.cache
+.temp
+

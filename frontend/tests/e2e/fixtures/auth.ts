@@ -1,8 +1,8 @@
 import { Page } from '@playwright/test'
 
+import { overrideAuthOnPage } from '../mocks/routeMocks'
 import { expect } from './base'
 import { test as base } from './base'
-import { overrideAuthOnPage } from '../mocks/routeMocks'
 
 export type UserRole = 'general' | 'admin' | 'root' | 'test'
 
@@ -74,6 +74,7 @@ const primeAuthMocks = async (page: Page, profile: AuthProfile) => {
 
 export const test = base.extend<AuthFixtures>({
   signInAs: async ({ page }, use) => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     await use(async (role = 'general', options = { persistToken: true }) => {
       const profile = authProfiles[role]
       await primeAuthMocks(page, profile)
@@ -86,6 +87,7 @@ export const test = base.extend<AuthFixtures>({
     })
   },
   goToMyPageFromSignIn: async ({ page, signInAs }, use) => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     await use(async (role = 'general') => {
       const profile = await signInAs(role, { persistToken: false })
       await page.goto('/sign_in')
@@ -94,11 +96,14 @@ export const test = base.extend<AuthFixtures>({
       await page.getByRole('button', { name: 'メールでサインイン' }).click()
 
       await expect(page).toHaveURL(/\/mypage$/)
-      await expect(page.getByRole('heading', { name: 'マイページ' })).toBeVisible()
+      await expect(
+        page.getByRole('heading', { name: 'マイページ' }),
+      ).toBeVisible()
       await expect(page.getByText(`${profile.name} さん`)).toBeVisible()
     })
   },
   expectRoleProtectedNavigation: async ({ page, signInAs }, use) => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     await use(async (role: UserRole) => {
       await signInAs(role)
       const testCases = [
@@ -106,13 +111,17 @@ export const test = base.extend<AuthFixtures>({
           path: '/users',
           allowed: role === 'root',
           assertion: () =>
-            expect(page.getByRole('heading', { name: 'ユーザー一覧' })).toBeVisible(),
+            expect(
+              page.getByRole('heading', { name: 'ユーザー一覧' }),
+            ).toBeVisible(),
         },
         {
           path: '/words/new',
           allowed: role === 'admin' || role === 'root',
           assertion: () =>
-            expect(page.getByRole('heading', { name: '単語登録' })).toBeVisible(),
+            expect(
+              page.getByRole('heading', { name: '単語登録' }),
+            ).toBeVisible(),
         },
       ] as const
 

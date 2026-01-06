@@ -13,6 +13,9 @@ backend/tmp/build-error.log
 backend/assets/
 backend/tmp/
 backend/log/
+/test-results
+/playwright-report
+/playwright/.cache
 
 # # OSやエディタの一時ファイル
 # .DS_Store

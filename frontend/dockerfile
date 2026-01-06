@@ -1,15 +1,51 @@
 # ベースイメージの指定
 FROM node:22
 
+# Playwrightのシステム依存関係をインストール（キャッシュ最適化）
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libdbus-1-3 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    libpango-1.0-0 \
+    libcairo2 \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
 # 作業ディレクトリの作成
 WORKDIR /app
 
-# 依存関係のインストール
+# 依存関係のインストール（キャッシュレイヤーを最適化）
+# package.jsonとpackage-lock.jsonを先にコピーしてレイヤーキャッシュを活用
 COPY package.json package-lock.json ./
-RUN npm install
+
+# npm ciを使用（npm installより高速で再現性が高い）
+# --ignore-scriptsでpostinstallを無効化（重複インストールを防ぐ）
+RUN npm ci --ignore-scripts
+
+# Playwrightのブラウザバイナリをインストール
+# --with-depsは不要（システム依存は既にインストール済み）
+RUN npx playwright install chromium
 
 # ソースコードのコピー
 COPY . .
+
+# ディレクトリの所有者を変更（nodeユーザーが存在することを確認）
+# || trueでエラーを無視（既にnodeユーザーが所有者の場合）
+RUN chown -R node:node /app || true
+
+# 既存のnodeユーザーに切り替え
+USER node
 
 # 開発用の環境変数を設定
 ENV CHOKIDAR_USEPOLLING=true

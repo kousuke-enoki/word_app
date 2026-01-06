@@ -1,8 +1,8 @@
-import react from '@vitejs/plugin-react-swc'
 import path from 'path'
-import { loadEnv } from 'vite'
+
+import react from '@vitejs/plugin-react-swc'
+import { defineConfig, loadEnv } from 'vite'
 import checker from 'vite-plugin-checker'
-import { defineConfig } from 'vitest/config'
 
 export default defineConfig(({ mode }) => {
   /* .env / Vercel の環境変数を読み込む */
@@ -18,7 +18,9 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       checker({
-        typescript: true,
+        typescript: {
+          buildMode: false, // ビルド時にはTypeScriptチェックを無効化
+        },
         eslint: {
           // Flat Config を使うことを明示
           useFlatConfig: true,
@@ -40,18 +42,6 @@ export default defineConfig(({ mode }) => {
     /* ビルド時に API URL を注入 */
     define: {
       __API_URL__: JSON.stringify(env.VITE_API_URL ?? ''),
-    },
-    /* Vitest 設定 */
-    test: {
-      environment: 'jsdom',
-      globals: true,
-      setupFiles: './src/__tests__/setupTests.ts',
-      css: true,
-      coverage: {
-        provider: 'v8',
-        reporter: ['text', 'lcov'],
-        reportsDirectory: './coverage',
-      },
     },
   }
 })

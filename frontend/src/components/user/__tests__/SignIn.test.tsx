@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { rest } from 'msw'
+import React from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import {
   afterAll,
@@ -13,6 +15,9 @@ import {
   vi,
 } from 'vitest'
 
+import { server } from '@/__tests__/mswServer'
+import { RuntimeConfigProvider } from '@/contexts/runtimeConfig/Provider'
+
 /** ▼ useNavigate を先にモック（他の import より前） */
 const navigateMock = vi.fn()
 vi.mock('react-router-dom', async () => {
@@ -20,21 +25,6 @@ vi.mock('react-router-dom', async () => {
     await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
   return { ...actual, useNavigate: () => navigateMock }
 })
-
-/** ▼ axios モック */
-vi.mock('@/axiosConfig', () => ({
-  default: {
-    get: vi.fn(), // /public/runtime-config
-    post: vi.fn(), // /users/sign_in
-  },
-}))
-import axiosInstance from '@/axiosConfig'
-
-/** ▼ useRuntimeConfig をモック */
-const useRuntimeConfigMock = vi.fn()
-vi.mock('@/contexts/runtimeConfig/useRuntimeConfig', () => ({
-  useRuntimeConfig: () => useRuntimeConfigMock(),
-}))
 
 import SignIn from '../SignIn'
 
@@ -54,11 +44,6 @@ afterAll(() => {
 beforeEach(() => {
   localStorage.clear()
   vi.clearAllMocks()
-  // useRuntimeConfig のデフォルト値（ローディング中）
-  useRuntimeConfigMock.mockReturnValue({
-    config: { is_test_user_mode: false, is_line_authentication: false },
-    isLoading: true,
-  })
   // Vite 互換: Vitest の環境変数スタブ（無ければ下の fallback でもOK）
   if ((vi as any).stubEnv) {
     ;(vi as any).stubEnv('VITE_API_URL', 'https://api.example.com')
@@ -69,6 +54,7 @@ beforeEach(() => {
       VITE_API_URL: 'https://api.example.com',
     }
   }
+  // beforeEachではデフォルトハンドラーを設定しない（各テストで明示的に設定）
 })
 
 afterEach(() => {
@@ -83,19 +69,36 @@ const typeCredentials = async (email: string, password: string) => {
   return user
 }
 
+/** コンポーネントをRuntimeConfigProviderでラップしてレンダリング */
+const renderWithProvider = (ui: React.ReactElement) => {
+  return render(
+    <MemoryRouter>
+      <RuntimeConfigProvider>{ui}</RuntimeConfigProvider>
+    </MemoryRouter>,
+  )
+}
+
 describe('SignIn Component', () => {
   it('初期表示：見出し/入力/ボタンがある（設定ロード中は LINE ボタン非表示）', async () => {
-    // ローディング中の状態
-    useRuntimeConfigMock.mockReturnValue({
-      config: { is_test_user_mode: false, is_line_authentication: false },
-      isLoading: true,
-    })
-
-    render(
-      <MemoryRouter>
-        <SignIn />
-      </MemoryRouter>,
+    // ローディング中の状態をシミュレート（遅延レスポンス）
+    server.use(
+      rest.get(
+        'http://localhost:8080/public/runtime-config',
+        async (_, res, ctx) => {
+          await new Promise((resolve) => setTimeout(resolve, 100))
+          return res(
+            ctx.status(200),
+            ctx.json({
+              is_test_user_mode: false,
+              is_line_authentication: false,
+              version: '1.0.0',
+            }),
+          )
+        },
+      ),
     )
+
+    renderWithProvider(<SignIn />)
 
     // 見出しなど
     expect(
@@ -109,44 +112,74 @@ describe('SignIn Component', () => {
     expect(screen.getByText('読み込み中...')).toBeInTheDocument()
 
     // ローディング完了後もLINE認証が無効の場合は表示されない
-    useRuntimeConfigMock.mockReturnValue({
-      config: { is_test_user_mode: false, is_line_authentication: false },
-      isLoading: false,
-    })
-    // 再レンダリングをシミュレートするために、別のテストで確認
+    await waitFor(
+      () => {
+        expect(screen.queryByText('読み込み中...')).not.toBeInTheDocument()
+      },
+      { timeout: 3000 },
+    )
+    expect(screen.queryByRole('button', { name: 'LINEでログイン' })).toBeNull()
   })
 
   it('設定API成功：LINE 有効なら LINE ボタンが表示される', async () => {
     // LINE認証が有効な状態
-    useRuntimeConfigMock.mockReturnValue({
-      config: { is_test_user_mode: false, is_line_authentication: true },
-      isLoading: false,
-    })
+    server.use(
+      rest.get('http://localhost:8080/public/runtime-config', (_, res, ctx) =>
+        res(
+          ctx.status(200),
+          ctx.json({
+            is_test_user_mode: false,
+            is_line_authentication: true,
+            version: '1.0.0',
+          }),
+        ),
+      ),
+    )
 
-    render(
-      <MemoryRouter>
-        <SignIn />
-      </MemoryRouter>,
+    renderWithProvider(<SignIn />)
+
+    // ローディング完了を待つ
+    await waitFor(
+      () => {
+        expect(screen.queryByText('読み込み中...')).not.toBeInTheDocument()
+      },
+      { timeout: 3000 },
     )
 
     // 表示されるまで待つ
-    const lineBtn = await screen.findByRole('button', {
-      name: 'LINEでログイン',
-    })
+    const lineBtn = await screen.findByRole(
+      'button',
+      {
+        name: 'LINEでログイン',
+      },
+      { timeout: 3000 },
+    )
     expect(lineBtn).toBeInTheDocument()
   })
 
   it('設定API失敗：LINE ボタンは表示されない（サイレント）', async () => {
     // LINE認証が無効な状態（デフォルト）
-    useRuntimeConfigMock.mockReturnValue({
-      config: { is_test_user_mode: false, is_line_authentication: false },
-      isLoading: false,
-    })
+    server.use(
+      rest.get('http://localhost:8080/public/runtime-config', (_, res, ctx) =>
+        res(
+          ctx.status(200),
+          ctx.json({
+            is_test_user_mode: false,
+            is_line_authentication: false,
+            version: '1.0.0',
+          }),
+        ),
+      ),
+    )
 
-    render(
-      <MemoryRouter>
-        <SignIn />
-      </MemoryRouter>,
+    renderWithProvider(<SignIn />)
+
+    // ローディング完了を待つ
+    await waitFor(
+      () => {
+        expect(screen.queryByText('読み込み中...')).not.toBeInTheDocument()
+      },
+      { timeout: 3000 },
     )
 
     // LINE認証が無効なのでボタンは表示されない
@@ -155,112 +188,224 @@ describe('SignIn Component', () => {
 
   it('メールサインイン成功：token を保存して /mypage へ navigate、ローディング表示が戻る', async () => {
     // 設定API
-    useRuntimeConfigMock.mockReturnValue({
-      config: { is_test_user_mode: false, is_line_authentication: false },
-      isLoading: false,
-    })
-    ;(axiosInstance.post as any).mockImplementationOnce(
-      () =>
-        new Promise((resolve) =>
-          setTimeout(() => resolve({ data: { token: 't-123' } }), 50),
+    server.use(
+      rest.get('http://localhost:8080/public/runtime-config', (_, res, ctx) =>
+        res(
+          ctx.status(200),
+          ctx.json({
+            is_test_user_mode: false,
+            is_line_authentication: false,
+            version: '1.0.0',
+          }),
         ),
+      ),
     )
-    render(
-      <MemoryRouter>
-        <SignIn />
-      </MemoryRouter>,
+
+    // サインイン成功ハンドラー
+    let requestBody: any
+    server.use(
+      rest.post(
+        'http://localhost:8080/users/sign_in',
+        async (req, res, ctx) => {
+          requestBody = await req.json()
+          // リクエストインターセプターの検証：Authorizationヘッダーが付与されていないことを確認（サインイン時はトークンなし）
+          const authHeader = req.headers.get('Authorization')
+          expect(authHeader).toBeNull()
+          await new Promise((resolve) => setTimeout(resolve, 50))
+          return res(ctx.status(200), ctx.json({ token: 't-123' }))
+        },
+      ),
+    )
+
+    renderWithProvider(<SignIn />)
+
+    // ローディング完了を待つ
+    await waitFor(
+      () => {
+        expect(screen.queryByText('読み込み中...')).not.toBeInTheDocument()
+      },
+      { timeout: 3000 },
     )
 
     const user = userEvent.setup()
     await user.type(screen.getByLabelText('Email'), 'me@example.com')
     await user.type(screen.getByLabelText('Password'), 'secret123')
 
-    await user.click(screen.getByRole('button', { name: 'メールでサインイン' }))
+    const submitButton = screen.getByRole('button', {
+      name: 'メールでサインイン',
+    })
+    await user.click(submitButton)
 
     // ← ここで loading が描画される猶予ができる
     expect(
-      await screen.findByRole('button', { name: 'サインイン中…' }),
+      await screen.findByRole(
+        'button',
+        { name: 'サインイン中…' },
+        { timeout: 3000 },
+      ),
     ).toBeInTheDocument()
 
-    await waitFor(() =>
-      expect(axiosInstance.post).toHaveBeenCalledWith('/users/sign_in', {
-        email: 'me@example.com',
-        password: 'secret123',
-      }),
+    // リクエストボディの検証
+    await waitFor(
+      () => {
+        expect(requestBody).toEqual({
+          email: 'me@example.com',
+          password: 'secret123',
+        })
+      },
+      { timeout: 3000 },
     )
 
-    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/mypage'))
+    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/mypage'), {
+      timeout: 3000,
+    })
     expect(localStorage.getItem('token')).toBe('t-123')
 
     // 最終的に文言が戻る
-    await screen.findByRole('button', { name: 'メールでサインイン' })
+    await screen.findByRole(
+      'button',
+      { name: 'メールでサインイン' },
+      { timeout: 3000 },
+    )
   })
 
   it('メールサインイン失敗（サーバーから message あり）：その文言を表示し、ローディング解除', async () => {
-    useRuntimeConfigMock.mockReturnValue({
-      config: { is_test_user_mode: false, is_line_authentication: false },
-      isLoading: false,
-    })
-    ;(axiosInstance.post as any).mockRejectedValueOnce({
-      response: { data: { message: 'ユーザーが存在しません' } },
-    })
+    server.use(
+      rest.get('http://localhost:8080/public/runtime-config', (_, res, ctx) =>
+        res(
+          ctx.status(200),
+          ctx.json({
+            is_test_user_mode: false,
+            is_line_authentication: false,
+            version: '1.0.0',
+          }),
+        ),
+      ),
+    )
 
-    render(
-      <MemoryRouter>
-        <SignIn />
-      </MemoryRouter>,
+    // サインイン失敗ハンドラー（メッセージあり）
+    server.use(
+      rest.post(
+        'http://localhost:8080/users/sign_in',
+        async (req, res, ctx) => {
+          // axiosのエラーハンドリングに合わせて、エラーレスポンスの構造を正しく設定
+          return res(
+            ctx.status(401),
+            ctx.json({ message: 'ユーザーが存在しません' }),
+          )
+        },
+      ),
+    )
+
+    renderWithProvider(<SignIn />)
+
+    // ローディング完了を待つ
+    await waitFor(
+      () => {
+        expect(screen.queryByText('読み込み中...')).not.toBeInTheDocument()
+      },
+      { timeout: 3000 },
     )
 
     const user = await typeCredentials('ng@example.com', 'wrong')
     await user.click(screen.getByRole('button', { name: 'メールでサインイン' }))
 
-    // エラーメッセージ
+    // エラーメッセージ（タイムアウトを長めに設定）
     expect(
-      await screen.findByText('ユーザーが存在しません'),
+      await screen.findByText('ユーザーが存在しません', {}, { timeout: 3000 }),
     ).toBeInTheDocument()
 
     // ローディング解除
-    await screen.findByRole('button', { name: 'メールでサインイン' })
+    await screen.findByRole(
+      'button',
+      { name: 'メールでサインイン' },
+      { timeout: 3000 },
+    )
     expect(navigateMock).not.toHaveBeenCalled()
     expect(localStorage.getItem('token')).toBeNull()
   })
 
   it('メールサインイン失敗（message なし）：デフォルト文言を表示', async () => {
-    useRuntimeConfigMock.mockReturnValue({
-      config: { is_test_user_mode: false, is_line_authentication: true },
-      isLoading: false,
-    })
-    ;(axiosInstance.post as any).mockRejectedValueOnce(new Error('boom'))
+    server.use(
+      rest.get('http://localhost:8080/public/runtime-config', (_, res, ctx) =>
+        res(
+          ctx.status(200),
+          ctx.json({
+            is_test_user_mode: false,
+            is_line_authentication: true,
+            version: '1.0.0',
+          }),
+        ),
+      ),
+    )
 
-    render(
-      <MemoryRouter>
-        <SignIn />
-      </MemoryRouter>,
+    // サインイン失敗ハンドラー（メッセージなし）
+    server.use(
+      rest.post(
+        'http://localhost:8080/users/sign_in',
+        async (req, res, ctx) => {
+          return res(ctx.status(500), ctx.json({}))
+        },
+      ),
+    )
+
+    renderWithProvider(<SignIn />)
+
+    // ローディング完了を待つ
+    await waitFor(
+      () => {
+        expect(screen.queryByText('読み込み中...')).not.toBeInTheDocument()
+      },
+      { timeout: 3000 },
     )
 
     const user = await typeCredentials('x@example.com', 'xxx')
     await user.click(screen.getByRole('button', { name: 'メールでサインイン' }))
 
     expect(
-      await screen.findByText('サインインに失敗しました'),
+      await screen.findByText(
+        'サインインに失敗しました',
+        {},
+        { timeout: 3000 },
+      ),
     ).toBeInTheDocument()
-    await screen.findByRole('button', { name: 'メールでサインイン' })
+    await screen.findByRole(
+      'button',
+      { name: 'メールでサインイン' },
+      { timeout: 3000 },
+    )
     expect(navigateMock).not.toHaveBeenCalled()
   })
 
   it('LINEでログイン：クリックで window.location.href が LINE ログイン URL に変わる', async () => {
-    useRuntimeConfigMock.mockReturnValue({
-      config: { is_test_user_mode: false, is_line_authentication: true },
-      isLoading: false,
-    })
-
-    render(
-      <MemoryRouter>
-        <SignIn />
-      </MemoryRouter>,
+    server.use(
+      rest.get('http://localhost:8080/public/runtime-config', (_, res, ctx) =>
+        res(
+          ctx.status(200),
+          ctx.json({
+            is_test_user_mode: false,
+            is_line_authentication: true,
+            version: '1.0.0',
+          }),
+        ),
+      ),
     )
 
-    const btn = await screen.findByRole('button', { name: 'LINEでログイン' })
+    renderWithProvider(<SignIn />)
+
+    // ローディング完了を待つ
+    await waitFor(
+      () => {
+        expect(screen.queryByText('読み込み中...')).not.toBeInTheDocument()
+      },
+      { timeout: 3000 },
+    )
+
+    const btn = await screen.findByRole(
+      'button',
+      { name: 'LINEでログイン' },
+      { timeout: 3000 },
+    )
     const user = userEvent.setup()
     await user.click(btn)
 
@@ -269,16 +414,28 @@ describe('SignIn Component', () => {
     )
   })
 
-  it('サインアップ導線：/sign_up リンクがある', () => {
-    useRuntimeConfigMock.mockReturnValue({
-      config: { is_test_user_mode: false, is_line_authentication: false },
-      isLoading: false,
-    })
+  it('サインアップ導線：/sign_up リンクがある', async () => {
+    server.use(
+      rest.get('http://localhost:8080/public/runtime-config', (_, res, ctx) =>
+        res(
+          ctx.status(200),
+          ctx.json({
+            is_test_user_mode: false,
+            is_line_authentication: false,
+            version: '1.0.0',
+          }),
+        ),
+      ),
+    )
 
-    render(
-      <MemoryRouter>
-        <SignIn />
-      </MemoryRouter>,
+    renderWithProvider(<SignIn />)
+
+    // ローディング完了を待つ
+    await waitFor(
+      () => {
+        expect(screen.queryByText('読み込み中...')).not.toBeInTheDocument()
+      },
+      { timeout: 3000 },
     )
 
     const link = screen.getByRole('link', { name: 'サインアップ' })

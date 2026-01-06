@@ -5,7 +5,7 @@ import {
   applyDefaultApiMocks,
   AuthScenario,
   overrideAuthOnPage,
-} from './mocks/routeMocks.ts'
+} from '../mocks/routeMocks.ts'
 
 type Fixtures = {
   useAuthMock: (scenario?: AuthScenario) => Promise<void>
